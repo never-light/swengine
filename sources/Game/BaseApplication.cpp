@@ -1,4 +1,5 @@
 #include <iostream>
+#include <experimental\filesystem>
 
 #include "BaseApplication.h"
 #include <Windows.h>
@@ -44,6 +45,11 @@ void BaseApplication::draw() {
 }
 
 void BaseApplication::initialize(const std::string& windowName, unsigned int width, unsigned int height) {
+	using std::experimental::filesystem::path;
+	using std::experimental::filesystem::current_path;
+
+	current_path(current_path().parent_path());
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
