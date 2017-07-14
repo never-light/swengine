@@ -2,6 +2,7 @@
 
 #include "BaseApplication.h"
 #include "PlayerSpaceshipController.h"
+#include "AsteroidsController.h"
 
 class Application : public BaseApplication {
 public:
@@ -19,4 +20,5 @@ private:
 
 private:
 	PlayerSpaceshipController m_playerSpaceshipController;
+	AsteroidsController m_asteroidsController;
 };

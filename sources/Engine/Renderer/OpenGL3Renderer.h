@@ -10,7 +10,7 @@ public:
 	OpenGL3Renderer(Window*);
 	~OpenGL3Renderer();
 
-	void drawSprite(Sprite*);
+	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float);
 	void beginRendering(Color);
 	void endRendering();
 

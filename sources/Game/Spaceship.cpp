@@ -1,6 +1,7 @@
 #include "Spaceship.h"
 
-Spaceship::Spaceship(Sprite* spaceshipSprite) : m_spaceshipSprite(spaceshipSprite) {
+Spaceship::Spaceship(Sprite* spaceshipSprite, const glm::vec2& size) 
+	: m_spaceshipSprite(spaceshipSprite), m_size(size) {
 
 }
 
@@ -8,26 +9,10 @@ Spaceship::~Spaceship() {
 
 }
 
-void Spaceship::initialize() {
-	m_spaceshipSprite->setSize({ 100, 100 });
-}
-
 void Spaceship::draw(Renderer* renderer) {
-	renderer->drawSprite(m_spaceshipSprite);
+	renderer->drawSprite(m_spaceshipSprite, m_position, m_size, m_rotation);
 }
 
-void Spaceship::shutdown() {
-
-}
-
-void Spaceship::setPosition(const glm::vec2& position) {
-	m_spaceshipSprite->setPosition(position);
-}
-
-glm::vec2 Spaceship::getPosition() const {
-	return m_spaceshipSprite->getPosition();
-}
-
-void Spaceship::move(const glm::vec2& movement) {
-	m_spaceshipSprite->setPosition(m_spaceshipSprite->getPosition() + movement);
+glm::vec2 Spaceship::getSize() const {
+	return m_size;
 }

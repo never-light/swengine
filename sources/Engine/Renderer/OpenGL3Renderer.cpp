@@ -19,14 +19,23 @@ void OpenGL3Renderer::endRendering() {
 	glfwSwapBuffers(m_window->getWindowPointer());
 }
 
-void OpenGL3Renderer::drawSprite(Sprite* sprite) {
+void OpenGL3Renderer::drawSprite(Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+	glm::mat4 transformationMatrix;
+	transformationMatrix = glm::translate(transformationMatrix, glm::vec3(position, 0.0f));
+	transformationMatrix = glm::rotate(transformationMatrix, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	transformationMatrix = glm::scale(transformationMatrix, glm::vec3(size, 1.0f));
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sprite->getTexture()->getTexturePointer());
 
 	glUseProgram(sprite->getShader()->getShaderPointer());
 	sprite->getShader()->setInteger("spriteTexture", 0);
 	sprite->getShader()->setMatrix4("projection", m_projectionMatrix);
-	sprite->getShader()->setMatrix4("model", sprite->getTransformationMatrix());
+	sprite->getShader()->setMatrix4("model", transformationMatrix);
 
 	glBindVertexArray(sprite->getVertexArrayPointer());
 	glDrawArrays(GL_TRIANGLES, 0, 6);

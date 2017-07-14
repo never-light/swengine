@@ -5,7 +5,27 @@ ResourceManager::ResourceManager() {
 }
 
 ResourceManager::~ResourceManager() {
-	
+	{
+		auto itr = m_spritesMap.begin();
+		while (itr != m_spritesMap.end()) {
+			delete itr->second;
+			itr = m_spritesMap.erase(itr);
+		}
+	}
+	{
+		auto itr = m_shadersMap.begin();
+		while (itr != m_shadersMap.end()) {
+			delete itr->second;
+			itr = m_shadersMap.erase(itr);
+		}
+	}
+	{
+		auto itr = m_texturesMap.begin();
+		while (itr != m_texturesMap.end()) {
+			delete itr->second;
+			itr = m_texturesMap.erase(itr);
+		}
+	}
 }
 
 Texture* ResourceManager::loadTexture(const std::string& filename) {
@@ -42,7 +62,6 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 	Sprite* sprite = new Sprite();
 	sprite->setTexture(loadTexture(filename));
 	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
-	sprite->setSize({sprite->getTexture()->getWidth(), sprite->getTexture()->getHeight()});
 
 	m_spritesMap.insert(std::make_pair(filename, sprite));
 

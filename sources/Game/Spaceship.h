@@ -1,21 +1,18 @@
 #pragma once
 
+#include "Entity.h"
 #include "../Engine/Renderer/OpenGL3Sprite.h"
-#include "../Engine/Renderer/OpenGL3Renderer.h"
-#include "Math.h"
+#include "../Engine/Math.h"
 
-class Spaceship {
+class Spaceship : public Entity {
 public:
-	Spaceship(Sprite*);
+	Spaceship(Sprite*, const glm::vec2&);
 	~Spaceship();
 
-	void initialize();
 	void draw(Renderer*);
-	void shutdown();
 
-	void setPosition(const glm::vec2&);
-	glm::vec2 getPosition() const;
-	void move(const glm::vec2&);
+	glm::vec2 getSize() const;
 private:
 	Sprite* m_spaceshipSprite;
+	glm::vec2 m_size;
 };

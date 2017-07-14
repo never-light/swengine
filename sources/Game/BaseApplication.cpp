@@ -3,6 +3,7 @@
 
 #include "BaseApplication.h"
 #include <Windows.h>
+#include "config.h"
 
 BaseApplication::BaseApplication() 
 	: m_window(nullptr), m_renderer(nullptr) {
@@ -14,7 +15,7 @@ BaseApplication::~BaseApplication() {
 }
 
 void BaseApplication::run() {
-	const int FRAMES_PER_SECOND = 30;
+	const int FRAMES_PER_SECOND = GAME_SPEED;
 	const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
 
 	unsigned long nextTick = GetTickCount();
@@ -49,6 +50,8 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 	using std::experimental::filesystem::current_path;
 
 	current_path(current_path().parent_path());
+
+	Random::initialize();
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

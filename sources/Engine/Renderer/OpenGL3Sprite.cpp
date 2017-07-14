@@ -51,36 +51,3 @@ const Texture* OpenGL3Sprite::getTexture() const {
 GLuint OpenGL3Sprite::getVertexArrayPointer() const {
 	return m_VertexArrayObject;
 }
-
-glm::vec2 OpenGL3Sprite::getPosition() const {
-	return m_position;
-}
-
-void OpenGL3Sprite::setPosition(const glm::vec2& position) {
-	m_position = position;
-}
-
-void OpenGL3Sprite::move(const glm::vec2& movement) {
-	m_position += movement;
-}
-
-glm::vec2 OpenGL3Sprite::getSize() const {
-	return m_size;
-}
-
-void OpenGL3Sprite::setSize(const glm::vec2& size) {
-	m_size = size;
-}
-
-glm::mat4 OpenGL3Sprite::getTransformationMatrix() const {
-	glm::mat4 matrix;
-	matrix = glm::translate(matrix, glm::vec3(m_position, 0.0f));
-
-	//matrix = glm::translate(matrix, glm::vec3(0.5f * m_size.x, 0.5f * m_size.y, 0.0f));
-	//matrix = glm::rotate(matrix, 45.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-	//matrix = glm::translate(matrix, glm::vec3(-0.5f * m_size.x, -0.5f * m_size.y, 0.0f));
-
-	matrix = glm::scale(matrix, glm::vec3(m_size, 1.0f));
-
-	return matrix;
-}

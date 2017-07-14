@@ -31,7 +31,7 @@ void OpenGL3Texture::loadFromFile(const std::string& filename) {
 	unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &nrChannels, STBI_rgb_alpha);
 
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
