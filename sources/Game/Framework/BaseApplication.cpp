@@ -3,7 +3,7 @@
 
 #include "BaseApplication.h"
 #include <Windows.h>
-#include "config.h"
+#include "../config.h"
 
 BaseApplication::BaseApplication() 
 	: m_window(nullptr), m_renderer(nullptr) {
@@ -66,6 +66,7 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 	}
 
 	m_renderer = new Renderer(m_window);
+	m_renderer->setProjectionMatrix(glm::ortho(0.0f, static_cast<float>(WIDTH_VALUE), static_cast<float>(HEIGHT_VALUE), 0.0f));
 
 	glfwSetWindowUserPointer(m_window->getWindowPointer(), this);
 	glfwSetKeyCallback(m_window->getWindowPointer(), keyCallback);
@@ -85,9 +86,7 @@ void BaseApplication::shutdown() {
 }
 
 void BaseApplication::onKeyPress(int key) {
-	if (key == GLFW_KEY_ESCAPE) {
-		m_window->close();
-	}
+
 }
 
 void BaseApplication::update() {

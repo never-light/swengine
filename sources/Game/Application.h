@@ -1,8 +1,7 @@
 #pragma once
 
-#include "BaseApplication.h"
-#include "PlayerSpaceshipController.h"
-#include "AsteroidsController.h"
+#include "Framework/BaseApplication.h"
+#include "States/StateManager.h"
 
 class Application : public BaseApplication {
 public:
@@ -19,6 +18,5 @@ private:
 	Application(const Application&);
 
 private:
-	PlayerSpaceshipController m_playerSpaceshipController;
-	AsteroidsController m_asteroidsController;
+	StateManager* m_stateMgr;
 };

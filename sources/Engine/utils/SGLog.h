@@ -12,7 +12,6 @@ public:
 	SGLog(const SGLog&);
 	~SGLog();
 
-	// accepts just about anything
 	template<class T>
 	SGLog &operator<<(const T &x) {
 		this->m_stream << x;
