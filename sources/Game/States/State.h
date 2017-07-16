@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Engine/Engine.h"
+#include <Engine\Engine.h>
 
 enum StateStatus {
 	STATE_ACTIVE, STATE_PASSIVE, STATE_IS_WAITING_CHANGE

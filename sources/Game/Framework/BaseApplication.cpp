@@ -1,7 +1,7 @@
+#include "BaseApplication.h"
+
 #include <iostream>
 #include <experimental\filesystem>
-
-#include "BaseApplication.h"
 #include <Windows.h>
 #include "../config.h"
 
@@ -11,7 +11,7 @@ BaseApplication::BaseApplication()
 }
 
 BaseApplication::~BaseApplication() {
-	shutdown();
+
 }
 
 void BaseApplication::run() {
@@ -76,13 +76,13 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 }
 
 void BaseApplication::shutdown() {
+	delete m_inputMgr;
+	delete m_resMgr;
+
+	delete m_renderer;
+	delete m_window;
+
 	glfwTerminate();
-
-	sgFree(m_inputMgr);
-	sgFree(m_resMgr);
-
-	sgFree(m_renderer);
-	sgFree(m_window);
 }
 
 void BaseApplication::onKeyPress(int key) {

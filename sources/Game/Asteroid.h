@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Entity.h"
-#include "../Engine/Renderer/OpenGL3Sprite.h"
-#include "../Engine/Math.h"
 
 class Asteroid : public Entity {
 public:

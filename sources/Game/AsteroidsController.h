@@ -4,10 +4,10 @@
 #include <list>
 #include <vector>
 
-#include "../Engine/ResourceManager/ResourceManager.h"
-#include "../Engine/InputManager/InputManager.h"
-#include "../Engine/Renderer/OpenGL3Renderer.h"
-#include "../Engine/Math.h"
+#include <Engine\Components\Math\Math.h>
+#include <Engine\Components\ResourceManager\ResourceManager.h>
+#include <Engine\Components\InputManager\InputManager.h>
+#include <Engine\Components\Graphics\Graphics.h>
 
 #include "Asteroid.h"
 

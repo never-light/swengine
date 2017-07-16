@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Engine/Math.h"
-#include "../Engine/Renderer/OpenGL3Renderer.h"
+#include <Engine\Components\Math\Math.h>
+#include <Engine\Components\Graphics\Graphics.h>
 
 class Entity {
 public:
