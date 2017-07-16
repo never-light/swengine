@@ -42,47 +42,62 @@ void OpenGL3Shader::loadFromFile(const std::string& filename) {
 
 	GLuint vertexShader, fragmentShader;
 	int success;
-	char infoLog[512];
 
-	// Загрузка вершинного шейдера
+	// Г‡Г ГЈГ°ГіГ§ГЄГ  ГўГҐГ°ГёГЁГ­Г­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
 	const char* vertexShaderCode = vertexShaderCodeString.c_str();
 
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
 	glCompileShader(vertexShader);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		errlog() << "Ошибка загрузки вершинного шейдера <" << infoLog << ">";
-	}
+	this->checkLoadingShaderError(vertexShader);
 
-	// Загрузка фрагментного шейдера
+	// Г‡Г ГЈГ°ГіГ§ГЄГ  ГґГ°Г ГЈГ¬ГҐГ­ГІГ­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
 	const char* fragmentShaderCode = fragmentShaderCodeString.c_str();
 
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
 	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		errlog() << "Ошибка загрузки фрагментного шейдера <" << infoLog << ">";
-	}
+	//Chek Errors
+	this->checkLoadingShaderError(fragmentShader);
 
 	this->m_programId = glCreateProgram();
+
 	glAttachShader(this->m_programId, vertexShader);
 	glAttachShader(this->m_programId, fragmentShader);
 	glLinkProgram(this->m_programId);
 
-	glGetProgramiv(this->m_programId, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(this->m_programId, 512, NULL, infoLog);
-		errlog() << "Ошибка линковки шейдерной программы <" << infoLog << ">";
-	}
+	this->checkCreatingShaderProgramError(this->m_programId);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+}
+
+void OpenGL3Shader::checkLoadingShaderError(GLuint shader) {
+	int compileStatus;
+
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+
+	if (!compileStatus) {
+		char infoLog[512];
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+
+		errlog() << infoLog;
+	}
+
+}
+
+void OpenGL3Shader::checkCreatingShaderProgramError(shaderId program) {
+	int linkStatus;
+
+	glGetShaderiv(program, GL_LINK_STATUS, &linkStatus);
+
+	if (!linkStatus) {
+		char infoLog[512];
+		glGetProgramInfoLog(program, 512, NULL, infoLog);
+
+		errlog() << infoLog;
+	}
 }
 
 void OpenGL3Shader::unload() {

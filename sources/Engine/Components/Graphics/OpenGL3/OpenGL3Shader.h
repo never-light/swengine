@@ -4,6 +4,7 @@
 
 #include <Engine\Components\Math\Math.h>
 #include "OpenGL3.h"
+	
 
 typedef GLuint shaderId;
 
@@ -20,6 +21,12 @@ public:
 	void setInteger(const std::string&, int) const;
 	void setMatrix4(const std::string&, const glm::mat4&) const;
 	void setVector3(const std::string&, const glm::vec3&) const;
+
 private:
+	void checkLoadingShaderError(GLuint);
+	void checkCreatingShaderProgramError(shaderId);
+
 	shaderId m_programId;
 };
+
+typedef OpenGL3Shader Shader;
