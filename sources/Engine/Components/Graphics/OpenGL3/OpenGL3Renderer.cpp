@@ -2,7 +2,10 @@
 #include <Engine\Components\Debugging\Log.h>
 
 OpenGL3Renderer::OpenGL3Renderer(Window* window) : m_window(window) {
-
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+		std::cout << "Failed to initialize GLEW" << std::endl;
+	}
 }
 
 OpenGL3Renderer::~OpenGL3Renderer() {

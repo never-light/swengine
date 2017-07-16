@@ -53,17 +53,7 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 
 	Random::initialize();
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	glfwInit();
-
 	m_window = new Window(windowName, width, height);
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK) {
-		std::cout << "Failed to initialize GLEW" << std::endl;
-	}
 
 	m_renderer = new Renderer(m_window);
 	m_renderer->setProjectionMatrix(glm::ortho(0.0f, static_cast<float>(WIDTH_VALUE), static_cast<float>(HEIGHT_VALUE), 0.0f));
