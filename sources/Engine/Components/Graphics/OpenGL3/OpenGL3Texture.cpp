@@ -1,7 +1,7 @@
 #include "OpenGL3Texture.h"
 
 #include <iostream>
-#include "../utils/utils.h"
+#include <Engine\Components\Debugging\Log.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

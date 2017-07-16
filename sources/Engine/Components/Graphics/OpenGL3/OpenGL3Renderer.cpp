@@ -1,6 +1,5 @@
 #include "OpenGL3Renderer.h"
-#include "OpenGL3Window.h"
-#include "../utils/utils.h"
+#include <Engine\Components\Debugging\Log.h>
 
 OpenGL3Renderer::OpenGL3Renderer(Window* window) : m_window(window) {
 
@@ -10,7 +9,7 @@ OpenGL3Renderer::~OpenGL3Renderer() {
 
 }
 
-void OpenGL3Renderer::beginRendering(Color clearColor) {
+void OpenGL3Renderer::beginRendering(OpenGL3Color clearColor) {
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -19,7 +18,7 @@ void OpenGL3Renderer::endRendering() {
 	glfwSwapBuffers(m_window->getWindowPointer());
 }
 
-void OpenGL3Renderer::drawSprite(Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
+void OpenGL3Renderer::drawSprite(OpenGL3Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

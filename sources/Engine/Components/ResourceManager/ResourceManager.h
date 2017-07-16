@@ -3,10 +3,9 @@
 #include <string>
 #include <map>
 
-#include "../Renderer/OpenGL3Texture.h"
-#include "../Renderer/OpenGL3Shader.h"
-#include "../Renderer/OpenGL3Sprite.h"
-
+#include <Engine\Components\Graphics\Texture.h>
+#include <Engine\Components\Graphics\Shader.h>
+#include <Engine\Components\Graphics\Sprite.h>
 
 class ResourceManager {
 public:

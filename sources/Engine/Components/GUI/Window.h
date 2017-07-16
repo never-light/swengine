@@ -1,12 +1,15 @@
 #pragma once
 
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <string>
 
-class OpenGL3Window {
+class Window {
 public:
-	OpenGL3Window(const std::string&, int, int);
-	~OpenGL3Window();
+	Window(const std::string&, int, int);
+	~Window();
 
 	GLFWwindow* getWindowPointer() const;
 	bool shouldClose() const;
@@ -15,5 +18,3 @@ public:
 private:
 	GLFWwindow* m_WindowPointer;
 };
-
-typedef OpenGL3Window Window;

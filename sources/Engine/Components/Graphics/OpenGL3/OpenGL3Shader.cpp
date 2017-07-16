@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <iostream>
-#include "../utils/utils.h"
+#include <Engine\Components\Debugging\Log.h>
 
 enum ReadShaderCodeState {
 	READ_UNDEFINED_SHADER_CODE, READ_VERTEX_SHADER_CODE, READ_FRAGMENT_SHADER_CODE

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+
+#include <Engine\Components\Math\Math.h>
 #include "OpenGL3.h"
-#include "../Math.h"
 
 typedef GLuint shaderId;
 
@@ -22,5 +23,3 @@ public:
 private:
 	shaderId m_programId;
 };
-
-typedef OpenGL3Shader Shader;

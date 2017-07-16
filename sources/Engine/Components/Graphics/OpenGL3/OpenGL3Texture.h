@@ -1,7 +1,7 @@
 #pragma once
 
-#include "OpenGL3.h"
 #include <string>
+#include "OpenGL3.h"
 
 typedef GLuint textureId;
 
@@ -23,5 +23,3 @@ private:
 	int m_width;
 	int m_height;
 };
-
-typedef OpenGL3Texture Texture;

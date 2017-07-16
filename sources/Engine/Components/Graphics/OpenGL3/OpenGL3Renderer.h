@@ -1,17 +1,18 @@
 #pragma once
 
+#include <Engine\Components\Math\Math.h>
+#include "OpenGL3.h"
+#include <Engine\Components\GUI\Window.h>
 #include "OpenGL3Color.h"
-#include "OpenGL3Window.h"
 #include "OpenGL3Sprite.h"
-#include "Math.h"
 
 class OpenGL3Renderer {
 public:
 	OpenGL3Renderer(Window*);
 	~OpenGL3Renderer();
 
-	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float);
-	void beginRendering(Color);
+	void drawSprite(OpenGL3Sprite*, const glm::vec2&, const glm::vec2&, float);
+	void beginRendering(OpenGL3Color);
 	void endRendering();
 
 	void setViewMatrix(const glm::mat4&);
@@ -25,5 +26,3 @@ private:
 	glm::mat4 m_projectionMatrix;
 	glm::mat4 m_viewMatrix;
 };
-
-typedef OpenGL3Renderer Renderer;

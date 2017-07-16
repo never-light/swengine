@@ -1,5 +1,5 @@
 #include "OpenGL3Sprite.h"
-#include "../utils/utils.h"
+#include <Engine\Components\Debugging\Log.h>
 
 OpenGL3Sprite::OpenGL3Sprite() 
 	: m_texture(nullptr), m_VertexArrayObject(NULL), m_VertexBufferObject(NULL) {
@@ -27,25 +27,24 @@ OpenGL3Sprite::OpenGL3Sprite()
 }
 
 OpenGL3Sprite::~OpenGL3Sprite() {
-	infolog() << "Спрайт выгружен";
 	glDeleteVertexArrays(1, &m_VertexArrayObject);
 	glDeleteBuffers(1, &m_VertexBufferObject);
 }
 
-void OpenGL3Sprite::setTexture(const Texture* texture) {
+void OpenGL3Sprite::setTexture(const OpenGL3Texture* texture) {
 	m_texture = texture;
 }
 
-void OpenGL3Sprite::setShader(Shader* shader) {
+const OpenGL3Texture* OpenGL3Sprite::getTexture() const {
+	return m_texture;
+}
+
+void OpenGL3Sprite::setShader(OpenGL3Shader* shader) {
 	m_shaderProgram = shader;
 }
 
-Shader* OpenGL3Sprite::getShader() const {
+OpenGL3Shader* OpenGL3Sprite::getShader() const {
 	return m_shaderProgram;
-}
-
-const Texture* OpenGL3Sprite::getTexture() const {
-	return m_texture;
 }
 
 GLuint OpenGL3Sprite::getVertexArrayPointer() const {

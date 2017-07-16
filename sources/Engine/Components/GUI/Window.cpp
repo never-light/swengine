@@ -1,13 +1,14 @@
-#include "OpenGL3Window.h"
+#include "Window.h"
 #include <iostream>
+#include <Engine\Components\Debugging\Log.h>
 
-OpenGL3Window::OpenGL3Window(const std::string& title, int width, int height) {
+Window::Window(const std::string& title, int width, int height) {
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
 	this->m_WindowPointer = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	if (!this->m_WindowPointer) {
-		std::cout << "Failed to create GLFW window" << std::endl;
+		errlog() << "Failed to create GLFW window";
 		glfwTerminate();
 	}
 
@@ -17,18 +18,18 @@ OpenGL3Window::OpenGL3Window(const std::string& title, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-OpenGL3Window::~OpenGL3Window() {
+Window::~Window() {
 
 }
 
-GLFWwindow* OpenGL3Window::getWindowPointer() const {
+GLFWwindow* Window::getWindowPointer() const {
 	return m_WindowPointer;
 }
 
-bool OpenGL3Window::shouldClose() const {
+bool Window::shouldClose() const {
 	return static_cast<bool>(glfwWindowShouldClose(this->m_WindowPointer));
 }
 
-void OpenGL3Window::close() {
+void Window::close() {
 	glfwSetWindowShouldClose(this->m_WindowPointer, GL_TRUE);
 }

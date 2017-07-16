@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Renderer/OpenGL3Window.h"
+#include <Engine\Components\GUI\Window.h>
 
 class InputManager {
 public:

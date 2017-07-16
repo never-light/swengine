@@ -1,12 +1,12 @@
-#include "SGLog.h"
+#include "Log.h"
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
-SGLog::SGLog(std::ostream& stream = std::cout, SGLogType type = SGLOG_INFO) 
+Log::Log(std::ostream& stream = std::cout, LogType type = LOG_INFO)
 	: m_stream(stream), m_type(type) {
-	if (m_type == SGLOG_ERRORS) {
+	if (m_type == LOG_ERRORS) {
 		m_stream << "[ERROR]";
 	}
 
@@ -15,18 +15,18 @@ SGLog::SGLog(std::ostream& stream = std::cout, SGLogType type = SGLOG_INFO)
 	m_stream << "[" << std::put_time(std::localtime(&in_time_t), "%X") << "] ";
 }
 
-SGLog::SGLog(const SGLog& debug) : m_stream(debug.m_stream), m_type(debug.m_type) {
+Log::Log(const Log& debug) : m_stream(debug.m_stream), m_type(debug.m_type) {
 
 }
 
-SGLog::~SGLog() {
+Log::~Log() {
 	m_stream << std::endl;
 }
 
-SGLog errlog() {
-	return SGLog(std::cout, SGLOG_ERRORS);
+Log errlog() {
+	return Log(std::cout, LOG_ERRORS);
 }
 
-SGLog infolog() {
-	return SGLog(std::cout, SGLOG_INFO);
+Log infolog() {
+	return Log(std::cout, LOG_INFO);
 }
