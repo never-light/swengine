@@ -1,5 +1,7 @@
 #include "Game/Application.h"
 
+#include <Windows.h>
+
 int main() {
 	setlocale(LC_CTYPE, "Russian");
 
