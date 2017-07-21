@@ -5,3 +5,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Random.h"
+
+typedef glm::vec2 vector2;
+typedef glm::vec3 vector3;
+typedef glm::vec4 vector4;
+typedef glm::vec2 point2;
+typedef glm::vec3 point3;
+typedef glm::vec4 point4;
+typedef glm::mat2 matrix2;
+typedef glm::mat3 matrix3;
+typedef glm::mat4 matrix4;
+typedef glm::quat quaternion;
