@@ -1,7 +1,5 @@
 #pragma once
 
-#include "OpenGL3.h"
+#include <Engine\Components\Math\Math.h>
 
-struct OpenGL3Color {
-	GLfloat r, g, b, a;
-};
+typedef vector3 OpenGL3Color;

@@ -6,29 +6,30 @@
 class OpenGL3Camera {
 public:
 	OpenGL3Camera();
-	OpenGL3Camera(const vector3&);
-	OpenGL3Camera(const vector3&, const quaternion&);
-
-	~OpenGL3Camera();
+	//OpenGL3Camera(const vector3&, const vector3&, const vector3&);
+	virtual ~OpenGL3Camera();
 
 	vector3 getPosition() const;
-	quaternion getOrientation() const;
 
 	void setPosition(const vector3&);
 	void setPosition(float32, float32, float32);
 
-	void setOrientation(const quaternion&);
-
 	void move(const vector3&);
 	void move(float32, float32, float32);
 
-	void rotate(const quaternion&);
-	void rotate(float32, const vector3&);
-	void rotate(float32, float32, float32, float32);
+	void lookAt(const vector3&);
+
+	void setMaxPitchValue(float32);
+	float32 getMaxPitchValue() const;
 
 	void yaw(float32);
 	void pitch(float32);
-	void roll(float32);
+
+	matrix4 getOrientationMatrix() const;
+
+	vector3 getForwardDirection() const;
+	vector3 getRightDirection() const;
+	vector3 getUpDirection() const;
 
 	void setAspectRatio(float32);
 	float32 getAspectRatio() const;
@@ -45,8 +46,13 @@ public:
 	matrix4 getViewMatrix() const;
 	matrix4 getProjectionMatrix() const;
 private:
+	void normalizeAngles();
+
+private:
 	vector3 m_position;
-	quaternion m_orientation;
+	float32 m_yaw;
+	float32 m_pitch;
+	float32 m_maxPitchValue;
 
 	float32 m_FOVy;
 	float32 m_aspectRatio;

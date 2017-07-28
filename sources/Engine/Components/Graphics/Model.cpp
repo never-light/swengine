@@ -1,6 +1,6 @@
 #include "Model.h"
 
-Model::Model() {
+Model::Model() : m_position(0, 0, 0), m_scale(1, 1, 1) {
 
 }
 
@@ -16,20 +16,12 @@ Mesh* Model::getMesh() const {
 	return m_mesh;
 }
 
-void Model::setShader(Shader* shader) {
-	m_shader = shader;
+void Model::setMaterial(Material* material) {
+	m_material = material;
 }
 
-Shader* Model::getShader() const {
-	return m_shader;
-}
-
-void Model::setTexture(Texture* texture) {
-	m_texture = texture;
-}
-
-Texture* Model::getTexture() const {
-	return m_texture;
+Material* Model::getMaterial() const {
+	return m_material;
 }
 
 vector3 Model::getPosition() const {
@@ -68,6 +60,18 @@ void Model::rotate(float32 angle, float32 x, float32 y, float32 z) {
 	rotate(angle, vector3(x, y, z));
 }
 
+void Model::setScale(const vector3& scale) {
+	m_scale = scale;
+}
+
+vector3 Model::getScale() const {
+	return m_scale;
+}
+
+void Model::scale(const vector3& scale) {
+	m_scale *= scale;
+}
+
 matrix4 Model::getTransformationMatrix() const {
-	return glm::mat4_cast(m_orientation) * glm::translate(matrix4(), m_position);
+	return glm::mat4_cast(m_orientation) * glm::translate(matrix4(), m_position) * glm::scale(matrix4(), m_scale);
 }

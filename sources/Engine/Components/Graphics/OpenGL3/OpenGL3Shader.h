@@ -2,9 +2,12 @@
 
 #include <string>
 
+#include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include "OpenGL3.h"
-	
+#include <Engine\Components\Graphics\Color.h>
+#include "OpenGL3Texture.h"
+#include "OpenGL3Lightmap.h"
 
 typedef GLuint shaderId;
 
@@ -17,6 +20,9 @@ public:
 	void unload();
 
 	shaderId getShaderPointer() const;
+
+	template<typename ParameterType>
+	void setParameter(const std::string&, const ParameterType&);
 
 	void setInteger(const std::string&, int) const;
 	void setMatrix4(const std::string&, const glm::mat4&) const;

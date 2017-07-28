@@ -3,14 +3,14 @@
 #include <Engine\Components\Math\Math.h>
 #include <Engine\Components\Graphics\Color.h>
 
-enum LightType {
-	LIGHT_POINT
+enum class LightType {
+	Directional = 1, Point = 2, Spotlight = 3
 };
 
 class OpenGL3Light {
 public:
 	OpenGL3Light();
-	~OpenGL3Light();
+	virtual ~OpenGL3Light();
 
 	void setType(LightType);
 	LightType getType() const;
@@ -23,7 +23,7 @@ public:
 
 	void setDuffuseColor(const Color&);
 	Color getDuffuseColor() const;
-private:
+protected:
 	LightType m_type;
 
 	vector3 position;

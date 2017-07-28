@@ -3,8 +3,7 @@
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include "Mesh.h"
-#include "Texture.h"
-#include "Shader.h"
+#include "Material.h"
 
 class Model {
 public:
@@ -14,11 +13,8 @@ public:
 	void setMesh(Mesh*);
 	Mesh* getMesh() const;
 
-	void setShader(Shader*);
-	Shader* getShader() const;
-
-	void setTexture(Texture*);
-	Texture* getTexture() const;
+	void setMaterial(Material*);
+	Material* getMaterial() const;
 
 	vector3 getPosition() const;
 	quaternion getOrientation() const;
@@ -31,6 +27,10 @@ public:
 	void move(const vector3&);
 	void move(float32, float32, float32);
 
+	void setScale(const vector3&);
+	vector3 getScale() const;
+	void scale(const vector3&);
+
 	void rotate(float32, const vector3&);
 	void rotate(float32, float32, float32, float32);
 
@@ -41,6 +41,5 @@ private:
 	vector3 m_scale;
 
 	Mesh* m_mesh;
-	Shader* m_shader;
-	Texture* m_texture;
+	Material* m_material;
 };

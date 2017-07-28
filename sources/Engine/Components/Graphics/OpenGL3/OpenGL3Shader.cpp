@@ -110,6 +110,47 @@ shaderId OpenGL3Shader::getShaderPointer() const {
 	return m_programId;
 }
 
+template<typename ParameterType>
+void OpenGL3Shader::setParameter(const std::string& parameterName, const ParameterType& parameterValue) {
+
+}
+
+template<>
+void OpenGL3Shader::setParameter<bool>(const std::string& parameterName, const bool& parameterValue) {
+	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
+}
+
+template<>
+void OpenGL3Shader::setParameter<int>(const std::string& parameterName, const int& parameterValue) {
+	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
+}
+
+template<>
+void OpenGL3Shader::setParameter<float32>(const std::string& parameterName, const float& parameterValue) {
+	glUniform1f(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
+}
+
+template<>
+void OpenGL3Shader::setParameter<vector3>(const std::string& parameterName, const vector3& parameterValue) {
+	glUniform3fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, &parameterValue[0]);
+}
+
+template<>
+void OpenGL3Shader::setParameter<matrix4>(const std::string& parameterName, const matrix4& parameterValue) {
+	glUniformMatrix4fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, GL_FALSE, &parameterValue[0][0]);
+}
+
+/**template<>
+void OpenGL3Shader::setParameter<Color>(const std::string& parameterName, const Color& parameterValue) {
+	vector3 color(parameterValue.r, parameterValue.g, parameterValue.b);
+	glUniform3fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, &color[0]);
+}*/
+
+template<>
+void OpenGL3Shader::setParameter<LightmapId>(const std::string& parameterName, const LightmapId& parameterValue) {
+	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
+}
+
 void OpenGL3Shader::setInteger(const std::string& name, int value) const {
 	glUniform1i(glGetUniformLocation(m_programId, name.c_str()), value);
 }
