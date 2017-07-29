@@ -1,8 +1,6 @@
 #pragma once
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
 
 #include <string>
 
