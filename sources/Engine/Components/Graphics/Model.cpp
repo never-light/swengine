@@ -5,23 +5,25 @@ Model::Model() : m_position(0, 0, 0), m_scale(1, 1, 1) {
 }
 
 Model::~Model() {
-
+	for (SubModel* subModel : m_subModels) {
+		delete subModel;
+	}
 }
 
-void Model::setMesh(Mesh* mesh) {
-	m_mesh = mesh;
+void Model::addSubModel(SubModel* subModel) {
+	m_subModels.push_back(subModel);
 }
 
-Mesh* Model::getMesh() const {
-	return m_mesh;
+SubModel* Model::getSubModel(size_t index) const {
+	return m_subModels.at(index);
 }
 
-void Model::setMaterial(Material* material) {
-	m_material = material;
+std::vector<SubModel*> Model::getSubModels() const {
+	return m_subModels;
 }
 
-Material* Model::getMaterial() const {
-	return m_material;
+size_t Model::countSubModels() const {
+	return m_subModels.size();
 }
 
 vector3 Model::getPosition() const {

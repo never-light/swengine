@@ -59,22 +59,34 @@ void OpenGL3Renderer::drawModel(const Model* model) {
 	glDepthFunc(GL_LESS);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	bindMaterial(model->getMaterial());
 
-	Shader* shader = model->getMaterial()->getShader();
-	shader->setParameter<matrix4>("model", model->getTransformationMatrix());
+	if (model->countSubModels()) {
+		for (const SubModel* subModel : model->getSubModels()) {
+			drawSubModel(subModel);
+		}
+	}
+}
+
+void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
+	bindMaterial(subModel->getMaterial());
+
+	Shader* shader = subModel->getMaterial()->getShader();
+	shader->setParameter<matrix4>("model", subModel->getParent()->getTransformationMatrix());
 	shader->setParameter<matrix4>("view", m_currentCamera->getViewMatrix());
 	shader->setParameter<matrix4>("projection", m_currentCamera->getProjectionMatrix());
 	shader->setParameter<vector3>("cameraPosition", m_currentCamera->getPosition());
 
-	glBindVertexArray(model->getMesh()->getVertexArrayObjectPointer());
+	drawMesh(subModel->getMesh());
+}
 
-	if (model->getMesh()->getIndicesCount() > 0) {
-		glDrawElements(GL_TRIANGLES, model->getMesh()->getIndicesCount(), GL_UNSIGNED_INT, 0);
+void OpenGL3Renderer::drawMesh(const Mesh* mesh) {
+	glBindVertexArray(mesh->getVertexArrayObjectPointer());
+
+	if (mesh->getIndicesCount() > 0) {
+		glDrawElements(GL_TRIANGLES, mesh->getIndicesCount(), GL_UNSIGNED_INT, 0);
 	}
 	else {
-		glDrawArrays(GL_TRIANGLES, 0, model->getMesh()->getVerticesCount());
+		glDrawArrays(GL_TRIANGLES, 0, mesh->getVerticesCount());
 	}
 
 	glBindVertexArray(0);

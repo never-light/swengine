@@ -2,19 +2,17 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
-#include "Mesh.h"
-#include "Material.h"
+#include "SubModel.h"
 
 class Model {
 public:
 	Model();
 	~Model();
 
-	void setMesh(Mesh*);
-	Mesh* getMesh() const;
-
-	void setMaterial(Material*);
-	Material* getMaterial() const;
+	void addSubModel(SubModel*);
+	SubModel* getSubModel(size_t) const;
+	std::vector<SubModel*> getSubModels() const;
+	size_t countSubModels() const;
 
 	vector3 getPosition() const;
 	quaternion getOrientation() const;
@@ -40,6 +38,5 @@ private:
 	quaternion m_orientation;
 	vector3 m_scale;
 
-	Mesh* m_mesh;
-	Material* m_material;
+	std::vector<SubModel*> m_subModels;
 };

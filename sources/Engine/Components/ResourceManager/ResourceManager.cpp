@@ -6,6 +6,14 @@ ResourceManager::ResourceManager() {
 
 ResourceManager::~ResourceManager() {
 	{
+		auto itr = m_modelsMap.begin();
+		while (itr != m_modelsMap.end()) {
+			delete itr->second;
+			itr = m_modelsMap.erase(itr);
+		}
+	}
+
+	{
 		auto itr = m_spritesMap.begin();
 		while (itr != m_spritesMap.end()) {
 			delete itr->second;
@@ -66,4 +74,25 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 	m_spritesMap.insert(std::make_pair(filename, sprite));
 
 	return sprite;
+}
+
+Model* ResourceManager::loadModel(const std::string& filename) {
+	if (m_modelsMap.find(filename) != m_modelsMap.end()) {
+		return m_modelsMap.at(filename);
+	}
+
+	MeshLoader loader;
+	std::vector<Mesh*>& meshes = loader.load(filename);
+
+	Model* model = new Model;
+
+	for (Mesh* mesh : meshes) {
+		SubModel* subModel = new SubModel(model);
+		subModel->setMesh(mesh);
+		model->addSubModel(subModel);
+	}
+
+	m_modelsMap.insert(std::make_pair(filename, model));
+
+	return model;
 }

@@ -30,6 +30,7 @@ public:
 
 	void drawSprite(OpenGL3Sprite*, const glm::vec2&, const glm::vec2&, float);
 	void drawModel(const Model*);
+	void drawMesh(const Mesh*);
 
 	void beginRendering(OpenGL3Color);
 	void endRendering();
@@ -40,6 +41,7 @@ public:
 	void bindShader(const OpenGL3Shader*);
 	void bindTexture(const OpenGL3Texture*, size_t);
 private:
+	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);
 
 private:
