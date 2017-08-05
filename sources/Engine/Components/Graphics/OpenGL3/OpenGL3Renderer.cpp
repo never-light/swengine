@@ -71,7 +71,7 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 	bindMaterial(subModel->getMaterial());
 
 	Shader* shader = subModel->getMaterial()->getShader();
-	shader->setParameter<matrix4>("model", subModel->getParent()->getTransformationMatrix());
+	shader->setParameter<matrix4>("model", subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
 	shader->setParameter<matrix4>("view", m_currentCamera->getViewMatrix());
 	shader->setParameter<matrix4>("projection", m_currentCamera->getProjectionMatrix());
 	shader->setParameter<vector3>("cameraPosition", m_currentCamera->getPosition());

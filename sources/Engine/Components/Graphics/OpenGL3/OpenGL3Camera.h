@@ -2,30 +2,27 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
+#include <Engine\Components\SceneManager\SceneObject.h>
+#include <Engine\Components\SceneManager\SceneNode.h>
 
-class OpenGL3Camera {
+class OpenGL3Camera : public SceneObject {
 public:
 	OpenGL3Camera();
-	//OpenGL3Camera(const vector3&, const vector3&, const vector3&);
-	virtual ~OpenGL3Camera();
-
-	vector3 getPosition() const;
+	~OpenGL3Camera();
 
 	void setPosition(const vector3&);
 	void setPosition(float32, float32, float32);
-
 	void move(const vector3&);
 	void move(float32, float32, float32);
-
-	void lookAt(const vector3&);
-
-	void setMaxPitchValue(float32);
-	float32 getMaxPitchValue() const;
-
+	const vector3& getPosition() const;
+	
+	void setOrientation(const quaternion&);
+	const quaternion& getOrientation() const;
+	void rotate(const quaternion&, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
+	void rotate(const vector3&, float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
 	void yaw(float32);
 	void pitch(float32);
-
-	matrix4 getOrientationMatrix() const;
+	void roll(float32);
 
 	vector3 getForwardDirection() const;
 	vector3 getRightDirection() const;
@@ -43,16 +40,14 @@ public:
 	void setFOVy(float32);
 	float32 getFOVy() const;
 
-	matrix4 getViewMatrix() const;
+	virtual matrix4 getViewMatrix() const;
 	matrix4 getProjectionMatrix() const;
 private:
 	void normalizeAngles();
 
 private:
 	vector3 m_position;
-	float32 m_yaw;
-	float32 m_pitch;
-	float32 m_maxPitchValue;
+	quaternion m_orientation;
 
 	float32 m_FOVy;
 	float32 m_aspectRatio;

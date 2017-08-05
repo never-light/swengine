@@ -3,6 +3,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 
 #include "Random.h"
 
@@ -16,3 +20,7 @@ typedef glm::mat2 matrix2;
 typedef glm::mat3 matrix3;
 typedef glm::mat4 matrix4;
 typedef glm::quat quaternion;
+
+enum class CoordinateSystemType {
+	Local, World, Parent
+};

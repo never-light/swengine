@@ -1,8 +1,11 @@
 #include "OpenGL3Camera.h"
 
-OpenGL3Camera::OpenGL3Camera() 
-	: m_position(0.0f, 0.0f, 0.0f), m_yaw(0.0f), m_pitch(0.0f), m_maxPitchValue(90.0f) {
-
+OpenGL3Camera::OpenGL3Camera()
+	: SceneObject(SceneObjectType::Camera),
+	m_position(0.0f, 0.0f, 0.0f), 
+	m_orientation()
+{
+	m_orientation = glm::normalize(m_orientation);
 }
 
 OpenGL3Camera::~OpenGL3Camera() {
@@ -25,70 +28,71 @@ void OpenGL3Camera::move(float32 x, float32 y, float32 z) {
 	move(vector3(x, y, z));
 }
 
-vector3 OpenGL3Camera::getPosition() const {
+const vector3& OpenGL3Camera::getPosition() const {
 	return m_position;
 }
 
-void OpenGL3Camera::lookAt(const vector3& target) {
-	glm::vec3 direction = glm::normalize(target - m_position);
-	m_yaw = glm::radians(asinf(-direction.y));
-	m_pitch = -glm::radians(atan2f(-direction.x, -direction.z));
-	normalizeAngles();
+void OpenGL3Camera::setOrientation(const quaternion& orientation) {
+	m_orientation = orientation;
 }
 
-void OpenGL3Camera::setMaxPitchValue(float32 pitchValue) {
-	m_maxPitchValue = pitchValue;
+const quaternion& OpenGL3Camera::getOrientation() const {
+	return m_orientation;
 }
 
-float32 OpenGL3Camera::getMaxPitchValue() const {
-	return m_maxPitchValue;
+void OpenGL3Camera::rotate(const quaternion& rotation, CoordinateSystemType relativeTo) {
+	if (relativeTo == CoordinateSystemType::Local) {
+		m_orientation = m_orientation * glm::normalize(rotation);
+	}
+	else if (relativeTo == CoordinateSystemType::World) {
+		m_orientation = glm::normalize(rotation) * m_orientation;
+	}
+}
+
+void OpenGL3Camera::rotate(const vector3& axis, float32 angle, CoordinateSystemType relativeTo) {
+	rotate(glm::angleAxis(glm::radians(angle), axis), relativeTo);
 }
 
 void OpenGL3Camera::yaw(float32 angle) {
-	m_yaw += angle;
-	normalizeAngles();
+	rotate(vector3(0.0f, 1.0f, 0.0f), angle, CoordinateSystemType::World);
 }
 
 void OpenGL3Camera::pitch(float32 angle) {
-	m_pitch += angle;
-	normalizeAngles();
+	rotate(vector3(1.0f, 0.0f, 0.0f), angle, CoordinateSystemType::Local);
 }
 
-void OpenGL3Camera::normalizeAngles() {
-	m_yaw = fmodf(m_yaw, 360.0f);
-
-	if (m_yaw < 0.0f) {
-		m_yaw += 360.0f;
-	}
-
-	if (m_pitch > m_maxPitchValue) {
-		m_pitch = m_maxPitchValue;
-	}
-	else if (m_pitch < -m_maxPitchValue) {
-		m_pitch = -m_maxPitchValue;
-	}
-}
-
-matrix4 OpenGL3Camera::getOrientationMatrix() const {
-	matrix4 orientation;
-	orientation = glm::rotate(orientation, glm::radians(m_pitch), glm::vec3(1, 0, 0));
-	orientation = glm::rotate(orientation, glm::radians(m_yaw), glm::vec3(0, 1, 0));
-	return orientation;
+void OpenGL3Camera::roll(float32 angle) {
+	rotate(vector3(0.0f, 0.0f, 1.0f), angle, CoordinateSystemType::Local);
 }
 
 vector3 OpenGL3Camera::getForwardDirection() const {
-	vector3 forward = glm::inverse(getOrientationMatrix()) * vector4(0, 0, -1, 1);
-	return vector3(forward);
+	return m_orientation * -vector3(0, 0, 1);
 }
 
 vector3 OpenGL3Camera::getRightDirection() const {
-	vector4 right = glm::inverse(getOrientationMatrix()) * vector4(1, 0, 0, 1);
-	return vector3(right);
+	return m_orientation * vector3(1, 0, 0);
 }
 
 vector3 OpenGL3Camera::getUpDirection() const {
-	vector4 up = glm::inverse(getOrientationMatrix()) * vector4(0, 1, 0, 1);
-	return vector3(up);
+	return m_orientation * vector3(0, 1, 0);
+}
+
+matrix4 OpenGL3Camera::getViewMatrix() const {
+	vector3 position = m_position;
+	quaternion orientation = m_orientation;
+
+	if (m_parentSceneNode != nullptr) {
+		position += m_parentSceneNode->getDerivedPosition();
+		orientation *= glm::normalize(m_parentSceneNode->getDerivedOrientation());
+	}
+
+	glm::quat temp = glm::conjugate(orientation);
+
+	matrix4 viewMatrix = matrix4();
+	viewMatrix = glm::mat4_cast(temp);
+	viewMatrix = glm::translate(viewMatrix, -position);
+
+	return viewMatrix;
 }
 
 void OpenGL3Camera::setAspectRatio(float32 aspectRatio) {
@@ -121,10 +125,6 @@ void OpenGL3Camera::setFOVy(float32 FOVy) {
 
 float32 OpenGL3Camera::getFOVy() const {
 	return m_FOVy;
-}
-
-matrix4 OpenGL3Camera::getViewMatrix() const {
-	return getOrientationMatrix() * glm::translate(matrix4(), -m_position);
 }
 
 matrix4 OpenGL3Camera::getProjectionMatrix() const {
