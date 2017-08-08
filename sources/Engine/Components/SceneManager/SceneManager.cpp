@@ -8,8 +8,8 @@ SceneManager::~SceneManager() {
 	
 }
 
-void SceneManager::initialize() {
-
+void SceneManager::initialize(ResourceManager* resourceManager) {
+	m_resourceManager = resourceManager;
 }
 
 void SceneManager::shutdown() {
@@ -21,7 +21,7 @@ void SceneManager::shutdown() {
 
 Scene* SceneManager::createEmptyScene(const std::string& name) {
 	Scene* scene = new Scene();
-	scene->initialize();
+	scene->initialize(m_resourceManager);
 
 	m_scenesMap.insert(std::make_pair(name, scene));
 

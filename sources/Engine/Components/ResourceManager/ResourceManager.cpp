@@ -6,10 +6,10 @@ ResourceManager::ResourceManager() {
 
 ResourceManager::~ResourceManager() {
 	{
-		auto itr = m_modelsMap.begin();
-		while (itr != m_modelsMap.end()) {
+		auto itr = m_meshesMap.begin();
+		while (itr != m_meshesMap.end()) {
 			delete itr->second;
-			itr = m_modelsMap.erase(itr);
+			itr = m_meshesMap.erase(itr);
 		}
 	}
 
@@ -76,23 +76,21 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 	return sprite;
 }
 
-Model* ResourceManager::loadModel(const std::string& filename) {
-	if (m_modelsMap.find(filename) != m_modelsMap.end()) {
-		return m_modelsMap.at(filename);
+Mesh* ResourceManager::loadMesh(const std::string& filename) {
+	if (m_meshesMap.find(filename) != m_meshesMap.end()) {
+		return m_meshesMap.at(filename);
 	}
+
+	Mesh* mesh = new Mesh();
 
 	MeshLoader loader;
 	std::vector<Mesh*>& meshes = loader.load(filename);
 
-	Model* model = new Model;
-
-	for (Mesh* mesh : meshes) {
-		SubModel* subModel = new SubModel(model);
-		subModel->setMesh(mesh);
-		model->addSubModel(subModel);
+	for (Mesh* subMesh : meshes) {
+		mesh->addSubMesh(subMesh);
 	}
 
-	m_modelsMap.insert(std::make_pair(filename, model));
+	m_meshesMap.insert(std::make_pair(filename, mesh));
 
-	return model;
+	return mesh;
 }

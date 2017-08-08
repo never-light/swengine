@@ -21,6 +21,12 @@ OpenGL3Mesh::OpenGL3Mesh(const std::vector<Vertex>& vertices, const std::vector<
 }
 
 OpenGL3Mesh::~OpenGL3Mesh() {
+	if (m_subMeshes.size()) {
+		for (auto it = m_subMeshes.begin(); it != m_subMeshes.end(); it++) {
+			delete (*it);
+		}
+	}
+
 	if (m_vertexArrayObject) {
 		glDeleteVertexArrays(1, &m_vertexArrayObject);
 	}
@@ -32,6 +38,30 @@ OpenGL3Mesh::~OpenGL3Mesh() {
 	if (m_elementBufferObject) {
 		glDeleteBuffers(1, &m_elementBufferObject);
 	}
+}
+
+void OpenGL3Mesh::addSubMesh(OpenGL3Mesh* mesh) {
+	m_subMeshes.push_back(mesh);
+}
+
+OpenGL3Mesh* OpenGL3Mesh::getSubMesh(size_t index) {
+	return m_subMeshes.at(index);
+}
+
+const std::vector<OpenGL3Mesh*>& OpenGL3Mesh::getSubMeshesArray() const {
+	return m_subMeshes;
+}
+
+void OpenGL3Mesh::setName(const std::string& name) {
+	m_name = name;
+}
+
+const std::string& OpenGL3Mesh::getName() const {
+	return m_name;
+}
+
+bool OpenGL3Mesh::hasPreparedVertexData() const {
+	return m_vertexArrayObject != NULL;
 }
 
 void OpenGL3Mesh::addVertex(const Vertex& vertex) {

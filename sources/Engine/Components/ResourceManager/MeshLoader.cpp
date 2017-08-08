@@ -7,6 +7,7 @@ struct ModelFileHeaderData {
 };
 
 struct ModelFileMeshData {
+	char name[64];
 	std::uint32_t verticesCount;
 	std::uint32_t indicesCount;
 };
@@ -57,6 +58,7 @@ std::vector<Mesh*> MeshLoader::load(const std::string& pathToModel) {
 			mesh->addIndex(index);
 		}
 
+		mesh->setName(meshData.name);
 		mesh->updateBuffers();
 		meshes.push_back(mesh);
 	}

@@ -21,11 +21,10 @@ public:
 	Sprite* loadSprite(const std::string&);
 	Texture* loadTexture(const std::string&);
 	Shader* loadShader(const std::string&);
-	Model* loadModel(const std::string&);
-
+	Mesh* loadMesh(const std::string&);
 private:
 	std::map<std::string, Texture*> m_texturesMap;
 	std::map<std::string, Shader*> m_shadersMap;
 	std::map<std::string, Sprite*> m_spritesMap;
-	std::map<std::string, Model*> m_modelsMap;
+	std::map<std::string, Mesh*> m_meshesMap;
 };

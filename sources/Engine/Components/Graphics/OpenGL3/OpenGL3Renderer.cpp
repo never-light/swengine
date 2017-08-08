@@ -84,6 +84,10 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 }
 
 void OpenGL3Renderer::drawMesh(const Mesh* mesh) {
+	if (!mesh->hasPreparedVertexData()) {
+		return;
+	}
+
 	glBindVertexArray(mesh->getVertexArrayObjectPointer());
 
 	if (mesh->getIndicesCount() > 0) {

@@ -7,6 +7,9 @@
 #include <Engine\Components\Math\Math.h>
 #include <Engine\Components\Graphics\Light.h>
 #include <Engine\Components\Graphics\Camera.h>
+#include <Engine\Components\Graphics\Model.h>
+
+#include <Engine\Components\ResourceManager\ResourceManager.h>
 
 #include "SceneNode.h"
 
@@ -15,7 +18,7 @@ public:
 	Scene();
 	~Scene();
 
-	void initialize();
+	void initialize(ResourceManager* resourceManager);
 	void shutdown();
 
 	template<typename LightSourceType>
@@ -34,10 +37,17 @@ public:
 	Camera* createCamera(const std::string&);
 	Camera* getCamera(const std::string&);
 
+	Model* createModel(const std::string& filename, const std::string& name);
+	Model* getModel(const std::string& name);
+
 	SceneNode* getRootSceneNode() const;
 private:
 	std::unordered_map<std::string, Light*> m_lightsMap;
 	std::unordered_map<std::string, Camera*> m_camerasMap;
+	std::unordered_map<std::string, Model*> m_modelsMap;
 
 	SceneNode* m_rootSceneNode;
+
+private:
+	ResourceManager* m_resourceManager;
 };
