@@ -13,18 +13,14 @@ public:
 	virtual void initialize(const std::string&, unsigned int, unsigned int);
 	virtual void shutdown();
 	
-protected:
 	virtual void update();
-	virtual void draw();
-	virtual void onKeyPress(int);
-
-private:
-	static void keyCallback(GLFWwindow*, int, int, int, int);
+	virtual void render();
 
 protected:
 	Window* m_window;
 	Renderer* m_renderer;
 
-	ResourceManager* m_resMgr;
 	InputManager* m_inputMgr;
+	ResourceManager* m_resMgr;
+	SceneManager* m_sceneMgr;
 };

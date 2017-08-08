@@ -6,3 +6,4 @@
 #include <Engine\Components\Graphics\Graphics.h>
 #include <Engine\Components\ResourceManager\ResourceManager.h>
 #include <Engine\Components\InputManager\InputManager.h>
+#include <Engine\Components\SceneManager\SceneManager.h>

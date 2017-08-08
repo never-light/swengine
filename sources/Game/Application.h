@@ -1,22 +1,23 @@
 #pragma once
 
-#include "Framework/BaseApplication.h"
-#include "States/StateManager.h"
+#include "BaseApplication.h"
+#include "CameraController.h"
 
-class Application : public BaseApplication {
+class Application : public BaseApplication, public InputEventsListener {
 public:
 	Application();
+	~Application();
 
-	virtual ~Application();
+	void initialize(const std::string&, unsigned int, unsigned int);
+	void shutdown();
 
-	virtual void draw();
-	virtual void initialize(const std::string&, unsigned int, unsigned int);
-	virtual void shutdown();
-	virtual void update();
+	void update();
+	void render();
 private:
-	virtual void onKeyPress(int);
-	Application(const Application&);
+	void onKeyPress(int16 key, KeyEvent::Modifier mod) override;
 
 private:
-	StateManager* m_stateMgr;
+	CameraController* cameraController;
+	Scene* m_mainScene;
+	Material* m_bronzeMaterial;
 };
