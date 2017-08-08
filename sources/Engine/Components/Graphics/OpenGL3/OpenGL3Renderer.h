@@ -25,6 +25,8 @@ public:
 	OpenGL3Renderer(Window*);
 	~OpenGL3Renderer();
 
+	Window* getWindow() const;
+
 	void setCurrentCamera(OpenGL3Camera*);
 	OpenGL3Camera* getCurrentCamera() const;
 

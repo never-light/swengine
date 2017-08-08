@@ -9,3 +9,6 @@ typedef std::int32_t int32;
 typedef std::uint64_t uint64;
 typedef std::int64_t int64;
 typedef float float32;
+typedef float real;
+typedef float real32;
+typedef double real64;

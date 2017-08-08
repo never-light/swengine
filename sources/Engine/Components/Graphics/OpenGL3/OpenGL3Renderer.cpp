@@ -12,6 +12,10 @@ OpenGL3Renderer::~OpenGL3Renderer() {
 
 }
 
+Window* OpenGL3Renderer::getWindow() const {
+	return m_window;
+}
+
 void OpenGL3Renderer::setCurrentCamera(OpenGL3Camera* camera) {
 	m_currentCamera = camera;
 }
