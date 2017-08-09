@@ -6,6 +6,14 @@ ResourceManager::ResourceManager() {
 
 ResourceManager::~ResourceManager() {
 	{
+		auto itr = m_materialsMap.begin();
+		while (itr != m_materialsMap.end()) {
+			delete itr->second;
+			itr = m_materialsMap.erase(itr);
+		}
+	}
+
+	{
 		auto itr = m_meshesMap.begin();
 		while (itr != m_meshesMap.end()) {
 			delete itr->second;
@@ -93,4 +101,25 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 	m_meshesMap.insert(std::make_pair(filename, mesh));
 
 	return mesh;
+}
+
+void ResourceManager::loadMaterialsPackage(const std::string& path) {
+	MaterialLoader loader;
+	
+	auto materialsMap = loader.loadPackage(this, path);
+
+	for (auto pair : materialsMap) {
+		m_materialsMap.insert(std::make_pair(pair.first, pair.second));
+	}
+}
+
+Material* ResourceManager::createEmptyMaterial(const std::string& name) {
+	Material* material = new Material;
+	m_materialsMap.insert(std::make_pair(name, material));
+
+	return material;
+}
+
+Material* ResourceManager::getMaterial(const std::string& name) {
+	return m_materialsMap.at(name);
 }

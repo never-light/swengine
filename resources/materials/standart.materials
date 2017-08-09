@@ -1,0 +1,13 @@
+[default]
+program = "resources/shaders/diffuse.sh"
+ambientColor = color(1.0, 1.0, 1.0)
+diffuseColor = color(1.0, 1.0, 1.0)
+specularColor = color(1.0, 1.0, 1.0)
+specularLevel = 64.0
+
+[bronze]
+program = "resources/shaders/diffuse.sh"
+ambientColor = color(0.2125, 0.1275, 0.054)
+diffuseColor = color(0.714, 0.4284, 0.18144)
+specularColor = color(0.393548, 0.271906, 0.166721)
+specularLevel = 25.6
