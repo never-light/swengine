@@ -23,7 +23,7 @@ public:
 	size_t getVerticesCount() const override;
 	size_t getIndicesCount() const override;
 
-	void updateBuffers();
+	void updateState() override;
 	bool hasPreparedVertexData() const;
 	GLuint getVertexArrayObjectPointer() const;
 

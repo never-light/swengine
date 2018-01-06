@@ -10,14 +10,14 @@ OpenGL3Mesh::OpenGL3Mesh(const std::vector<Vertex>& vertices)
 	: m_vertices(vertices),
 	m_vertexArrayObject(NULL), m_vertexBufferObject(NULL), m_elementBufferObject(NULL)
 {
-	updateBuffers();
+	updateState();
 }
 
 OpenGL3Mesh::OpenGL3Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32>& indices) 
 	: m_vertices(vertices), m_indices(indices),
 	m_vertexArrayObject(NULL), m_vertexBufferObject(NULL), m_elementBufferObject(NULL) 
 {
-	updateBuffers();
+	updateState();
 }
 
 OpenGL3Mesh::~OpenGL3Mesh() {
@@ -72,7 +72,7 @@ void OpenGL3Mesh::addIndex(uint32 index) {
 	m_indices.push_back(index);
 }
 
-void OpenGL3Mesh::updateBuffers() {
+void OpenGL3Mesh::updateState() {
 	glGenVertexArrays(1, &m_vertexArrayObject);
 	glBindVertexArray(m_vertexArrayObject);
 

@@ -1,6 +1,5 @@
 #include "MeshLoader.h"
 
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3Mesh.h>
 #include <fstream>
 
 struct ModelFileHeaderData {
@@ -20,15 +19,7 @@ struct ModelFileVertexData {
 	float u, v;
 };
 
-MeshLoader::MeshLoader() {
-
-}
-
-MeshLoader::~MeshLoader() {
-
-}
-
-std::vector<Mesh*> MeshLoader::load(const std::string& pathToModel) {
+std::vector<Mesh*> MeshLoader::loadFromFile(const std::string& pathToModel) {
 	std::vector<Mesh*> meshes;
 
 	std::ifstream in(pathToModel, std::ios::binary | std::ios::in);
@@ -37,7 +28,7 @@ std::vector<Mesh*> MeshLoader::load(const std::string& pathToModel) {
 	in.read((char*)&header, sizeof header);
 
 	for (size_t i = 0; i < header.meshesCount; i++) {
-		OpenGL3Mesh* mesh = new OpenGL3Mesh();
+		Mesh* mesh = createMesh();
 
 		ModelFileMeshData meshData;
 		in.read((char*)&meshData, sizeof meshData);
@@ -61,7 +52,8 @@ std::vector<Mesh*> MeshLoader::load(const std::string& pathToModel) {
 		}
 
 		mesh->setName(meshData.name);
-		mesh->updateBuffers();
+		mesh->updateState();
+
 		meshes.push_back(mesh);
 	}
 

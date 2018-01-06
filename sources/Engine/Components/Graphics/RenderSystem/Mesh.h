@@ -20,4 +20,6 @@ public:
 
 	virtual size_t getVerticesCount() const = 0;
 	virtual size_t getIndicesCount() const = 0;
+
+	virtual void updateState() = 0;
 };

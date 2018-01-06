@@ -50,7 +50,7 @@ Cube::Cube() {
 		{ vector3(1.0f, 1.0f, 1.0f), vector2(0.0f, 1.0f), vector3(1.0f, 0.0f, 0.0f) },
 	};
 
-	updateBuffers();
+	updateState();
 }
 
 Cube::~Cube() {
