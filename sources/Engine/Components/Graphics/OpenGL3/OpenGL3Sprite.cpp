@@ -31,19 +31,19 @@ OpenGL3Sprite::~OpenGL3Sprite() {
 	glDeleteBuffers(1, &m_VertexBufferObject);
 }
 
-void OpenGL3Sprite::setTexture(const OpenGL3Texture* texture) {
-	m_texture = texture;
+void OpenGL3Sprite::setTexture(const Texture* texture) {
+	m_texture = static_cast<const OpenGL3Texture*>(texture);
 }
 
-const OpenGL3Texture* OpenGL3Sprite::getTexture() const {
+const Texture* OpenGL3Sprite::getTexture() const {
 	return m_texture;
 }
 
-void OpenGL3Sprite::setShader(OpenGL3Shader* shader) {
-	m_shaderProgram = shader;
+void OpenGL3Sprite::setShader(GpuProgram* shader) {
+	m_shaderProgram = static_cast<OpenGL3GpuProgram*>(shader);;
 }
 
-OpenGL3Shader* OpenGL3Sprite::getShader() const {
+GpuProgram* OpenGL3Sprite::getShader() const {
 	return m_shaderProgram;
 }
 

@@ -5,9 +5,10 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
-#include <Engine\Components\Graphics\Light.h>
-#include <Engine\Components\Graphics\Camera.h>
-#include <Engine\Components\Graphics\Model.h>
+#include <Engine\Components\Graphics\RenderSystem\Light.h>
+#include <Engine\Components\Graphics\RenderSystem\Camera.h>
+#include <Engine\Components\Graphics\RenderSystem\Model.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Camera.h>
 
 #include <Engine\Components\ResourceManager\ResourceManager.h>
 

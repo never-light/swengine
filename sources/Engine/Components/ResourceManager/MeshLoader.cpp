@@ -1,4 +1,6 @@
 #include "MeshLoader.h"
+
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Mesh.h>
 #include <fstream>
 
 struct ModelFileHeaderData {
@@ -35,7 +37,7 @@ std::vector<Mesh*> MeshLoader::load(const std::string& pathToModel) {
 	in.read((char*)&header, sizeof header);
 
 	for (size_t i = 0; i < header.meshesCount; i++) {
-		Mesh* mesh = new Mesh;
+		OpenGL3Mesh* mesh = new OpenGL3Mesh();
 
 		ModelFileMeshData meshData;
 		in.read((char*)&meshData, sizeof meshData);

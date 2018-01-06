@@ -4,8 +4,9 @@
 #include <unordered_map>
 
 #include <Engine\types.h>
-#include <Engine\Components\Graphics\Texture.h>
-#include <Engine\Components\Graphics\Material.h>
+#include <Engine\Components\Graphics\RenderSystem\Color.h>
+#include <Engine\Components\Graphics\RenderSystem\Texture.h>
+#include <Engine\Components\Graphics\RenderSystem\Material.h>
 
 class ResourceManager;
 

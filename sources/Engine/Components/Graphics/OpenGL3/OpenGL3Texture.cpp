@@ -6,19 +6,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-OpenGL3Texture::OpenGL3Texture() : m_textureId(NULL) {
-
-}
-
-OpenGL3Texture::~OpenGL3Texture() {
-	unload();
-}
-
-void OpenGL3Texture::loadFromFile(const std::string& filename) {
-	if (m_textureId) {
-		errlog() << "Текстура уже загружена, попытка повторной загрузки из <" << filename << ">";
-	}
-
+OpenGL3Texture::OpenGL3Texture(const std::string& filename) : m_textureId(NULL) {
 	glGenTextures(1, &this->m_textureId);
 	glBindTexture(GL_TEXTURE_2D, this->m_textureId);
 
@@ -41,7 +29,7 @@ void OpenGL3Texture::loadFromFile(const std::string& filename) {
 	stbi_image_free(data);
 }
 
-void OpenGL3Texture::unload() {
+OpenGL3Texture::~OpenGL3Texture() {
 	if (m_textureId) {
 		glDeleteTextures(1, &m_textureId);
 	}

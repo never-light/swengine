@@ -1,7 +1,7 @@
 #include "OpenGL3Camera.h"
 
-OpenGL3Camera::OpenGL3Camera()
-	: SceneObject(SceneObjectType::Camera),
+OpenGL3Camera::OpenGL3Camera() :
+	Camera(),
 	m_position(0.0f, 0.0f, 0.0f), 
 	m_orientation()
 {

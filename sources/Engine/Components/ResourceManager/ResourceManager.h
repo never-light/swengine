@@ -7,10 +7,10 @@
 #include <unordered_map>
 
 #include <Engine\types.h>
-#include <Engine\Components\Graphics\Texture.h>
-#include <Engine\Components\Graphics\Shader.h>
-#include <Engine\Components\Graphics\Sprite.h>
-#include <Engine\Components\Graphics\Model.h>
+#include <Engine\Components\Graphics\RenderSystem\Texture.h>
+#include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
+#include <Engine\Components\Graphics\RenderSystem\Sprite.h>
+#include <Engine\Components\Graphics\RenderSystem\Model.h>
 
 #include "MeshLoader.h"
 #include "MaterialLoader.h"
@@ -22,7 +22,7 @@ public:
 
 	Sprite* loadSprite(const std::string&);
 	Texture* loadTexture(const std::string&);
-	Shader* loadShader(const std::string&);
+	GpuProgram* loadShader(const std::string&);
 	Mesh* loadMesh(const std::string&);
 
 	void loadMaterialsPackage(const std::string& path);
@@ -31,7 +31,7 @@ public:
 
 private:
 	std::map<std::string, Texture*> m_texturesMap;
-	std::map<std::string, Shader*> m_shadersMap;
+	std::map<std::string, GpuProgram*> m_shadersMap;
 	std::map<std::string, Sprite*> m_spritesMap;
 	std::map<std::string, Mesh*> m_meshesMap;
 

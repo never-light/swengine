@@ -17,7 +17,7 @@ void CameraController::initialize(InputManager* inputMgr, Renderer* renderer) {
 	m_cameraSpeed = 0.15f;
 	m_mouseSensitivity = 0.15f;
 
-	m_camera = new Camera();
+	m_camera = new OpenGL3Camera();
 	m_camera->setFOVy(45.0f);
 	m_camera->setAspectRatio(
 		static_cast<float32>(m_renderer->getWindow()->getWidth()) / static_cast<float32>(m_renderer->getWindow()->getWidth())

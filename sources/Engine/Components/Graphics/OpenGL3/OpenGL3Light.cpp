@@ -39,3 +39,53 @@ void OpenGL3Light::setDuffuseColor(const Color& color) {
 Color OpenGL3Light::getDuffuseColor() const {
 	return m_diffuseColor;
 }
+
+void OpenGL3Light::setPosition(const vector3& position) {
+	m_position = position;
+}
+
+vector3 OpenGL3Light::getPosition() const {
+	return m_position;
+}
+
+void OpenGL3Light::setDirection(const vector3& direction) {
+	m_direction = direction;
+}
+
+vector3 OpenGL3Light::getDirection() const {
+	return m_direction;
+}
+
+void OpenGL3Light::setInnerAngle(float32 angle) {
+	m_innerAngle = angle;
+}
+
+float32 OpenGL3Light::getInnerAngle() const {
+	return m_innerAngle;
+}
+
+void OpenGL3Light::setOuterAngle(float32 angle) {
+	m_outerAngle = angle;
+}
+
+float32 OpenGL3Light::getOuterAngle() const {
+	return m_outerAngle;
+}
+
+void OpenGL3Light::setAttenuation(float32 constant, float32 linear, float32 quadratic) {
+	m_constant = constant;
+	m_linear = linear;
+	m_quadratic = quadratic;
+}
+
+float32 OpenGL3Light::getAttenuationConstant() const {
+	return m_constant;
+}
+
+float32 OpenGL3Light::getAttenuationLinear() const {
+	return m_linear;
+}
+
+float32 OpenGL3Light::getAttenuationQuadratic() const {
+	return m_quadratic;
+}

@@ -31,7 +31,7 @@ void Scene::shutdown() {
 }
 
 Camera* Scene::createCamera(const std::string& name) {
-	Camera* camera = new Camera();
+	Camera* camera = new OpenGL3Camera();
 	m_camerasMap.insert(std::make_pair(name, camera));
 
 	return camera;

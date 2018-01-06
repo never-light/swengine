@@ -9,6 +9,7 @@
 #include <regex>
 #include <exception>
 
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Material.h>
 
 MaterialLoader::MaterialLoader() {
 
@@ -105,7 +106,7 @@ std::unordered_map<std::string, Material*> MaterialLoader::loadPackage(ResourceM
 }
 
 Material* MaterialLoader::createMaterial(const std::string& name, const std::unordered_map<std::string, MaterialParameterValue>& parameters) {
-	Material* material = new Material;
+	Material* material = new OpenGL3Material();
 
 	setMaterialParameterIfExists(material, parameters, "program");
 	setMaterialParameterIfExists(material, parameters, "ambientColor");
@@ -144,6 +145,6 @@ void MaterialLoader::setMaterialParameterIfExists(Material* material, const std:
 		material->setLightmap(LightmapType::Specular, it->second.getTexture());
 	}
 	else if (parameterName == "program") {
-		material->setShader(m_resourceManager->loadShader(it->second.getString()));
+		material->setGpuProgram(m_resourceManager->loadShader(it->second.getString()));
 	}
 }

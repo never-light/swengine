@@ -1,37 +1,34 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <Engine\types.h>
-#include <Engine\Components\Graphics\Vertex.h>
-
+#include <Engine\Components\Graphics\RenderSystem\Mesh.h>
 #include "OpenGL3.h"
 
-class OpenGL3Mesh {
+class OpenGL3Mesh : public Mesh {
 public:
 	OpenGL3Mesh();
 	OpenGL3Mesh(const std::vector<Vertex>&);
 	OpenGL3Mesh(const std::vector<Vertex>&, const std::vector<uint32>&);
 	virtual ~OpenGL3Mesh();
 
-	void addSubMesh(OpenGL3Mesh* mesh);
-	OpenGL3Mesh* getSubMesh(size_t index);
-	const std::vector<OpenGL3Mesh*>& getSubMeshesArray() const;
+	void addSubMesh(Mesh* mesh) override;
+	Mesh* getSubMesh(size_t index) override;
+	const std::vector<Mesh*>& getSubMeshesArray() const override;
 
-	void setName(const std::string& name);
-	const std::string& getName() const;
+	void setName(const std::string& name) override;
+	const std::string& getName() const override;
 
-	bool hasPreparedVertexData() const;
+	void addVertex(const Vertex&) override;
+	void addIndex(uint32) override;
 
-	void addVertex(const Vertex&);
-	void addIndex(uint32);
+	size_t getVerticesCount() const override;
+	size_t getIndicesCount() const override;
+
 	void updateBuffers();
-
+	bool hasPreparedVertexData() const;
 	GLuint getVertexArrayObjectPointer() const;
-	size_t getVerticesCount() const;
-	size_t getIndicesCount() const;
+
 protected:
-	std::vector<OpenGL3Mesh*> m_subMeshes;
+	std::vector<Mesh*> m_subMeshes;
 
 	std::vector<Vertex> m_vertices;
 	std::vector<uint32> m_indices;

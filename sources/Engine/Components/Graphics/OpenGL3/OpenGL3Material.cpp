@@ -8,23 +8,23 @@ OpenGL3Material::~OpenGL3Material() {
 
 }
 
-void OpenGL3Material::setShader(OpenGL3Shader* shader) {
-	m_shader = shader;
+void OpenGL3Material::setGpuProgram(GpuProgram* program) {
+	m_shader = static_cast<OpenGL3GpuProgram*>(program);
 }
 
-OpenGL3Shader* OpenGL3Material::getShader() const {
+GpuProgram* OpenGL3Material::getGpuProgram() const {
 	return m_shader;
 }
 
-void OpenGL3Material::setLightmap(LightmapType type, OpenGL3Texture* lightmap) {
-	m_lightmaps[type] = lightmap;
+void OpenGL3Material::setLightmap(LightmapType type, Texture* lightmap) {
+	m_lightmaps[type] = static_cast<OpenGL3Texture*>(lightmap);;
 }
 
-OpenGL3Texture* OpenGL3Material::getLightmap(LightmapType type) const {
+Texture* OpenGL3Material::getLightmap(LightmapType type) const {
 	return m_lightmaps.at(type);
 }
 
-bool OpenGL3Material::isLightmapExists(LightmapType type) const {
+bool OpenGL3Material::hasLightmap(LightmapType type) const {
 	return m_lightmaps.find(type) != m_lightmaps.end();
 }
 

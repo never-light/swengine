@@ -25,17 +25,18 @@ void Application::initialize(const std::string& windowName, unsigned int width, 
 	m_mainScene = m_sceneMgr->createEmptyScene("main");
 
 	// Create directional light
-	auto light = m_mainScene->createLightSource<DirectionalLight>("sunLight");
+	Light* light = m_mainScene->createLightSource<OpenGL3Light>("sunLight");
+	light->setType(LightType::Directional);
 	light->setDirection({ 0, 0, -1 });
 	light->setAmbientColor({ 0.2f, 0.2f, 0.2f });
 	light->setDuffuseColor({ 1.0f, 1.0f, 1.0f });
 	light->setSpecularColor({ 1.0f, 1.0f, 1.0f });
 	
 	m_renderer->addLight(light);
-
+	
 	// Create bronze material
-	m_bronzeMaterial = new Material;
-	m_bronzeMaterial->setShader(m_resMgr->loadShader("resources/shaders/diffuse.sh"));
+	m_bronzeMaterial = m_resMgr->createEmptyMaterial("bronze");
+	m_bronzeMaterial->setGpuProgram(m_resMgr->loadShader("resources/shaders/diffuse.sh"));
 	m_bronzeMaterial->setAmbientColor({ 0.2125, 0.1275, 0.054 });
 	m_bronzeMaterial->setDuffuseColor({ 0.714, 0.4284, 0.18144 });
 	m_bronzeMaterial->setSpecularColor({ 0.393548, 0.271906, 0.166721 });
@@ -56,8 +57,6 @@ void Application::initialize(const std::string& windowName, unsigned int width, 
 
 void Application::shutdown() {
 	infolog() << "Завершение работы...";
-
-	delete m_bronzeMaterial;
 
 	cameraController->shutdown();
 	delete cameraController;

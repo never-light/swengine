@@ -4,6 +4,7 @@
 
 #include <Engine\Engine.h>
 
+
 class BaseApplication {
 public:
 	BaseApplication();

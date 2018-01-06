@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Engine\Components\InputManager\InputManager.h>
-#include <Engine\Components\Graphics\Camera.h>
-#include <Engine\Components\Graphics\Renderer.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Camera.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Renderer.h>
 
 class CameraController {
 public:

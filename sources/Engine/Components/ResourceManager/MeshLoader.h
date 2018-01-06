@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <Engine\Components\Graphics\Mesh.h>
+#include <Engine\Components\Graphics\RenderSystem\Mesh.h>
 
 class MeshLoader {
 public:

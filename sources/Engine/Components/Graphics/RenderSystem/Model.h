@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Engine\types.h>
-#include <Engine\Components\Math\Math.h>
 #include <Engine\Components\SceneManager\SceneObject.h>
-#include <Engine\Components\SceneManager\SceneNode.h>
-#include <Engine\Components\Graphics\Material.h>
+
+#include "Material.h"
 #include "SubModel.h"
 
 class Model : public SceneObject {

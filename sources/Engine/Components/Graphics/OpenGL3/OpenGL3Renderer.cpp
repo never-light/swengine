@@ -16,15 +16,15 @@ Window* OpenGL3Renderer::getWindow() const {
 	return m_window;
 }
 
-void OpenGL3Renderer::setCurrentCamera(OpenGL3Camera* camera) {
-	m_currentCamera = camera;
+void OpenGL3Renderer::setCurrentCamera(Camera* camera) {
+	m_currentCamera = static_cast<OpenGL3Camera*>(camera);
 }
 
-OpenGL3Camera* OpenGL3Renderer::getCurrentCamera() const {
+Camera* OpenGL3Renderer::getCurrentCamera() const {
 	return m_currentCamera;
 }
 
-void OpenGL3Renderer::beginRendering(OpenGL3Color clearColor) {
+void OpenGL3Renderer::beginRendering(Color clearColor) {
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -33,11 +33,13 @@ void OpenGL3Renderer::endRendering() {
 	glfwSwapBuffers(m_window->getWindowPointer());
 }
 
-void OpenGL3Renderer::addLight(OpenGL3Light* light) {
-	m_lights.push_back(light);
+void OpenGL3Renderer::addLight(Light* light) {
+	m_lights.push_back(static_cast<OpenGL3Light*>(light));
 }
 
-void OpenGL3Renderer::drawSprite(OpenGL3Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
+void OpenGL3Renderer::drawSprite(Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
+	OpenGL3Sprite* glSprite = static_cast<OpenGL3Sprite*>(sprite);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -47,14 +49,14 @@ void OpenGL3Renderer::drawSprite(OpenGL3Sprite* sprite, const glm::vec2& positio
 	transformationMatrix = glm::rotate(transformationMatrix, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	transformationMatrix = glm::scale(transformationMatrix, glm::vec3(size, 1.0f));
 
-	bindTexture(sprite->getTexture(), 0);
+	bindTexture(glSprite->getTexture(), 0);
 
-	sprite->getShader()->setInteger("spriteTexture", 0);
-	sprite->getShader()->setMatrix4("projection", m_currentCamera->getProjectionMatrix());
-	sprite->getShader()->setMatrix4("model", transformationMatrix);
-	bindShader(sprite->getShader());
+	glSprite->getShader()->setParameter("spriteTexture", 0);
+	glSprite->getShader()->setParameter("projection", m_currentCamera->getProjectionMatrix());
+	glSprite->getShader()->setParameter("model", transformationMatrix);
+	bindShader(glSprite->getShader());
 
-	glBindVertexArray(sprite->getVertexArrayPointer());
+	glBindVertexArray(glSprite->getVertexArrayPointer());
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -74,104 +76,100 @@ void OpenGL3Renderer::drawModel(const Model* model) {
 void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 	bindMaterial(subModel->getMaterial());
 
-	Shader* shader = subModel->getMaterial()->getShader();
-	shader->setParameter<matrix4>("model", subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
-	shader->setParameter<matrix4>("view", m_currentCamera->getViewMatrix());
-	shader->setParameter<matrix4>("projection", m_currentCamera->getProjectionMatrix());
-	shader->setParameter<vector3>("cameraPosition", m_currentCamera->getPosition());
+	GpuProgram* shader = subModel->getMaterial()->getGpuProgram();
+	shader->setParameter("model", subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
+	shader->setParameter("view", m_currentCamera->getViewMatrix());
+	shader->setParameter("projection", m_currentCamera->getProjectionMatrix());
+	shader->setParameter("cameraPosition", m_currentCamera->getPosition());
 
 	drawMesh(subModel->getMesh());
 }
 
 void OpenGL3Renderer::drawMesh(const Mesh* mesh) {
-	if (!mesh->hasPreparedVertexData()) {
+	const OpenGL3Mesh* glMesh = static_cast<const OpenGL3Mesh*>(mesh);
+
+	if (!glMesh->hasPreparedVertexData()) {
 		return;
 	}
 
-	glBindVertexArray(mesh->getVertexArrayObjectPointer());
+	glBindVertexArray(glMesh->getVertexArrayObjectPointer());
 
-	if (mesh->getIndicesCount() > 0) {
-		glDrawElements(GL_TRIANGLES, mesh->getIndicesCount(), GL_UNSIGNED_INT, 0);
+	if (glMesh->getIndicesCount() > 0) {
+		glDrawElements(GL_TRIANGLES, glMesh->getIndicesCount(), GL_UNSIGNED_INT, 0);
 	}
 	else {
-		glDrawArrays(GL_TRIANGLES, 0, mesh->getVerticesCount());
+		glDrawArrays(GL_TRIANGLES, 0, glMesh->getVerticesCount());
 	}
 
 	glBindVertexArray(0);
 }
 
-void OpenGL3Renderer::bindMaterial(const OpenGL3Material* material) {
-	OpenGL3Shader* mtlShader = material->getShader();
+void OpenGL3Renderer::bindMaterial(const Material* material) {
+	OpenGL3GpuProgram* mtlShader = static_cast<OpenGL3GpuProgram*>(material->getGpuProgram());
 
 	bindShader(mtlShader);
 
-	if (material->isLightmapExists(LightmapType::Diffuse)) {
+	if (material->hasLightmap(LightmapType::Diffuse)) {
 		bindTexture(material->getLightmap(LightmapType::Diffuse), 0);
-		mtlShader->setParameter<LightmapId>("material.lightmaps.diffuse", 0);
-		mtlShader->setParameter<int>("material.lightmaps.useDiffuseMap", 1);
+		mtlShader->setParameter("material.lightmaps.diffuse", 0);
+		mtlShader->setParameter("material.lightmaps.useDiffuseMap", 1);
 	}
 	else {
-		mtlShader->setParameter<Color>("material.diffuseColor", material->getDuffuseColor());
-		mtlShader->setParameter<Color>("material.ambientColor", material->getAmbientColor());
-		mtlShader->setParameter<int>("material.lightmaps.useDiffuseMap", 0);
+		mtlShader->setParameter("material.diffuseColor", material->getDuffuseColor());
+		mtlShader->setParameter("material.ambientColor", material->getAmbientColor());
+		mtlShader->setParameter("material.lightmaps.useDiffuseMap", 0);
 	}
 
-	if (material->isLightmapExists(LightmapType::Specular)) {
+	if (material->hasLightmap(LightmapType::Specular)) {
 		bindTexture(material->getLightmap(LightmapType::Specular), 1);
-		mtlShader->setParameter<LightmapId>("material.lightmaps.specular", 1);
-		mtlShader->setParameter<bool>("material.lightmaps.useSpecularMap", true);
+		mtlShader->setParameter("material.lightmaps.specular", 1);
+		mtlShader->setParameter("material.lightmaps.useSpecularMap", true);
 	}
 	else {
-		mtlShader->setParameter<Color>("material.specularColor", material->getSpecularColor());
-		mtlShader->setParameter<bool>("material.lightmaps.useSpecularMap", false);
+		mtlShader->setParameter("material.specularColor", material->getSpecularColor());
+		mtlShader->setParameter("material.lightmaps.useSpecularMap", false);
 	}
 
-	mtlShader->setParameter<float32>("material.shininess", material->getShininess());
+	mtlShader->setParameter("material.shininess", material->getShininess());
 
 	for (size_t i = 0; i < m_lights.size(); i++) {
 		OpenGL3Light* light = m_lights.at(i);
 
 		std::string lightIndex = "lights[" + std::to_string(i) + "]";
 
-		mtlShader->setParameter<int>(lightIndex + ".type", static_cast<int>(light->getType()));
-		mtlShader->setParameter<Color>(lightIndex + ".ambientColor", light->getAmbientColor());
-		mtlShader->setParameter<Color>(lightIndex + ".diffuseColor", light->getDuffuseColor());
-		mtlShader->setParameter<Color>(lightIndex + ".specularColor", light->getSpecularColor());
+		mtlShader->setParameter(lightIndex + ".type", static_cast<int>(light->getType()));
+		mtlShader->setParameter(lightIndex + ".ambientColor", light->getAmbientColor());
+		mtlShader->setParameter(lightIndex + ".diffuseColor", light->getDuffuseColor());
+		mtlShader->setParameter(lightIndex + ".specularColor", light->getSpecularColor());
 
 		if (light->getType() == LightType::Directional) {
-			auto directionalLight = dynamic_cast<OpenGL3DirectionalLight*>(light);
-
-			mtlShader->setParameter<vector3>(lightIndex + ".direction", directionalLight->getDirection());
+			mtlShader->setParameter(lightIndex + ".direction", light->getDirection());
 		}
 		else if (light->getType() == LightType::Point) {
-			auto pointLight = dynamic_cast<OpenGL3PointLight*>(light);
-
-			mtlShader->setParameter<vector3>(lightIndex + ".position", pointLight->getPosition());
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.constant", pointLight->getAttenuationConstant());
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.linear", pointLight->getAttenuationLinear());
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.quadratic", pointLight->getAttenuationQuadratic());
+			mtlShader->setParameter(lightIndex + ".position", light->getPosition());
+			mtlShader->setParameter(lightIndex + ".attenuation.constant", light->getAttenuationConstant());
+			mtlShader->setParameter(lightIndex + ".attenuation.linear", light->getAttenuationLinear());
+			mtlShader->setParameter(lightIndex + ".attenuation.quadratic", light->getAttenuationQuadratic());
 		}
 		else if (light->getType() == LightType::Spotlight) {
-			auto spotlight = dynamic_cast<OpenGL3Spotlight*>(light);
+			mtlShader->setParameter(lightIndex + ".position", light->getPosition());
+			mtlShader->setParameter(lightIndex + ".direction", light->getDirection());
 
-			mtlShader->setParameter<vector3>(lightIndex + ".position", spotlight->getPosition());
-			mtlShader->setParameter<vector3>(lightIndex + ".direction", spotlight->getDirection());
+			mtlShader->setParameter(lightIndex + ".attenuation.constant", light->getAttenuationConstant());
+			mtlShader->setParameter(lightIndex + ".attenuation.linear", light->getAttenuationLinear());
+			mtlShader->setParameter(lightIndex + ".attenuation.quadratic", light->getAttenuationQuadratic());
 
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.constant", spotlight->getAttenuationConstant());
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.linear", spotlight->getAttenuationLinear());
-			mtlShader->setParameter<float32>(lightIndex + ".attenuation.quadratic", spotlight->getAttenuationQuadratic());
-
-			mtlShader->setParameter<float32>(lightIndex + ".innerCutOff", glm::cos(glm::radians(spotlight->getInnerAngle())));
-			mtlShader->setParameter<float32>(lightIndex + ".outerCutOff", glm::cos(glm::radians(spotlight->getOuterAngle())));
+			mtlShader->setParameter(lightIndex + ".innerCutOff", glm::cos(glm::radians(light->getInnerAngle())));
+			mtlShader->setParameter(lightIndex + ".outerCutOff", glm::cos(glm::radians(light->getOuterAngle())));
 		}
 	}
 }
 
-void OpenGL3Renderer::bindTexture(const OpenGL3Texture* texture, size_t unit) {
+void OpenGL3Renderer::bindTexture(const Texture* texture, size_t unit) {
 	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, texture->getTexturePointer());
+	glBindTexture(GL_TEXTURE_2D, static_cast<const OpenGL3Texture*>(texture)->getTexturePointer());
 }
 
-void OpenGL3Renderer::bindShader(const OpenGL3Shader* shader) {
-	glUseProgram(shader->getShaderPointer());
+void OpenGL3Renderer::bindShader(const GpuProgram* shader) {
+	glUseProgram(static_cast<const OpenGL3GpuProgram*>(shader)->getShaderPointer());
 }

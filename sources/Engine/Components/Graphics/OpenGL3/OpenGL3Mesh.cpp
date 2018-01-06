@@ -40,15 +40,15 @@ OpenGL3Mesh::~OpenGL3Mesh() {
 	}
 }
 
-void OpenGL3Mesh::addSubMesh(OpenGL3Mesh* mesh) {
+void OpenGL3Mesh::addSubMesh(Mesh* mesh) {
 	m_subMeshes.push_back(mesh);
 }
 
-OpenGL3Mesh* OpenGL3Mesh::getSubMesh(size_t index) {
+Mesh* OpenGL3Mesh::getSubMesh(size_t index) {
 	return m_subMeshes.at(index);
 }
 
-const std::vector<OpenGL3Mesh*>& OpenGL3Mesh::getSubMeshesArray() const {
+const std::vector<Mesh*>& OpenGL3Mesh::getSubMeshesArray() const {
 	return m_subMeshes;
 }
 

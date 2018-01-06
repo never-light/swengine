@@ -1,5 +1,11 @@
 #include "ResourceManager.h"
 
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Texture.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Material.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Shader.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Sprite.h>
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Mesh.h>
+
 ResourceManager::ResourceManager() {
 	
 }
@@ -49,21 +55,19 @@ Texture* ResourceManager::loadTexture(const std::string& filename) {
 		return m_texturesMap.at(filename);
 	}
 
-	Texture* texture = new Texture;
-	texture->loadFromFile(filename);
+	Texture* texture = new OpenGL3Texture(filename);
 
 	m_texturesMap.insert(std::make_pair(filename, texture));
 
 	return texture;
 }
 
-Shader* ResourceManager::loadShader(const std::string& filename) {
+GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 	if (m_shadersMap.find(filename) != m_shadersMap.end()) {
 		return m_shadersMap.at(filename);
 	}
 
-	Shader* shader = new Shader;
-	shader->loadFromFile(filename);
+	OpenGL3GpuProgram* shader = new OpenGL3GpuProgram(filename);
 
 	m_shadersMap.insert(std::make_pair(filename, shader));
 
@@ -75,7 +79,7 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 		return m_spritesMap.at(filename);
 	}
 
-	Sprite* sprite = new Sprite();
+	Sprite* sprite = new OpenGL3Sprite();
 	sprite->setTexture(loadTexture(filename));
 	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
 
@@ -89,7 +93,7 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 		return m_meshesMap.at(filename);
 	}
 
-	Mesh* mesh = new Mesh();
+	Mesh* mesh = new OpenGL3Mesh();
 
 	MeshLoader loader;
 	std::vector<Mesh*>& meshes = loader.load(filename);
@@ -114,7 +118,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& path) {
 }
 
 Material* ResourceManager::createEmptyMaterial(const std::string& name) {
-	Material* material = new Material;
+	Material* material = new OpenGL3Material;
 	m_materialsMap.insert(std::make_pair(name, material));
 
 	return material;

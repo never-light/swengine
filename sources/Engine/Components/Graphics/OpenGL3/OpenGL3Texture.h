@@ -1,20 +1,18 @@
 #pragma once
 
-#include <string>
+#include <Engine\Components\Graphics\RenderSystem\Texture.h>
+
 #include "OpenGL3.h"
 
 typedef GLuint textureId;
 
-class OpenGL3Texture {
+class OpenGL3Texture : public Texture {
 public:
-	OpenGL3Texture();
+	OpenGL3Texture(const std::string& filename);
 	~OpenGL3Texture();
 
-	void loadFromFile(const std::string&);
-	void unload();
-
-	int getWidth() const;
-	int getHeight() const;
+	int getWidth() const override;
+	int getHeight() const override;
 
 	textureId getTexturePointer() const;
 private:

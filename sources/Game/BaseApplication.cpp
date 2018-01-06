@@ -5,6 +5,8 @@
 #include <Windows.h>
 #include "config.h"
 
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3Renderer.h>
+
 BaseApplication::BaseApplication() 
 	: m_window(nullptr), 
 	m_renderer(nullptr), 
@@ -32,7 +34,7 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 	m_window->setCursorType(CursorType::Hidden);
 
 	// Renderer
-	m_renderer = new Renderer(m_window);
+	m_renderer = new OpenGL3Renderer(m_window);
 
 	// Input Manager
 	m_inputMgr = new InputManager();

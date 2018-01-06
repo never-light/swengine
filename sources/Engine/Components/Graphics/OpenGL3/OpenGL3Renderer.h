@@ -5,43 +5,43 @@
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include <Engine\Components\GUI\Window.h>
+
+#include <Engine\Components\Graphics\RenderSystem\Model.h>
+#include <Engine\Components\Graphics\RenderSystem\Color.h>
+#include <Engine\Components\Graphics\RenderSystem\Renderer.h>
+
 #include "OpenGL3.h"
-#include "OpenGL3Color.h"
 #include "OpenGL3Texture.h"
-#include "OpenGL3Lightmap.h"
 #include "OpenGL3Shader.h"
 #include "OpenGL3Sprite.h"
 #include "OpenGL3Mesh.h"
 #include "OpenGL3Material.h"
 #include "OpenGL3Light.h"
-#include "OpenGL3DirectionalLight.h"
-#include "OpenGL3PointLight.h"
-#include "OpenGL3Spotlight.h"
 #include "OpenGL3Camera.h"
-#include <Engine\Components\Graphics\Model.h>
 
-class OpenGL3Renderer {
+
+class OpenGL3Renderer : public Renderer {
 public:
 	OpenGL3Renderer(Window*);
 	~OpenGL3Renderer();
 
-	Window* getWindow() const;
+	Window* getWindow() const override;
 
-	void setCurrentCamera(OpenGL3Camera*);
-	OpenGL3Camera* getCurrentCamera() const;
+	void setCurrentCamera(Camera*) override;
+	Camera* getCurrentCamera() const override;
 
-	void drawSprite(OpenGL3Sprite*, const glm::vec2&, const glm::vec2&, float);
-	void drawModel(const Model*);
-	void drawMesh(const Mesh*);
+	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) override;
+	void drawModel(const Model*) override;
+	void drawMesh(const Mesh*) override;
 
-	void beginRendering(OpenGL3Color);
-	void endRendering();
+	void beginRendering(Color) override;
+	void endRendering() override;
 
-	void addLight(OpenGL3Light*);
+	void addLight(Light*) override;
 
-	void bindMaterial(const OpenGL3Material*);
-	void bindShader(const OpenGL3Shader*);
-	void bindTexture(const OpenGL3Texture*, size_t);
+	void bindMaterial(const Material*) override;
+	void bindShader(const GpuProgram*) override;
+	void bindTexture(const Texture*, size_t) override;
 private:
 	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);

@@ -4,19 +4,14 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
+#include <Engine\types.h>
+#include <Engine\Components\Math\Math.h>
+
 enum ReadShaderCodeState {
 	READ_UNDEFINED_SHADER_CODE, READ_VERTEX_SHADER_CODE, READ_FRAGMENT_SHADER_CODE
 };
 
-OpenGL3Shader::OpenGL3Shader() : m_programId(NULL) {
-
-}
-
-OpenGL3Shader::~OpenGL3Shader() {
-	unload();
-}
-
-void OpenGL3Shader::loadFromFile(const std::string& filename) {
+OpenGL3GpuProgram::OpenGL3GpuProgram(const std::string& filename) : m_programId(NULL) {
 	std::ifstream inputFile(filename);
 	std::string vertexShaderCodeString, fragmentShaderCodeString;
 	std::string line;
@@ -43,7 +38,6 @@ void OpenGL3Shader::loadFromFile(const std::string& filename) {
 	GLuint vertexShader, fragmentShader;
 	int success;
 
-	// Çàãðóçêà âåðøèííîãî øåéäåðà
 	const char* vertexShaderCode = vertexShaderCodeString.c_str();
 
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -52,13 +46,12 @@ void OpenGL3Shader::loadFromFile(const std::string& filename) {
 
 	this->checkLoadingShaderError(vertexShader);
 
-	// Çàãðóçêà ôðàãìåíòíîãî øåéäåðà
 	const char* fragmentShaderCode = fragmentShaderCodeString.c_str();
 
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
 	glCompileShader(fragmentShader);
-	//Chek Errors
+
 	this->checkLoadingShaderError(fragmentShader);
 
 	this->m_programId = glCreateProgram();
@@ -73,7 +66,13 @@ void OpenGL3Shader::loadFromFile(const std::string& filename) {
 	glDeleteShader(fragmentShader);
 }
 
-void OpenGL3Shader::checkLoadingShaderError(GLuint shader) {
+OpenGL3GpuProgram::~OpenGL3GpuProgram() {
+	if (m_programId) {
+		glDeleteProgram(this->m_programId);
+	}
+}
+
+void OpenGL3GpuProgram::checkLoadingShaderError(GLuint shader) {
 	int compileStatus;
 
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
@@ -87,7 +86,7 @@ void OpenGL3Shader::checkLoadingShaderError(GLuint shader) {
 
 }
 
-void OpenGL3Shader::checkCreatingShaderProgramError(shaderId program) {
+void OpenGL3GpuProgram::checkCreatingShaderProgramError(shaderId program) {
 	int linkStatus;
 
 	glGetShaderiv(program, GL_LINK_STATUS, &linkStatus);
@@ -100,65 +99,26 @@ void OpenGL3Shader::checkCreatingShaderProgramError(shaderId program) {
 	}
 }
 
-void OpenGL3Shader::unload() {
-	if (m_programId) {
-		glDeleteProgram(this->m_programId);
-	}
-}
-
-shaderId OpenGL3Shader::getShaderPointer() const {
+shaderId OpenGL3GpuProgram::getShaderPointer() const {
 	return m_programId;
 }
 
-template<typename ParameterType>
-void OpenGL3Shader::setParameter(const std::string& parameterName, const ParameterType& parameterValue) {
-
-}
-
-template<>
-void OpenGL3Shader::setParameter<bool>(const std::string& parameterName, const bool& parameterValue) {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, bool parameterValue) const {
 	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-template<>
-void OpenGL3Shader::setParameter<int>(const std::string& parameterName, const int& parameterValue) {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, int parameterValue) const {
 	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-template<>
-void OpenGL3Shader::setParameter<float32>(const std::string& parameterName, const float& parameterValue) {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, float32 parameterValue) const {
 	glUniform1f(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-template<>
-void OpenGL3Shader::setParameter<vector3>(const std::string& parameterName, const vector3& parameterValue) {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector3& parameterValue) const {
 	glUniform3fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, &parameterValue[0]);
 }
 
-template<>
-void OpenGL3Shader::setParameter<matrix4>(const std::string& parameterName, const matrix4& parameterValue) {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const matrix4& parameterValue) const {
 	glUniformMatrix4fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, GL_FALSE, &parameterValue[0][0]);
-}
-
-/**template<>
-void OpenGL3Shader::setParameter<Color>(const std::string& parameterName, const Color& parameterValue) {
-	vector3 color(parameterValue.r, parameterValue.g, parameterValue.b);
-	glUniform3fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, &color[0]);
-}*/
-
-template<>
-void OpenGL3Shader::setParameter<LightmapId>(const std::string& parameterName, const LightmapId& parameterValue) {
-	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
-}
-
-void OpenGL3Shader::setInteger(const std::string& name, int value) const {
-	glUniform1i(glGetUniformLocation(m_programId, name.c_str()), value);
-}
-
-void OpenGL3Shader::setMatrix4(const std::string& name, const glm::mat4& matrix) const {
-	glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, &matrix[0][0]);
-}
-
-void OpenGL3Shader::setVector3(const std::string& name, const glm::vec3& vector) const {
-	glUniform3fv(glGetUniformLocation(m_programId, name.c_str()), 1, &vector[0]);
 }
