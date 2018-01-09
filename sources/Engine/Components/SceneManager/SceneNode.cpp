@@ -4,7 +4,7 @@ SceneNode::SceneNode()
 	: m_parentSceneNode(nullptr),
 	m_position(0, 0, 0),
 	m_scale(1, 1, 1),
-	m_orientation(glm::normalize(glm::quat()))
+	m_orientation(vector3(0.0f, 0.0f, 0.0f))
 {
 
 }
@@ -103,40 +103,74 @@ const vector3& SceneNode::getScale() const {
 	return m_scale;
 }
 
-void SceneNode::setOrientation(const quaternion& orientation) {
-	m_orientation = orientation;
+void SceneNode::setYawValue(real value) {
+	vector3 angles = glm::eulerAngles(m_orientation);
+	angles.y = glm::radians(value);
+
+	m_orientation = quaternion(angles);
 }
 
-const quaternion& SceneNode::getOrientation() const {
-	return m_orientation;
+void SceneNode::setPitchValue(real value) {
+	vector3 angles = glm::eulerAngles(m_orientation);
+	angles.x = glm::radians(value);
+
+	m_orientation = quaternion(angles);
 }
 
-void SceneNode::rotate(const quaternion& rotation, CoordinateSystemType relativeTo) {
-	if (relativeTo == CoordinateSystemType::Local) {
-		m_orientation = m_orientation * glm::normalize(rotation);
-	}
-	else if (relativeTo == CoordinateSystemType::Parent) {
-		m_orientation = glm::normalize(rotation) * m_orientation;
-	}
-	else if (relativeTo == CoordinateSystemType::World) {
-		m_orientation = glm::normalize(rotation) * m_orientation;
-	}
+void SceneNode::setRollValue(real value) {
+	vector3 angles = glm::eulerAngles(m_orientation);
+	angles.z = glm::radians(value);
+
+	m_orientation = quaternion(angles);
 }
 
-void SceneNode::rotate(const vector3& axis, float32 angle, CoordinateSystemType relativeTo ) {
-	rotate(glm::angleAxis(glm::radians(angle), axis), relativeTo);
+void SceneNode::yaw(real angle) {
+	m_orientation *= glm::quat(vector3(0.0, glm::radians(angle), 0.0));
 }
 
-void SceneNode::roll(float32 angle, CoordinateSystemType relativeTo) {
-	rotate(vector3(0, 0, 1), angle, relativeTo);
+void SceneNode::pitch(real angle) {
+	m_orientation *= glm::quat(vector3(glm::radians(angle), 0.0, 0.0));
 }
 
-void SceneNode::pitch(float32 angle, CoordinateSystemType relativeTo) {
-	rotate(vector3(1, 0, 0), angle, relativeTo);
+void SceneNode::roll(real angle) {
+	m_orientation *= glm::quat(vector3(0.0, 0.0, glm::radians(angle)));
 }
 
-void SceneNode::yaw(float32 angle, CoordinateSystemType relativeTo) {
-	rotate(vector3(0, 1, 0), angle, relativeTo);
+real SceneNode::getYawValue() const {
+	return glm::degrees(glm::eulerAngles(m_orientation).y);
+}
+
+real SceneNode::getPitchValue() const {
+	return glm::degrees(glm::eulerAngles(m_orientation).x);
+}
+
+real SceneNode::getRollValue() const {
+	return glm::degrees(glm::eulerAngles(m_orientation).z);
+}
+
+void SceneNode::lookAt(const vector3& target) {
+	matrix3 m;
+	m[2] = glm::normalize(m_position - target);
+	m[0] = glm::normalize(glm::cross(vector3(0.0f, 1.0f, 0.0f), m[2]));
+	m[1] = glm::cross(m[2], m[0]);
+
+	m_orientation = quat_cast(m);
+}
+
+void SceneNode::lookAt(real x, real y, real z) {
+	lookAt(vector3(x, y, z));
+}
+
+vector3 SceneNode::getFrontDirection() const {
+	return m_orientation * vector3(0.0f, 0.0f, -1.0f);
+}
+
+vector3 SceneNode::getRightDirection() const {
+	return m_orientation * vector3(1.0f, 0.0f, 0.0f);
+}
+
+vector3 SceneNode::getUpDirection() const {
+	return m_orientation * vector3(0.0f, 1.0f, 0.0f);
 }
 
 vector3 SceneNode::getDerivedPosition() const {
@@ -169,6 +203,7 @@ quaternion SceneNode::getDerivedOrientation() const {
 	return derivedOrientation;
 }
 
+
 matrix4 SceneNode::getTransformationMatrix() const {
-	return glm::translate(matrix4(), getDerivedPosition()) * glm::mat4_cast(getDerivedOrientation()) * glm::scale(matrix4(), getDerivedScale());
+	return glm::translate(matrix4(), m_position) * glm::toMat4(m_orientation) * glm::scale(matrix4(), getDerivedScale());
 }

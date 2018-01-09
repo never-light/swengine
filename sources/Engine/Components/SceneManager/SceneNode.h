@@ -38,18 +38,30 @@ public:
 	void scale(const vector3&);
 	const vector3& getScale() const;
 
-	void setOrientation(const quaternion&);
-	const quaternion& getOrientation() const;
-	void rotate(const quaternion&, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
-	void rotate(const vector3&, float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
-	void roll(float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
-	void pitch(float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
-	void yaw(float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local);
+	void setYawValue(real value);
+	void setPitchValue(real value);
+	void setRollValue(real value);
+
+	void yaw(real angle);
+	void pitch(real angle);
+	void roll(real angle);
+
+	real getYawValue() const;
+	real getPitchValue() const;
+	real getRollValue() const;
+
+	void lookAt(const vector3& target);
+	void lookAt(real x, real y, real z);
+
+	vector3 getFrontDirection() const;
+	vector3 getRightDirection() const;
+	vector3 getUpDirection() const;
 
 	vector3 getDerivedPosition() const;
 	vector3 getDerivedScale() const;
 	quaternion getDerivedOrientation() const;
 	matrix4 getTransformationMatrix() const;
+
 private:
 	std::string m_name;
 	vector3 m_position;

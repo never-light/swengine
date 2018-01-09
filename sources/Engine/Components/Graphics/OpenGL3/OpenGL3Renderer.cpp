@@ -1,6 +1,8 @@
 #include "OpenGL3Renderer.h"
 #include <Engine\Components\Debugging\Log.h>
 
+#include <Engine\Components\SceneManager\SceneNode.h>
+
 OpenGL3Renderer::OpenGL3Renderer(Window* window) : m_window(window) {
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
@@ -17,7 +19,7 @@ Window* OpenGL3Renderer::getWindow() const {
 }
 
 void OpenGL3Renderer::setCurrentCamera(Camera* camera) {
-	m_currentCamera = static_cast<OpenGL3Camera*>(camera);
+	m_currentCamera = camera;
 }
 
 Camera* OpenGL3Renderer::getCurrentCamera() const {

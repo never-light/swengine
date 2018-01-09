@@ -17,8 +17,6 @@
 #include "OpenGL3Mesh.h"
 #include "OpenGL3Material.h"
 #include "OpenGL3Light.h"
-#include "OpenGL3Camera.h"
-
 
 class OpenGL3Renderer : public Renderer {
 public:
@@ -48,7 +46,7 @@ private:
 
 private:
 	Window* m_window;
-	OpenGL3Camera* m_currentCamera;
+	Camera* m_currentCamera;
 
 	std::vector<OpenGL3Light*> m_lights;
 };

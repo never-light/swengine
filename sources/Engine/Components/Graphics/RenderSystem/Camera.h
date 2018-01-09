@@ -2,43 +2,60 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
-#include <Engine\Components\SceneManager\SceneObject.h>
-#include <Engine\Components\SceneManager\SceneNode.h>
 
-class Camera : public SceneObject {
+class Camera {
 public:
-	Camera() : SceneObject(SceneObjectType::Camera) {}
+	Camera();
+	virtual ~Camera();
 
-	virtual void setPosition(const vector3&) = 0;
-	virtual void setPosition(float32, float32, float32) = 0;
-	virtual void move(const vector3&) = 0;
-	virtual void move(float32, float32, float32) = 0;
-	virtual const vector3& getPosition() const = 0;
+	void setPosition(const vector3&);
+	void setPosition(float32, float32, float32);
+	void move(const vector3&);
+	void move(float32, float32, float32);
+	const vector3& getPosition() const;
 
-	virtual void setOrientation(const quaternion&) = 0;
-	virtual const quaternion& getOrientation() const = 0;
-	virtual void rotate(const quaternion&, CoordinateSystemType relativeTo = CoordinateSystemType::Local) = 0;
-	virtual void rotate(const vector3&, float32, CoordinateSystemType relativeTo = CoordinateSystemType::Local) = 0;
-	virtual void yaw(float32) = 0;
-	virtual void pitch(float32) = 0;
-	virtual void roll(float32) = 0;
+	void setYawValue(real value);
+	void setPitchValue(real value);
+	void setRollValue(real value);
 
-	virtual vector3 getForwardDirection() const = 0;
-	virtual vector3 getRightDirection() const = 0;
-	virtual vector3 getUpDirection() const = 0;
+	void yaw(real angle);
+	void pitch(real angle);
+	void roll(real angle);
 
-	virtual void setAspectRatio(float32) = 0;
-	virtual float32 getAspectRatio() const = 0;
+	real getYawValue() const;
+	real getPitchValue() const;
+	real getRollValue() const;
 
-	virtual void setNearClipDistance(float32) = 0;
-	virtual float32 getNearClipDistance() const = 0;
+	void lookAt(const vector3& target);
+	void lookAt(real x, real y, real z);
 
-	virtual void setFarClipDistance(float32) = 0;
-	virtual float32 getFarClipDistance() const = 0;
+	vector3 getFrontDirection() const;
+	vector3 getRightDirection() const;
+	vector3 getUpDirection() const;
 
-	virtual void setFOVy(float32) = 0;
-	virtual float32 getFOVy() const = 0;
+	void setAspectRatio(float32);
+	float32 getAspectRatio() const;
 
-	virtual matrix4 getViewMatrix() const = 0;
-	virtual matrix4 getProjectionMatrix() const = 0;
+	void setNearClipDistance(float32);
+	float32 getNearClipDistance() const;
+
+	void setFarClipDistance(float32);
+	float32 getFarClipDistance() const;
+
+	void setFOVy(float32);
+	float32 getFOVy() const;
+
+	virtual matrix4 getViewMatrix() const ;
+	virtual matrix4 getProjectionMatrix() const;
+
+private:
+	// View space parameters
+	vector3 m_position;
+	quaternion m_orientation;
+
+	// Projection parameters
+	float32 m_FOVy;
+	float32 m_aspectRatio;
+	float32 m_nearClipDistance;
+	float32 m_farClipDistance;
 };
