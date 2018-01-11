@@ -5,7 +5,7 @@
 
 class Sprite {
 public:
-	virtual void setTexture(const Texture*) = 0;
+	virtual void setTexture(Texture*) = 0;
 	virtual const Texture* getTexture() const = 0;
 
 	virtual void setShader(GpuProgram*) = 0;

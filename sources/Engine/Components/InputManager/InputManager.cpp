@@ -1,16 +1,6 @@
 #include "InputManager.h"
 
-InputManager::InputManager() {
-
-}
-
-InputManager::~InputManager() {
-
-}
-
-void InputManager::initialize(Window* window) {
-	m_window = window;
-
+InputManager::InputManager(Window* window) : m_window(window) {
 	glfwSetWindowUserPointer(m_window->getWindowPointer(), this);
 	glfwSetKeyCallback(m_window->getWindowPointer(), keyCallback);
 	glfwSetCursorPosCallback(m_window->getWindowPointer(), mouseMovedCallback);
@@ -18,7 +8,7 @@ void InputManager::initialize(Window* window) {
 	glfwSetScrollCallback(m_window->getWindowPointer(), scrollCallback);
 }
 
-void InputManager::shutdown() {
+InputManager::~InputManager() {
 
 }
 

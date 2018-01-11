@@ -3,10 +3,11 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-OpenGL3Texture::OpenGL3Texture(const std::string& filename) : m_textureId(NULL) {
+OpenGL3Texture::OpenGL3Texture(int width, int height, const unsigned char* data) 
+	: m_textureId(NULL), 
+	m_width(width), 
+	m_height(height) 
+{
 	glGenTextures(1, &this->m_textureId);
 	glBindTexture(GL_TEXTURE_2D, this->m_textureId);
 
@@ -15,18 +16,8 @@ OpenGL3Texture::OpenGL3Texture(const std::string& filename) : m_textureId(NULL) 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	int nrChannels;
-	unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &nrChannels, STBI_rgb_alpha);
-
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		errlog() << "Ошибка загрузки текстуры <" << filename << ">";
-	}
-
-	stbi_image_free(data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 OpenGL3Texture::~OpenGL3Texture() {

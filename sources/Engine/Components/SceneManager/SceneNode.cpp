@@ -4,7 +4,8 @@ SceneNode::SceneNode()
 	: m_parentSceneNode(nullptr),
 	m_position(0, 0, 0),
 	m_scale(1, 1, 1),
-	m_orientation(vector3(0.0f, 0.0f, 0.0f))
+	m_orientation(vector3(0.0f, 0.0f, 0.0f)),
+	m_fixedYAxis(false)
 {
 
 }
@@ -103,6 +104,14 @@ const vector3& SceneNode::getScale() const {
 	return m_scale;
 }
 
+quaternion SceneNode::getOrientation() const {
+	return m_orientation;
+}
+
+void SceneNode::setOrientation(const quaternion& orientation) {
+	m_orientation = orientation;
+}
+
 void SceneNode::setYawValue(real value) {
 	vector3 angles = glm::eulerAngles(m_orientation);
 	angles.y = glm::radians(value);
@@ -125,7 +134,12 @@ void SceneNode::setRollValue(real value) {
 }
 
 void SceneNode::yaw(real angle) {
-	m_orientation *= glm::quat(vector3(0.0, glm::radians(angle), 0.0));
+	if (m_fixedYAxis) {
+		m_orientation = glm::quat(vector3(0.0, glm::radians(angle), 0.0)) * m_orientation;
+	}
+	else {
+		m_orientation *= glm::quat(vector3(0.0, glm::radians(angle), 0.0));
+	}
 }
 
 void SceneNode::pitch(real angle) {
@@ -141,7 +155,7 @@ real SceneNode::getYawValue() const {
 }
 
 real SceneNode::getPitchValue() const {
-	return glm::degrees(glm::eulerAngles(m_orientation).x);
+	return glm::degrees(glm::pitch(m_orientation));
 }
 
 real SceneNode::getRollValue() const {
@@ -171,6 +185,10 @@ vector3 SceneNode::getRightDirection() const {
 
 vector3 SceneNode::getUpDirection() const {
 	return m_orientation * vector3(0.0f, 1.0f, 0.0f);
+}
+
+void SceneNode::fixYAxis(bool fixed) {
+	m_fixedYAxis = fixed;
 }
 
 vector3 SceneNode::getDerivedPosition() const {

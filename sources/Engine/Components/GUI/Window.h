@@ -18,11 +18,9 @@ class Window {
 public:
 
 public:
-	Window();
+	Window(const std::string& name, int width, int height);
 	~Window();
 
-	void initialize(const std::string&, int, int);
-	void shutdown();
 	void update();
 	void render();
 

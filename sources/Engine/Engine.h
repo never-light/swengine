@@ -7,3 +7,7 @@
 #include <Engine\Components\ResourceManager\ResourceManager.h>
 #include <Engine\Components\InputManager\InputManager.h>
 #include <Engine\Components\SceneManager\SceneManager.h>
+#include <Engine\ServiceLocator.h>
+
+void InitializeEngine(Window* window);
+void ShutdownEngine();

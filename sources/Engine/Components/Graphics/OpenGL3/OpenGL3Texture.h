@@ -8,7 +8,7 @@ typedef GLuint textureId;
 
 class OpenGL3Texture : public Texture {
 public:
-	OpenGL3Texture(const std::string& filename);
+	OpenGL3Texture(int width, int height, const unsigned char* data);
 	~OpenGL3Texture();
 
 	int getWidth() const override;

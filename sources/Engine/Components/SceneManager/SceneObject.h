@@ -3,7 +3,7 @@
 class SceneNode;
 
 enum class SceneObjectType {
-	Camera, Model
+	Model
 };
 
 class SceneObject {

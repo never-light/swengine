@@ -14,6 +14,9 @@ public:
 	void move(float32, float32, float32);
 	const vector3& getPosition() const;
 
+	quaternion getOrientation() const;
+	void setOrientation(const quaternion& orientation);
+
 	void setYawValue(real value);
 	void setPitchValue(real value);
 	void setRollValue(real value);

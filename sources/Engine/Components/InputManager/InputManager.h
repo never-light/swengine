@@ -11,11 +11,9 @@
 
 class InputManager {
 public:
-	InputManager();
+	InputManager(Window* window);
 	~InputManager();
 
-	void initialize(Window* window);
-	void shutdown();
 	void update();
 
 	void registerEventListener(InputEventsListener* listener);

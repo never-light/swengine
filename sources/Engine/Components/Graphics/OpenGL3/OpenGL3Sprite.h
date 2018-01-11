@@ -2,14 +2,14 @@
 
 #include <Engine\Components\Graphics\RenderSystem\Sprite.h>
 #include "OpenGL3Texture.h"
-#include "OpenGL3Shader.h"
+#include "OpenGL3GpuProgram.h"
 
 class OpenGL3Sprite : public Sprite {
 public:
-	OpenGL3Sprite();
+	OpenGL3Sprite(Texture* texture, GpuProgram* gpuProgram);
 	~OpenGL3Sprite();
 
-	void setTexture(const Texture*) override;
+	void setTexture(Texture* texture) override;
 	const Texture* getTexture() const override;
 
 	void setShader(GpuProgram*) override;
@@ -17,7 +17,7 @@ public:
 
 	GLuint getVertexArrayPointer() const;
 private:
-	const OpenGL3Texture* m_texture;
+	OpenGL3Texture* m_texture;
 	OpenGL3GpuProgram* m_shaderProgram;
 
 	GLuint m_VertexArrayObject;

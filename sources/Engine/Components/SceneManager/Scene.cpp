@@ -1,22 +1,14 @@
 #include "Scene.h"
+#include <Engine\ServiceLocator.h>
 
-Scene::Scene() {
-
-}
-
-Scene::~Scene() {
-
-}
-
-void Scene::initialize(ResourceManager* resourceManager) {
-	m_resourceManager = resourceManager;
-
-	m_rootSceneNode = new SceneNode();
+Scene::Scene() 
+	: m_rootSceneNode(new SceneNode())
+{
 	m_rootSceneNode->setName("root");
 	m_rootSceneNode->setParentSceneNode(nullptr);
 }
 
-void Scene::shutdown() {
+Scene::~Scene() {
 	for (auto it = m_modelsMap.begin(); it != m_modelsMap.end(); it++) {
 		delete it->second;
 	}
@@ -46,7 +38,7 @@ Model* Scene::createModel(const std::string& filename, const std::string& name) 
 		return m_modelsMap.at(name);
 	}
 
-	Mesh* mainMesh = m_resourceManager->loadMesh(filename);
+	Mesh* mainMesh = ServiceLocator::getResourceManager()->loadMesh(filename);
 
 	Model* model = new Model;
 

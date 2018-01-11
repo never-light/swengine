@@ -32,4 +32,10 @@ public:
 	virtual void bindMaterial(const Material*) = 0;
 	virtual void bindShader(const GpuProgram*) = 0;
 	virtual void bindTexture(const Texture*, size_t) = 0;
+
+	virtual Material* createMaterial() = 0;
+	virtual Texture* createTexture(int width, int height, const unsigned char* data) = 0;
+	virtual GpuProgram* createGpuProgram(const std::string& source) = 0;
+	virtual Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) = 0;
+	virtual Mesh* createMesh() = 0;
 };

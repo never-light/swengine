@@ -31,6 +31,14 @@ const vector3& Camera::getPosition() const {
 	return m_position;
 }
 
+quaternion Camera::getOrientation() const {
+	return m_orientation;
+}
+
+void Camera::setOrientation(const quaternion& orientation) {
+	m_orientation = orientation;
+}
+
 void Camera::setYawValue(real value) {
 	vector3 angles = glm::eulerAngles(m_orientation);
 	angles.y = glm::radians(value);

@@ -5,7 +5,7 @@
 
 #include <Engine\Components\Graphics\RenderSystem\Material.h>
 #include "OpenGL3Texture.h"
-#include "OpenGL3Shader.h"
+#include "OpenGL3GpuProgram.h"
 
 class OpenGL3Material : public Material {
 public:

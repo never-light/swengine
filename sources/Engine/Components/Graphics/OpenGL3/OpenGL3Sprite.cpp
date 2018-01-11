@@ -1,8 +1,12 @@
 #include "OpenGL3Sprite.h"
 #include <Engine\Components\Debugging\Log.h>
 
-OpenGL3Sprite::OpenGL3Sprite() 
-	: m_texture(nullptr), m_VertexArrayObject(NULL), m_VertexBufferObject(NULL) {
+OpenGL3Sprite::OpenGL3Sprite(Texture* texture, GpuProgram* gpuProgram)
+	: m_VertexArrayObject(NULL), 
+	m_VertexBufferObject(NULL),
+	m_texture(static_cast<OpenGL3Texture*>(texture)),
+	m_shaderProgram(static_cast<OpenGL3GpuProgram*>(gpuProgram))
+{
 	GLfloat vertices[] = {
 		0.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 0.0f,
@@ -31,8 +35,8 @@ OpenGL3Sprite::~OpenGL3Sprite() {
 	glDeleteBuffers(1, &m_VertexBufferObject);
 }
 
-void OpenGL3Sprite::setTexture(const Texture* texture) {
-	m_texture = static_cast<const OpenGL3Texture*>(texture);
+void OpenGL3Sprite::setTexture(Texture* texture) {
+	m_texture = static_cast<OpenGL3Texture*>(texture);
 }
 
 const Texture* OpenGL3Sprite::getTexture() const {

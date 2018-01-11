@@ -38,6 +38,9 @@ public:
 	void scale(const vector3&);
 	const vector3& getScale() const;
 
+	quaternion getOrientation() const;
+	void setOrientation(const quaternion& orientation);
+
 	void setYawValue(real value);
 	void setPitchValue(real value);
 	void setRollValue(real value);
@@ -57,6 +60,8 @@ public:
 	vector3 getRightDirection() const;
 	vector3 getUpDirection() const;
 
+	void fixYAxis(bool fixed = true);
+
 	vector3 getDerivedPosition() const;
 	vector3 getDerivedScale() const;
 	quaternion getDerivedOrientation() const;
@@ -67,6 +72,8 @@ private:
 	vector3 m_position;
 	vector3 m_scale;
 	quaternion m_orientation;
+
+	bool m_fixedYAxis;
 
 	SceneNode* m_parentSceneNode;
 	std::unordered_map<std::string, SceneNode*> m_childSceneNodes;

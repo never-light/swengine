@@ -1,6 +1,6 @@
-#include "OpenGL3Shader.h"
+#include "OpenGL3GpuProgram.h"
 
-#include <fstream>
+#include <sstream>
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
@@ -11,14 +11,14 @@ enum ReadShaderCodeState {
 	READ_UNDEFINED_SHADER_CODE, READ_VERTEX_SHADER_CODE, READ_FRAGMENT_SHADER_CODE
 };
 
-OpenGL3GpuProgram::OpenGL3GpuProgram(const std::string& filename) : m_programId(NULL) {
-	std::ifstream inputFile(filename);
+OpenGL3GpuProgram::OpenGL3GpuProgram(const std::string& source) : m_programId(NULL) {
+	std::stringstream sourceStream(source);
 	std::string vertexShaderCodeString, fragmentShaderCodeString;
 	std::string line;
 
 	ReadShaderCodeState readShaderCodeState = READ_UNDEFINED_SHADER_CODE;
 
-	while (std::getline(inputFile, line)) {
+	while (std::getline(sourceStream, line)) {
 		if (line == "@vertexShader") {
 			readShaderCodeState = READ_VERTEX_SHADER_CODE;
 		}

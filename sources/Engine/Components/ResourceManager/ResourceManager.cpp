@@ -1,19 +1,18 @@
 #include "ResourceManager.h"
+
 #include <regex>
+#include <fstream>
+#include <variant>
+
 #include <Engine\Components\Debugging\Log.h>
 
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3TextureLoader.h>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3GpuProgramLoader.h>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3MaterialLoader.h>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3MeshLoader.h>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3SpriteLoader.h>
+#include <Engine\ServiceLocator.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 ResourceManager::ResourceManager() {
-	m_textureLoader = new OpenGL3TextureLoader();
-	m_gpuProgramLoader = new OpenGL3GpuProgramLoader();
-	m_materialLoader = new OpenGL3MaterialLoader();
-	m_meshLoader = new OpenGL3MeshLoader();
-	m_spriteLoader = new OpenGL3SpriteLoader();
+
 }
 
 ResourceManager::~ResourceManager() {
@@ -29,7 +28,16 @@ Texture* ResourceManager::loadTexture(const std::string& filename) {
 		return m_texturesMap.at(filename);
 	}
 
-	Texture* texture = m_textureLoader->loadFromFile(filename);
+	int width, height;
+	int nrChannels;
+	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+
+	if (!data) {
+		errlog() << "Texture loading error: " << filename;
+		throw std::exception();
+	}
+
+	Texture* texture = ServiceLocator::getRenderer()->createTexture(width, height, data);
 	m_texturesMap.insert(std::make_pair(filename, texture));
 
 	return texture;
@@ -40,10 +48,14 @@ GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 		return m_shadersMap.at(filename);
 	}
 
-	GpuProgram* shader = m_gpuProgramLoader->loadFromFile(filename);
-	m_shadersMap.insert(std::make_pair(filename, shader));
+	std::ifstream t(filename);
+	std::string source((std::istreambuf_iterator<char>(t)),
+		std::istreambuf_iterator<char>());
 
-	return shader;
+	GpuProgram* program = ServiceLocator::getRenderer()->createGpuProgram(source);
+	m_shadersMap.insert(std::make_pair(filename, program));
+
+	return program;
 }
 
 Sprite* ResourceManager::loadSprite(const std::string& filename) {
@@ -51,10 +63,10 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 		return m_spritesMap.at(filename);
 	}
 
-	Sprite* sprite = m_spriteLoader->createSprite();
+	Sprite* sprite = ServiceLocator::getRenderer()->createSprite(loadTexture(filename), loadShader("resources/shaders/sprite.sh"));
 	sprite->setTexture(loadTexture(filename));
 	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
-
+	 
 	m_spritesMap.insert(std::make_pair(filename, sprite));
 
 	return sprite;
@@ -65,10 +77,44 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 		return m_meshesMap.at(filename);
 	}
 
-	Mesh* mesh = m_meshLoader->createMesh();
+	std::vector<Mesh*> meshes;
 
-	std::vector<Mesh*>& meshes = m_meshLoader->loadFromFile(filename);
+	std::ifstream in(filename, std::ios::binary | std::ios::in);
 
+	ModelFileHeaderData header;
+	in.read((char*)&header, sizeof header);
+
+	for (size_t i = 0; i < header.meshesCount; i++) {
+		Mesh* mesh = ServiceLocator::getRenderer()->createMesh();
+
+		ModelFileMeshData meshData;
+		in.read((char*)&meshData, sizeof meshData);
+
+		for (size_t j = 0; j < meshData.verticesCount; j++) {
+			ModelFileVertexData vertexData;
+			in.read((char*)&vertexData, sizeof vertexData);
+
+			mesh->addVertex(Vertex(
+				vector3(vertexData.x, vertexData.y, vertexData.z),
+				vector2(vertexData.u, vertexData.v),
+				vector3(vertexData.nx, vertexData.ny, vertexData.nz)
+			));
+		}
+
+		for (size_t j = 0; j < meshData.indicesCount; j++) {
+			uint32 index;
+			in.read((char*)&index, sizeof index);
+
+			mesh->addIndex(index);
+		}
+
+		mesh->setName(meshData.name);
+		mesh->updateState();
+
+		meshes.push_back(mesh);
+	}
+
+	Mesh* mesh = ServiceLocator::getRenderer()->createMesh();
 	for (Mesh* subMesh : meshes) {
 		mesh->addSubMesh(subMesh);
 	}
@@ -102,7 +148,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 		if (std::regex_search(currentLine, match, materialNameRegex)) {
 			if (!currentMaterialName.empty()) {
 				// Save material
-				auto material = m_materialLoader->createMaterial(parameters);
+				auto material = createMaterialWithParameters(parameters);
 				package.insert(std::make_pair(currentMaterialName, material));
 
 				currentMaterialName.clear();
@@ -116,28 +162,28 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 
 			// Number Value
 			if (std::regex_search(currentLine, match, materialParameterNumberRegex)) {
-				v = MaterialParameterValue(std::atof(std::string(match[2]).c_str()));
+				v = std::atof(std::string(match[2]).c_str());
 			}
 			// String value
 			else if (std::regex_search(currentLine, match, materialParameterStringRegex)) {
 				if (match[1] == "program") {
-					v = MaterialParameterValue(loadShader(std::string(match[2])));
+					v = loadShader(std::string(match[2]));
 				}
 				else {
-					v = MaterialParameterValue(std::string(match[2]));
+					v = std::string(match[2]);
 				}
 			}
 			// Color value
 			else if (std::regex_search(currentLine, match, materialParameterColorRegex)) {
-				v = MaterialParameterValue(Color(
+				v = Color(
 					std::atof(std::string(match[2]).c_str()), // r
 					std::atof(std::string(match[3]).c_str()), // g
 					std::atof(std::string(match[4]).c_str()) // b
-				));
+				);
 			}
 			// Texture value
 			else if (std::regex_search(currentLine, match, materialParameterTextureRegex)) {
-				v = MaterialParameterValue(loadTexture(match[2]));
+				v = loadTexture(match[2]);
 			}
 			else {
 				errlog() << "Invalid string in material file: " << currentLine;
@@ -153,7 +199,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 
 	// Save last material
 	if (!currentMaterialName.empty()) {
-		auto material = m_materialLoader->createMaterial(parameters);
+		auto material = createMaterialWithParameters(parameters);
 		package.insert(std::make_pair(currentMaterialName, material));
 	}
 
@@ -163,7 +209,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 }
 
 Material* ResourceManager::createMaterial(const std::string& name) {
-	Material* material = m_materialLoader->createMaterial();
+	Material* material = ServiceLocator::getRenderer()->createMaterial();
 	m_materialsMap.insert(std::make_pair(name, material));
 
 	return material;
@@ -179,5 +225,49 @@ void ResourceManager::unloadResourcesSet(std::unordered_map<std::string, T> map)
 	while (itr != map.end()) {
 		delete itr->second;
 		itr = map.erase(itr);
+	}
+}
+
+Material* ResourceManager::createMaterialWithParameters(const MaterialParametersList& parameters) {
+	Material* material = ServiceLocator::getRenderer()->createMaterial();
+
+	setMaterialParameterIfExists(material, parameters, "program");
+	setMaterialParameterIfExists(material, parameters, "ambientColor");
+	setMaterialParameterIfExists(material, parameters, "diffuseColor");
+	setMaterialParameterIfExists(material, parameters, "specularColor");
+	setMaterialParameterIfExists(material, parameters, "specularLevel");
+	setMaterialParameterIfExists(material, parameters, "diffuseMap");
+	setMaterialParameterIfExists(material, parameters, "specularMap");
+
+	return material;
+}
+
+void ResourceManager::setMaterialParameterIfExists(Material* material, const MaterialParametersList& parameters, const std::string& parameterName) {
+	auto it = parameters.find(parameterName);
+
+	if (it == parameters.end()) {
+		return;
+	}
+
+	if (parameterName == "ambientColor") {
+		material->setAmbientColor(std::get<Color>(it->second));
+	}
+	else if (parameterName == "diffuseColor") {
+		material->setDuffuseColor(std::get<Color>(it->second));
+	}
+	else if (parameterName == "specularColor") {
+		material->setSpecularColor(std::get<Color>(it->second));
+	}
+	else if (parameterName == "specularLevel") {
+		material->setShininess(std::get<real>(it->second));
+	}
+	else if (parameterName == "diffuseMap") {
+		material->setLightmap(LightmapType::Diffuse, std::get<Texture*>(it->second));
+	}
+	else if (parameterName == "specularMap") {
+		material->setLightmap(LightmapType::Specular, std::get<Texture*>(it->second));
+	}
+	else if (parameterName == "program") {
+		material->setGpuProgram(std::get<GpuProgram*>(it->second));
 	}
 }

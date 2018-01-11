@@ -13,15 +13,9 @@ public:
 	SceneManager();
 	~SceneManager();
 
-	void initialize(ResourceManager* resourceManager);
-	void shutdown();
-
 	Scene* createEmptyScene(const std::string&);
 	Scene* getScene(const std::string&) const;
 
 private:
 	std::unordered_map<std::string, Scene*> m_scenesMap;
-
-private:
-	ResourceManager* m_resourceManager;
 };

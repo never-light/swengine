@@ -2,18 +2,10 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
-Window::Window() {
-
-}
-
-Window::~Window() {
-
-}
-
-void Window::initialize(const std::string& title, int width, int height) {
-	m_width = width;
-	m_height = height;
-
+Window::Window(const std::string& name, int width, int height) 
+	: m_width(width),
+	m_height(height)
+{
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -22,8 +14,8 @@ void Window::initialize(const std::string& title, int width, int height) {
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	this->m_windowPointer = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-	
+	this->m_windowPointer = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+
 	if (!this->m_windowPointer) {
 		errlog() << "Failed to create GLFW window";
 		glfwTerminate();
@@ -35,7 +27,7 @@ void Window::initialize(const std::string& title, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-void Window::shutdown() {
+Window::~Window() {
 
 }
 

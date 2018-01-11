@@ -7,7 +7,7 @@ typedef GLuint shaderId;
 
 class OpenGL3GpuProgram : public GpuProgram {
 public:
-	OpenGL3GpuProgram(const std::string& filename);
+	OpenGL3GpuProgram(const std::string& source);
 	~OpenGL3GpuProgram();
 
 	shaderId getShaderPointer() const;

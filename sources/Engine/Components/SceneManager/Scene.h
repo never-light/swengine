@@ -18,9 +18,6 @@ public:
 	Scene();
 	~Scene();
 
-	void initialize(ResourceManager* resourceManager);
-	void shutdown();
-
 	template<typename LightSourceType>
 	LightSourceType* createLightSource(const std::string& name) {
 		LightSourceType* lightSource = new LightSourceType();
@@ -47,7 +44,4 @@ private:
 	std::unordered_map<std::string, Model*> m_modelsMap;
 
 	SceneNode* m_rootSceneNode;
-
-private:
-	ResourceManager* m_resourceManager;
 };

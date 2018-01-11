@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fstream>
+#include <variant>
 #include <string>
 #include <vector>
 #include <map>
@@ -8,11 +8,31 @@
 
 #include <Engine\types.h>
 
-#include <Engine\Components\Graphics\RenderSystem\TextureLoader.h>
-#include <Engine\Components\Graphics\RenderSystem\GpuProgramLoader.h>
-#include <Engine\Components\Graphics\RenderSystem\MaterialLoader.h>
-#include <Engine\Components\Graphics\RenderSystem\MeshLoader.h>
-#include <Engine\Components\Graphics\RenderSystem\SpriteLoader.h>
+#include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
+#include <Engine\Components\Graphics\RenderSystem\Texture.h>
+#include <Engine\Components\Graphics\RenderSystem\Material.h>
+#include <Engine\Components\Graphics\RenderSystem\Sprite.h>
+#include <Engine\Components\Graphics\RenderSystem\Mesh.h>
+
+using MaterialParameterValue = std::variant <real, std::string, Color, Texture*, GpuProgram*>;
+using MaterialParametersList = std::unordered_map<std::string, MaterialParameterValue>;
+
+struct ModelFileHeaderData {
+	std::uint32_t version;
+	std::uint32_t meshesCount;
+};
+
+struct ModelFileMeshData {
+	char name[64];
+	std::uint32_t verticesCount;
+	std::uint32_t indicesCount;
+};
+
+struct ModelFileVertexData {
+	float x, y, z;
+	float nx, ny, nz;
+	float u, v;
+};
 
 class ResourceManager {
 public:
@@ -29,15 +49,11 @@ public:
 	Material* getMaterial(const std::string& name);
 
 private:
+	Material* createMaterialWithParameters(const MaterialParametersList& parameters);
+	void setMaterialParameterIfExists(Material* material, const MaterialParametersList& parameters, const std::string& parameterName);
+
 	template<class T>
 	void unloadResourcesSet(std::unordered_map<std::string, T> map);
-
-private:
-	TextureLoader* m_textureLoader;
-	GpuProgramLoader* m_gpuProgramLoader;
-	MaterialLoader* m_materialLoader;
-	MeshLoader* m_meshLoader;
-	SpriteLoader* m_spriteLoader;
 
 private:
 	std::unordered_map<std::string, Texture*> m_texturesMap;

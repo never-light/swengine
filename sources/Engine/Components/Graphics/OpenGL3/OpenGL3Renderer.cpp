@@ -175,3 +175,23 @@ void OpenGL3Renderer::bindTexture(const Texture* texture, size_t unit) {
 void OpenGL3Renderer::bindShader(const GpuProgram* shader) {
 	glUseProgram(static_cast<const OpenGL3GpuProgram*>(shader)->getShaderPointer());
 }
+
+Material* OpenGL3Renderer::createMaterial() {
+	return new OpenGL3Material();
+}
+
+Texture* OpenGL3Renderer::createTexture(int width, int height, const unsigned char* data) {
+	return new OpenGL3Texture(width, height, data);
+}
+
+GpuProgram* OpenGL3Renderer::createGpuProgram(const std::string& source) {
+	return new OpenGL3GpuProgram(source);
+}
+
+Sprite* OpenGL3Renderer::createSprite(Texture* texture, GpuProgram* gpuProgram) {
+	return new OpenGL3Sprite(texture, gpuProgram);
+}
+
+Mesh* OpenGL3Renderer::createMesh() {
+	return new OpenGL3Mesh();
+}

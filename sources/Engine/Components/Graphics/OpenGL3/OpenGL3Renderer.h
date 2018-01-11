@@ -12,7 +12,7 @@
 
 #include "OpenGL3.h"
 #include "OpenGL3Texture.h"
-#include "OpenGL3Shader.h"
+#include "OpenGL3GpuProgram.h"
 #include "OpenGL3Sprite.h"
 #include "OpenGL3Mesh.h"
 #include "OpenGL3Material.h"
@@ -40,6 +40,13 @@ public:
 	void bindMaterial(const Material*) override;
 	void bindShader(const GpuProgram*) override;
 	void bindTexture(const Texture*, size_t) override;
+
+	Material* createMaterial() override;
+	Texture* createTexture(int width, int height, const unsigned char* data) override;
+	GpuProgram* createGpuProgram(const std::string& source) override;
+	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) override;
+	Mesh* createMesh();
+
 private:
 	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);
