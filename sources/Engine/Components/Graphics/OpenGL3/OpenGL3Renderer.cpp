@@ -195,3 +195,7 @@ Sprite* OpenGL3Renderer::createSprite(Texture* texture, GpuProgram* gpuProgram) 
 Mesh* OpenGL3Renderer::createMesh() {
 	return new OpenGL3Mesh();
 }
+
+Light* OpenGL3Renderer::createLight(LightType type) {
+	return new OpenGL3Light(type);
+}

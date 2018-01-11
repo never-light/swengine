@@ -4,7 +4,7 @@
 
 class OpenGL3Light : public Light {
 public:
-	OpenGL3Light();
+	OpenGL3Light(LightType type);
 	virtual ~OpenGL3Light();
 
 	void setType(LightType) override;

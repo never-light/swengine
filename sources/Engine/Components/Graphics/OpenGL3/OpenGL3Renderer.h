@@ -45,7 +45,8 @@ public:
 	Texture* createTexture(int width, int height, const unsigned char* data) override;
 	GpuProgram* createGpuProgram(const std::string& source) override;
 	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) override;
-	Mesh* createMesh();
+	Mesh* createMesh() override;
+	Light* createLight(LightType type) override;
 
 private:
 	void drawSubModel(const SubModel*);

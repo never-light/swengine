@@ -18,18 +18,8 @@ public:
 	Scene();
 	~Scene();
 
-	template<typename LightSourceType>
-	LightSourceType* createLightSource(const std::string& name) {
-		LightSourceType* lightSource = new LightSourceType();
-		m_lightsMap.insert(std::make_pair(name, dynamic_cast<Light*>(lightSource)));
-
-		return lightSource;
-	}
-
-	template<typename LightSourceType>
-	LightSourceType* getLightSource(const std::string& name) {
-		return dynamic_cast<LightSourceType*>(m_lightsMap.at(name));
-	}
+	Light* createLight(const std::string& name, LightType type);
+	Light* getLight(const std::string& name);
 
 	Camera* createCamera(const std::string&);
 	Camera* getCamera(const std::string&);

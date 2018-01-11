@@ -60,3 +60,14 @@ Model* Scene::getModel(const std::string& name) {
 SceneNode* Scene::getRootSceneNode() const {
 	return m_rootSceneNode;
 }
+
+Light* Scene::createLight(const std::string& name, LightType type) {
+	Light* lightSource = ServiceLocator::getRenderer()->createLight(type);
+	m_lightsMap.insert(std::make_pair(name, lightSource));
+
+	return lightSource;
+}
+
+Light* Scene::getLight(const std::string& name) {
+	return m_lightsMap.at(name);
+}

@@ -1,6 +1,7 @@
 #include "OpenGL3Light.h"
 
-OpenGL3Light::OpenGL3Light() {
+OpenGL3Light::OpenGL3Light(LightType type) 
+	: m_type(type) {
 
 }
 

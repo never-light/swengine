@@ -38,4 +38,5 @@ public:
 	virtual GpuProgram* createGpuProgram(const std::string& source) = 0;
 	virtual Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) = 0;
 	virtual Mesh* createMesh() = 0;
+	virtual Light* createLight(LightType type) = 0;
 };
