@@ -4,10 +4,8 @@
 int main() {
 	setlocale(LC_CTYPE, "Russian");
 
-	Application app;
-	app.initialize("TestApplication", 640, 640);
+	Application app("TestApplication", 1024, 768);
 	app.run();
-	app.shutdown();
 
 	return 0;
 }

@@ -1,15 +1,12 @@
 #pragma once
 
 #include "BaseApplication.h"
-#include "CameraController.h"
+#include "Player.h"
 
 class Application : public BaseApplication, public InputEventsListener {
 public:
-	Application();
+	Application(const std::string&, unsigned int, unsigned int);
 	~Application();
-
-	void initialize(const std::string&, unsigned int, unsigned int);
-	void shutdown();
 
 	void update();
 	void render();
@@ -17,7 +14,16 @@ private:
 	void onKeyPress(int16 key, KeyEvent::Modifier mod) override;
 
 private:
-	CameraController* cameraController;
+	void toggleViewType(ViewType type);
+
+private:
+	Camera* m_freeCamera;
+	real m_cameraSpeed;
+	real m_mouseSensitivity;
+	ViewType m_viewType;
+
+	SceneNode* m_levelNode;
 	Scene* m_mainScene;
-	Material* m_bronzeMaterial;
+
+	Player* m_player;
 };

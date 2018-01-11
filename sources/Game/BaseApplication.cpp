@@ -7,20 +7,12 @@
 
 #include <Engine\Components\Graphics\OpenGL3\OpenGL3Renderer.h>
 
-BaseApplication::BaseApplication() 
+BaseApplication::BaseApplication(const std::string& windowName, unsigned int width, unsigned int height)
 	: m_window(nullptr), 
 	m_renderer(nullptr), 
 	m_inputMgr(nullptr),
 	m_sceneMgr(nullptr)
 {
-	
-}
-
-BaseApplication::~BaseApplication() {
-
-}
-
-void BaseApplication::initialize(const std::string& windowName, unsigned int width, unsigned int height) {
 	using std::experimental::filesystem::path;
 	using std::experimental::filesystem::current_path;
 
@@ -29,39 +21,29 @@ void BaseApplication::initialize(const std::string& windowName, unsigned int wid
 	Random::initialize();
 
 	// Window
-	m_window = new Window();
-	m_window->initialize(windowName, width, height);
+	m_window = new Window(windowName, width, height);
 	m_window->setCursorType(CursorType::Hidden);
 
+	// Engine
+	InitializeEngine(m_window);
+
 	// Renderer
-	m_renderer = new OpenGL3Renderer(m_window);
+	m_renderer = ServiceLocator::getRenderer();
 
 	// Input Manager
-	m_inputMgr = new InputManager();
-	m_inputMgr->initialize(m_window);
+	m_inputMgr = ServiceLocator::getInputManager();
 
 	// Resource Manager
-	m_resMgr = new ResourceManager();
+	m_resMgr = ServiceLocator::getResourceManager();
 
 	// Scene Managaer
-	m_sceneMgr = new SceneManager();
-	m_sceneMgr->initialize(m_resMgr);
+	m_sceneMgr = ServiceLocator::getSceneManager();
 }
 
-void BaseApplication::shutdown() {
-	m_sceneMgr->shutdown();
-	delete m_sceneMgr;
-
-	delete m_resMgr;
-
-	m_inputMgr->shutdown();
-	delete m_inputMgr;
-
-	delete m_renderer;
-
-	m_window->shutdown();
+BaseApplication::~BaseApplication() {
 	delete m_window;
 
+	ShutdownEngine();
 	glfwTerminate();
 }
 

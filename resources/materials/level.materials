@@ -1,0 +1,20 @@
+[player]
+program = "resources/shaders/diffuse.sh"
+diffuseMap = texture("resources/textures/player.png")
+ambientColor = color(1.0, 1.0, 1.0)
+specularColor = color(1.0, 1.0, 1.0)
+specularLevel = 999
+
+[brick]
+program = "resources/shaders/diffuse.sh"
+diffuseMap = texture("resources/textures/brick.png")
+ambientColor = color(1.0, 1.0, 1.0)
+specularColor = color(1.0, 1.0, 1.0)
+specularLevel = 999
+
+[grass]
+program = "resources/shaders/diffuse.sh"
+diffuseMap = texture("resources/textures/grass.png")
+ambientColor = color(1.0, 1.0, 1.0)
+specularColor = color(1.0, 1.0, 1.0)
+specularLevel = 999

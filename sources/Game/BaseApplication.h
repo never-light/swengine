@@ -7,13 +7,10 @@
 
 class BaseApplication {
 public:
-	BaseApplication();
+	BaseApplication(const std::string& windowName, unsigned int width, unsigned int height);
 	virtual ~BaseApplication();
 
 	virtual void run();
-	virtual void initialize(const std::string&, unsigned int, unsigned int);
-	virtual void shutdown();
-	
 	virtual void update();
 	virtual void render();
 
