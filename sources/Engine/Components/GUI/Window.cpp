@@ -4,7 +4,8 @@
 
 Window::Window(const std::string& name, int width, int height) 
 	: m_width(width),
-	m_height(height)
+	m_height(height),
+	m_viewport(new Viewport(width, height))
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -63,6 +64,14 @@ void Window::setCursorType(CursorType type) {
 
 CursorType Window::getCursorType() const {
 	return m_cursorType;
+}
+
+Viewport* Window::getViewport() const {
+	return m_viewport;
+}
+
+void Window::setViewport(Viewport* viewport) {
+	m_viewport = viewport;
 }
 
 void Window::setCursorPosition(real64 x, real64 y) {

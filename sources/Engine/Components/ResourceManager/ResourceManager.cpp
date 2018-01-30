@@ -52,7 +52,9 @@ GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 	std::string source((std::istreambuf_iterator<char>(t)),
 		std::istreambuf_iterator<char>());
 
+	infolog() << "Loading shader " << filename << "...";
 	GpuProgram* program = ServiceLocator::getRenderer()->createGpuProgram(source);
+
 	m_shadersMap.insert(std::make_pair(filename, program));
 
 	return program;
@@ -85,7 +87,8 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 	in.read((char*)&header, sizeof header);
 
 	for (size_t i = 0; i < header.meshesCount; i++) {
-		Mesh* mesh = ServiceLocator::getRenderer()->createMesh();
+		HardwareBuffer* geometryBuffer = ServiceLocator::getRenderer()->createHardwareBuffer();
+		geometryBuffer->lock();
 
 		ModelFileMeshData meshData;
 		in.read((char*)&meshData, sizeof meshData);
@@ -94,7 +97,7 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 			ModelFileVertexData vertexData;
 			in.read((char*)&vertexData, sizeof vertexData);
 
-			mesh->addVertex(Vertex(
+			geometryBuffer->addVertex(Vertex(
 				vector3(vertexData.x, vertexData.y, vertexData.z),
 				vector2(vertexData.u, vertexData.v),
 				vector3(vertexData.nx, vertexData.ny, vertexData.nz)
@@ -105,16 +108,18 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 			uint32 index;
 			in.read((char*)&index, sizeof index);
 
-			mesh->addIndex(index);
+			geometryBuffer->addIndex(index);
 		}
 
+		geometryBuffer->unlock();
+
+		Mesh* mesh = new Mesh(geometryBuffer);
 		mesh->setName(meshData.name);
-		mesh->updateState();
 
 		meshes.push_back(mesh);
 	}
 
-	Mesh* mesh = ServiceLocator::getRenderer()->createMesh();
+	Mesh* mesh = new Mesh();
 	for (Mesh* subMesh : meshes) {
 		mesh->addSubMesh(subMesh);
 	}

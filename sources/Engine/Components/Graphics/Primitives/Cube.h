@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3Mesh.h>
+#include <Engine\Components\Graphics\RenderSystem\Mesh.h>
 
-class Cube : public OpenGL3Mesh {
+class Cube : public Mesh {
 public:
 	Cube();
 	virtual ~Cube();

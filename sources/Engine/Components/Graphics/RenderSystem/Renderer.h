@@ -12,6 +12,8 @@
 #include "Texture.h"
 #include "Light.h"
 #include "Model.h"
+#include "Framebuffer.h"
+#include "HardwareBuffer.h"
 
 class Renderer {
 public:
@@ -23,20 +25,38 @@ public:
 	virtual void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) = 0;
 	virtual void drawModel(const Model*) = 0;
 	virtual void drawMesh(const Mesh*) = 0;
+	virtual void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) = 0;
 
+	virtual void clearFramebuffer(const Color& color) = 0;
 	virtual void beginRendering(Color) = 0;
 	virtual void endRendering() = 0;
 
 	virtual void addLight(Light*) = 0;
+
+	virtual void bindFramebuffer(Framebuffer* framebuffer) = 0;
+	virtual void unbindCurrentFramebuffer() = 0;
+
+	virtual void setCurrentFramebuffer(Framebuffer* framebuffer) = 0;
+	virtual Framebuffer* getCurrentFramebuffer() const = 0;
+
+	virtual void copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) = 0;
 
 	virtual void bindMaterial(const Material*) = 0;
 	virtual void bindShader(const GpuProgram*) = 0;
 	virtual void bindTexture(const Texture*, size_t) = 0;
 
 	virtual Material* createMaterial() = 0;
+	
 	virtual Texture* createTexture(int width, int height, const unsigned char* data) = 0;
+	virtual Texture* createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) = 0;
+
 	virtual GpuProgram* createGpuProgram(const std::string& source) = 0;
 	virtual Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) = 0;
-	virtual Mesh* createMesh() = 0;
+
 	virtual Light* createLight(LightType type) = 0;
+
+	virtual Framebuffer* createFramebuffer(int width, int height, const std::vector<Texture*>& textures) = 0;
+
+	virtual HardwareBuffer* createHardwareBuffer() = 0;
+	virtual HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) = 0;
 };

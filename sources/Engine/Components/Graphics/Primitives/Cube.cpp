@@ -1,7 +1,9 @@
 #include "Cube.h"
 
 Cube::Cube() {
-	m_vertices = std::vector<Vertex>{
+	m_geometryBuffer->lock();
+
+	m_geometryBuffer->setVertices(std::vector<Vertex>{
 		{ vector3(-1.0f,-1.0f,-1.0f), vector2(0.0f, 0.0f), vector3(0.0f, -1.0f, 0.0) },
 		{ vector3(1.0f,-1.0f,-1.0f), vector2(1.0f, 0.0f), vector3(0.0f, -1.0f, 0.0) },
 		{ vector3(-1.0f,-1.0f, 1.0f), vector2(0.0f, 1.0f), vector3(0.0f, -1.0f, 0.0) },
@@ -48,9 +50,9 @@ Cube::Cube() {
 		{ vector3(1.0f,-1.0f, 1.0f), vector2(1.0f, 1.0f), vector3(1.0f, 0.0f, 0.0) },
 		{ vector3(1.0f, 1.0f,-1.0f), vector2(0.0f, 0.0f), vector3(1.0f, 0.0f, 0.0) },
 		{ vector3(1.0f, 1.0f, 1.0f), vector2(0.0f, 1.0f), vector3(1.0f, 0.0f, 0.0f) },
-	};
+	});
 
-	updateState();
+	m_geometryBuffer->unlock();
 }
 
 Cube::~Cube() {

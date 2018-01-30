@@ -21,6 +21,10 @@ public:
 	Light* createLight(const std::string& name, LightType type);
 	Light* getLight(const std::string& name);
 
+	void setActiveCamera(const std::string& name);
+	void setActiveCamera(Camera* camera);
+	Camera* getActiveCamera() const;
+
 	Camera* createCamera(const std::string&);
 	Camera* getCamera(const std::string&);
 
@@ -29,6 +33,8 @@ public:
 
 	SceneNode* getRootSceneNode() const;
 private:
+	Camera* m_activeCamera;
+
 	std::unordered_map<std::string, Light*> m_lightsMap;
 	std::unordered_map<std::string, Camera*> m_camerasMap;
 	std::unordered_map<std::string, Model*> m_modelsMap;

@@ -5,21 +5,26 @@
 
 #include <Engine\types.h>
 #include "Vertex.h"
+#include "HardwareBuffer.h"
 
 class Mesh {
 public:
-	virtual void addSubMesh(Mesh* mesh) = 0;
-	virtual Mesh* getSubMesh(size_t index) = 0;
-	virtual const std::vector<Mesh*>& getSubMeshesArray() const = 0;
+	Mesh();
+	Mesh(HardwareBuffer* geometryBuffer);
+	virtual ~Mesh();
 
-	virtual void setName(const std::string& name) = 0;
-	virtual const std::string& getName() const = 0;
+	virtual void addSubMesh(Mesh* mesh);
+	virtual Mesh* getSubMesh(size_t index);
+	virtual const std::vector<Mesh*>& getSubMeshesArray() const;
 
-	virtual void addVertex(const Vertex&) = 0;
-	virtual void addIndex(uint32) = 0;
+	virtual void setName(const std::string& name);
+	virtual const std::string& getName() const;
 
-	virtual size_t getVerticesCount() const = 0;
-	virtual size_t getIndicesCount() const = 0;
+	virtual HardwareBuffer* getGeometryBuffer() const;
 
-	virtual void updateState() = 0;
+protected:
+	std::string m_name;
+	std::vector<Mesh*> m_subMeshes;
+
+	HardwareBuffer * m_geometryBuffer;
 };

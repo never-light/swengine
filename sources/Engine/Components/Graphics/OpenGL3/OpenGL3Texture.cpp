@@ -3,8 +3,42 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
+OpenGL3Texture::OpenGL3Texture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type)
+	:  Texture(width, height, internalFormat, format, type),
+	m_width(width),
+	m_height(height) 
+{
+	GLint glInternalFormat;
+
+	if (internalFormat == TextureInternalFormat::RGB16F)
+		glInternalFormat = GL_RGB16F;
+	else if (internalFormat == TextureInternalFormat::RGBA)
+		glInternalFormat = GL_RGBA;
+
+	GLenum glFormat;
+
+	if (format == TextureFormat::RGB)
+		glFormat = GL_RGB;
+	else if (format == TextureFormat::RGBA)
+		glFormat = GL_RGBA;
+
+	GLenum glDataType;
+
+	if (type == TextureDataType::Float)
+		glDataType = GL_FLOAT;
+	else if (type == TextureDataType::UnsignedByte)
+		glDataType = GL_UNSIGNED_BYTE;
+
+	glGenTextures(1, &m_textureId);
+	glBindTexture(GL_TEXTURE_2D, m_textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glFormat, glDataType, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+}
+
 OpenGL3Texture::OpenGL3Texture(int width, int height, const unsigned char* data) 
-	: m_textureId(NULL), 
+	: Texture(width, height, data),
+	m_textureId(NULL), 
 	m_width(width), 
 	m_height(height) 
 {
@@ -26,7 +60,7 @@ OpenGL3Texture::~OpenGL3Texture() {
 	}
 }
 
-textureId OpenGL3Texture::getTexturePointer() const {
+GLuint OpenGL3Texture::getTexturePointer() const {
 	return m_textureId;
 }
 

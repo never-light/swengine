@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "Viewport.h"
+
 struct WindowCursorState {
 	real64 x;
 	real64 y;
@@ -30,6 +32,9 @@ public:
 	void setCursorType(CursorType);
 	CursorType getCursorType() const;
 	
+	Viewport* getViewport() const;
+	void setViewport(Viewport* viewport);
+
 	void setCursorPosition(real64, real64);
 	void resetCursorPosition();
 	WindowCursorState getCursorPosition() const;
@@ -40,6 +45,8 @@ public:
 
 	GLFWwindow* getWindowPointer() const;
 private:
+	Viewport* m_viewport;
+
 	GLFWwindow* m_windowPointer;
 	CursorType m_cursorType;
 

@@ -14,9 +14,10 @@
 #include "OpenGL3Texture.h"
 #include "OpenGL3GpuProgram.h"
 #include "OpenGL3Sprite.h"
-#include "OpenGL3Mesh.h"
 #include "OpenGL3Material.h"
 #include "OpenGL3Light.h"
+#include "OpenGL3Framebuffer.h"
+#include "OpenGL3Hardwarebuffer.h"
 
 class OpenGL3Renderer : public Renderer {
 public:
@@ -31,28 +32,47 @@ public:
 	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) override;
 	void drawModel(const Model*) override;
 	void drawMesh(const Mesh*) override;
+	void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) override;
 
+	void clearFramebuffer(const Color& color) override;
 	void beginRendering(Color) override;
 	void endRendering() override;
 
 	void addLight(Light*) override;
 
+	void bindFramebuffer(Framebuffer* framebuffer) override;
+	void unbindCurrentFramebuffer() override;
+
+	void setCurrentFramebuffer(Framebuffer* framebuffer) override;
+	Framebuffer* getCurrentFramebuffer() const override;
+
+	void copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) override;
+
 	void bindMaterial(const Material*) override;
 	void bindShader(const GpuProgram*) override;
 	void bindTexture(const Texture*, size_t) override;
+	void bindShaderLights(GpuProgram* program);
 
 	Material* createMaterial() override;
 	Texture* createTexture(int width, int height, const unsigned char* data) override;
+	Texture* createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) override;
+
 	GpuProgram* createGpuProgram(const std::string& source) override;
 	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) override;
-	Mesh* createMesh() override;
+
 	Light* createLight(LightType type) override;
 
+	Framebuffer* createFramebuffer(int width, int height, const std::vector<Texture*>& textures) override;
+	
+	HardwareBuffer* createHardwareBuffer() override;
+	HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) override;
 private:
 	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);
 
 private:
+	OpenGL3Framebuffer* m_framebuffer;
+
 	Window* m_window;
 	Camera* m_currentCamera;
 

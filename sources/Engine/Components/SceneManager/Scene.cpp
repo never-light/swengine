@@ -22,6 +22,18 @@ Scene::~Scene() {
 	}
 }
 
+void Scene::setActiveCamera(const std::string& name) {
+	m_activeCamera = getCamera(name);
+}
+
+void Scene::setActiveCamera(Camera* camera) {
+	m_activeCamera = camera;
+}
+
+Camera* Scene::getActiveCamera() const {
+	return m_activeCamera;
+}
+
 Camera* Scene::createCamera(const std::string& name) {
 	Camera* camera = new Camera();
 	m_camerasMap.insert(std::make_pair(name, camera));
