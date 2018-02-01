@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+#include <map>
 #include <Engine\types.h>
 
 #include "GpuProgram.h"
@@ -9,6 +11,8 @@
 enum class LightmapType {
 	Diffuse, Specular
 };
+
+using MaterialParameter = std::variant<int, real, bool, Color, Texture*>;
 
 class Material {
 public:
@@ -30,4 +34,8 @@ public:
 
 	virtual void setShininess(float32) = 0;
 	virtual float32 getShininess() const = 0;
+
+	virtual void setParameter(const std::string& name, MaterialParameter value) = 0;
+	virtual MaterialParameter getParameter(const std::string& name) const = 0;
+	virtual bool hasParameter(const std::string& name) const = 0;
 };

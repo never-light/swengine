@@ -59,3 +59,15 @@ void OpenGL3Material::setShininess(float32 shininess) {
 float32 OpenGL3Material::getShininess() const {
 	return m_shininess;
 }
+
+void OpenGL3Material::setParameter(const std::string& name, MaterialParameter value) {
+	m_parameters[name] = value;
+}
+
+MaterialParameter OpenGL3Material::getParameter(const std::string& name) const {
+	return m_parameters.at(name);
+}
+
+bool OpenGL3Material::hasParameter(const std::string& name) const {
+	return m_parameters.find(name) != m_parameters.end();
+}

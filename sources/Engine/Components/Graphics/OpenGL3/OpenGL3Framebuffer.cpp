@@ -3,31 +3,44 @@
 
 #include <Engine\Components\Debugging\Log.h>
 
-OpenGL3Framebuffer::OpenGL3Framebuffer(int width, int height, const std::vector<Texture*>& textureBuffers)
-	: Framebuffer(width, height, textureBuffers),
-	m_textureBuffers(textureBuffers) 
+OpenGL3Framebuffer::OpenGL3Framebuffer()
+	: Framebuffer()
 {
-	int textureBuffersCount = textureBuffers.size();
+
+}
+
+OpenGL3Framebuffer::~OpenGL3Framebuffer() {
+	freeData();
+}
+
+GLuint OpenGL3Framebuffer::getFramebufferPointer() const {
+	return m_framebufferPointer;
+}
+
+void OpenGL3Framebuffer::lock() {
+	freeData();
 
 	glGenFramebuffers(1, &m_framebufferPointer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferPointer);
+}
+void OpenGL3Framebuffer::unlock() {
+	std::vector<GLuint> colorAttachments;
 
-	GLenum* buffers = new GLenum[textureBuffersCount];
+	auto color0 = m_attachedTextures.find(FramebufferTextureType::Color0);
+	if (color0 != m_attachedTextures.end())
+		colorAttachments.push_back(GL_COLOR_ATTACHMENT0);
 
-	for (size_t i = 0; i < textureBuffersCount; i++) {
-		buffers[i] = GL_COLOR_ATTACHMENT0 + i;
+	auto color1 = m_attachedTextures.find(FramebufferTextureType::Color1);
+	if (color1 != m_attachedTextures.end())
+		colorAttachments.push_back(GL_COLOR_ATTACHMENT1);
 
-		GLuint texturePointer = static_cast<OpenGL3Texture*>(textureBuffers[i])->getTexturePointer();
-		glBindTexture(GL_TEXTURE_2D, texturePointer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, buffers[i], GL_TEXTURE_2D, texturePointer, 0);
+	auto color2 = m_attachedTextures.find(FramebufferTextureType::Color2);
+	if (color2 != m_attachedTextures.end())
+		colorAttachments.push_back(GL_COLOR_ATTACHMENT2);
+
+	if (colorAttachments.size()) {
+		glDrawBuffers(colorAttachments.size(), colorAttachments.data());
 	}
-
-	glDrawBuffers(textureBuffersCount, buffers);
-
-	glGenRenderbuffers(1, &m_depthbufferPointer);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_depthbufferPointer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthbufferPointer);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		errlog() << "Creating framebuffer error";
@@ -37,19 +50,74 @@ OpenGL3Framebuffer::OpenGL3Framebuffer(int width, int height, const std::vector<
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-OpenGL3Framebuffer::~OpenGL3Framebuffer() {
-	glDeleteRenderbuffers(1, &m_depthbufferPointer);
-	glDeleteRenderbuffers(1, &m_framebufferPointer);
+void OpenGL3Framebuffer::attachTexture(FramebufferTextureType type, Texture* texture) {
+	GLenum attachmentType;
+
+	if (type == FramebufferTextureType::Color0) {
+		attachmentType = GL_COLOR_ATTACHMENT0;
+	}
+	else if (type == FramebufferTextureType::Color1) {
+		attachmentType = GL_COLOR_ATTACHMENT1;
+	}
+	else if (type == FramebufferTextureType::Color2) {
+		attachmentType = GL_COLOR_ATTACHMENT2;
+	}
+	else if (type == FramebufferTextureType::Depth) {
+		attachmentType = GL_DEPTH_ATTACHMENT;
+	}
+	else if (type == FramebufferTextureType::Stencil) {
+		attachmentType = GL_STENCIL_ATTACHMENT;
+	}
+	else if (type == FramebufferTextureType::DepthStencil) {
+		attachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
+	}
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, static_cast<OpenGL3Texture*>(texture)->getTexturePointer(), 0);
+
+	m_attachedTextures[type] = texture;
 }
 
-GLuint OpenGL3Framebuffer::getFramebufferPointer() const {
-	return m_framebufferPointer;
+void OpenGL3Framebuffer::createAndAttachRenderBuffer(RenderbufferType type, int width, int height) {
+	auto it = m_attachedRenderbuffers.find(type);
+	if (it != m_attachedRenderbuffers.end()) {
+		glDeleteRenderbuffers(1, &it->second);
+	}
+
+	GLenum internalFormat;
+	GLenum attachmentType;
+
+	if (type == RenderbufferType::Depth) {
+		internalFormat = GL_DEPTH_COMPONENT;
+		attachmentType = GL_DEPTH_ATTACHMENT;
+	}
+	else if (type == RenderbufferType::DepthStencil) {
+		internalFormat = GL_DEPTH24_STENCIL8;
+		attachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
+	}
+
+	GLuint renderBufferPointer;
+
+	glGenRenderbuffers(1, &renderBufferPointer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferPointer);
+	glRenderbufferStorage(GL_RENDERBUFFER, internalFormat, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentType, GL_RENDERBUFFER, renderBufferPointer);
+
+	m_attachedRenderbuffers[type] = renderBufferPointer;
 }
 
-GLuint OpenGL3Framebuffer::getDepthBufferPointer() const {
-	return m_depthbufferPointer;
+void OpenGL3Framebuffer::freeData() {
+	for (auto renderBuffer : m_attachedRenderbuffers)
+		glDeleteRenderbuffers(1, &renderBuffer.second);
+
+	m_attachedRenderbuffers.clear();
+
+	glDeleteFramebuffers(1, &m_framebufferPointer);
 }
 
-const std::vector<Texture*>& OpenGL3Framebuffer::getTextureBuffers() const {
-	return m_textureBuffers;
+const FramebufferAttachedTexturesList& OpenGL3Framebuffer::getAttachedTextures() const {
+	return m_attachedTextures;
+}
+
+Texture* OpenGL3Framebuffer::getAttachedTexture(FramebufferTextureType type) const {
+	return m_attachedTextures.at(type);
 }

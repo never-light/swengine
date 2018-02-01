@@ -18,9 +18,14 @@ public:
 	void setParameter(const std::string& name, const vector3& value) const override;
 	void setParameter(const std::string& name, const matrix4& value) const override;
 
+	const GpuProgramParametersList& OpenGL3GpuProgram::getRequiredParameters() const override;
+	const GpuProgramParametersSection& getRequiredParametersSection(const std::string& name) const override;
+	bool hasRequiredParametersSection(const std::string& name) const override;
 private:
 	void checkLoadingShaderError(GLuint);
 	void checkCreatingShaderProgramError(shaderId);
 
+private:
+	GpuProgramParametersList m_requiredParameters;
 	shaderId m_programId;
 };

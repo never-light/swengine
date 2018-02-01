@@ -2,6 +2,7 @@
 
 #include <regex>
 #include <fstream>
+#include <sstream>
 #include <variant>
 
 #include <Engine\Components\Debugging\Log.h>
@@ -133,17 +134,19 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 	std::unordered_map<std::string, Material*> package;
 
 	std::ifstream in(filename);
-	std::string currentLine, currentMaterialName;
-
-	MaterialParametersList parameters;
+	std::string currentLine;
 
 	std::regex materialNameRegex("^\\[([a-zA-Z0-9]+)\\]$");
 	std::regex materialParameterNumberRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+([-+]?[0-9]*\\.?[0-9]+)$");
+	std::regex materialParameterBoolRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+(true|false)$");
 	std::regex materialParameterStringRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+\\\"([0-9a-zA-Z\\.\\\\\\/_]+)\\\"$");
 	std::regex materialParameterColorRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+color\\(([-+]?[0-9]*\\.?[0-9]+),[\\s]+([-+]?[0-9]*\\.?[0-9]+),[\\s]+([-+]?[0-9]*\\.?[0-9]+)\\)$");
 	std::regex materialParameterTextureRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+texture\\(\\\"([0-9a-zA-Z\\.\\\\\\/_]+)\\\"\\)$");
 
 	std::smatch match;
+
+	std::string currentMaterialName;
+	std::unordered_map<std::string, std::string> materialsData;
 
 	while (std::getline(in, currentLine)) {
 		if (currentLine.empty()) {
@@ -151,35 +154,40 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 		}
 
 		if (std::regex_search(currentLine, match, materialNameRegex)) {
-			if (!currentMaterialName.empty()) {
-				// Save material
-				auto material = createMaterialWithParameters(parameters);
-				package.insert(std::make_pair(currentMaterialName, material));
-
-				currentMaterialName.clear();
-				parameters.clear();
-			}
-
 			currentMaterialName = match[1];
+			materialsData.insert({ currentMaterialName, "" });
+			continue;
 		}
-		else if (!currentMaterialName.empty()) {
-			MaterialParameterValue v;
 
-			// Number Value
-			if (std::regex_search(currentLine, match, materialParameterNumberRegex)) {
-				v = std::atof(std::string(match[2]).c_str());
-			}
+		materialsData[currentMaterialName] += (currentLine + "\n");
+	}
+
+	for (auto& materialData : materialsData) {
+		Material* material = ServiceLocator::getRenderer()->createMaterial();
+
+		std::stringstream parametersStream(materialData.second);
+		std::string part;
+
+		while (std::getline(parametersStream, part, '\n')) {
+			MaterialParameter v;
+
 			// String value
-			else if (std::regex_search(currentLine, match, materialParameterStringRegex)) {
+			if (std::regex_search(part, match, materialParameterStringRegex)) {
 				if (match[1] == "program") {
-					v = loadShader(std::string(match[2]));
+					material->setGpuProgram(loadShader(std::string(match[2])));
+					continue;
 				}
-				else {
-					v = std::string(match[2]);
-				}
+			}
+			// Number Value
+			else if (std::regex_search(part, match, materialParameterNumberRegex)) {
+				v = (real)std::atof(std::string(match[2]).c_str());
+			}
+			// Bool Value
+			else if (std::regex_search(part, match, materialParameterBoolRegex)) {
+				v = (match[2] == "true");
 			}
 			// Color value
-			else if (std::regex_search(currentLine, match, materialParameterColorRegex)) {
+			else if (std::regex_search(part, match, materialParameterColorRegex)) {
 				v = Color(
 					std::atof(std::string(match[2]).c_str()), // r
 					std::atof(std::string(match[3]).c_str()), // g
@@ -187,25 +195,18 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 				);
 			}
 			// Texture value
-			else if (std::regex_search(currentLine, match, materialParameterTextureRegex)) {
+			else if (std::regex_search(part, match, materialParameterTextureRegex)) {
 				v = loadTexture(match[2]);
 			}
 			else {
-				errlog() << "Invalid string in material file: " << currentLine;
-				throw std::exception(std::string("Invalid string in material file: " + currentLine).c_str());
+				errlog() << "Invalid string in material file: " << part;
+				throw std::exception(std::string("Invalid string in material file: " + part).c_str());
 			}
 
-			parameters.insert(std::make_pair(
-				match[1], // Parameter name
-				v // value
-			));
+			material->setParameter(match[1], v);
 		}
-	}
 
-	// Save last material
-	if (!currentMaterialName.empty()) {
-		auto material = createMaterialWithParameters(parameters);
-		package.insert(std::make_pair(currentMaterialName, material));
+		package.insert({ materialData.first, material });
 	}
 
 	for (auto pair : package) {
@@ -230,49 +231,5 @@ void ResourceManager::unloadResourcesSet(std::unordered_map<std::string, T> map)
 	while (itr != map.end()) {
 		delete itr->second;
 		itr = map.erase(itr);
-	}
-}
-
-Material* ResourceManager::createMaterialWithParameters(const MaterialParametersList& parameters) {
-	Material* material = ServiceLocator::getRenderer()->createMaterial();
-
-	setMaterialParameterIfExists(material, parameters, "program");
-	setMaterialParameterIfExists(material, parameters, "ambientColor");
-	setMaterialParameterIfExists(material, parameters, "diffuseColor");
-	setMaterialParameterIfExists(material, parameters, "specularColor");
-	setMaterialParameterIfExists(material, parameters, "specularLevel");
-	setMaterialParameterIfExists(material, parameters, "diffuseMap");
-	setMaterialParameterIfExists(material, parameters, "specularMap");
-
-	return material;
-}
-
-void ResourceManager::setMaterialParameterIfExists(Material* material, const MaterialParametersList& parameters, const std::string& parameterName) {
-	auto it = parameters.find(parameterName);
-
-	if (it == parameters.end()) {
-		return;
-	}
-
-	if (parameterName == "ambientColor") {
-		material->setAmbientColor(std::get<Color>(it->second));
-	}
-	else if (parameterName == "diffuseColor") {
-		material->setDuffuseColor(std::get<Color>(it->second));
-	}
-	else if (parameterName == "specularColor") {
-		material->setSpecularColor(std::get<Color>(it->second));
-	}
-	else if (parameterName == "specularLevel") {
-		material->setShininess(std::get<real>(it->second));
-	}
-	else if (parameterName == "diffuseMap") {
-		material->setLightmap(LightmapType::Diffuse, std::get<Texture*>(it->second));
-	}
-	else if (parameterName == "specularMap") {
-		material->setLightmap(LightmapType::Specular, std::get<Texture*>(it->second));
-	}
-	else if (parameterName == "program") {
-		material->setGpuProgram(std::get<GpuProgram*>(it->second));
 	}
 }

@@ -15,6 +15,10 @@
 #include "Framebuffer.h"
 #include "HardwareBuffer.h"
 
+enum class ClearRenderTargetMode {
+	Color, ColorDepth
+};
+
 class Renderer {
 public:
 	virtual Window* getWindow() const = 0;
@@ -27,17 +31,16 @@ public:
 	virtual void drawMesh(const Mesh*) = 0;
 	virtual void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) = 0;
 
-	virtual void clearFramebuffer(const Color& color) = 0;
 	virtual void beginRendering(Color) = 0;
 	virtual void endRendering() = 0;
+	virtual void swapBuffers() = 0;
 
 	virtual void addLight(Light*) = 0;
 
-	virtual void bindFramebuffer(Framebuffer* framebuffer) = 0;
-	virtual void unbindCurrentFramebuffer() = 0;
-
-	virtual void setCurrentFramebuffer(Framebuffer* framebuffer) = 0;
-	virtual Framebuffer* getCurrentFramebuffer() const = 0;
+	virtual void clearCurrentRenderTarget(const Color& color, ClearRenderTargetMode mode) = 0;
+	virtual void setCurrentRenderTarget(Framebuffer* framebuffer) = 0;
+	virtual Framebuffer* getCurrentRenderTarget() const = 0;
+	virtual void resetRenderTarget() = 0;
 
 	virtual void copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) = 0;
 
@@ -55,7 +58,7 @@ public:
 
 	virtual Light* createLight(LightType type) = 0;
 
-	virtual Framebuffer* createFramebuffer(int width, int height, const std::vector<Texture*>& textures) = 0;
+	virtual Framebuffer* createFramebuffer() = 0;
 
 	virtual HardwareBuffer* createHardwareBuffer() = 0;
 	virtual HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) = 0;

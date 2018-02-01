@@ -14,9 +14,6 @@
 #include <Engine\Components\Graphics\RenderSystem\Sprite.h>
 #include <Engine\Components\Graphics\RenderSystem\Mesh.h>
 
-using MaterialParameterValue = std::variant <real, std::string, Color, Texture*, GpuProgram*>;
-using MaterialParametersList = std::unordered_map<std::string, MaterialParameterValue>;
-
 struct ModelFileHeaderData {
 	std::uint32_t version;
 	std::uint32_t meshesCount;
@@ -49,9 +46,6 @@ public:
 	Material* getMaterial(const std::string& name);
 
 private:
-	Material* createMaterialWithParameters(const MaterialParametersList& parameters);
-	void setMaterialParameterIfExists(Material* material, const MaterialParametersList& parameters, const std::string& parameterName);
-
 	template<class T>
 	void unloadResourcesSet(std::unordered_map<std::string, T> map);
 

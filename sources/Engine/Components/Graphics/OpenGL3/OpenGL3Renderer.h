@@ -34,17 +34,16 @@ public:
 	void drawMesh(const Mesh*) override;
 	void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) override;
 
-	void clearFramebuffer(const Color& color) override;
 	void beginRendering(Color) override;
 	void endRendering() override;
+	void swapBuffers() override;
 
 	void addLight(Light*) override;
 
-	void bindFramebuffer(Framebuffer* framebuffer) override;
-	void unbindCurrentFramebuffer() override;
-
-	void setCurrentFramebuffer(Framebuffer* framebuffer) override;
-	Framebuffer* getCurrentFramebuffer() const override;
+	void clearCurrentRenderTarget(const Color& color, ClearRenderTargetMode mode) override;
+	void setCurrentRenderTarget(Framebuffer* framebuffer) override;
+	Framebuffer* getCurrentRenderTarget() const override;
+	void resetRenderTarget() override;
 
 	void copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) override;
 
@@ -62,7 +61,7 @@ public:
 
 	Light* createLight(LightType type) override;
 
-	Framebuffer* createFramebuffer(int width, int height, const std::vector<Texture*>& textures) override;
+	Framebuffer* createFramebuffer() override;
 	
 	HardwareBuffer* createHardwareBuffer() override;
 	HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) override;
@@ -71,7 +70,7 @@ private:
 	OpenGL3Renderer(OpenGL3Renderer&);
 
 private:
-	OpenGL3Framebuffer* m_framebuffer;
+	OpenGL3Framebuffer* m_renderTarget;
 
 	Window* m_window;
 	Camera* m_currentCamera;

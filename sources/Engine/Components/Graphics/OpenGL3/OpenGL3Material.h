@@ -30,7 +30,13 @@ public:
 
 	void setShininess(float32) override;
 	float32 getShininess() const override;
+
+	void setParameter(const std::string& name, MaterialParameter value) override;
+	MaterialParameter getParameter(const std::string& name) const override;
+	bool hasParameter(const std::string& name) const override;
 private:
+	std::map<std::string, MaterialParameter> m_parameters;
+
 	std::map<LightmapType, OpenGL3Texture*> m_lightmaps;
 	OpenGL3GpuProgram* m_shader;
 

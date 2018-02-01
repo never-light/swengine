@@ -5,7 +5,7 @@
 
 OpenGL3Renderer::OpenGL3Renderer(Window* window) 
 	: m_window(window),
-	m_framebuffer(nullptr) 
+	m_renderTarget(nullptr) 
 {
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
@@ -29,40 +29,47 @@ Camera* OpenGL3Renderer::getCurrentCamera() const {
 	return m_currentCamera;
 }
 
-void OpenGL3Renderer::clearFramebuffer(const Color& color) {
-	glClearColor(color.r, color.g, color.b, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void OpenGL3Renderer::swapBuffers() {
+	glfwSwapBuffers(m_window->getWindowPointer());
 }
 
 void OpenGL3Renderer::beginRendering(Color clearColor) {
-	clearFramebuffer(clearColor);
+	clearCurrentRenderTarget(clearColor, ClearRenderTargetMode::ColorDepth);
 }
 
 void OpenGL3Renderer::endRendering() {
-	glfwSwapBuffers(m_window->getWindowPointer());
+	swapBuffers();
 }
 
 void OpenGL3Renderer::addLight(Light* light) {
 	m_lights.push_back(static_cast<OpenGL3Light*>(light));
 }
 
-void OpenGL3Renderer::bindFramebuffer(Framebuffer* framebuffer) {
-	m_framebuffer = static_cast<OpenGL3Framebuffer*>(framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer->getDepthBufferPointer());
+void OpenGL3Renderer::clearCurrentRenderTarget(const Color& color, ClearRenderTargetMode mode) {
+	GLint clearMode;
+
+	if (mode == ClearRenderTargetMode::Color)
+		clearMode = GL_COLOR_BUFFER_BIT;
+	else if (mode == ClearRenderTargetMode::ColorDepth)
+		clearMode = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+
+	glClearColor(color.r, color.g, color.b, 1.0f);
+	glClear(clearMode);
+
 }
 
-void OpenGL3Renderer::unbindCurrentFramebuffer() {
+void OpenGL3Renderer::setCurrentRenderTarget(Framebuffer* framebuffer) {
+	m_renderTarget = static_cast<OpenGL3Framebuffer*>(framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_renderTarget->getFramebufferPointer());
+}
+
+Framebuffer* OpenGL3Renderer::getCurrentRenderTarget() const {
+	return m_renderTarget;
+}
+
+void OpenGL3Renderer::resetRenderTarget() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	m_framebuffer = nullptr;
-}
-
-void OpenGL3Renderer::setCurrentFramebuffer(Framebuffer* framebuffer) {
-	m_framebuffer = static_cast<OpenGL3Framebuffer*>(framebuffer);
-}
-
-Framebuffer* OpenGL3Renderer::getCurrentFramebuffer() const {
-	return m_framebuffer;
+	m_renderTarget = nullptr;
 }
 
 void OpenGL3Renderer::copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) {
@@ -114,10 +121,46 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 	bindMaterial(subModel->getMaterial());
 
 	GpuProgram* shader = subModel->getMaterial()->getGpuProgram();
-	shader->setParameter("model", subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
-	shader->setParameter("view", m_currentCamera->getViewMatrix());
-	shader->setParameter("projection", m_currentCamera->getProjectionMatrix());
-	shader->setParameter("cameraPosition", m_currentCamera->getPosition());
+
+	matrix4 mvp = m_currentCamera->getProjectionMatrix() *
+		m_currentCamera->getViewMatrix() *
+		subModel->getParent()->getParentSceneNode()->getTransformationMatrix();
+
+	if (shader->hasRequiredParametersSection("transform")) {
+		auto& transformParameters = shader->getRequiredParametersSection("transform");
+
+		GpuProgramParametersSection::const_iterator it;
+
+		it = transformParameters.find("mvp");
+		if (it != transformParameters.end())
+			shader->setParameter(it->second.getName(), mvp);
+
+		it = transformParameters.find("model");
+		if (it != transformParameters.end())
+			shader->setParameter(it->second.getName(), subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
+
+		it = transformParameters.find("view");
+		if (it != transformParameters.end())
+			shader->setParameter(it->second.getName(), m_currentCamera->getViewMatrix());
+
+		it = transformParameters.find("projection");
+		if (it != transformParameters.end())
+			shader->setParameter(it->second.getName(), m_currentCamera->getProjectionMatrix());
+	}
+
+	if (shader->hasRequiredParametersSection("camera")) {
+		auto& cameraParameters = shader->getRequiredParametersSection("camera");
+
+		GpuProgramParametersSection::const_iterator it;
+
+		it = cameraParameters.find("position");
+		if (it != cameraParameters.end())
+			shader->setParameter(it->second.getName(), m_currentCamera->getPosition());
+
+		it = cameraParameters.find("direction");
+		if (it != cameraParameters.end())
+			shader->setParameter(it->second.getName(), m_currentCamera->getFrontDirection());
+	}
 
 	drawMesh(subModel->getMesh());
 }
@@ -143,21 +186,47 @@ void OpenGL3Renderer::drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer)
 
 	bindShader(program);
 
-	if (framebuffer != nullptr) {
-		const std::vector<Texture*> textureBuffers = framebuffer->getTextureBuffers();
+	if (program->hasRequiredParametersSection("camera")) {
+		auto& cameraParameters = program->getRequiredParametersSection("camera");
 
-		for (int i = 0; i < textureBuffers.size(); i++) {
-			bindTexture(textureBuffers[i], i);
-		}
+		GpuProgramParametersSection::const_iterator it;
+
+		it = cameraParameters.find("position");
+		if (it != cameraParameters.end())
+			program->setParameter(it->second.getName(), m_currentCamera->getPosition());
+
+		it = cameraParameters.find("direction");
+		if (it != cameraParameters.end())
+			program->setParameter(it->second.getName(), m_currentCamera->getFrontDirection());
 	}
 	
-	program->setParameter("gPosition", 0);
-	program->setParameter("gNormal", 1);
-	program->setParameter("gAlbedoSpec", 2);
+	if (framebuffer != nullptr && program->hasRequiredParametersSection("framebuffer")) {
+		auto& texturesList = framebuffer->getAttachedTextures();
+		auto& framebufferParameters = program->getRequiredParametersSection("framebuffer");
 
-	program->setParameter("cameraPosition", m_currentCamera->getPosition());
+		GpuProgramParametersSection::const_iterator it;
 
-	bindShaderLights(program);
+		it = framebufferParameters.find("colorAttachment0");
+		if (it != framebufferParameters.end()) {
+			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color0), 0);
+			program->setParameter(it->second.getName(), 0);
+		}
+
+		it = framebufferParameters.find("colorAttachment1");
+		if (it != framebufferParameters.end()) {
+			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color1), 1);
+			program->setParameter(it->second.getName(), 1);
+		}
+
+		it = framebufferParameters.find("colorAttachment2");
+		if (it != framebufferParameters.end()) {
+			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color2), 2);
+			program->setParameter(it->second.getName(), 2);
+		}
+	}
+
+	if (program->hasRequiredParametersSection("light"))
+		bindShaderLights(program);
 
 	if (quadVAO == 0)
 	{
@@ -189,37 +258,55 @@ void OpenGL3Renderer::bindMaterial(const Material* material) {
 
 	bindShader(mtlShader);
 
-	if (material->hasLightmap(LightmapType::Diffuse)) {
-		bindTexture(material->getLightmap(LightmapType::Diffuse), 0);
-		mtlShader->setParameter("material.lightmaps.diffuse", 0);
-		mtlShader->setParameter("material.lightmaps.useDiffuseMap", 1);
-	}
-	else {
-		mtlShader->setParameter("material.diffuseColor", material->getDuffuseColor());
-		mtlShader->setParameter("material.ambientColor", material->getAmbientColor());
-		mtlShader->setParameter("material.lightmaps.useDiffuseMap", 0);
+	int freeTextureIndex = 0;
+
+	if (mtlShader->hasRequiredParametersSection("material")) {
+		auto& materialParameters = mtlShader->getRequiredParametersSection("material");
+
+		for (auto& it : materialParameters) {
+			if (!material->hasParameter(it.first))
+				continue;
+
+			MaterialParameter value = material->getParameter(it.first);
+
+			const std::string& parameterType = it.second.getType();
+
+			if (parameterType == "float")
+				mtlShader->setParameter(it.second.getName(), std::get<real>(value));
+			else if (parameterType == "Color")
+				mtlShader->setParameter(it.second.getName(), std::get<Color>(value));
+			else if (parameterType == "int")
+				mtlShader->setParameter(it.second.getName(), std::get<int>(value));
+			else if (parameterType == "bool")
+				mtlShader->setParameter(it.second.getName(), std::get<bool>(value));
+			else if (parameterType == "Texture") {
+				Texture* texture = std::get<Texture*>(value);
+				bindTexture(texture, freeTextureIndex);
+
+				mtlShader->setParameter(it.second.getName(), freeTextureIndex);
+
+				freeTextureIndex++;
+			}
+		}
 	}
 
-	if (material->hasLightmap(LightmapType::Specular)) {
-		bindTexture(material->getLightmap(LightmapType::Specular), 1);
-		mtlShader->setParameter("material.lightmaps.specular", 1);
-		mtlShader->setParameter("material.lightmaps.useSpecularMap", true);
-	}
-	else {
-		mtlShader->setParameter("material.specularColor", material->getSpecularColor());
-		mtlShader->setParameter("material.lightmaps.useSpecularMap", false);
-	}
-
-	mtlShader->setParameter("material.shininess", material->getShininess());
-
-	bindShaderLights(mtlShader);
+	if (mtlShader->hasRequiredParametersSection("light"))
+		bindShaderLights(mtlShader);
 }
 
 void OpenGL3Renderer::bindShaderLights(GpuProgram* program) {
+	auto& lightParameters = program->getRequiredParametersSection("light");
+
+	auto& sourcesParameterIt = lightParameters.find("sources");
+	if (sourcesParameterIt == lightParameters.end())
+		return;
+
+	std::string lightSourcesArrayName = sourcesParameterIt->second.getName();
+
 	for (size_t i = 0; i < m_lights.size(); i++) {
 		OpenGL3Light* light = m_lights.at(i);
 
-		std::string lightIndex = "lights[" + std::to_string(i) + "]";
+		std::string lightIndex = lightSourcesArrayName + "[" + std::to_string(i) + "]";
 
 		Color diffuse = light->getDuffuseColor();
 
@@ -294,8 +381,8 @@ Light* OpenGL3Renderer::createLight(LightType type) {
 	return new OpenGL3Light(type);
 }
 
-Framebuffer* OpenGL3Renderer::createFramebuffer(int width, int height, const std::vector<Texture*>& textures) {
-	return new OpenGL3Framebuffer(width, height, textures);
+Framebuffer* OpenGL3Renderer::createFramebuffer() {
+	return new OpenGL3Framebuffer();
 }
 
 HardwareBuffer* OpenGL3Renderer::createHardwareBuffer() {
