@@ -3,7 +3,7 @@
 
 void InitializeEngine(Window* window) {
 	ServiceLocator::registerInputManager(new InputManager(window));
-	ServiceLocator::registerRenderer(new OpenGL3Renderer(window));
+	ServiceLocator::registerGraphicsManager(new GraphicsManager(window, GraphicsDriver::OpenGL33));
 	ServiceLocator::registerResourceManager(new ResourceManager());
 	ServiceLocator::registerSceneManager(new SceneManager());
 }

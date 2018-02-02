@@ -26,5 +26,5 @@ protected:
 	std::string m_name;
 	std::vector<Mesh*> m_subMeshes;
 
-	HardwareBuffer * m_geometryBuffer;
+	HardwareBuffer* m_geometryBuffer;
 };

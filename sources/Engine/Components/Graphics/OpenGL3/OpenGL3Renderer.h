@@ -29,9 +29,13 @@ public:
 	void setCurrentCamera(Camera*) override;
 	Camera* getCurrentCamera() const override;
 
+	void drawPrimitives(DrawPrimitivesMode mode, size_t start, size_t count) override;
+	void drawIndexedPrimitives(DrawPrimitivesMode mode, size_t count) override;
+
 	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) override;
 	void drawModel(const Model*) override;
-	void drawMesh(const Mesh*) override;
+
+	void drawMesh(const Mesh* mesh) override;
 	void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) override;
 
 	void beginRendering(Color) override;
@@ -50,21 +54,9 @@ public:
 	void bindMaterial(const Material*) override;
 	void bindShader(const GpuProgram*) override;
 	void bindTexture(const Texture*, size_t) override;
+	void bindGeometryBuffer(const HardwareBuffer* buffer) override;
+	void unbindGeometryBuffer() override;
 	void bindShaderLights(GpuProgram* program);
-
-	Material* createMaterial() override;
-	Texture* createTexture(int width, int height, const unsigned char* data) override;
-	Texture* createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) override;
-
-	GpuProgram* createGpuProgram(const std::string& source) override;
-	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) override;
-
-	Light* createLight(LightType type) override;
-
-	Framebuffer* createFramebuffer() override;
-	
-	HardwareBuffer* createHardwareBuffer() override;
-	HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) override;
 private:
 	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);

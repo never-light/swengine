@@ -11,7 +11,7 @@ public:
 
 	Model* getParent() const;
 
-	void setMesh(Mesh*);
+	void setMesh(Mesh* mesh);
 	Mesh* getMesh() const;
 
 	void setMaterial(Material*);

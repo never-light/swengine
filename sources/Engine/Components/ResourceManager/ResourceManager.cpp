@@ -38,7 +38,7 @@ Texture* ResourceManager::loadTexture(const std::string& filename) {
 		throw std::exception();
 	}
 
-	Texture* texture = ServiceLocator::getRenderer()->createTexture(width, height, data);
+	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(width, height, data);
 	m_texturesMap.insert(std::make_pair(filename, texture));
 
 	return texture;
@@ -54,7 +54,7 @@ GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 		std::istreambuf_iterator<char>());
 
 	infolog() << "Loading shader " << filename << "...";
-	GpuProgram* program = ServiceLocator::getRenderer()->createGpuProgram(source);
+	GpuProgram* program = ServiceLocator::getGraphicsManager()->createGpuProgram(source);
 
 	m_shadersMap.insert(std::make_pair(filename, program));
 
@@ -66,7 +66,7 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 		return m_spritesMap.at(filename);
 	}
 
-	Sprite* sprite = ServiceLocator::getRenderer()->createSprite(loadTexture(filename), loadShader("resources/shaders/sprite.sh"));
+	Sprite* sprite = ServiceLocator::getGraphicsManager()->createSprite(loadTexture(filename), loadShader("resources/shaders/sprite.sh"));
 	sprite->setTexture(loadTexture(filename));
 	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
 	 
@@ -88,8 +88,11 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 	in.read((char*)&header, sizeof header);
 
 	for (size_t i = 0; i < header.meshesCount; i++) {
-		HardwareBuffer* geometryBuffer = ServiceLocator::getRenderer()->createHardwareBuffer();
+		HardwareBuffer* geometryBuffer = ServiceLocator::getGraphicsManager()->createHardwareBuffer();
 		geometryBuffer->lock();
+		geometryBuffer->setVertexFormat(VertexFormat::P1N1UV);
+
+		std::vector<VertexP1N1UV> vertices;
 
 		ModelFileMeshData meshData;
 		in.read((char*)&meshData, sizeof meshData);
@@ -98,20 +101,25 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 			ModelFileVertexData vertexData;
 			in.read((char*)&vertexData, sizeof vertexData);
 
-			geometryBuffer->addVertex(Vertex(
+			vertices.push_back(VertexP1N1UV(
 				vector3(vertexData.x, vertexData.y, vertexData.z),
-				vector2(vertexData.u, vertexData.v),
-				vector3(vertexData.nx, vertexData.ny, vertexData.nz)
+				vector3(vertexData.nx, vertexData.ny, vertexData.nz),
+				vector2(vertexData.u, vertexData.v)
 			));
 		}
+
+		geometryBuffer->setVerticesData(vertices.size(), sizeof(VertexP1N1UV), vertices.data());
+
+		std::vector<uint32> indices;
 
 		for (size_t j = 0; j < meshData.indicesCount; j++) {
 			uint32 index;
 			in.read((char*)&index, sizeof index);
 
-			geometryBuffer->addIndex(index);
+			indices.push_back(index);
 		}
 
+		geometryBuffer->setIndicesData(indices.size(), sizeof(uint32), indices.data());
 		geometryBuffer->unlock();
 
 		Mesh* mesh = new Mesh(geometryBuffer);
@@ -163,7 +171,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 	}
 
 	for (auto& materialData : materialsData) {
-		Material* material = ServiceLocator::getRenderer()->createMaterial();
+		Material* material = ServiceLocator::getGraphicsManager()->createMaterial();
 
 		std::stringstream parametersStream(materialData.second);
 		std::string part;
@@ -215,7 +223,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 }
 
 Material* ResourceManager::createMaterial(const std::string& name) {
-	Material* material = ServiceLocator::getRenderer()->createMaterial();
+	Material* material = ServiceLocator::getGraphicsManager()->createMaterial();
 	m_materialsMap.insert(std::make_pair(name, material));
 
 	return material;

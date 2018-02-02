@@ -3,7 +3,7 @@
 InputManager* ServiceLocator::m_inputManager = nullptr;
 ResourceManager* ServiceLocator::m_resourceManager = nullptr;
 SceneManager* ServiceLocator::m_sceneManager = nullptr;
-Renderer* ServiceLocator::m_renderer = nullptr;
+GraphicsManager* ServiceLocator::m_graphicsManager = nullptr;
 
 void ServiceLocator::registerInputManager(InputManager* inputManager) {
 	m_inputManager = inputManager;
@@ -17,8 +17,8 @@ void ServiceLocator::registerSceneManager(SceneManager* sceneManager) {
 	m_sceneManager = sceneManager;
 }
 
-void ServiceLocator::registerRenderer(Renderer* renderer) {
-	m_renderer = renderer;
+void ServiceLocator::registerGraphicsManager(GraphicsManager* graphicsManager) {
+	m_graphicsManager = graphicsManager;
 }
 
 InputManager* ServiceLocator::getInputManager() {
@@ -33,8 +33,8 @@ SceneManager* ServiceLocator::getSceneManager() {
 	return m_sceneManager;
 }
 
-Renderer* ServiceLocator::getRenderer() {
-	return m_renderer;
+GraphicsManager* ServiceLocator::getGraphicsManager() {
+	return m_graphicsManager;
 }
 
 void ServiceLocator::destroyAllServices() {
@@ -47,6 +47,6 @@ void ServiceLocator::destroyAllServices() {
 	if (m_sceneManager)
 		delete m_sceneManager;
 
-	if (m_renderer)
-		delete m_renderer;
+	if (m_graphicsManager)
+		delete m_graphicsManager;
 }

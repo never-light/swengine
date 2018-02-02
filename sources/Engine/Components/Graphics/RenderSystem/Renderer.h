@@ -19,6 +19,10 @@ enum class ClearRenderTargetMode {
 	Color, ColorDepth
 };
 
+enum class DrawPrimitivesMode {
+	Triangles, TrianglesStrip
+};
+
 class Renderer {
 public:
 	virtual Window* getWindow() const = 0;
@@ -26,11 +30,16 @@ public:
 	virtual void setCurrentCamera(Camera*) = 0;
 	virtual Camera* getCurrentCamera() const = 0;
 
+	virtual void drawPrimitives(DrawPrimitivesMode mode, size_t start, size_t count) = 0;
+	virtual void drawIndexedPrimitives(DrawPrimitivesMode mode, size_t count) = 0;
+
 	virtual void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) = 0;
 	virtual void drawModel(const Model*) = 0;
-	virtual void drawMesh(const Mesh*) = 0;
-	virtual void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) = 0;
 
+	virtual void drawMesh(const Mesh* mesh) = 0;
+
+	virtual void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) = 0;
+	 
 	virtual void beginRendering(Color) = 0;
 	virtual void endRendering() = 0;
 	virtual void swapBuffers() = 0;
@@ -44,22 +53,9 @@ public:
 
 	virtual void copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffer) = 0;
 
-	virtual void bindMaterial(const Material*) = 0;
-	virtual void bindShader(const GpuProgram*) = 0;
-	virtual void bindTexture(const Texture*, size_t) = 0;
-
-	virtual Material* createMaterial() = 0;
-	
-	virtual Texture* createTexture(int width, int height, const unsigned char* data) = 0;
-	virtual Texture* createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) = 0;
-
-	virtual GpuProgram* createGpuProgram(const std::string& source) = 0;
-	virtual Sprite* createSprite(Texture* texture, GpuProgram* gpuProram) = 0;
-
-	virtual Light* createLight(LightType type) = 0;
-
-	virtual Framebuffer* createFramebuffer() = 0;
-
-	virtual HardwareBuffer* createHardwareBuffer() = 0;
-	virtual HardwareBuffer* createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) = 0;
+	virtual void bindMaterial(const Material* material) = 0;
+	virtual void bindShader(const GpuProgram* gpuProgram) = 0;
+	virtual void bindTexture(const Texture* texture, size_t unit) = 0;
+	virtual void bindGeometryBuffer(const HardwareBuffer* buffer) = 0;
+	virtual void unbindGeometryBuffer() = 0;
 };

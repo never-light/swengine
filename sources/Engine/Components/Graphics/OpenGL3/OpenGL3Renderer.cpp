@@ -82,6 +82,28 @@ void OpenGL3Renderer::copyFramebufferDataToDefaultBuffer(Framebuffer* framebuffe
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void OpenGL3Renderer::drawPrimitives(DrawPrimitivesMode mode, size_t start, size_t count) {
+	GLenum drawMode;
+
+	if (mode == DrawPrimitivesMode::Triangles)
+		drawMode = GL_TRIANGLES;
+	else if (mode == DrawPrimitivesMode::TrianglesStrip)
+		drawMode = GL_TRIANGLE_STRIP;
+
+	glDrawArrays(drawMode, start, count);
+}
+
+void OpenGL3Renderer::drawIndexedPrimitives(DrawPrimitivesMode mode, size_t count) {
+	GLenum drawMode;
+
+	if (mode == DrawPrimitivesMode::Triangles)
+		drawMode = GL_TRIANGLES;
+	else if (mode == DrawPrimitivesMode::TrianglesStrip)
+		drawMode = GL_TRIANGLE_STRIP;
+
+	glDrawElements(drawMode, count, GL_UNSIGNED_INT, 0);
+}
+
 void OpenGL3Renderer::drawSprite(Sprite* sprite, const glm::vec2& position, const glm::vec2& size, float rotation) {
 	OpenGL3Sprite* glSprite = static_cast<OpenGL3Sprite*>(sprite);
 
@@ -166,23 +188,35 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 }
 
 void OpenGL3Renderer::drawMesh(const Mesh* mesh) {
-	OpenGL3HardwareBuffer* geometryBuffer = static_cast<OpenGL3HardwareBuffer*>(mesh->getGeometryBuffer());
+	bindGeometryBuffer(mesh->getGeometryBuffer());
 
-	glBindVertexArray(geometryBuffer->getVertexArrayObjectPointer());
-
-	if (geometryBuffer->getIndicesCount() > 0) {
-		glDrawElements(GL_TRIANGLES, geometryBuffer->getIndicesCount(), GL_UNSIGNED_INT, 0);
+	if (mesh->getGeometryBuffer()->hasIndicesData()) {
+		drawIndexedPrimitives(DrawPrimitivesMode::Triangles, mesh->getGeometryBuffer()->getIndicesCount());
 	}
 	else {
-		glDrawArrays(GL_TRIANGLES, 0, geometryBuffer->getVerticesCount());
+		drawPrimitives(DrawPrimitivesMode::Triangles, 0, mesh->getGeometryBuffer()->getVerticesCount());
 	}
 
-	glBindVertexArray(0);
+	unbindGeometryBuffer();
 }
 
 void OpenGL3Renderer::drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) {
-	static GLuint quadVAO = 0;
-	static GLuint quadVBO;
+	static OpenGL3HardwareBuffer* buffer = nullptr;
+
+	if (buffer == nullptr) {
+		std::vector<VertexP1UV> vertices {
+			{ vector3(-1.0f,  1.0f, 0.0f), vector2(0.0f, 1.0f) },
+			{ vector3(-1.0f, -1.0f, 0.0f), vector2(0.0f, 0.0f) },
+			{ vector3(1.0f,  1.0f, 0.0f), vector2(1.0f, 1.0f) },
+			{ vector3(1.0f, -1.0f, 0.0f), vector2(1.0f, 0.0f) }
+		};
+
+		buffer = new OpenGL3HardwareBuffer();
+		buffer->lock();
+		buffer->setVertexFormat(VertexFormat::P1UV);
+		buffer->setVerticesData(vertices.size(), sizeof(VertexP1UV), vertices.data());
+		buffer->unlock();
+	}
 
 	bindShader(program);
 
@@ -228,29 +262,9 @@ void OpenGL3Renderer::drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer)
 	if (program->hasRequiredParametersSection("light"))
 		bindShaderLights(program);
 
-	if (quadVAO == 0)
-	{
-		float quadVertices[] = {
-			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-		// setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+	bindGeometryBuffer(buffer);
+	drawPrimitives(DrawPrimitivesMode::TrianglesStrip, 0, 4);
+	unbindGeometryBuffer();
 }
 
 void OpenGL3Renderer::bindMaterial(const Material* material) {
@@ -357,38 +371,10 @@ void OpenGL3Renderer::bindShader(const GpuProgram* shader) {
 	glUseProgram(static_cast<const OpenGL3GpuProgram*>(shader)->getShaderPointer());
 }
 
-Material* OpenGL3Renderer::createMaterial() {
-	return new OpenGL3Material();
+void OpenGL3Renderer::bindGeometryBuffer(const HardwareBuffer* buffer) {
+	glBindVertexArray(static_cast<const OpenGL3HardwareBuffer*>(buffer)->getVertexArrayObjectPointer());
 }
 
-Texture* OpenGL3Renderer::createTexture(int width, int height, const unsigned char* data) {
-	return new OpenGL3Texture(width, height, data);
-}
-
-Texture* OpenGL3Renderer::createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) {
-	return new OpenGL3Texture(width, height, internalFormat, format, type);
-}
-
-GpuProgram* OpenGL3Renderer::createGpuProgram(const std::string& source) {
-	return new OpenGL3GpuProgram(source);
-}
-
-Sprite* OpenGL3Renderer::createSprite(Texture* texture, GpuProgram* gpuProgram) {
-	return new OpenGL3Sprite(texture, gpuProgram);
-}
-
-Light* OpenGL3Renderer::createLight(LightType type) {
-	return new OpenGL3Light(type);
-}
-
-Framebuffer* OpenGL3Renderer::createFramebuffer() {
-	return new OpenGL3Framebuffer();
-}
-
-HardwareBuffer* OpenGL3Renderer::createHardwareBuffer() {
-	return new OpenGL3HardwareBuffer();
-}
-
-HardwareBuffer* OpenGL3Renderer::createHardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) {
-	return new OpenGL3HardwareBuffer(vertices, indices);
+void OpenGL3Renderer::unbindGeometryBuffer() {
+	glBindVertexArray(0);
 }

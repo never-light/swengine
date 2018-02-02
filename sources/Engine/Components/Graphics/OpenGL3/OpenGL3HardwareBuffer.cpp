@@ -1,17 +1,9 @@
 #include "OpenGL3HardwareBuffer.h"
+#include <Engine\Components\Debugging\Log.h>
 
-OpenGL3HardwareBuffer::OpenGL3HardwareBuffer() {
+OpenGL3HardwareBuffer::OpenGL3HardwareBuffer() 
+	: m_verticesCount(0), m_indicesCount(0) {
 
-}
-
-OpenGL3HardwareBuffer::OpenGL3HardwareBuffer(const std::vector<Vertex>& vertices, const std::vector<size_t>& indices) 
-{
-	lock();
-
-	m_vertices = vertices;
-	m_indices = indices;
-
-	unlock();
 }
 
 OpenGL3HardwareBuffer::~OpenGL3HardwareBuffer() {
@@ -30,74 +22,107 @@ void OpenGL3HardwareBuffer::freeData() {
 	if (m_elementBufferObject) {
 		glDeleteBuffers(1, &m_elementBufferObject);
 	}
+
+	m_verticesCount = 0;
+	m_indicesCount = 0;
 }
 
 void OpenGL3HardwareBuffer::lock() {
 	freeData();
-}
-
-void OpenGL3HardwareBuffer::unlock() {
-	if (m_vertices.size() == 0) {
-		freeData();
-		return;
-	}
 
 	glGenVertexArrays(1, &m_vertexArrayObject);
 	glBindVertexArray(m_vertexArrayObject);
+}
+
+void OpenGL3HardwareBuffer::setVerticesData(size_t count, size_t typeSize, const void* data) {
+	m_verticesCount = count;
 
 	glGenBuffers(1, &m_vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, count * typeSize, data, GL_STATIC_DRAW);
+}
 
-	if (m_indices.size() > 0) {
-		glGenBuffers(1, &m_elementBufferObject);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_elementBufferObject);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(uint32), m_indices.data(), GL_STATIC_DRAW);
+void OpenGL3HardwareBuffer::setIndicesData(size_t count, size_t typeSize, const void* data) {
+	m_indicesCount = count;
+
+	glGenBuffers(1, &m_elementBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_elementBufferObject);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * typeSize, data, GL_STATIC_DRAW);
+}
+	
+void OpenGL3HardwareBuffer::unlock() {
+	for (size_t i = 0; i < m_vertexAttributes.size(); i++) {
+		VertexAttributeDescription& description = m_vertexAttributes[i];
+
+		GLenum vertexAttributeType;
+
+		if (description.type == VertexAttributeValueType::Real)
+			vertexAttributeType = GL_FLOAT;
+
+		GLboolean normalized = (description.normalized) ? GL_TRUE : GL_FALSE;
+
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, description.size, vertexAttributeType, normalized, description.stride, (void*)description.offset);
 	}
-
-	// vertex positions
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	// vertex normals
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	// vertex texture coordinates
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, textureCoordinates));
 
 	glBindVertexArray(0);
 }
 
-void OpenGL3HardwareBuffer::setVertices(const std::vector<Vertex>& vertices) {
-	m_vertices = vertices;
+void OpenGL3HardwareBuffer::setVertexFormat(VertexFormat format) {
+	m_vertexFormat = format;
+
+	m_vertexAttributes.clear();
+
+	if (format == VertexFormat::P1) {
+		// Position
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1), 0
+		));
+	}
+	else if (format == VertexFormat::P1UV) {
+		// Position
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1UV), 0
+		));
+		// UV
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			2, VertexAttributeValueType::Real, false, sizeof(VertexP1UV), offsetof(VertexP1UV, uv)
+		));
+	}
+	else if (format == VertexFormat::P1N1UV) {
+		// Position
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UV), 0
+		));
+		// UV
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UV), offsetof(VertexP1N1UV, normal)
+		));
+		// Normal
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			2, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UV), offsetof(VertexP1N1UV, uv)
+		));
+	}
 }
 
-const std::vector<Vertex>& OpenGL3HardwareBuffer::getVertices() {
-	return m_vertices;
+VertexFormat OpenGL3HardwareBuffer::getVertexFormat() const {
+	return m_vertexFormat;
 }
 
-void OpenGL3HardwareBuffer::setIndices(const std::vector<size_t>& indices) {
-	m_indices = indices;
-}
-
-const std::vector<size_t>& OpenGL3HardwareBuffer::getIndices() {
-	return m_indices;
-}
-
-void OpenGL3HardwareBuffer::addVertex(const Vertex& vertex) {
-	m_vertices.push_back(vertex);
-}
-
-void OpenGL3HardwareBuffer::addIndex(size_t index) {
-	m_indices.push_back(index);
-}
-
-size_t OpenGL3HardwareBuffer::getVerticesCount() const {
-	return m_vertices.size();
+void OpenGL3HardwareBuffer::addVertexAttribute(VertexAttributeDescription description) {
+	m_vertexAttributes.push_back(description);
 }
 
 size_t OpenGL3HardwareBuffer::getIndicesCount() const {
-	return m_indices.size();
+	return m_indicesCount;
+}
+
+size_t OpenGL3HardwareBuffer::getVerticesCount() const {
+	return m_verticesCount;
+}
+
+bool OpenGL3HardwareBuffer::hasIndicesData() const {
+	return m_indicesCount != 0;
 }
 
 GLuint OpenGL3HardwareBuffer::getVertexArrayObjectPointer() const {

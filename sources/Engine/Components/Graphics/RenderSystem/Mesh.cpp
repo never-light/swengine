@@ -3,7 +3,7 @@
 
 Mesh::Mesh()
 {
-	m_geometryBuffer = ServiceLocator::getRenderer()->createHardwareBuffer();
+	m_geometryBuffer = ServiceLocator::getGraphicsManager()->createHardwareBuffer();
 }
 
 Mesh::Mesh(HardwareBuffer* geometryBuffer)

@@ -74,7 +74,7 @@ SceneNode* Scene::getRootSceneNode() const {
 }
 
 Light* Scene::createLight(const std::string& name, LightType type) {
-	Light* lightSource = ServiceLocator::getRenderer()->createLight(type);
+	Light* lightSource = ServiceLocator::getGraphicsManager()->createLight(type);
 	m_lightsMap.insert(std::make_pair(name, lightSource));
 
 	return lightSource;
