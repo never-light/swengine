@@ -3,71 +3,117 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
-OpenGL3Texture::OpenGL3Texture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type)
-	:  Texture(width, height, internalFormat, format, type),
-	m_width(width),
-	m_height(height) 
+std::unordered_map<Texture::DataTarget, GLenum> OpenGL3Texture::dataTargetMap{
+	{ Texture::DataTarget::_2D, GL_TEXTURE_2D },
+	{ Texture::DataTarget::CubeMapPositiveX, GL_TEXTURE_CUBE_MAP_POSITIVE_X },
+	{ Texture::DataTarget::CubeMapNegativeX, GL_TEXTURE_CUBE_MAP_NEGATIVE_X },
+	{ Texture::DataTarget::CubeMapPositiveY, GL_TEXTURE_CUBE_MAP_POSITIVE_Y },
+	{ Texture::DataTarget::CubeMapNegativeY, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y },
+	{ Texture::DataTarget::CubeMapPositiveZ, GL_TEXTURE_CUBE_MAP_POSITIVE_Z },
+	{ Texture::DataTarget::CubeMapNegativeZ, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z }
+};
+
+std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::internalFormatMap{
+	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
+	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
+};
+
+std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::pixelFormatMap{
+	{ Texture::PixelFormat::RGB, GL_RGB },
+	{ Texture::PixelFormat::RGBA, GL_RGBA }
+};
+
+std::unordered_map<Texture::DataType, GLenum> OpenGL3Texture::dataTypeMap{
+	{ Texture::DataType::Float, GL_FLOAT },
+	{ Texture::DataType::UnsignedByte, GL_UNSIGNED_BYTE }
+};
+
+std::unordered_map<Texture::Parameter, GLenum> OpenGL3Texture::parametersNameMap{
+	{ Texture::Parameter::MinFilter, GL_TEXTURE_MIN_FILTER },
+	{ Texture::Parameter::MagFilter, GL_TEXTURE_MAG_FILTER },
+	{ Texture::Parameter::WrapS, GL_TEXTURE_WRAP_S },
+	{ Texture::Parameter::WrapT, GL_TEXTURE_WRAP_T },
+	{ Texture::Parameter::WrapR, GL_TEXTURE_WRAP_R },
+};
+
+std::unordered_map<Texture::ParameterValue, GLint> OpenGL3Texture::parametersValuesMap{
+	{ Texture::ParameterValue::Nearest, GL_NEAREST },
+	{ Texture::ParameterValue::Linear, GL_LINEAR },
+	{ Texture::ParameterValue::LinearMipmapLinear, GL_LINEAR_MIPMAP_LINEAR },
+	{ Texture::ParameterValue::Repeat, GL_REPEAT },
+	{ Texture::ParameterValue::ClampToEdge, GL_CLAMP_TO_EDGE }
+};
+
+OpenGL3Texture::OpenGL3Texture(Type type) 
+	: Texture(type), m_type(type), m_textureId(0)
 {
-	GLint glInternalFormat;
 
-	if (internalFormat == TextureInternalFormat::RGB16F)
-		glInternalFormat = GL_RGB16F;
-	else if (internalFormat == TextureInternalFormat::RGBA)
-		glInternalFormat = GL_RGBA;
-
-	GLenum glFormat;
-
-	if (format == TextureFormat::RGB)
-		glFormat = GL_RGB;
-	else if (format == TextureFormat::RGBA)
-		glFormat = GL_RGBA;
-
-	GLenum glDataType;
-
-	if (type == TextureDataType::Float)
-		glDataType = GL_FLOAT;
-	else if (type == TextureDataType::UnsignedByte)
-		glDataType = GL_UNSIGNED_BYTE;
-
-	glGenTextures(1, &m_textureId);
-	glBindTexture(GL_TEXTURE_2D, m_textureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glFormat, glDataType, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-}
-
-OpenGL3Texture::OpenGL3Texture(int width, int height, const unsigned char* data) 
-	: Texture(width, height, data),
-	m_textureId(NULL), 
-	m_width(width), 
-	m_height(height) 
-{
-	glGenTextures(1, &this->m_textureId);
-	glBindTexture(GL_TEXTURE_2D, this->m_textureId);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 OpenGL3Texture::~OpenGL3Texture() {
+	freeData();
+}
+
+void OpenGL3Texture::lock(bool replace) {
+	if (replace) {
+		freeData();
+		glGenTextures(1, &m_textureId);
+	}
+
+	glBindTexture(getBindTarget(), m_textureId);
+}
+
+void OpenGL3Texture::setPlainData(DataTarget target, int width, int height,
+	InternalFormat internalFormat,
+	PixelFormat format,
+	DataType type,
+	const unsigned char* data
+) 
+{
+	glTexImage2D(
+		dataTargetMap[target],
+		0, 
+		internalFormatMap[internalFormat], 
+		width, 
+		height, 
+		0,
+		pixelFormatMap[format],
+		dataTypeMap[type], 
+		(data == nullptr) ? NULL : data
+	);
+}
+
+void OpenGL3Texture::setParameter(Parameter parameter, ParameterValue value) {
+	glTexParameteri(getBindTarget(), parametersNameMap[parameter], parametersValuesMap[value]);
+}
+
+void OpenGL3Texture::generateMipmaps() {
+	if (m_type == Texture::Type::_2D)
+		glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void OpenGL3Texture::unlock() {
+	
+}
+
+void OpenGL3Texture::freeData() {
 	if (m_textureId) {
 		glDeleteTextures(1, &m_textureId);
 	}
 }
 
+Texture::Type OpenGL3Texture::getType() const {
+	return m_type;
+}
+
+GLenum OpenGL3Texture::getBindTarget() const {
+	if (m_type == Texture::Type::_2D)
+		return GL_TEXTURE_2D;
+	
+	if (m_type == Texture::Type::CubeMap)
+		return GL_TEXTURE_CUBE_MAP;
+}
+
 GLuint OpenGL3Texture::getTexturePointer() const {
 	return m_textureId;
-}
-
-int OpenGL3Texture::getWidth() const {
-	return m_width;
-}
-
-int OpenGL3Texture::getHeight() const {
-	return m_height;
 }

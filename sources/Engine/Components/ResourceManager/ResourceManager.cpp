@@ -9,6 +9,8 @@
 
 #include <Engine\ServiceLocator.h>
 
+#include "MaterialsDataParser.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -24,7 +26,10 @@ ResourceManager::~ResourceManager() {
 	unloadResourcesSet<Texture*>(m_texturesMap);
 }
 
-Texture* ResourceManager::loadTexture(const std::string& filename) {
+Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& filename) {
+	if (type != Texture::Type::_2D)
+		throw std::exception();
+
 	if (m_texturesMap.find(filename) != m_texturesMap.end()) {
 		return m_texturesMap.at(filename);
 	}
@@ -38,8 +43,81 @@ Texture* ResourceManager::loadTexture(const std::string& filename) {
 		throw std::exception();
 	}
 
-	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(width, height, data);
+	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::_2D);
+
+	texture->lock(true);
+	texture->setPlainData(
+		Texture::DataTarget::_2D,
+		width, height,
+		Texture::InternalFormat::RGBA16F,
+		Texture::PixelFormat::RGBA,
+		Texture::DataType::UnsignedByte,
+		data
+	);
+	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::LinearMipmapLinear);
+	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
+	texture->setParameter(Texture::Parameter::WrapS, Texture::ParameterValue::Repeat);
+	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::Repeat);
+
+	texture->generateMipmaps();
+	
+	texture->unlock();
+
+	stbi_image_free(data);
+
 	m_texturesMap.insert(std::make_pair(filename, texture));
+
+	return texture;
+}
+
+Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std::string>& filenames) {
+	if (type != Texture::Type::CubeMap)
+		throw std::exception();
+
+	if (filenames.size() != 6)
+		throw std::exception();
+
+	std::string cacheIndex = filenames[0] + filenames[1] + filenames[2] + filenames[3] + filenames[4] + filenames[5];
+
+	if (m_texturesMap.find(cacheIndex) != m_texturesMap.end()) {
+		return m_texturesMap.at(cacheIndex);
+	}
+
+	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::CubeMap);
+
+	texture->lock(true);
+
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < filenames.size(); i++) {
+		unsigned char *data = stbi_load(filenames[i].c_str(), &width, &height, &nrChannels, 0);
+
+		if (!data) {
+			errlog() << "Texture fragment loading error: " << filenames[i].c_str();
+			stbi_image_free(data);
+			throw std::exception();
+		}
+
+		texture->setPlainData(
+			(Texture::DataTarget::CubeMapPositiveX + i),
+			width, height,
+			Texture::InternalFormat::RGB16F,
+			Texture::PixelFormat::RGB,
+			Texture::DataType::UnsignedByte,
+			data
+		);
+
+		stbi_image_free(data);
+	}
+
+	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::Linear);
+	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
+	texture->setParameter(Texture::Parameter::WrapS, Texture::ParameterValue::ClampToEdge);
+	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::ClampToEdge);
+	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::ClampToEdge);
+
+	texture->unlock();
+
+	m_texturesMap.insert(std::make_pair(cacheIndex, texture));
 
 	return texture;
 }
@@ -66,8 +144,8 @@ Sprite* ResourceManager::loadSprite(const std::string& filename) {
 		return m_spritesMap.at(filename);
 	}
 
-	Sprite* sprite = ServiceLocator::getGraphicsManager()->createSprite(loadTexture(filename), loadShader("resources/shaders/sprite.sh"));
-	sprite->setTexture(loadTexture(filename));
+	Sprite* sprite = ServiceLocator::getGraphicsManager()->createSprite(loadTexture(Texture::Type::_2D, filename), loadShader("resources/shaders/sprite.sh"));
+	sprite->setTexture(loadTexture(Texture::Type::_2D, filename));
 	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
 	 
 	m_spritesMap.insert(std::make_pair(filename, sprite));
@@ -80,6 +158,7 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 		return m_meshesMap.at(filename);
 	}
 
+	infolog() << "Loading mesh [" << filename << "]";
 	std::vector<Mesh*> meshes;
 
 	std::ifstream in(filename, std::ios::binary | std::ios::in);
@@ -135,91 +214,91 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 
 	m_meshesMap.insert(std::make_pair(filename, mesh));
 
+	infolog() << "Mesh is loaded";
+
 	return mesh;
 }
 
 void ResourceManager::loadMaterialsPackage(const std::string& filename) {
-	std::unordered_map<std::string, Material*> package;
+	infolog() << "Loading materials package [" << filename << "]";
 
-	std::ifstream in(filename);
-	std::string currentLine;
+	std::ifstream t(filename);
+	std::string source((std::istreambuf_iterator<char>(t)),
+		std::istreambuf_iterator<char>());
 
-	std::regex materialNameRegex("^\\[([a-zA-Z0-9]+)\\]$");
-	std::regex materialParameterNumberRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+([-+]?[0-9]*\\.?[0-9]+)$");
-	std::regex materialParameterBoolRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+(true|false)$");
-	std::regex materialParameterStringRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+\\\"([0-9a-zA-Z\\.\\\\\\/_]+)\\\"$");
-	std::regex materialParameterColorRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+color\\(([-+]?[0-9]*\\.?[0-9]+),[\\s]+([-+]?[0-9]*\\.?[0-9]+),[\\s]+([-+]?[0-9]*\\.?[0-9]+)\\)$");
-	std::regex materialParameterTextureRegex("^([a-zA-Z]+)[\\s]+[=][\\s]+texture\\(\\\"([0-9a-zA-Z\\.\\\\\\/_]+)\\\"\\)$");
+	MaterialsDataParser parser(source);
 
-	std::smatch match;
-
-	std::string currentMaterialName;
-	std::unordered_map<std::string, std::string> materialsData;
-
-	while (std::getline(in, currentLine)) {
-		if (currentLine.empty()) {
-			continue;
-		}
-
-		if (std::regex_search(currentLine, match, materialNameRegex)) {
-			currentMaterialName = match[1];
-			materialsData.insert({ currentMaterialName, "" });
-			continue;
-		}
-
-		materialsData[currentMaterialName] += (currentLine + "\n");
-	}
-
-	for (auto& materialData : materialsData) {
+	for (auto& materialData : parser.getMaterialsData()) {
 		Material* material = ServiceLocator::getGraphicsManager()->createMaterial();
 
-		std::stringstream parametersStream(materialData.second);
-		std::string part;
+		for (auto& materialParameter : materialData.second) {
+			if (materialParameter.first == "program") {
+				material->setGpuProgram(loadShader(
+					std::get<std::string>(materialParameter.second)
+				));
 
-		while (std::getline(parametersStream, part, '\n')) {
-			MaterialParameter v;
+				continue;
+			}
 
-			// String value
-			if (std::regex_search(part, match, materialParameterStringRegex)) {
-				if (match[1] == "program") {
-					material->setGpuProgram(loadShader(std::string(match[2])));
-					continue;
+			MaterialParameter paramValue;
+
+			if (auto val = std::get_if<bool>(&materialParameter.second)) {
+				paramValue = *val;
+			}
+			else if (auto val = std::get_if<int>(&materialParameter.second)) {
+				paramValue = *val;
+			}
+			else if (auto val = std::get_if<real>(&materialParameter.second)) {
+				paramValue = *val;
+			}
+			else if (auto val = std::get_if<std::string>(&materialParameter.second)) {
+				continue;
+			}
+			else if (auto val = std::get_if<MaterialsDataParser::ParameterValueConstructor>(&materialParameter.second)) {
+				MaterialsDataParser::ParameterValueConstructor constructor = *val;
+
+				if (constructor.name == "Color") {
+					if (constructor.args.size() != 3)
+						throw std::exception();
+
+					paramValue = Color(
+						std::get<real>(constructor.args[0]),
+						std::get<real>(constructor.args[1]),
+						std::get<real>(constructor.args[2])
+					);
 				}
-			}
-			// Number Value
-			else if (std::regex_search(part, match, materialParameterNumberRegex)) {
-				v = (real)std::atof(std::string(match[2]).c_str());
-			}
-			// Bool Value
-			else if (std::regex_search(part, match, materialParameterBoolRegex)) {
-				v = (match[2] == "true");
-			}
-			// Color value
-			else if (std::regex_search(part, match, materialParameterColorRegex)) {
-				v = Color(
-					std::atof(std::string(match[2]).c_str()), // r
-					std::atof(std::string(match[3]).c_str()), // g
-					std::atof(std::string(match[4]).c_str()) // b
-				);
-			}
-			// Texture value
-			else if (std::regex_search(part, match, materialParameterTextureRegex)) {
-				v = loadTexture(match[2]);
-			}
-			else {
-				errlog() << "Invalid string in material file: " << part;
-				throw std::exception(std::string("Invalid string in material file: " + part).c_str());
-			}
+				else if (constructor.name == "Texture2D") {
+					if (constructor.args.size() != 1)
+						throw std::exception();
 
-			material->setParameter(match[1], v);
+					paramValue = loadTexture(Texture::Type::_2D, std::get<std::string>(constructor.args[0]));
+				}
+				else if (constructor.name == "CubeMap") {
+					if (constructor.args.size() != 6)
+						throw std::exception();
+
+					paramValue = loadTexture(Texture::Type::CubeMap, std::vector<std::string>{
+						std::get<std::string>(constructor.args[0]),
+						std::get<std::string>(constructor.args[1]),
+						std::get<std::string>(constructor.args[2]),
+						std::get<std::string>(constructor.args[3]),
+						std::get<std::string>(constructor.args[4]),
+						std::get<std::string>(constructor.args[5])
+					});
+				}
+				else
+					throw std::exception();
+			}
+			else
+				throw std::exception();
+
+			material->setParameter(materialParameter.first, paramValue);
 		}
 
-		package.insert({ materialData.first, material });
+		m_materialsMap.insert({ materialData.first, material });
 	}
 
-	for (auto pair : package) {
-		m_materialsMap.insert(std::make_pair(pair.first, pair.second));
-	}
+	infolog() << "Materials package is loaded";
 }
 
 Material* ResourceManager::createMaterial(const std::string& name) {

@@ -140,13 +140,16 @@ void OpenGL3Renderer::drawModel(const Model* model) {
 }
 
 void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
-	bindMaterial(subModel->getMaterial());
+	drawMesh(subModel->getMesh(), subModel->getParent()->getParentSceneNode()->getTransformationMatrix(), subModel->getMaterial());
+}
 
-	GpuProgram* shader = subModel->getMaterial()->getGpuProgram();
+void OpenGL3Renderer::drawMesh(const Mesh* mesh, const matrix4& transform, const Material* material) {
+	bindMaterial(material);
+	GpuProgram* shader = material->getGpuProgram();
 
 	matrix4 mvp = m_currentCamera->getProjectionMatrix() *
 		m_currentCamera->getViewMatrix() *
-		subModel->getParent()->getParentSceneNode()->getTransformationMatrix();
+		transform;
 
 	if (shader->hasRequiredParametersSection("transform")) {
 		auto& transformParameters = shader->getRequiredParametersSection("transform");
@@ -159,7 +162,7 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 
 		it = transformParameters.find("model");
 		if (it != transformParameters.end())
-			shader->setParameter(it->second.getName(), subModel->getParent()->getParentSceneNode()->getTransformationMatrix());
+			shader->setParameter(it->second.getName(), transform);
 
 		it = transformParameters.find("view");
 		if (it != transformParameters.end())
@@ -184,10 +187,6 @@ void OpenGL3Renderer::drawSubModel(const SubModel* subModel) {
 			shader->setParameter(it->second.getName(), m_currentCamera->getFrontDirection());
 	}
 
-	drawMesh(subModel->getMesh());
-}
-
-void OpenGL3Renderer::drawMesh(const Mesh* mesh) {
 	bindGeometryBuffer(mesh->getGeometryBuffer());
 
 	if (mesh->getGeometryBuffer()->hasIndicesData()) {
@@ -293,7 +292,7 @@ void OpenGL3Renderer::bindMaterial(const Material* material) {
 				mtlShader->setParameter(it.second.getName(), std::get<int>(value));
 			else if (parameterType == "bool")
 				mtlShader->setParameter(it.second.getName(), std::get<bool>(value));
-			else if (parameterType == "Texture") {
+			else if (parameterType == "Texture" || parameterType == "CubeMap") {
 				Texture* texture = std::get<Texture*>(value);
 				bindTexture(texture, freeTextureIndex);
 
@@ -363,8 +362,10 @@ void OpenGL3Renderer::bindShaderLights(GpuProgram* program) {
 }
 
 void OpenGL3Renderer::bindTexture(const Texture* texture, size_t unit) {
+	const OpenGL3Texture* glTexture = static_cast<const OpenGL3Texture*>(texture);
+
 	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, static_cast<const OpenGL3Texture*>(texture)->getTexturePointer());
+	glBindTexture(glTexture->getBindTarget(), glTexture->getTexturePointer());
 }
 
 void OpenGL3Renderer::bindShader(const GpuProgram* shader) {
@@ -377,4 +378,19 @@ void OpenGL3Renderer::bindGeometryBuffer(const HardwareBuffer* buffer) {
 
 void OpenGL3Renderer::unbindGeometryBuffer() {
 	glBindVertexArray(0);
+}
+
+void OpenGL3Renderer::setOption(Renderer::Option option, Renderer::OptionValue value) {
+	if (option == Renderer::Option::DepthTest) {
+		if (value == Renderer::OptionValue::Enabled)
+			glEnable(GL_DEPTH_TEST);
+		else if (value == Renderer::OptionValue::Disabled)
+			glDisable(GL_DEPTH_TEST);
+	}
+	else if (option == Renderer::Option::DepthFunction) {
+		if (value == Renderer::OptionValue::Less)
+			glDepthFunc(GL_LESS);
+		else if (value == Renderer::OptionValue::LessEqual)
+			glDepthFunc(GL_LEQUAL);
+	}
 }

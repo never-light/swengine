@@ -36,8 +36,12 @@ public:
 	ResourceManager();
 	~ResourceManager();
 
+	// 2D texture
+	Texture* loadTexture(Texture::Type type, const std::string& filename);
+	// Cubemap
+	Texture* loadTexture(Texture::Type type, const std::vector<std::string>& filenames);
+
 	Sprite* loadSprite(const std::string&);
-	Texture* loadTexture(const std::string&);
 	GpuProgram* loadShader(const std::string&);
 	Mesh* loadMesh(const std::string&);
 

@@ -19,12 +19,8 @@ Material* GraphicsManager::createMaterial() {
 	return new OpenGL3Material();
 }
 
-Texture* GraphicsManager::createTexture(int width, int height, const unsigned char* data) {
-	return new OpenGL3Texture(width, height, data);
-}
-
-Texture* GraphicsManager::createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type) {
-	return new OpenGL3Texture(width, height, internalFormat, format, type);
+Texture* GraphicsManager::createTexture(Texture::Type type) {
+	return new OpenGL3Texture(type);
 }
 
 GpuProgram* GraphicsManager::createGpuProgram(const std::string& source) {

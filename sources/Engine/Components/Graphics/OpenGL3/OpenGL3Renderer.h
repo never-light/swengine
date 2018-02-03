@@ -35,7 +35,7 @@ public:
 	void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) override;
 	void drawModel(const Model*) override;
 
-	void drawMesh(const Mesh* mesh) override;
+	void drawMesh(const Mesh* mesh, const matrix4& transform, const Material* material) override;
 	void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) override;
 
 	void beginRendering(Color) override;
@@ -57,6 +57,8 @@ public:
 	void bindGeometryBuffer(const HardwareBuffer* buffer) override;
 	void unbindGeometryBuffer() override;
 	void bindShaderLights(GpuProgram* program);
+
+	void setOption(Renderer::Option option, Renderer::OptionValue value) override;
 private:
 	void drawSubModel(const SubModel*);
 	OpenGL3Renderer(OpenGL3Renderer&);

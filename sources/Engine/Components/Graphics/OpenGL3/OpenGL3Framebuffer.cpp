@@ -51,6 +51,11 @@ void OpenGL3Framebuffer::unlock() {
 }
 
 void OpenGL3Framebuffer::attachTexture(FramebufferTextureType type, Texture* texture) {
+	OpenGL3Texture* glTexture = static_cast<OpenGL3Texture*>(texture);
+
+	if (glTexture->getType() != Texture::Type::_2D)
+		throw std::exception();
+
 	GLenum attachmentType;
 
 	if (type == FramebufferTextureType::Color0) {
@@ -72,7 +77,7 @@ void OpenGL3Framebuffer::attachTexture(FramebufferTextureType type, Texture* tex
 		attachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
 	}
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, static_cast<OpenGL3Texture*>(texture)->getTexturePointer(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, glTexture->getBindTarget(), glTexture->getTexturePointer(), 0);
 
 	m_attachedTextures[type] = texture;
 }

@@ -25,6 +25,15 @@ enum class DrawPrimitivesMode {
 
 class Renderer {
 public:
+	enum class Option {
+		DepthTest, DepthFunction
+	};
+
+	enum class OptionValue {
+		Enabled, Disabled,
+		Less, LessEqual // DepthFunction
+	};
+
 	virtual Window* getWindow() const = 0;
 
 	virtual void setCurrentCamera(Camera*) = 0;
@@ -36,7 +45,7 @@ public:
 	virtual void drawSprite(Sprite*, const glm::vec2&, const glm::vec2&, float) = 0;
 	virtual void drawModel(const Model*) = 0;
 
-	virtual void drawMesh(const Mesh* mesh) = 0;
+	virtual void drawMesh(const Mesh* mesh, const matrix4& transform, const Material* material) = 0;
 
 	virtual void drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer) = 0;
 	 
@@ -58,4 +67,6 @@ public:
 	virtual void bindTexture(const Texture* texture, size_t unit) = 0;
 	virtual void bindGeometryBuffer(const HardwareBuffer* buffer) = 0;
 	virtual void unbindGeometryBuffer() = 0;
+
+	virtual void setOption(Option option, OptionValue value) = 0;
 };

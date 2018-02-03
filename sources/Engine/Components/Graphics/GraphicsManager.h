@@ -15,8 +15,7 @@ public:
 	Renderer* getRenderer() const;
 
 	Material* createMaterial();
-	Texture* createTexture(int width, int height, const unsigned char* data);
-	Texture* createTexture(int width, int height, TextureInternalFormat internalFormat, TextureFormat format, TextureDataType type);
+	Texture* createTexture(Texture::Type type);
 
 	GpuProgram* createGpuProgram(const std::string& source);
 	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram);
@@ -24,7 +23,6 @@ public:
 	Light* createLight(LightType type);
 
 	Framebuffer* createFramebuffer();
-
 	HardwareBuffer* createHardwareBuffer();
 private:
 	Window* m_window;
