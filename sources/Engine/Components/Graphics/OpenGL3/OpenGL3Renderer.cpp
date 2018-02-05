@@ -3,6 +3,21 @@
 
 #include <Engine\Components\SceneManager\SceneNode.h>
 
+const std::unordered_map<Renderer::Option, GLenum> OpenGL3Renderer::m_enablingOptions{
+	{ Renderer::Option::DepthTest, GL_DEPTH_TEST },
+	{ Renderer::Option::FaceCulling, GL_CULL_FACE }
+};
+
+const std::unordered_map<Renderer::OptionValue, GLenum> OpenGL3Renderer::m_optionsValues{
+	{ Renderer::OptionValue::Less, GL_LESS },
+	{ Renderer::OptionValue::LessEqual, GL_LEQUAL },
+	{ Renderer::OptionValue::Front, GL_FRONT },
+	{ Renderer::OptionValue::Back, GL_BACK },
+	{ Renderer::OptionValue::FrontAndBack, GL_FRONT_AND_BACK },
+	{ Renderer::OptionValue::Clockwise, GL_CW },
+	{ Renderer::OptionValue::CounterClockwise, GL_CCW },
+};
+
 OpenGL3Renderer::OpenGL3Renderer(Window* window) 
 	: m_window(window),
 	m_renderTarget(nullptr) 
@@ -381,16 +396,20 @@ void OpenGL3Renderer::unbindGeometryBuffer() {
 }
 
 void OpenGL3Renderer::setOption(Renderer::Option option, Renderer::OptionValue value) {
-	if (option == Renderer::Option::DepthTest) {
+	auto optionIt = m_enablingOptions.find(option);
+
+	if (optionIt != m_enablingOptions.end()) {
 		if (value == Renderer::OptionValue::Enabled)
-			glEnable(GL_DEPTH_TEST);
+			glEnable(optionIt->second);
 		else if (value == Renderer::OptionValue::Disabled)
-			glDisable(GL_DEPTH_TEST);
+			glDisable(optionIt->second);
 	}
-	else if (option == Renderer::Option::DepthFunction) {
-		if (value == Renderer::OptionValue::Less)
-			glDepthFunc(GL_LESS);
-		else if (value == Renderer::OptionValue::LessEqual)
-			glDepthFunc(GL_LEQUAL);
+	else {
+		if (option == Renderer::Option::DepthFunction)
+			glDepthFunc(m_optionsValues.at(value));
+		else if (option == Renderer::Option::FaceCullingMode)
+			glCullFace(m_optionsValues.at(value));
+		else if (option == Renderer::Option::FrontFace)
+			glFrontFace(m_optionsValues.at(value));
 	}
 }

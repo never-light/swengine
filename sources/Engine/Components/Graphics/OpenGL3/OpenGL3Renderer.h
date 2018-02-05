@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
@@ -70,4 +72,8 @@ private:
 	Camera* m_currentCamera;
 
 	std::vector<OpenGL3Light*> m_lights;
+
+private:
+	static const std::unordered_map<Renderer::Option, GLenum> m_enablingOptions;
+	static const std::unordered_map<Renderer::OptionValue, GLenum> m_optionsValues;
 };

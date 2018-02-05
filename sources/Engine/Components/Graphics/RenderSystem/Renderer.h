@@ -26,12 +26,15 @@ enum class DrawPrimitivesMode {
 class Renderer {
 public:
 	enum class Option {
-		DepthTest, DepthFunction
+		DepthTest, DepthFunction, 
+		FaceCulling, FaceCullingMode, FrontFace
 	};
 
 	enum class OptionValue {
 		Enabled, Disabled,
-		Less, LessEqual // DepthFunction
+		Less, LessEqual, // DepthFunction
+		Front, Back, FrontAndBack,  // Face culling
+		Clockwise, CounterClockwise
 	};
 
 	virtual Window* getWindow() const = 0;
