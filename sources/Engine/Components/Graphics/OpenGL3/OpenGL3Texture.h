@@ -11,12 +11,20 @@ public:
 	~OpenGL3Texture();
 
 	void lock(bool replace = false) override;
+
 	void setPlainData(DataTarget target, int width, int height,
 		InternalFormat internalFormat,
 		PixelFormat format,
 		DataType type,
 		const unsigned char* data = nullptr
 	) override;
+
+	void setMultisamplePlainData(DataTarget target, int width, int height,
+		int samplesCount,
+		InternalFormat internalFormat,
+		bool fixedSampleLocations
+	) override;
+
 	void setParameter(Parameter parameter, ParameterValue value) override;
 	void generateMipmaps() override;
 	void unlock() override;

@@ -5,11 +5,12 @@
 class Texture {
 public:
 	enum class Type {
-		_2D, CubeMap
+		_2D, CubeMap,
+		_2DMultisample
 	};
 
 	enum class DataTarget {
-		_2D, 
+		_2D, _2DMultisample,
 		CubeMapPositiveX, CubeMapNegativeX, 
 		CubeMapPositiveY, CubeMapNegativeY,
 		CubeMapPositiveZ, CubeMapNegativeZ,
@@ -46,6 +47,11 @@ public:
 		DataType type,
 		const unsigned char* data = nullptr
 	) = 0;
+	virtual void setMultisamplePlainData(DataTarget target, int width, int height,
+		int samplesCount,
+		InternalFormat internalFormat,
+		bool fixedSampleLocations
+		) = 0;
 	virtual void setParameter(Parameter parameter, ParameterValue value) = 0;
 	virtual void generateMipmaps() = 0;
 	virtual void unlock() = 0;

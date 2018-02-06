@@ -3,17 +3,23 @@
 #include <unordered_map>
 #include "Texture.h"
 
-enum class FramebufferTextureType {
-	Depth, Stencil, DepthStencil, Color0, Color1, Color2
-};
-
-enum class RenderbufferType {
-	Depth, DepthStencil
-};
-
-using FramebufferAttachedTexturesList = std::unordered_map<FramebufferTextureType, Texture*>;
-
 class Framebuffer {
+public:
+	enum class Attachment {
+		Color0, Color1, Color2, Deptch, Stencil, DepthStencil
+	};
+
+	enum class RenderBufferInternalFormat {
+		Depth, Depth24Stencil8
+	};
+
+	enum class CopyAttachmentFilter {
+		Nearest, Linear
+	};
+
+	enum class CopyAttachmentMask {
+		ColorBuffer, DepthBuffer, StencilBuffer, DepthStencilBuffer
+	};
 public:
 	Framebuffer() {}
 	virtual ~Framebuffer() {}
@@ -21,9 +27,31 @@ public:
 	virtual void lock() = 0;
 	virtual void unlock() = 0;
 
-	virtual void attachTexture(FramebufferTextureType type, Texture* texture) = 0;
-	virtual void createAndAttachRenderBuffer(RenderbufferType type, int width, int height) = 0;
+	virtual void attachTexture(Attachment attachment, Texture* texture) = 0;
+	virtual void createAndAttachRenderBuffer(
+		Attachment attachment, 
+		int width, 
+		int height, 
+		RenderBufferInternalFormat internalFormat
+	) = 0;
 
-	virtual const FramebufferAttachedTexturesList& getAttachedTextures() const = 0;
-	virtual Texture* getAttachedTexture(FramebufferTextureType type) const = 0;
+	virtual void createAndAttachMultisampleRenderBuffer(
+		Attachment attachment,
+		int samples,
+		int width,
+		int height,
+		RenderBufferInternalFormat internalFormat
+	) = 0;
+
+	virtual void copyAttachmentFragmentTo(
+		Attachment attachment,
+		Framebuffer* destination,
+		int srcX0, int srcY0, int srcX1, int srcY1,
+		int dstX0, int dstY0, int dstX1, int dstY1,
+		CopyAttachmentMask mask,
+		CopyAttachmentFilter filter
+	) = 0;
+
+	virtual bool hasTextureAttachment(Attachment attachment) const = 0;
+	virtual Texture* getTextureAttachment(Attachment attachment) const = 0;
 };

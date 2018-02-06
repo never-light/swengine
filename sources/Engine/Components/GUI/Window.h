@@ -20,7 +20,7 @@ class Window {
 public:
 
 public:
-	Window(const std::string& name, int width, int height);
+	Window(const std::string& name, int width, int height, bool fullscreen = false, int samples = 0);
 	~Window();
 
 	void update();

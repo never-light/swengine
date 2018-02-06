@@ -83,6 +83,25 @@ void OpenGL3Texture::setPlainData(DataTarget target, int width, int height,
 	);
 }
 
+void OpenGL3Texture::setMultisamplePlainData(DataTarget target, int width, int height,
+	int samplesCount,
+	InternalFormat internalFormat,
+	bool fixedSampleLocations
+)
+{
+	if (m_type != Texture::Type::_2DMultisample)
+		throw std::exception();
+
+	glTexImage2DMultisample(
+		GL_TEXTURE_2D_MULTISAMPLE, 
+		samplesCount, 
+		internalFormatMap[internalFormat],
+		width,
+		height,
+		(fixedSampleLocations) ? GL_TRUE : GL_FALSE
+	);
+}
+
 void OpenGL3Texture::setParameter(Parameter parameter, ParameterValue value) {
 	glTexParameteri(getBindTarget(), parametersNameMap[parameter], parametersValuesMap[value]);
 }
@@ -112,6 +131,9 @@ GLenum OpenGL3Texture::getBindTarget() const {
 	
 	if (m_type == Texture::Type::CubeMap)
 		return GL_TEXTURE_CUBE_MAP;
+
+	if (m_type == Texture::Type::_2DMultisample)
+		return GL_TEXTURE_2D_MULTISAMPLE;
 }
 
 GLuint OpenGL3Texture::getTexturePointer() const {

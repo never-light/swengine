@@ -5,7 +5,8 @@
 
 const std::unordered_map<Renderer::Option, GLenum> OpenGL3Renderer::m_enablingOptions{
 	{ Renderer::Option::DepthTest, GL_DEPTH_TEST },
-	{ Renderer::Option::FaceCulling, GL_CULL_FACE }
+	{ Renderer::Option::FaceCulling, GL_CULL_FACE },
+	{ Renderer::Option::MultiSample, GL_MULTISAMPLE }
 };
 
 const std::unordered_map<Renderer::OptionValue, GLenum> OpenGL3Renderer::m_optionsValues{
@@ -249,26 +250,25 @@ void OpenGL3Renderer::drawNDCQuad(GpuProgram* program, Framebuffer* framebuffer)
 	}
 	
 	if (framebuffer != nullptr && program->hasRequiredParametersSection("framebuffer")) {
-		auto& texturesList = framebuffer->getAttachedTextures();
 		auto& framebufferParameters = program->getRequiredParametersSection("framebuffer");
 
 		GpuProgramParametersSection::const_iterator it;
 
 		it = framebufferParameters.find("colorAttachment0");
 		if (it != framebufferParameters.end()) {
-			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color0), 0);
+			bindTexture(framebuffer->getTextureAttachment(Framebuffer::Attachment::Color0), 0);
 			program->setParameter(it->second.getName(), 0);
 		}
 
 		it = framebufferParameters.find("colorAttachment1");
 		if (it != framebufferParameters.end()) {
-			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color1), 1);
+			bindTexture(framebuffer->getTextureAttachment(Framebuffer::Attachment::Color1), 1);
 			program->setParameter(it->second.getName(), 1);
 		}
 
 		it = framebufferParameters.find("colorAttachment2");
 		if (it != framebufferParameters.end()) {
-			bindTexture(framebuffer->getAttachedTexture(FramebufferTextureType::Color2), 2);
+			bindTexture(framebuffer->getTextureAttachment(Framebuffer::Attachment::Color2), 2);
 			program->setParameter(it->second.getName(), 2);
 		}
 	}

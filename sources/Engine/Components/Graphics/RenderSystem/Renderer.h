@@ -27,7 +27,8 @@ class Renderer {
 public:
 	enum class Option {
 		DepthTest, DepthFunction, 
-		FaceCulling, FaceCullingMode, FrontFace
+		FaceCulling, FaceCullingMode, FrontFace,
+		MultiSample
 	};
 
 	enum class OptionValue {

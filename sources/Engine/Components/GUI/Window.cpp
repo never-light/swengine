@@ -2,20 +2,24 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
-Window::Window(const std::string& name, int width, int height) 
+Window::Window(const std::string& name, int width, int height, bool fullscreen, int samples) 
 	: m_width(width),
 	m_height(height),
 	m_viewport(new Viewport(width, height))
 {
+	glfwInit();
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glfwInit();
-
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	this->m_windowPointer = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+	if (samples > 0)
+		glfwWindowHint(GLFW_SAMPLES, samples);
+
+	GLFWmonitor* monitor = (fullscreen) ? glfwGetPrimaryMonitor() : nullptr;
+	this->m_windowPointer = glfwCreateWindow(width, height, name.c_str(), monitor, nullptr);
 
 	if (!this->m_windowPointer) {
 		errlog() << "Failed to create GLFW window";
