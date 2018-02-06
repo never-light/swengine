@@ -49,7 +49,7 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& fil
 	texture->setPlainData(
 		Texture::DataTarget::_2D,
 		width, height,
-		Texture::InternalFormat::RGBA16F,
+		Texture::InternalFormat::RGBA,
 		Texture::PixelFormat::RGBA,
 		Texture::DataType::UnsignedByte,
 		data
@@ -100,7 +100,7 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std:
 		texture->setPlainData(
 			(Texture::DataTarget::CubeMapPositiveX + i),
 			width, height,
-			Texture::InternalFormat::RGB16F,
+			Texture::InternalFormat::RGBA,
 			Texture::PixelFormat::RGB,
 			Texture::DataType::UnsignedByte,
 			data
