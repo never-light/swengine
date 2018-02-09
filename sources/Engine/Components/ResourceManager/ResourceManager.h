@@ -14,23 +14,6 @@
 #include <Engine\Components\Graphics\RenderSystem\Sprite.h>
 #include <Engine\Components\Graphics\RenderSystem\Mesh.h>
 
-struct ModelFileHeaderData {
-	std::uint32_t version;
-	std::uint32_t meshesCount;
-};
-
-struct ModelFileMeshData {
-	char name[64];
-	std::uint32_t verticesCount;
-	std::uint32_t indicesCount;
-};
-
-struct ModelFileVertexData {
-	float x, y, z;
-	float nx, ny, nz;
-	float u, v;
-};
-
 class ResourceManager {
 public:
 	ResourceManager();

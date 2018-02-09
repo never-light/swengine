@@ -17,3 +17,9 @@ VertexP1N1UV::VertexP1N1UV(const vector3& position, const vector3& normal, const
 {
 
 }
+
+VertexP1N1UVT1::VertexP1N1UVT1(const vector3& position, const vector3& normal, const vector2& uv, const vector3& tangent) 
+	: position(position), normal(normal), uv(uv), tangent(tangent)
+{
+
+}

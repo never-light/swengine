@@ -4,12 +4,15 @@
 #include <fstream>
 #include <sstream>
 #include <variant>
+#include <bitset>
+#include <array>
 
 #include <Engine\Components\Debugging\Log.h>
 
 #include <Engine\ServiceLocator.h>
 
 #include "MaterialsDataParser.h"
+#include "MeshLoader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -34,6 +37,8 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& fil
 		return m_texturesMap.at(filename);
 	}
 
+	infolog() << "Loading texture " << filename << "...";
+
 	int width, height;
 	int nrChannels;
 	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
@@ -43,27 +48,35 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& fil
 		throw std::exception();
 	}
 
+	Texture::InternalFormat internalFormat = Texture::InternalFormat::RGBA;
+	Texture::PixelFormat pixelFormat = Texture::PixelFormat::RGBA;
+
 	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::_2D);
 
 	texture->lock(true);
 	texture->setPlainData(
 		Texture::DataTarget::_2D,
 		width, height,
-		Texture::InternalFormat::RGBA,
-		Texture::PixelFormat::RGBA,
+		internalFormat,
+		pixelFormat,
 		Texture::DataType::UnsignedByte,
 		data
 	);
-	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::LinearMipmapLinear);
-	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
-	texture->setParameter(Texture::Parameter::WrapS, Texture::ParameterValue::Repeat);
-	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::Repeat);
 
 	texture->generateMipmaps();
-	
+
+	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::LinearMipmapLinear);
+	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
+
+	Texture::ParameterValue wrapMode = Texture::ParameterValue::Repeat;
+
+	texture->setParameter(Texture::Parameter::WrapS, wrapMode);
+	texture->setParameter(Texture::Parameter::WrapT, wrapMode);
+
 	texture->unlock();
 
 	stbi_image_free(data);
+	infolog() << "Texture is loaded";
 
 	m_texturesMap.insert(std::make_pair(filename, texture));
 
@@ -88,11 +101,13 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std:
 	texture->lock(true);
 
 	int width, height, nrChannels;
+
 	for (unsigned int i = 0; i < filenames.size(); i++) {
+		infolog() << "Loading cubemap part " << filenames[i] << "...";
 		unsigned char *data = stbi_load(filenames[i].c_str(), &width, &height, &nrChannels, 0);
 
 		if (!data) {
-			errlog() << "Texture fragment loading error: " << filenames[i].c_str();
+			errlog() << "Cubemap part loading error: " << filenames[i].c_str();
 			stbi_image_free(data);
 			throw std::exception();
 		}
@@ -107,6 +122,7 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std:
 		);
 
 		stbi_image_free(data);
+		infolog() << "Cubemap part is loaded";
 	}
 
 	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::Linear);
@@ -133,6 +149,7 @@ GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 
 	infolog() << "Loading shader " << filename << "...";
 	GpuProgram* program = ServiceLocator::getGraphicsManager()->createGpuProgram(source);
+	infolog() << "Shader is loaded";
 
 	m_shadersMap.insert(std::make_pair(filename, program));
 
@@ -159,58 +176,9 @@ Mesh* ResourceManager::loadMesh(const std::string& filename) {
 	}
 
 	infolog() << "Loading mesh [" << filename << "]";
-	std::vector<Mesh*> meshes;
 
-	std::ifstream in(filename, std::ios::binary | std::ios::in);
-
-	ModelFileHeaderData header;
-	in.read((char*)&header, sizeof header);
-
-	for (size_t i = 0; i < header.meshesCount; i++) {
-		HardwareBuffer* geometryBuffer = ServiceLocator::getGraphicsManager()->createHardwareBuffer();
-		geometryBuffer->lock();
-		geometryBuffer->setVertexFormat(VertexFormat::P1N1UV);
-
-		std::vector<VertexP1N1UV> vertices;
-
-		ModelFileMeshData meshData;
-		in.read((char*)&meshData, sizeof meshData);
-
-		for (size_t j = 0; j < meshData.verticesCount; j++) {
-			ModelFileVertexData vertexData;
-			in.read((char*)&vertexData, sizeof vertexData);
-
-			vertices.push_back(VertexP1N1UV(
-				vector3(vertexData.x, vertexData.y, vertexData.z),
-				vector3(vertexData.nx, vertexData.ny, vertexData.nz),
-				vector2(vertexData.u, vertexData.v)
-			));
-		}
-
-		geometryBuffer->setVerticesData(vertices.size(), sizeof(VertexP1N1UV), vertices.data());
-
-		std::vector<uint32> indices;
-
-		for (size_t j = 0; j < meshData.indicesCount; j++) {
-			uint32 index;
-			in.read((char*)&index, sizeof index);
-
-			indices.push_back(index);
-		}
-
-		geometryBuffer->setIndicesData(indices.size(), sizeof(uint32), indices.data());
-		geometryBuffer->unlock();
-
-		Mesh* mesh = new Mesh(geometryBuffer);
-		mesh->setName(meshData.name);
-
-		meshes.push_back(mesh);
-	}
-
-	Mesh* mesh = new Mesh();
-	for (Mesh* subMesh : meshes) {
-		mesh->addSubMesh(subMesh);
-	}
+	MeshLoader loader;
+	Mesh* mesh = loader.load(filename);
 
 	m_meshesMap.insert(std::make_pair(filename, mesh));
 

@@ -103,6 +103,24 @@ void OpenGL3HardwareBuffer::setVertexFormat(VertexFormat format) {
 			2, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UV), offsetof(VertexP1N1UV, uv)
 		));
 	}
+	else if (format == VertexFormat::P1N1UVT1) {
+		// Position
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UVT1), 0
+		));
+		// UV
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UVT1), offsetof(VertexP1N1UVT1, normal)
+		));
+		// Normal
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			2, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UVT1), offsetof(VertexP1N1UVT1, uv)
+		));
+		// Tangent
+		m_vertexAttributes.push_back(VertexAttributeDescription(
+			3, VertexAttributeValueType::Real, false, sizeof(VertexP1N1UVT1), offsetof(VertexP1N1UVT1, tangent)
+		));
+	}
 }
 
 VertexFormat OpenGL3HardwareBuffer::getVertexFormat() const {
