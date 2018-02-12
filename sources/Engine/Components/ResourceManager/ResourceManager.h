@@ -20,7 +20,9 @@ public:
 	~ResourceManager();
 
 	// 2D texture
-	Texture* loadTexture(Texture::Type type, const std::string& filename);
+	Texture* loadTexture(Texture::Type type, 
+		const std::string& filename, 
+		Texture::InternalFormat internalFormat = Texture::InternalFormat::RGBA);
 	// Cubemap
 	Texture* loadTexture(Texture::Type type, const std::vector<std::string>& filenames);
 

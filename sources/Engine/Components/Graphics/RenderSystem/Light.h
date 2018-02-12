@@ -9,33 +9,57 @@ enum class LightType {
 
 class Light {
 public:
-	virtual void setType(LightType) = 0;
-	virtual LightType getType() const = 0;
+	Light(LightType type);
+	virtual ~Light();
 
-	virtual void setAmbientColor(const Color&) = 0;
-	virtual Color getAmbientColor() const = 0;
+	virtual void setType(LightType);
+	virtual LightType getType() const;
 
-	virtual void setSpecularColor(const Color&) = 0;
-	virtual Color getSpecularColor() const = 0;
+	virtual void setAmbientColor(const Color&);
+	virtual Color getAmbientColor() const;
 
-	virtual void setDuffuseColor(const Color&) = 0;
-	virtual Color getDuffuseColor() const = 0;
+	virtual void setSpecularColor(const Color&);
+	virtual Color getSpecularColor() const;
 
-	virtual void setDirection(const vector3&) = 0;
-	virtual vector3 getDirection() const = 0;
+	virtual void setDuffuseColor(const Color&);
+	virtual Color getDuffuseColor() const;
 
-	virtual void setPosition(const vector3&) = 0;
-	virtual vector3 getPosition() const = 0;
+	virtual void setDirection(const vector3&);
+	virtual vector3 getDirection() const;
 
-	virtual void setAttenuation(float32, float32, float32) = 0;
+	virtual void setPosition(const vector3&);
+	virtual vector3 getPosition() const;
 
-	virtual float32 getAttenuationConstant() const = 0;
-	virtual float32 getAttenuationLinear() const = 0;
-	virtual float32 getAttenuationQuadratic() const = 0;
+	virtual void setAttenuation(real constant, real linear, real quadratic);
 
-	virtual void setInnerAngle(float32) = 0;
-	virtual float32 getInnerAngle() const = 0;
+	virtual real getAttenuationConstant() const;
+	virtual real getAttenuationLinear() const;
+	virtual real getAttenuationQuadratic() const;
 
-	virtual void setOuterAngle(float32) = 0;
-	virtual float32 getOuterAngle() const = 0;
+	virtual void setInnerAngle(real);
+	virtual real getInnerAngle() const;
+
+	virtual void setOuterAngle(real);
+	virtual real getOuterAngle() const;
+
+	virtual const matrix4& getSpaceMatrix();
+private:
+	LightType m_type;
+
+	vector3 m_position;
+	vector3 m_direction;
+
+	Color m_ambientColor;
+	Color m_specularColor;
+	Color m_diffuseColor;
+
+	real m_innerAngle;
+	real m_outerAngle;
+
+	real m_constant;
+	real m_linear;
+	real m_quadratic;
+
+	bool m_needUpdateSpaceMatrix;
+	matrix4 m_spaceMatrix;
 };

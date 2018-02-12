@@ -65,6 +65,24 @@ Model* Scene::createModel(const std::string& filename, const std::string& name) 
 	return model;
 }
 
+Model* Scene::createModel(Mesh* mesh, const std::string& name) {
+	if (m_modelsMap.find(name) != m_modelsMap.end()) {
+		return m_modelsMap.at(name);
+	}
+
+	Model* model = new Model;
+
+	for (Mesh* subMesh : mesh->getSubMeshesArray()) {
+		SubModel* subModel = new SubModel(model);
+		subModel->setMesh(subMesh);
+		model->addSubModel(subModel);
+	}
+
+	m_modelsMap.insert(std::make_pair(name, model));
+
+	return model;
+}
+
 Model* Scene::getModel(const std::string& name) {
 	return m_modelsMap.at(name);
 }

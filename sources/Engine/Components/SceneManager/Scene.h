@@ -29,6 +29,7 @@ public:
 	Camera* getCamera(const std::string&);
 
 	Model* createModel(const std::string& filename, const std::string& name);
+	Model* createModel(Mesh* mesh, const std::string& name);
 	Model* getModel(const std::string& name);
 
 	SceneNode* getRootSceneNode() const;

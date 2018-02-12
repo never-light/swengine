@@ -21,12 +21,16 @@ std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::internalForma
 	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
 	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
 	{ Texture::InternalFormat::SRGB8, GL_SRGB8 },
-	{ Texture::InternalFormat::SRGB8A8, GL_SRGB8_ALPHA8 }
+	{ Texture::InternalFormat::SRGB8A8, GL_SRGB8_ALPHA8 },
+	{ Texture::InternalFormat::RGB32F, GL_RGB32F },
+	{ Texture::InternalFormat::RGBA32F, GL_RGBA32F },
+	{ Texture::InternalFormat::Depth, GL_DEPTH_COMPONENT },
 };
 
 std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::pixelFormatMap{
 	{ Texture::PixelFormat::RGB, GL_RGB },
-	{ Texture::PixelFormat::RGBA, GL_RGBA }
+	{ Texture::PixelFormat::RGBA, GL_RGBA },
+	{ Texture::PixelFormat::Depth, GL_DEPTH_COMPONENT },
 };
 
 std::unordered_map<Texture::DataType, GLenum> OpenGL3Texture::dataTypeMap{

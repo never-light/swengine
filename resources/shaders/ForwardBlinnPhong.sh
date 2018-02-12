@@ -1,10 +1,7 @@
-@parameters
-matrix4 transform.model as model
-matrix4 transform.view as view
-matrix4 transform.projection as projection
-vector3 camera.position as cameraPosition
-
-LightsArray light.sources as lightsArray
+[parameters]
+UBO frame.ubo as frame
+UBO object.ubo as object
+UBO lighting.ubo as lighting
 
 Color material.diffuseColor as mtl.diffuseColor
 Texture material.diffuseMap as mtl.diffuseMap
@@ -20,7 +17,7 @@ bool material.useNormalMap as mtl.useNormalMap
 Color material.ambientColor as mtl.ambientColor
 float material.shininess as mtl.shininess
 
-@vertexShader
+[vertexShader]
 #version 330 core
 
 layout (location = 0) in vec3 aPos;
@@ -35,9 +32,19 @@ out VS_OUT {
 	mat3 TBN;
 } vs_out;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+layout (std140) uniform frame
+{
+	mat4 view;
+    mat4 projection;
+	
+	vec3 cameraPosition;
+	vec3 cameraDirection;
+};
+
+layout (std140) uniform object
+{
+	mat4 model;
+};
 
 void main()
 {
@@ -47,9 +54,7 @@ void main()
     
 	vec3 T = normalize(vec3(model * vec4(aTangent, 0.0)));
 	vec3 N = normalize(vec3(model * vec4(aNormal, 0.0)));
-	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
-	// then retrieve perpendicular vector B with the cross product of T and N
 	vec3 B = cross(N, T);
 
 	vs_out.TBN = mat3(T, B, N);
@@ -57,7 +62,7 @@ void main()
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
 }
 
-@fragmentShader
+[fragmentShader]
 #version 330 core
 #define MAX_LIGHTS 4
 
@@ -86,43 +91,101 @@ struct Material {
 	int useNormalMap;
 }; 
 
-struct LightAttenuation {
-	float constant;
-	float linear;
-	float quadratic;
-};
-
 struct LightIntensity {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 };
 
-struct Light {
+struct Light {	
+	mat4 spaceMatrix;
+
+	vec3 position;
+	vec3 direction;
 	vec3 ambientColor;
     vec3 diffuseColor;
     vec3 specularColor;
 	
-	vec3 direction;
-	vec3 position;
-	
 	float innerCutOff;
-    float outerCutOff;
+	float outerCutOff;
 	
-	LightAttenuation attenuation;
+	float attenuationConstant;
+	float attenuationLinear;
+	float attenuationQuadratic;
 	
 	int type;
 };
 
-uniform Light lightsArray[MAX_LIGHTS];
+layout (std140) uniform frame
+{
+	mat4 view;
+    mat4 projection;
+	
+	vec3 cameraPosition;
+	vec3 cameraDirection;
+};
 
-uniform vec3 cameraPosition;
+struct Test {
+	vec3 v;
+	int a;
+};
+
+//uniform Light lightsArray[MAX_LIGHTS];
+
+layout (std140) uniform lighting
+{
+	Light lightsArray[MAX_LIGHTS];
+	int lightsCount;
+};
+
 uniform Material mtl;
+
+uniform sampler2D shadowMap;
 
 vec3 CalcDirLight(int lightIndex, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir);
 LightIntensity CalcLightIntensity(int lightIndex, vec3 normal, vec3 lightDir, vec3 viewDir);
+
+float ShadowCalculation(int lightIndex, vec3 fragPos)
+{
+	vec4 fragPosLightSpace = lightsArray[lightIndex].spaceMatrix * vec4(fragPos, 1.0);
+
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // calculate bias (based on depth map resolution and slope)
+    vec3 normal = normalize(fs_in.Normal);
+    vec3 lightDir = normalize(lightsArray[lightIndex].position - fragPos);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    // check whether current frag pos is in shadow
+    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+        
+    return shadow;
+
+
+}
 
 void main() {
 	vec3 norm;
@@ -141,7 +204,12 @@ void main() {
 
 	vec3 result;
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
+	//int lightsCount = 1;
+	
+	for (int i = 0; i < lightsCount; i++) {
+		//result += test[0].v * test[0].a - test[1].a * test[1].v;
+		//result += l;
+		
 		if (lightsArray[i].type == 0) continue;
 		
 		if (lightsArray[i].type == 1) {
@@ -155,7 +223,7 @@ void main() {
 		}
 	}
 
-	 FragColor = vec4(result, 1.0);
+	FragColor = vec4(result, 1.0);
 }
 
 LightIntensity CalcLightIntensity(int lightIndex, vec3 normal, vec3 lightDir, vec3 viewDir) {
@@ -165,7 +233,6 @@ LightIntensity CalcLightIntensity(int lightIndex, vec3 normal, vec3 lightDir, ve
     float specularPower = pow(max(dot(normal, halfwayDir), 0.0), mtl.shininess);
 	
 	LightIntensity intensity;
-	
 	if (mtl.useDiffuseMap == 1) {
 		intensity.ambient = lightsArray[lightIndex].ambientColor * vec3(texture(mtl.diffuseMap, fs_in.TexCoords));
 		intensity.diffuse = lightsArray[lightIndex].diffuseColor * diffusePower * vec3(texture(mtl.diffuseMap, fs_in.TexCoords));
@@ -186,9 +253,22 @@ LightIntensity CalcLightIntensity(int lightIndex, vec3 normal, vec3 lightDir, ve
 }
 
 vec3 CalcDirLight(int lightIndex, vec3 normal, vec3 viewDir) {
+	vec3 color;
+	
+	if (mtl.useDiffuseMap == 1) {
+		color = texture(mtl.diffuseMap, fs_in.TexCoords).rgb;
+	}
+	else {
+		color = mtl.diffuseColor;
+	}
+	
 	vec3 lightDir = normalize(-lightsArray[lightIndex].direction );
 
 	LightIntensity intensity = CalcLightIntensity(lightIndex, normal, lightDir, viewDir);
+	
+	float shadow = ShadowCalculation(lightIndex, fs_in.FragPos);       
+	//return (intensity.ambient + (1.0 - shadow) * (intensity.diffuse + intensity.specular)) * color;    
+	
     return (intensity.ambient + intensity.diffuse + intensity.specular);
 }
 
@@ -196,7 +276,7 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir) {
 	vec3 lightDir = normalize(lightsArray[lightIndex].position - fragPos);
 
     float distance = length(lightsArray[lightIndex].position - fragPos);
-    float attenuation = 1.0 / (lightsArray[lightIndex].attenuation.constant + lightsArray[lightIndex].attenuation.linear * distance + lightsArray[lightIndex].attenuation.quadratic * (distance * distance));    
+    float attenuation = 1.0 / (lightsArray[lightIndex].attenuationConstant + lightsArray[lightIndex].attenuationLinear * distance + lightsArray[lightIndex].attenuationQuadratic * (distance * distance));    
 
 	LightIntensity intensity = CalcLightIntensity(lightIndex, normal, lightDir, viewDir);
 	return (intensity.ambient * attenuation + intensity.diffuse * attenuation + intensity.specular * attenuation);
@@ -206,7 +286,7 @@ vec3 CalcSpotLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir) {
     vec3 lightDir = normalize(lightsArray[lightIndex].position - fragPos);
 
      float distance = length(lightsArray[lightIndex].position - fragPos);
-    float attenuation = 1.0 / (lightsArray[lightIndex].attenuation.constant + lightsArray[lightIndex].attenuation.linear * distance + lightsArray[lightIndex].attenuation.quadratic * (distance * distance));    
+    float attenuation = 1.0 / (lightsArray[lightIndex].attenuationConstant + lightsArray[lightIndex].attenuationLinear * distance + lightsArray[lightIndex].attenuationQuadratic * (distance * distance));    
 
     float theta = dot(lightDir, normalize(-lightsArray[lightIndex].direction)); 
     float epsilon = lightsArray[lightIndex].innerCutOff - lightsArray[lightIndex].outerCutOff;

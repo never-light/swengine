@@ -3,38 +3,11 @@
 #include <regex>
 #include <Engine\Components\Debugging\Log.h>
 
+#include "ParseUtils.h"
+
 MaterialsDataParser::MaterialsDataParser(const std::string& source) {
-	// Split by sections
-	std::stringstream in(source);
+	auto sections = ParseSplitStrBySections(source);
 
-	std::string currentSectionName;
-	std::string currentLine;
-	std::unordered_map<std::string, std::string> sections;
-
-	while (std::getline(in, currentLine)) {
-		if (currentLine.empty()) {
-			continue;
-		}
-
-		if (currentLine[0] == '[') {
-			size_t end = currentLine.find_first_of(']');
-			if (end != std::string::npos) {
-				currentSectionName = currentLine.substr(1, end - 1);
-				continue;
-			}
-			else {
-				throw std::exception();
-			}
-		}
-		else {
-			if (currentSectionName.empty())
-				throw std::exception();
-		}
-
-		sections[currentSectionName] += (currentLine + "\n");
-	}
-
-	// Parse sections
 	for (auto& it : sections) {
 		parseSection(it.first, it.second);
 	}

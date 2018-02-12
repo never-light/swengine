@@ -52,6 +52,8 @@ public:
 		CopyAttachmentFilter filter
 	) = 0;
 
+	virtual void disableColorComponent() = 0;
+
 	virtual bool hasTextureAttachment(Attachment attachment) const = 0;
 	virtual Texture* getTextureAttachment(Attachment attachment) const = 0;
 };

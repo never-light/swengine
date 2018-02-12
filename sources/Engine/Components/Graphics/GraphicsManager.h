@@ -17,7 +17,7 @@ public:
 	Material* createMaterial();
 	Texture* createTexture(Texture::Type type);
 
-	GpuProgram* createGpuProgram(const std::string& source);
+	GpuProgram* createGpuProgram(const std::unordered_map<std::string, std::string>& sources);
 	Sprite* createSprite(Texture* texture, GpuProgram* gpuProram);
 
 	Light* createLight(LightType type);

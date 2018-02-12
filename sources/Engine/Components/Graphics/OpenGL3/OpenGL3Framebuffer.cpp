@@ -77,6 +77,8 @@ void OpenGL3Framebuffer::freeData() {
 
 	m_attachedRenderbuffers.clear();
 
+	m_attachedTextures.clear();
+
 	glDeleteFramebuffers(1, &m_framebufferPointer);
 }
 
@@ -199,6 +201,11 @@ void OpenGL3Framebuffer::copyAttachmentFragmentTo(
 	// Restore framebuffer binding
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readframebufferId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFramebufferId);
+}
+
+void OpenGL3Framebuffer::disableColorComponent() {
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 }
 
 bool OpenGL3Framebuffer::hasTextureAttachment(Attachment attachment) const {

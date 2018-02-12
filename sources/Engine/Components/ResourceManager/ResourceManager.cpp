@@ -11,6 +11,7 @@
 
 #include <Engine\ServiceLocator.h>
 
+#include "GpuProgramParser.h"
 #include "MaterialsDataParser.h"
 #include "MeshLoader.h"
 
@@ -29,7 +30,10 @@ ResourceManager::~ResourceManager() {
 	unloadResourcesSet<Texture*>(m_texturesMap);
 }
 
-Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& filename) {
+Texture* ResourceManager::loadTexture(Texture::Type type, 
+	const std::string& filename, 
+	Texture::InternalFormat internalFormat) 
+{
 	if (type != Texture::Type::_2D)
 		throw std::exception();
 
@@ -48,7 +52,6 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::string& fil
 		throw std::exception();
 	}
 
-	Texture::InternalFormat internalFormat = Texture::InternalFormat::RGBA;
 	Texture::PixelFormat pixelFormat = Texture::PixelFormat::RGBA;
 
 	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::_2D);
@@ -115,7 +118,7 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std:
 		texture->setPlainData(
 			(Texture::DataTarget::CubeMapPositiveX + i),
 			width, height,
-			Texture::InternalFormat::RGBA,
+			Texture::InternalFormat::SRGB,
 			Texture::PixelFormat::RGB,
 			Texture::DataType::UnsignedByte,
 			data
@@ -143,12 +146,15 @@ GpuProgram* ResourceManager::loadShader(const std::string& filename) {
 		return m_shadersMap.at(filename);
 	}
 
+	infolog() << "Loading shader " << filename << "...";
+
 	std::ifstream t(filename);
 	std::string source((std::istreambuf_iterator<char>(t)),
 		std::istreambuf_iterator<char>());
 
-	infolog() << "Loading shader " << filename << "...";
-	GpuProgram* program = ServiceLocator::getGraphicsManager()->createGpuProgram(source);
+	GpuProgramParser parser(source);
+	GpuProgram* program = ServiceLocator::getGraphicsManager()->createGpuProgram(parser.getShadersSources());
+	program->setRequiredParameters(parser.getRequiredParameters());
 	infolog() << "Shader is loaded";
 
 	m_shadersMap.insert(std::make_pair(filename, program));
@@ -208,7 +214,7 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 				continue;
 			}
 
-			MaterialParameter paramValue;
+			GpuProgram::Parameter paramValue;
 
 			if (auto val = std::get_if<bool>(&materialParameter.second)) {
 				paramValue = *val;
@@ -236,10 +242,18 @@ void ResourceManager::loadMaterialsPackage(const std::string& filename) {
 					);
 				}
 				else if (constructor.name == "Texture2D") {
-					if (constructor.args.size() != 1)
+					if (constructor.args.size() > 2)
 						throw std::exception();
 
-					paramValue = loadTexture(Texture::Type::_2D, std::get<std::string>(constructor.args[0]));
+					Texture::InternalFormat format = Texture::InternalFormat::RGBA;
+
+					if (constructor.args.size() == 2) {
+						if (std::get<bool>(constructor.args[1]) == true) {
+							format = Texture::InternalFormat::SRGBA;
+						}
+					}
+
+					paramValue = loadTexture(Texture::Type::_2D, std::get<std::string>(constructor.args[0]), format);
 				}
 				else if (constructor.name == "CubeMap") {
 					if (constructor.args.size() != 6)

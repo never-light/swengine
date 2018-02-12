@@ -2,25 +2,26 @@
 
 #include <string>
 #include <unordered_map>
+#include <variant>
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include "Texture.h"
 #include "Color.h"
 
-struct GpuProgramParameter {
+struct GpuProgramRequiredParameter {
 public:
-	GpuProgramParameter() {
+	GpuProgramRequiredParameter() {
 
 	}
 
-	GpuProgramParameter(const std::string& type, const std::string& location, const std::string& name)
+	GpuProgramRequiredParameter(const std::string& type, const std::string& location, const std::string& name)
 		: type(type), location(location), name(name)
 	{
 	
 	}
 
-	~GpuProgramParameter() {
+	~GpuProgramRequiredParameter() {
 
 	}
 
@@ -34,19 +35,20 @@ private:
 	std::string name;
 };
 
-// { sectionName => { parameterName => parameterData, otherParameterName => parameterData } }
-using GpuProgramParametersSection = std::unordered_map<std::string, GpuProgramParameter>;
-using GpuProgramParametersList = std::unordered_map<std::string, GpuProgramParametersSection>;
-
 class GpuProgram {
 public:
-	virtual void setParameter(const std::string& name, bool value) const = 0;
-	virtual void setParameter(const std::string& name, int value) const = 0;
-	virtual void setParameter(const std::string& name, float32 value) const = 0;
-	virtual void setParameter(const std::string& name, const vector3& value) const = 0;
-	virtual void setParameter(const std::string& name, const matrix4& value) const = 0;
+	using Parameter = std::variant<bool, int, real, vector3, matrix4, Texture*>;
+public:
+	GpuProgram(const std::unordered_map<std::string, std::string>& sources);
+	virtual ~GpuProgram();
 
-	virtual const GpuProgramParametersList& getRequiredParameters() const = 0;
-	virtual const GpuProgramParametersSection& getRequiredParametersSection(const std::string& name) const = 0;
-	virtual bool hasRequiredParametersSection(const std::string& name) const = 0;
+	virtual void setParameter(const std::string& name, bool value) = 0;
+	virtual void setParameter(const std::string& name, int value) = 0;
+	virtual void setParameter(const std::string& name, float32 value) = 0;
+	virtual void setParameter(const std::string& name, const vector3& value) = 0;
+	virtual void setParameter(const std::string& name, const matrix4& value) = 0;
+	virtual void setParameter(const std::string& name, Texture* value) = 0;
+
+	virtual const std::vector<GpuProgramRequiredParameter>& getRequiredParameters() const = 0;
+	virtual void setRequiredParameters(const std::vector<GpuProgramRequiredParameter>& parameters) = 0;
 };

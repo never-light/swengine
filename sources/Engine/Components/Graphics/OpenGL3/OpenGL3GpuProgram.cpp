@@ -1,111 +1,42 @@
 #include "OpenGL3GpuProgram.h"
 
-#include <set>
 #include <unordered_map>
-#include <regex>
-#include <sstream>
-#include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
+#include "OpenGL3Texture.h"
 
-OpenGL3GpuProgram::OpenGL3GpuProgram(const std::string& source) : m_programId(NULL) {
-	std::stringstream sourceStream(source);
-	std::string line;
+const std::unordered_map<std::string, GLenum> OpenGL3GpuProgram::m_availableShaders {
+	{ "vertexShader", GL_VERTEX_SHADER },
+	{ "fragmentShader", GL_FRAGMENT_SHADER },
+};
 
-	std::unordered_map<std::string, std::string> sectionsText;
+OpenGL3GpuProgram::OpenGL3GpuProgram(const std::unordered_map<std::string, std::string>& sources) 
+	: GpuProgram(sources), 
+	m_programId(NULL) 
+{
+	m_programId = glCreateProgram();
 
-	std::string currentSection = "undefined";
+	std::unordered_map<std::string, GLenum> shaders;
 
-	while (std::getline(sourceStream, line)) {
-		if (line == "@vertexShader") {
-			currentSection = "vertex";
-		}
-		else if (line == "@fragmentShader") {
-			currentSection = "fragment";
-		}
-		else if (line == "@parameters") {
-			currentSection = "parameters";
-		}
-		else {
-			if (sectionsText.find(currentSection) == sectionsText.end())
-				sectionsText.insert({ currentSection, "" });
+	for (auto it : m_availableShaders) {
+		auto sourcesIt = sources.find(it.first);
+		if (sourcesIt != sources.end()) {
+			GLuint shader = compileShader(sourcesIt->second, it.second);
+			glAttachShader(this->m_programId, shader);
 
-			sectionsText[currentSection] += (line + "\n");
+			shaders[sourcesIt->first] = shader;
 		}
 	}
 
-	if (sectionsText.find("parameters") != sectionsText.end()) {
-		std::stringstream parametersStream(sectionsText["parameters"]);
-		std::string part;
-
-		std::regex parameterRegex("^([a-zA-Z0-9_]+)\\s+([a-zA-Z0-9_\\.]+)\\s+as\\s+([a-zA-Z0-9_\\.]+)$");
-
-		std::smatch match;
-
-		while (std::getline(parametersStream, part, '\n')) {
-			if (part.empty())
-				continue;
-
-			if (!std::regex_search(part, match, parameterRegex))
-				throw std::exception();
-
-			std::string parameterType = match[1];
-			std::string parameterLocation = match[2];
-			std::string parameterAlias = match[3];
-
-			size_t dotPosition = parameterLocation.find_first_of('.');
-
-			if (dotPosition == std::string::npos)
-				throw std::exception();
-
-			std::string section = parameterLocation.substr(0, dotPosition);
-			std::string name = parameterLocation.substr(dotPosition + 1);
-
-			if (m_requiredParameters.find(section) == m_requiredParameters.end())
-				m_requiredParameters.insert({ section, GpuProgramParametersSection() });
-
-			if (m_requiredParameters[section].find(name) != m_requiredParameters[section].end())
-				throw std::exception();
-
-			m_requiredParameters[section][name] = GpuProgramParameter(
-				std::string(match[1]), // Type
-				std::string(match[2]), // Location
-				std::string(match[3]) // Alias
-			);
-		}
-	}
-
-	GLuint vertexShader, fragmentShader;
-	int success;
-
-	const char* vertexShaderCode = sectionsText["vertex"].c_str();
-
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
-	glCompileShader(vertexShader);
-
-	this->checkLoadingShaderError(vertexShader);
-
-	const char* fragmentShaderCode = sectionsText["fragment"].c_str();
-
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
-	glCompileShader(fragmentShader);
-
-	this->checkLoadingShaderError(fragmentShader);
-
-	this->m_programId = glCreateProgram();
-
-	glAttachShader(this->m_programId, vertexShader);
-	glAttachShader(this->m_programId, fragmentShader);
 	glLinkProgram(this->m_programId);
 
-	this->checkCreatingShaderProgramError(this->m_programId);
+	checkProgramLinkingState();
 
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	for (auto it : shaders) {
+		glDeleteShader(it.second);
+	}
 }
 
 OpenGL3GpuProgram::~OpenGL3GpuProgram() {
@@ -114,7 +45,19 @@ OpenGL3GpuProgram::~OpenGL3GpuProgram() {
 	}
 }
 
-void OpenGL3GpuProgram::checkLoadingShaderError(GLuint shader) {
+GLuint OpenGL3GpuProgram::compileShader(const std::string& source, GLenum type) {
+	const char* sourceText = source.c_str();
+
+	GLuint shader = glCreateShader(type);
+	glShaderSource(shader, 1, &sourceText, NULL);
+	glCompileShader(shader);
+
+	checkShaderState(shader);
+
+	return shader;
+}
+
+void OpenGL3GpuProgram::checkShaderState(GLuint shader) {
 	int compileStatus;
 
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
@@ -124,55 +67,60 @@ void OpenGL3GpuProgram::checkLoadingShaderError(GLuint shader) {
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
 
 		errlog() << infoLog;
+		throw std::exception();
 	}
-
 }
 
-void OpenGL3GpuProgram::checkCreatingShaderProgramError(shaderId program) {
+void OpenGL3GpuProgram::checkProgramLinkingState() {
 	int linkStatus;
 
-	glGetShaderiv(program, GL_LINK_STATUS, &linkStatus);
+	glGetShaderiv(m_programId, GL_LINK_STATUS, &linkStatus);
 
 	if (!linkStatus) {
 		char infoLog[512];
-		glGetProgramInfoLog(program, 512, NULL, infoLog);
+		glGetProgramInfoLog(m_programId, 512, NULL, infoLog);
 
 		errlog() << infoLog;
+		throw std::exception();
 	}
 }
 
-shaderId OpenGL3GpuProgram::getShaderPointer() const {
+GLuint OpenGL3GpuProgram::getShaderPointer() const {
 	return m_programId;
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& parameterName, bool parameterValue) const {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, bool parameterValue) {
 	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& parameterName, int parameterValue) const {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, int parameterValue) {
 	glUniform1i(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& parameterName, float32 parameterValue) const {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, float32 parameterValue) {
 	glUniform1f(glGetUniformLocation(m_programId, parameterName.c_str()), parameterValue);
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector3& parameterValue) const {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector3& parameterValue) {
 	glUniform3fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, &parameterValue[0]);
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const matrix4& parameterValue) const {
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const matrix4& parameterValue) {
 	glUniformMatrix4fv(glGetUniformLocation(m_programId, parameterName.c_str()), 1, GL_FALSE, &parameterValue[0][0]);
 }
 
-const GpuProgramParametersList& OpenGL3GpuProgram::getRequiredParameters() const {
+void OpenGL3GpuProgram::setParameter(const std::string& name, Texture* value) {
+	glUniform1i(glGetUniformLocation(m_programId, name.c_str()), static_cast<OpenGL3Texture*>(value)->getTexturePointer());
+}
+
+void OpenGL3GpuProgram::attachUniformBlock(const std::string& name, GLuint bindingPoint) {
+	glUniformBlockBinding(m_programId, glGetUniformBlockIndex(m_programId, name.c_str()), bindingPoint);
+}
+
+const std::vector<GpuProgramRequiredParameter>& OpenGL3GpuProgram::getRequiredParameters() const {
 	return m_requiredParameters;
 }
 
-const GpuProgramParametersSection& OpenGL3GpuProgram::getRequiredParametersSection(const std::string& name) const {
-	return m_requiredParameters.at(name);
-}
-
-bool OpenGL3GpuProgram::hasRequiredParametersSection(const std::string& name) const {
-	return (m_requiredParameters.find(name) != m_requiredParameters.end());
+void OpenGL3GpuProgram::setRequiredParameters(const std::vector<GpuProgramRequiredParameter>& parameters) {
+	m_requiredParameters = parameters;
 }

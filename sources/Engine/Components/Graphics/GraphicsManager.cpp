@@ -16,15 +16,15 @@ Renderer* GraphicsManager::getRenderer() const {
 }
 
 Material* GraphicsManager::createMaterial() {
-	return new OpenGL3Material();
+	return new Material();
 }
 
 Texture* GraphicsManager::createTexture(Texture::Type type) {
 	return new OpenGL3Texture(type);
 }
 
-GpuProgram* GraphicsManager::createGpuProgram(const std::string& source) {
-	return new OpenGL3GpuProgram(source);
+GpuProgram* GraphicsManager::createGpuProgram(const std::unordered_map<std::string, std::string>& sources) {
+	return new OpenGL3GpuProgram(sources);
 }
 
 Sprite* GraphicsManager::createSprite(Texture* texture, GpuProgram* gpuProgram) {
@@ -32,7 +32,7 @@ Sprite* GraphicsManager::createSprite(Texture* texture, GpuProgram* gpuProgram) 
 }
 
 Light* GraphicsManager::createLight(LightType type) {
-	return new OpenGL3Light(type);
+	return new Light(type);
 }
 
 Framebuffer* GraphicsManager::createFramebuffer() {

@@ -3,29 +3,33 @@
 #include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
 #include "OpenGL3.h"
 
-typedef GLuint shaderId;
-
 class OpenGL3GpuProgram : public GpuProgram {
 public:
-	OpenGL3GpuProgram(const std::string& source);
+	OpenGL3GpuProgram(const std::unordered_map<std::string, std::string>& sources);
 	~OpenGL3GpuProgram();
 
-	shaderId getShaderPointer() const;
+	GLuint getShaderPointer() const;
 
-	void setParameter(const std::string& name, bool value) const override;
-	void setParameter(const std::string& name, int value) const override;
-	void setParameter(const std::string& name, float32 value) const override;
-	void setParameter(const std::string& name, const vector3& value) const override;
-	void setParameter(const std::string& name, const matrix4& value) const override;
+	void setParameter(const std::string& name, bool value) override;
+	void setParameter(const std::string& name, int value) override;
+	void setParameter(const std::string& name, float32 value) override;
+	void setParameter(const std::string& name, const vector3& value) override;
+	void setParameter(const std::string& name, const matrix4& value) override;
+	void setParameter(const std::string& name, Texture* value) override;
 
-	const GpuProgramParametersList& OpenGL3GpuProgram::getRequiredParameters() const override;
-	const GpuProgramParametersSection& getRequiredParametersSection(const std::string& name) const override;
-	bool hasRequiredParametersSection(const std::string& name) const override;
+	void attachUniformBlock(const std::string& name, GLuint bindingPoint);
+
+	const std::vector<GpuProgramRequiredParameter>& getRequiredParameters() const override;
+	void setRequiredParameters(const std::vector<GpuProgramRequiredParameter>& parameters) override;
 private:
-	void checkLoadingShaderError(GLuint);
-	void checkCreatingShaderProgramError(shaderId);
+	GLuint compileShader(const std::string& source, GLenum type);
+
+	void checkShaderState(GLuint shader);
+	void checkProgramLinkingState();
+private:
+	std::vector<GpuProgramRequiredParameter> m_requiredParameters;
+	GLuint m_programId;
 
 private:
-	GpuProgramParametersList m_requiredParameters;
-	shaderId m_programId;
+	static const std::unordered_map<std::string, GLenum> m_availableShaders;
 };

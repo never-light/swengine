@@ -18,11 +18,12 @@ public:
 
 	enum class InternalFormat {
 		RGB, RGBA, SRGB, SRGBA,
-		RGB16F, RGBA16F, SRGB8, SRGB8A8
+		RGB16F, RGBA16F, SRGB8, SRGB8A8,
+		RGB32F, RGBA32F, Depth
 	};
 
 	enum class PixelFormat {
-		RGB, RGBA
+		RGB, RGBA, Depth
 	};
 
 	enum class DataType {

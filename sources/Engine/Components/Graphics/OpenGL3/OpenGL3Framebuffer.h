@@ -40,6 +40,8 @@ public:
 		CopyAttachmentFilter filter
 	) override;
 
+	void disableColorComponent() override;
+
 	bool hasTextureAttachment(Attachment attachment) const override;
 	Texture* getTextureAttachment(Attachment attachment) const override;
 private:
