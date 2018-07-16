@@ -1,64 +1,87 @@
 #pragma once
 
-#include <string>
+#include <cstddef>
 
 class Texture {
 public:
-	enum class Type {
-		_2D, CubeMap,
-		_2DMultisample
-	};
-
-	enum class DataTarget {
-		_2D, _2DMultisample,
-		CubeMapPositiveX, CubeMapNegativeX, 
-		CubeMapPositiveY, CubeMapNegativeY,
-		CubeMapPositiveZ, CubeMapNegativeZ,
+	enum class Target {
+		_2D, CubeMap, _2DMultisample
 	};
 
 	enum class InternalFormat {
-		RGB, RGBA, SRGB, SRGBA,
-		RGB16F, RGBA16F, SRGB8, SRGB8A8,
-		RGB32F, RGBA32F, Depth
+		RGB, RGBA, SRGB
 	};
 
 	enum class PixelFormat {
-		RGB, RGBA, Depth
+		RGB, RGBA
 	};
 
-	enum class DataType {
-		Float, UnsignedByte
+	enum class PixelDataType {
+		UnsignedByte, Float
 	};
 
-	enum class Parameter {
-		MinFilter, MagFilter, WrapS, WrapT, WrapR
+	enum class CubeMapFace {
+		PositiveX, NegativeX,
+		PositiveY, NegativeY,
+		PositiveZ, NegativeZ
 	};
 
-	enum class ParameterValue {
-		Repeat, ClampToEdge,
+	enum class Filter {
 		Nearest, Linear, LinearMipmapLinear
 	};
 
-	Texture(Type type) { };
-	virtual ~Texture() = default;
+	enum class WrapMode {
+		Repeat, ClampToEdge
+	};
+public:
+	Texture();
+	virtual ~Texture();
 
-	virtual void lock(bool replace = false) = 0;
-	virtual void setPlainData(DataTarget target, int width, int height,
-		InternalFormat internalFormat,
-		PixelFormat format, 
-		DataType type,
-		const unsigned char* data = nullptr
-	) = 0;
-	virtual void setMultisamplePlainData(DataTarget target, int width, int height,
-		int samplesCount,
-		InternalFormat internalFormat,
-		bool fixedSampleLocations
-		) = 0;
-	virtual void setParameter(Parameter parameter, ParameterValue value) = 0;
-	virtual void generateMipmaps() = 0;
-	virtual void unlock() = 0;
+	virtual void create() = 0;
+	virtual void destroy() = 0;
 
-	virtual Type getType() const = 0;
+	virtual void bind() = 0;
+	virtual void bind(unsigned int unit) = 0;
+	virtual void unbind() = 0;
+
+	void setTarget(Target target);
+	Target getTarget() const;
+
+	void setInternalFormat(InternalFormat format);
+	InternalFormat getInternalFormat() const;
+
+	void setSize(unsigned int width, unsigned int height);
+	
+	void setWidth(unsigned int width);
+	unsigned int getWidth() const;
+
+	void setHeight(unsigned int height);
+	unsigned int getHeight() const;
+
+	virtual void fillMultisampleData(int samplesCount) = 0;
+	virtual void setData(PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data) = 0;
+	virtual void setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data) = 0;
+
+	virtual void generateMipMaps() = 0;
+
+	virtual void setMinificationFilter(Filter filter);
+	virtual Filter getMinificationFilter() const;
+
+	virtual void setMagnificationFilter(Filter filter);
+	virtual Filter getMagnificationFilter() const;
+
+	virtual void setWrapMode(WrapMode mode);
+	virtual WrapMode getWrapMode() const;
+protected:
+	Target m_target;
+	InternalFormat m_internalFormat;
+
+	unsigned int m_width;
+	unsigned int m_height;
+
+	Filter m_minificationFilter;
+	Filter m_magnificationFilter;
+
+	WrapMode m_wrapMode;
+
 };
-
-Texture::DataTarget operator+(Texture::DataTarget target, int offset);

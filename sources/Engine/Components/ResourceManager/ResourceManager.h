@@ -7,42 +7,41 @@
 #include <unordered_map>
 
 #include <Engine\types.h>
+#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
 
 #include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
 #include <Engine\Components\Graphics\RenderSystem\Texture.h>
 #include <Engine\Components\Graphics\RenderSystem\Material.h>
-#include <Engine\Components\Graphics\RenderSystem\Sprite.h>
 #include <Engine\Components\Graphics\RenderSystem\Mesh.h>
+
+#include <variant>
+#include <string>
+#include <unordered_map>
+#include <memory>
 
 class ResourceManager {
 public:
-	ResourceManager();
+	ResourceManager(GraphicsResourceFactory* graphicsResourceFactory);
 	~ResourceManager();
 
-	// 2D texture
-	Texture* loadTexture(Texture::Type type, 
-		const std::string& filename, 
-		Texture::InternalFormat internalFormat = Texture::InternalFormat::RGBA);
-	// Cubemap
-	Texture* loadTexture(Texture::Type type, const std::vector<std::string>& filenames);
+	Texture* load2DTexture(const std::string& name, const std::string& filename, Texture::InternalFormat internalFormat = Texture::InternalFormat::RGBA);
+	Texture* loadCubeMapTexture(const std::string& name, const std::vector<std::string>& filenames);
 
-	Sprite* loadSprite(const std::string&);
-	GpuProgram* loadShader(const std::string&);
-	Mesh* loadMesh(const std::string&);
+	GpuProgram* loadGpuProgram(const std::string& name, const std::string& vertexShaderFilename, const std::string& fragmentShaderFilename);
+	Mesh* loadMesh(const std::string& name, const std::string& filename);
 
-	void loadMaterialsPackage(const std::string& filename);
 	Material* createMaterial(const std::string& name);
-	Material* getMaterial(const std::string& name);
+
+	bool isResourceLoaded(const std::string& name) const;
+
+	template<class T> 
+	T* getResource(const std::string& name) {
+		return std::get<std::unique_ptr<T>>(m_resourcesStore.at(name)).get();
+	}
 
 private:
-	template<class T>
-	void unloadResourcesSet(std::unordered_map<std::string, T> map);
-
+	using Resource = std::variant<std::unique_ptr<Texture>, std::unique_ptr<GpuProgram>, std::unique_ptr<Mesh>, std::unique_ptr<Material>>;
+	std::unordered_map<std::string, Resource> m_resourcesStore;
 private:
-	std::unordered_map<std::string, Texture*> m_texturesMap;
-	std::unordered_map<std::string, GpuProgram*> m_shadersMap;
-	std::unordered_map<std::string, Sprite*> m_spritesMap;
-	std::unordered_map<std::string, Mesh*> m_meshesMap;
-
-	std::unordered_map<std::string, Material*> m_materialsMap;
+	GraphicsResourceFactory* m_graphicsResourceFactory;
 };

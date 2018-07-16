@@ -4,8 +4,7 @@
 
 Window::Window(const std::string& name, int width, int height, bool fullscreen, int samples) 
 	: m_width(width),
-	m_height(height),
-	m_viewport(new Viewport(width, height))
+	m_height(height)
 {
 	glfwInit();
 
@@ -42,10 +41,6 @@ void Window::update() {
 	}
 }
 
-void Window::render() {
-	
-}
-
 int16 Window::getWidth() const {
 	return m_width;
 }
@@ -68,14 +63,6 @@ void Window::setCursorType(CursorType type) {
 
 CursorType Window::getCursorType() const {
 	return m_cursorType;
-}
-
-Viewport* Window::getViewport() const {
-	return m_viewport;
-}
-
-void Window::setViewport(Viewport* viewport) {
-	m_viewport = viewport;
 }
 
 void Window::setCursorPosition(real64 x, real64 y) {

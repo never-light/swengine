@@ -3,149 +3,145 @@
 #include <iostream>
 #include <Engine\Components\Debugging\Log.h>
 
-std::unordered_map<Texture::DataTarget, GLenum> OpenGL3Texture::dataTargetMap{
-	{ Texture::DataTarget::_2D, GL_TEXTURE_2D },
-	{ Texture::DataTarget::CubeMapPositiveX, GL_TEXTURE_CUBE_MAP_POSITIVE_X },
-	{ Texture::DataTarget::CubeMapNegativeX, GL_TEXTURE_CUBE_MAP_NEGATIVE_X },
-	{ Texture::DataTarget::CubeMapPositiveY, GL_TEXTURE_CUBE_MAP_POSITIVE_Y },
-	{ Texture::DataTarget::CubeMapNegativeY, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y },
-	{ Texture::DataTarget::CubeMapPositiveZ, GL_TEXTURE_CUBE_MAP_POSITIVE_Z },
-	{ Texture::DataTarget::CubeMapNegativeZ, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z }
-};
-
-std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::internalFormatMap{
+std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::m_internalFormatMap{
 	{ Texture::InternalFormat::RGB, GL_RGB },
 	{ Texture::InternalFormat::RGBA, GL_RGBA },
 	{ Texture::InternalFormat::SRGB, GL_SRGB },
-	{ Texture::InternalFormat::SRGBA, GL_SRGB_ALPHA },
-	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
-	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
-	{ Texture::InternalFormat::SRGB8, GL_SRGB8 },
-	{ Texture::InternalFormat::SRGB8A8, GL_SRGB8_ALPHA8 },
-	{ Texture::InternalFormat::RGB32F, GL_RGB32F },
-	{ Texture::InternalFormat::RGBA32F, GL_RGBA32F },
-	{ Texture::InternalFormat::Depth, GL_DEPTH_COMPONENT },
 };
 
-std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::pixelFormatMap{
+std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::m_pixelFormatMap{
 	{ Texture::PixelFormat::RGB, GL_RGB },
 	{ Texture::PixelFormat::RGBA, GL_RGBA },
-	{ Texture::PixelFormat::Depth, GL_DEPTH_COMPONENT },
 };
 
-std::unordered_map<Texture::DataType, GLenum> OpenGL3Texture::dataTypeMap{
-	{ Texture::DataType::Float, GL_FLOAT },
-	{ Texture::DataType::UnsignedByte, GL_UNSIGNED_BYTE }
+std::unordered_map<Texture::PixelDataType, GLenum> OpenGL3Texture::m_pixelDataTypeMap{
+	{ Texture::PixelDataType::Float, GL_FLOAT },
+	{ Texture::PixelDataType::UnsignedByte, GL_UNSIGNED_BYTE }
 };
 
-std::unordered_map<Texture::Parameter, GLenum> OpenGL3Texture::parametersNameMap{
-	{ Texture::Parameter::MinFilter, GL_TEXTURE_MIN_FILTER },
-	{ Texture::Parameter::MagFilter, GL_TEXTURE_MAG_FILTER },
-	{ Texture::Parameter::WrapS, GL_TEXTURE_WRAP_S },
-	{ Texture::Parameter::WrapT, GL_TEXTURE_WRAP_T },
-	{ Texture::Parameter::WrapR, GL_TEXTURE_WRAP_R },
-};
-
-std::unordered_map<Texture::ParameterValue, GLint> OpenGL3Texture::parametersValuesMap{
-	{ Texture::ParameterValue::Nearest, GL_NEAREST },
-	{ Texture::ParameterValue::Linear, GL_LINEAR },
-	{ Texture::ParameterValue::LinearMipmapLinear, GL_LINEAR_MIPMAP_LINEAR },
-	{ Texture::ParameterValue::Repeat, GL_REPEAT },
-	{ Texture::ParameterValue::ClampToEdge, GL_CLAMP_TO_EDGE }
-};
-
-OpenGL3Texture::OpenGL3Texture(Type type) 
-	: Texture(type), m_type(type), m_textureId(0)
+OpenGL3Texture::OpenGL3Texture()
+	: m_texture(0)
 {
-
 }
 
 OpenGL3Texture::~OpenGL3Texture() {
-	freeData();
+	if (m_texture != 0)
+		destroy();
 }
 
-void OpenGL3Texture::lock(bool replace) {
-	if (replace) {
-		freeData();
-		glGenTextures(1, &m_textureId);
+void OpenGL3Texture::create()
+{
+	glGenTextures(1, &m_texture);
+}
+
+void OpenGL3Texture::destroy()
+{
+	if (m_texture != 0) {
+		glDeleteTextures(1, &m_texture);
+		m_texture = 0;
 	}
-
-	glBindTexture(getBindTarget(), m_textureId);
 }
 
-void OpenGL3Texture::setPlainData(DataTarget target, int width, int height,
-	InternalFormat internalFormat,
-	PixelFormat format,
-	DataType type,
-	const unsigned char* data
-) 
+void OpenGL3Texture::bind()
 {
-	glTexImage2D(
-		dataTargetMap[target],
-		0, 
-		internalFormatMap[internalFormat], 
-		width, 
-		height, 
-		0,
-		pixelFormatMap[format],
-		dataTypeMap[type], 
-		(data == nullptr) ? NULL : data
-	);
+	glBindTexture(getBindingTarget(), m_texture);
 }
 
-void OpenGL3Texture::setMultisamplePlainData(DataTarget target, int width, int height,
-	int samplesCount,
-	InternalFormat internalFormat,
-	bool fixedSampleLocations
-)
+void OpenGL3Texture::bind(unsigned int unit)
 {
-	if (m_type != Texture::Type::_2DMultisample)
+	glActiveTexture(GL_TEXTURE0 + unit);
+	bind();
+}
+
+void OpenGL3Texture::unbind()
+{
+	glBindTexture(getBindingTarget(), 0);
+}
+
+void OpenGL3Texture::fillMultisampleData(int samplesCount) {
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samplesCount,
+		m_internalFormatMap[m_internalFormat], m_width, m_height, GL_TRUE);
+}
+
+void OpenGL3Texture::setData(PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data)
+{
+	GLenum dataTarget;
+
+	if (m_target == Target::_2D)
+		dataTarget = GL_TEXTURE_2D;
+	else
 		throw std::exception();
 
-	glTexImage2DMultisample(
-		GL_TEXTURE_2D_MULTISAMPLE, 
-		samplesCount, 
-		internalFormatMap[internalFormat],
-		width,
-		height,
-		(fixedSampleLocations) ? GL_TRUE : GL_FALSE
-	);
+	glTexImage2D(dataTarget, 0, m_internalFormatMap[m_internalFormat],
+		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data);
 }
 
-void OpenGL3Texture::setParameter(Parameter parameter, ParameterValue value) {
-	glTexParameteri(getBindTarget(), parametersNameMap[parameter], parametersValuesMap[value]);
+void OpenGL3Texture::setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data)
+{
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)cubeMapFace, 0, m_internalFormatMap[m_internalFormat],
+		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data);
 }
 
-void OpenGL3Texture::generateMipmaps() {
-	if (m_type == Texture::Type::_2D)
-		glGenerateMipmap(GL_TEXTURE_2D);
+GLuint OpenGL3Texture::getTexturePointer() const
+{
+	return m_texture;
 }
 
-void OpenGL3Texture::unlock() {
-	
-}
-
-void OpenGL3Texture::freeData() {
-	if (m_textureId) {
-		glDeleteTextures(1, &m_textureId);
-	}
-}
-
-Texture::Type OpenGL3Texture::getType() const {
-	return m_type;
-}
-
-GLenum OpenGL3Texture::getBindTarget() const {
-	if (m_type == Texture::Type::_2D)
+GLenum OpenGL3Texture::getBindingTarget() const
+{
+	if (m_target == Target::_2D)
 		return GL_TEXTURE_2D;
-	
-	if (m_type == Texture::Type::CubeMap)
+	else if (m_target == Target::CubeMap)
 		return GL_TEXTURE_CUBE_MAP;
-
-	if (m_type == Texture::Type::_2DMultisample)
+	else if (m_target == Target::_2DMultisample)
 		return GL_TEXTURE_2D_MULTISAMPLE;
 }
 
-GLuint OpenGL3Texture::getTexturePointer() const {
-	return m_textureId;
+void OpenGL3Texture::generateMipMaps() {
+	if (m_target == Target::_2D)
+		glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void OpenGL3Texture::setMinificationFilter(Filter filter) {
+	Texture::setMinificationFilter(filter);
+
+	GLint value;
+
+	if (filter == Filter::Linear)
+		value = GL_LINEAR;
+	else if (filter == Filter::Nearest)
+		value = GL_NEAREST;
+	else if (filter == Filter::LinearMipmapLinear)
+		value = GL_LINEAR_MIPMAP_LINEAR;
+
+	glTexParameteri(getBindingTarget(), GL_TEXTURE_MIN_FILTER, value);
+}
+
+void OpenGL3Texture::setMagnificationFilter(Filter filter) {
+	Texture::setMagnificationFilter(filter);
+
+	GLint value;
+
+	if (filter == Filter::Linear)
+		value = GL_LINEAR;
+	else if (filter == Filter::Nearest)
+		value = GL_NEAREST;
+	else if (filter == Filter::LinearMipmapLinear)
+		value = GL_LINEAR_MIPMAP_LINEAR;
+
+	glTexParameteri(getBindingTarget(), GL_TEXTURE_MAG_FILTER, value);
+}
+
+void OpenGL3Texture::setWrapMode(WrapMode mode) {
+	Texture::setWrapMode(mode);
+
+	GLint value;
+	
+	if (mode == WrapMode::Repeat)
+		value = GL_REPEAT;
+	else if (mode == WrapMode::ClampToEdge)
+		value = GL_CLAMP_TO_EDGE;
+
+	glTexParameteri(getBindingTarget(), GL_TEXTURE_WRAP_S, value);
+	glTexParameteri(getBindingTarget(), GL_TEXTURE_WRAP_T, value);
 }

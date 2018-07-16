@@ -1,23 +1,24 @@
 #include "SceneManager.h"
 
-SceneManager::SceneManager() {
+SceneManager::SceneManager(GraphicsResourceFactory* graphicsResourceFactory) 
+	: m_graphicsResourceFactory(graphicsResourceFactory)
+{
 	
 }
 
 SceneManager::~SceneManager() {
-	for (auto it = m_scenesMap.begin(); it != m_scenesMap.end(); it++) {
+	for (auto it = m_scenes.begin(); it != m_scenes.end(); it++)
 		delete it->second;
-	}
 }
 
-Scene* SceneManager::createEmptyScene(const std::string& name) {
-	Scene* scene = new Scene();
+Scene* SceneManager::createScene(const std::string& name) {
+	Scene* scene = new Scene(m_graphicsResourceFactory);
 
-	m_scenesMap.insert(std::make_pair(name, scene));
+	m_scenes.insert(std::make_pair(name, scene));
 
 	return scene;
 }
 
 Scene* SceneManager::getScene(const std::string& name) const {
-	return m_scenesMap.at(name);
+	return m_scenes.at(name);
 }

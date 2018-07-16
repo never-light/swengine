@@ -1,6 +1,6 @@
 #include "Light.h"
 
-Light::Light(LightType type)
+Light::Light(Type type)
 	: m_type(type), 
 	m_needUpdateSpaceMatrix(true),
 	m_position(),
@@ -19,35 +19,35 @@ Light::~Light() {
 
 }
 
-void Light::setType(LightType type) {
+void Light::setType(Type type) {
 	m_type = type;
 }
 
-LightType Light::getType() const {
+Light::Type Light::getType() const {
 	return m_type;
 }
 
-void Light::setAmbientColor(const Color& color) {
+void Light::setAmbientColor(const vector3& color) {
 	m_ambientColor = color;
 }
 
-Color Light::getAmbientColor() const {
+vector3 Light::getAmbientColor() const {
 	return m_ambientColor;
 }
 
-void Light::setSpecularColor(const Color& color) {
+void Light::setSpecularColor(const vector3& color) {
 	m_specularColor = color;
 }
 
-Color Light::getSpecularColor() const {
+vector3 Light::getSpecularColor() const {
 	return m_specularColor;
 }
 
-void Light::setDuffuseColor(const Color& color) {
+void Light::setDuffuseColor(const vector3& color) {
 	m_diffuseColor = color;
 }
 
-Color Light::getDuffuseColor() const {
+vector3 Light::getDuffuseColor() const {
 	return m_diffuseColor;
 }
 
@@ -69,58 +69,38 @@ vector3 Light::getDirection() const {
 	return m_direction;
 }
 
-void Light::setInnerAngle(real angle) {
+void Light::setInnerAngle(float angle) {
 	m_needUpdateSpaceMatrix = true;
 	m_innerAngle = angle;
 }
 
-real Light::getInnerAngle() const {
+float Light::getInnerAngle() const {
 	return m_innerAngle;
 }
 
-void Light::setOuterAngle(real angle) {
+void Light::setOuterAngle(float angle) {
 	m_needUpdateSpaceMatrix = true;
 	m_outerAngle = angle;
 }
 
-real Light::getOuterAngle() const {
+float Light::getOuterAngle() const {
 	return m_outerAngle;
 }
 
-void Light::setAttenuation(real constant, real linear, real quadratic) {
+void Light::setAttenuation(float constant, float linear, float quadratic) {
 	m_constant = constant;
 	m_linear = linear;
 	m_quadratic = quadratic;
 }
 
-real Light::getAttenuationConstant() const {
+float Light::getAttenuationConstant() const {
 	return m_constant;
 }
 
-real Light::getAttenuationLinear() const {
+float Light::getAttenuationLinear() const {
 	return m_linear;
 }
 
-real Light::getAttenuationQuadratic() const {
+float Light::getAttenuationQuadratic() const {
 	return m_quadratic;
-}
-
-const matrix4& Light::getSpaceMatrix() {
-	if (m_needUpdateSpaceMatrix) {
-		if (m_type == LightType::Directional) {
-			matrix4 lightProjection, lightView;
-
-			vector3 lightPos = -getDirection() * 150.0f;
-			//lightPos = vector3(1.221149, 1.633645, -5.470305);
-
-			float near_plane = 1.0f, far_plane = 177.5f;
-			lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-			lightView = glm::lookAt(lightPos, lightPos + getDirection(), glm::vec3(0.0, 1.0, 0.0));
-			m_spaceMatrix = lightProjection * lightView;
-		}
-
-		m_needUpdateSpaceMatrix = false;
-	}
-
-	return m_spaceMatrix;
 }

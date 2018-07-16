@@ -5,40 +5,49 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
+#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
 #include <Engine\Components\Graphics\RenderSystem\Light.h>
 #include <Engine\Components\Graphics\RenderSystem\Camera.h>
-#include <Engine\Components\Graphics\RenderSystem\Model.h>
 
-#include <Engine\Components\ResourceManager\ResourceManager.h>
-
-#include "SceneNode.h"
+#include "SceneObject.h"
 
 class Scene {
 public:
-	Scene();
+	Scene(GraphicsResourceFactory* graphicsResourceFactory);
 	~Scene();
 
-	Light* createLight(const std::string& name, LightType type);
+	void render();
+	void update();
+
+	Light* createLight(const std::string& name, Light::Type type);
 	Light* getLight(const std::string& name);
 
-	void setActiveCamera(const std::string& name);
 	void setActiveCamera(Camera* camera);
 	Camera* getActiveCamera() const;
 
 	Camera* createCamera(const std::string&);
 	Camera* getCamera(const std::string&);
 
-	Model* createModel(const std::string& filename, const std::string& name);
-	Model* createModel(Mesh* mesh, const std::string& name);
-	Model* getModel(const std::string& name);
+	void registerSceneObject(SceneObject* sceneObject);
 
-	SceneNode* getRootSceneNode() const;
+	SceneObject* findSceneObject(SceneObjectId id);
+	SceneObject* findSceneObject(const std::string& name);
+
+	void removeSceneObject(SceneObject* object);
+
 private:
+	SceneObjectId generateSceneObjectId();
+
+private:
+	SceneObjectId m_maxSceneObjectId;
+
 	Camera* m_activeCamera;
 
-	std::unordered_map<std::string, Light*> m_lightsMap;
-	std::unordered_map<std::string, Camera*> m_camerasMap;
-	std::unordered_map<std::string, Model*> m_modelsMap;
+	std::unordered_map<std::string, Light*> m_lights;
+	std::unordered_map<std::string, Camera*> m_cameras;
 
-	SceneNode* m_rootSceneNode;
+	std::unordered_map<SceneObjectId, SceneObject*> m_objects;
+
+private:
+	GraphicsResourceFactory* m_graphicsResourceFactory;
 };

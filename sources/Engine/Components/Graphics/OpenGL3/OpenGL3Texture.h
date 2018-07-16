@@ -7,45 +7,35 @@
 
 class OpenGL3Texture : public Texture {
 public:
-	OpenGL3Texture(Type type);
+	OpenGL3Texture();
 	~OpenGL3Texture();
 
-	void lock(bool replace = false) override;
+	virtual void create() override;
+	virtual void destroy() override;
 
-	void setPlainData(DataTarget target, int width, int height,
-		InternalFormat internalFormat,
-		PixelFormat format,
-		DataType type,
-		const unsigned char* data = nullptr
-	) override;
+	virtual void bind() override;
+	virtual void bind(unsigned int unit) override;
+	virtual void unbind() override;
 
-	void setMultisamplePlainData(DataTarget target, int width, int height,
-		int samplesCount,
-		InternalFormat internalFormat,
-		bool fixedSampleLocations
-	) override;
+	virtual void fillMultisampleData(int samplesCount) override;
+	virtual void setData(PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data) override;
+	virtual void setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data) override;
 
-	void setParameter(Parameter parameter, ParameterValue value) override;
-	void generateMipmaps() override;
-	void unlock() override;
+	GLuint getTexturePointer() const; 
 
-	Texture::Type getType() const override;
+	virtual void generateMipMaps() override;
 
-	GLenum getBindTarget() const;
-	GLuint getTexturePointer() const;
+	virtual void setMinificationFilter(Filter filter) override;
+	virtual void setMagnificationFilter(Filter filter) override;
+	virtual void setWrapMode(WrapMode mode) override;
+private:
+	GLenum getBindingTarget() const;
 
 private:
-	void freeData();
+	GLuint m_texture;
 
 private:
-	static std::unordered_map<Texture::DataTarget, GLenum> dataTargetMap;
-	static std::unordered_map<Texture::InternalFormat, GLint> internalFormatMap;
-	static std::unordered_map<Texture::PixelFormat, GLenum> pixelFormatMap;
-	static std::unordered_map<Texture::DataType, GLenum> dataTypeMap;
-	static std::unordered_map<Texture::Parameter, GLenum> parametersNameMap;
-	static std::unordered_map<Texture::ParameterValue, GLint> parametersValuesMap;
-
-private:
-	Texture::Type m_type;
-	GLuint m_textureId;
+	static std::unordered_map<Texture::InternalFormat, GLint> m_internalFormatMap;
+	static std::unordered_map<Texture::PixelFormat, GLenum> m_pixelFormatMap;
+	static std::unordered_map<Texture::PixelDataType, GLenum> m_pixelDataTypeMap;
 };

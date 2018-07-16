@@ -6,16 +6,19 @@
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include <Engine\Components\ResourceManager\ResourceManager.h>
+#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
 #include "Scene.h"
 
 class SceneManager {
 public:
-	SceneManager();
+	SceneManager(GraphicsResourceFactory* graphicsResourceFactory);
 	~SceneManager();
 
-	Scene* createEmptyScene(const std::string&);
+	Scene* createScene(const std::string&);
 	Scene* getScene(const std::string&) const;
+private:
+	std::unordered_map<std::string, Scene*> m_scenes;
 
 private:
-	std::unordered_map<std::string, Scene*> m_scenesMap;
+	GraphicsResourceFactory* m_graphicsResourceFactory;
 };

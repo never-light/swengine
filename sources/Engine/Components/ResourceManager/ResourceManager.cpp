@@ -9,99 +9,66 @@
 
 #include <Engine\Components\Debugging\Log.h>
 
-#include <Engine\ServiceLocator.h>
-
-#include "GpuProgramParser.h"
-#include "MaterialsDataParser.h"
 #include "MeshLoader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-ResourceManager::ResourceManager() {
-
+ResourceManager::ResourceManager(GraphicsResourceFactory* graphicsResourceFactory) 
+	: m_graphicsResourceFactory(graphicsResourceFactory) 
+{
+	
 }
 
 ResourceManager::~ResourceManager() {
-	unloadResourcesSet<Material*>(m_materialsMap);
-	unloadResourcesSet<Mesh*>(m_meshesMap);
-	unloadResourcesSet<Sprite*>(m_spritesMap);
-	unloadResourcesSet<GpuProgram*>(m_shadersMap);
-	unloadResourcesSet<Texture*>(m_texturesMap);
+
 }
 
-Texture* ResourceManager::loadTexture(Texture::Type type, 
-	const std::string& filename, 
-	Texture::InternalFormat internalFormat) 
-{
-	if (type != Texture::Type::_2D)
-		throw std::exception();
-
-	if (m_texturesMap.find(filename) != m_texturesMap.end()) {
-		return m_texturesMap.at(filename);
-	}
-
-	infolog() << "Loading texture " << filename << "...";
+Texture* ResourceManager::load2DTexture(const std::string& name, const std::string& filename, Texture::InternalFormat internalFormat) {
+	if (isResourceLoaded(name))
+		throw std::exception(("Resource " + name + " already loaded").c_str());
 
 	int width, height;
 	int nrChannels;
 	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 	if (!data) {
-		errlog() << "Texture loading error: " << filename;
-		throw std::exception();
+		throw std::exception(("Texture loading error, file is not available [" + name + "]").c_str());
 	}
 
 	Texture::PixelFormat pixelFormat = Texture::PixelFormat::RGBA;
 
-	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::_2D);
+	Texture* texture = m_graphicsResourceFactory->createTexture();
+	texture->setTarget(Texture::Target::_2D);
+	texture->setInternalFormat(internalFormat);
+	texture->setSize(width, height);
 
-	texture->lock(true);
-	texture->setPlainData(
-		Texture::DataTarget::_2D,
-		width, height,
-		internalFormat,
-		pixelFormat,
-		Texture::DataType::UnsignedByte,
-		data
-	);
+	texture->create();
+	texture->bind();
 
-	texture->generateMipmaps();
+	texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
 
-	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::LinearMipmapLinear);
-	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
+	texture->generateMipMaps();
+	texture->setMinificationFilter(Texture::Filter::LinearMipmapLinear);
+	texture->setMagnificationFilter(Texture::Filter::Linear);
 
-	Texture::ParameterValue wrapMode = Texture::ParameterValue::Repeat;
-
-	texture->setParameter(Texture::Parameter::WrapS, wrapMode);
-	texture->setParameter(Texture::Parameter::WrapT, wrapMode);
-
-	texture->unlock();
+	texture->setWrapMode(Texture::WrapMode::Repeat);
+	
+	texture->unbind();
 
 	stbi_image_free(data);
-	infolog() << "Texture is loaded";
 
-	m_texturesMap.insert(std::make_pair(filename, texture));
+	m_resourcesStore.insert({ name, std::unique_ptr<Texture>(texture) });
 
 	return texture;
 }
 
-Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std::string>& filenames) {
-	if (type != Texture::Type::CubeMap)
-		throw std::exception();
+Texture* ResourceManager::loadCubeMapTexture(const std::string& name, const std::vector<std::string>& filenames) {
+	if (isResourceLoaded(name))
+		throw std::exception(("Resource " + name + " already loaded").c_str());
 
-	if (filenames.size() != 6)
-		throw std::exception();
-
-	std::string cacheIndex = filenames[0] + filenames[1] + filenames[2] + filenames[3] + filenames[4] + filenames[5];
-
-	if (m_texturesMap.find(cacheIndex) != m_texturesMap.end()) {
-		return m_texturesMap.at(cacheIndex);
-	}
-
-	Texture* texture = ServiceLocator::getGraphicsManager()->createTexture(Texture::Type::CubeMap);
-
-	texture->lock(true);
+	Texture* texture = m_graphicsResourceFactory->createTexture();
+	texture->setTarget(Texture::Target::CubeMap);
 
 	int width, height, nrChannels;
 
@@ -115,190 +82,94 @@ Texture* ResourceManager::loadTexture(Texture::Type type, const std::vector<std:
 			throw std::exception();
 		}
 
-		texture->setPlainData(
-			(Texture::DataTarget::CubeMapPositiveX + i),
-			width, height,
-			Texture::InternalFormat::SRGB,
-			Texture::PixelFormat::RGB,
-			Texture::DataType::UnsignedByte,
-			data
-		);
+		if (i == 0) {
+			texture->setSize(width, height);
+			texture->setInternalFormat(Texture::InternalFormat::SRGB);
+			texture->create();
+			texture->bind();
+		}
+
+		Texture::CubeMapFace face = (Texture::CubeMapFace)((int)Texture::CubeMapFace::PositiveX + i);
+		texture->setData(face, Texture::PixelFormat::RGB, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
 
 		stbi_image_free(data);
 		infolog() << "Cubemap part is loaded";
 	}
 
-	texture->setParameter(Texture::Parameter::MinFilter, Texture::ParameterValue::Linear);
-	texture->setParameter(Texture::Parameter::MagFilter, Texture::ParameterValue::Linear);
-	texture->setParameter(Texture::Parameter::WrapS, Texture::ParameterValue::ClampToEdge);
-	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::ClampToEdge);
-	texture->setParameter(Texture::Parameter::WrapT, Texture::ParameterValue::ClampToEdge);
+	texture->setMinificationFilter(Texture::Filter::Linear);
+	texture->setMagnificationFilter(Texture::Filter::Linear);
 
-	texture->unlock();
+	texture->setWrapMode(Texture::WrapMode::ClampToEdge);
+	texture->unbind();
 
-	m_texturesMap.insert(std::make_pair(cacheIndex, texture));
+	m_resourcesStore.insert({ name, std::unique_ptr<Texture>(texture) });
 
 	return texture;
 }
 
-GpuProgram* ResourceManager::loadShader(const std::string& filename) {
-	if (m_shadersMap.find(filename) != m_shadersMap.end()) {
-		return m_shadersMap.at(filename);
-	}
+GpuProgram* ResourceManager::loadGpuProgram(const std::string& name, const std::string& vertexShaderFilename, const std::string& fragmentShaderFilename) {
+	if (isResourceLoaded(name))
+		throw std::exception(("Resource " + name + " already loaded").c_str());
 
-	infolog() << "Loading shader " << filename << "...";
+	std::ifstream vertexShaderStream(vertexShaderFilename);
 
-	std::ifstream t(filename);
-	std::string source((std::istreambuf_iterator<char>(t)),
+	if (!vertexShaderStream.is_open())
+		throw std::exception(("GpuProgram loading error, vertex shader file is not available [" + name + "]").c_str());
+
+	std::string vertexShaderSource((std::istreambuf_iterator<char>(vertexShaderStream)),
 		std::istreambuf_iterator<char>());
 
-	GpuProgramParser parser(source);
-	GpuProgram* program = ServiceLocator::getGraphicsManager()->createGpuProgram(parser.getShadersSources());
-	program->setRequiredParameters(parser.getRequiredParameters());
-	infolog() << "Shader is loaded";
+	std::ifstream fragmentShaderStream(fragmentShaderFilename);
 
-	m_shadersMap.insert(std::make_pair(filename, program));
+	if (!fragmentShaderStream.is_open())
+		throw std::exception(("GpuProgram loading error, fragment shader file is not available [" + name + "]").c_str());
 
-	return program;
-}
-
-Sprite* ResourceManager::loadSprite(const std::string& filename) {
-	if (m_spritesMap.find(filename) != m_spritesMap.end()) {
-		return m_spritesMap.at(filename);
-	}
-
-	Sprite* sprite = ServiceLocator::getGraphicsManager()->createSprite(loadTexture(Texture::Type::_2D, filename), loadShader("resources/shaders/sprite.sh"));
-	sprite->setTexture(loadTexture(Texture::Type::_2D, filename));
-	sprite->setShader(loadShader("resources/shaders/sprite.sh"));
-	 
-	m_spritesMap.insert(std::make_pair(filename, sprite));
-
-	return sprite;
-}
-
-Mesh* ResourceManager::loadMesh(const std::string& filename) {
-	if (m_meshesMap.find(filename) != m_meshesMap.end()) {
-		return m_meshesMap.at(filename);
-	}
-
-	infolog() << "Loading mesh [" << filename << "]";
-
-	MeshLoader loader;
-	Mesh* mesh = loader.load(filename);
-
-	m_meshesMap.insert(std::make_pair(filename, mesh));
-
-	infolog() << "Mesh is loaded";
-
-	return mesh;
-}
-
-void ResourceManager::loadMaterialsPackage(const std::string& filename) {
-	infolog() << "Loading materials package [" << filename << "]";
-
-	std::ifstream t(filename);
-	std::string source((std::istreambuf_iterator<char>(t)),
+	std::string fragmentShaderSource((std::istreambuf_iterator<char>(fragmentShaderStream)),
 		std::istreambuf_iterator<char>());
 
-	MaterialsDataParser parser(source);
 
-	for (auto& materialData : parser.getMaterialsData()) {
-		Material* material = ServiceLocator::getGraphicsManager()->createMaterial();
+	GpuProgram* gpuProgram = m_graphicsResourceFactory->createGpuProgram();
+	gpuProgram->create();
+	gpuProgram->addShader(GpuProgram::ShaderType::Vertex, vertexShaderSource);
+	gpuProgram->addShader(GpuProgram::ShaderType::Fragment, fragmentShaderSource);
 
-		for (auto& materialParameter : materialData.second) {
-			if (materialParameter.first == "program") {
-				material->setGpuProgram(loadShader(
-					std::get<std::string>(materialParameter.second)
-				));
+	gpuProgram->link();
 
-				continue;
-			}
+	m_resourcesStore.insert({ name, std::unique_ptr<GpuProgram>(gpuProgram) });
 
-			GpuProgram::Parameter paramValue;
+	return gpuProgram;
+}
 
-			if (auto val = std::get_if<bool>(&materialParameter.second)) {
-				paramValue = *val;
-			}
-			else if (auto val = std::get_if<int>(&materialParameter.second)) {
-				paramValue = *val;
-			}
-			else if (auto val = std::get_if<real>(&materialParameter.second)) {
-				paramValue = *val;
-			}
-			else if (auto val = std::get_if<std::string>(&materialParameter.second)) {
-				continue;
-			}
-			else if (auto val = std::get_if<MaterialsDataParser::ParameterValueConstructor>(&materialParameter.second)) {
-				MaterialsDataParser::ParameterValueConstructor constructor = *val;
+Mesh* ResourceManager::loadMesh(const std::string& name, const std::string& filename) {
+	if (isResourceLoaded(name))
+		throw std::exception(("Resource " + name + " already loaded").c_str());
 
-				if (constructor.name == "Color") {
-					if (constructor.args.size() != 3)
-						throw std::exception();
+	try {
+		Mesh* mesh = m_graphicsResourceFactory->createMesh();
+		MeshLoader::load(filename, mesh);
 
-					paramValue = Color(
-						std::get<real>(constructor.args[0]),
-						std::get<real>(constructor.args[1]),
-						std::get<real>(constructor.args[2])
-					);
-				}
-				else if (constructor.name == "Texture2D") {
-					if (constructor.args.size() > 2)
-						throw std::exception();
+		m_resourcesStore.insert({ name, std::unique_ptr<Mesh>(mesh) });
 
-					Texture::InternalFormat format = Texture::InternalFormat::RGBA;
-
-					if (constructor.args.size() == 2) {
-						if (std::get<bool>(constructor.args[1]) == true) {
-							format = Texture::InternalFormat::SRGBA;
-						}
-					}
-
-					paramValue = loadTexture(Texture::Type::_2D, std::get<std::string>(constructor.args[0]), format);
-				}
-				else if (constructor.name == "CubeMap") {
-					if (constructor.args.size() != 6)
-						throw std::exception();
-
-					paramValue = loadTexture(Texture::Type::CubeMap, std::vector<std::string>{
-						std::get<std::string>(constructor.args[0]),
-						std::get<std::string>(constructor.args[1]),
-						std::get<std::string>(constructor.args[2]),
-						std::get<std::string>(constructor.args[3]),
-						std::get<std::string>(constructor.args[4]),
-						std::get<std::string>(constructor.args[5])
-					});
-				}
-				else
-					throw std::exception();
-			}
-			else
-				throw std::exception();
-
-			material->setParameter(materialParameter.first, paramValue);
-		}
-
-		m_materialsMap.insert({ materialData.first, material });
+		return mesh;
 	}
-
-	infolog() << "Materials package is loaded";
+	catch (const std::exception& e) {
+		throw std::exception(("Mesh loading error, file is not available [" + name + "]").c_str());
+	}
 }
 
 Material* ResourceManager::createMaterial(const std::string& name) {
-	Material* material = ServiceLocator::getGraphicsManager()->createMaterial();
-	m_materialsMap.insert(std::make_pair(name, material));
+	if (isResourceLoaded(name))
+		throw std::exception(("Resource " + name + " already loaded").c_str());
+
+	Material* material = m_graphicsResourceFactory->createMaterial();
+	material->create();
+
+	m_resourcesStore.insert({ name, std::unique_ptr<Material>(material) });
 
 	return material;
 }
 
-Material* ResourceManager::getMaterial(const std::string& name) {
-	return m_materialsMap.at(name);
-}
-
-template<class T>
-void ResourceManager::unloadResourcesSet(std::unordered_map<std::string, T> map) {
-	auto itr = map.begin();
-	while (itr != map.end()) {
-		delete itr->second;
-		itr = map.erase(itr);
-	}
+bool ResourceManager::isResourceLoaded(const std::string& name) const
+{
+	return m_resourcesStore.find(name) != m_resourcesStore.end();
 }

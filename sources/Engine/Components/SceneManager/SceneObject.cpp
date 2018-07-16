@@ -1,21 +1,31 @@
 #include "SceneObject.h"
 
-SceneObject::SceneObject(SceneObjectType type) : m_parentSceneNode(nullptr), m_sceneObjectType(type) {
+SceneObject::SceneObject(const std::string& name)
+	: m_id(-1), m_name(name)
+{
 
 }
 
-SceneObject::~SceneObject() {
-
+SceneObject::~SceneObject()
+{
 }
 
-void SceneObject::setParentSceneNode(SceneNode* parent) {
-	m_parentSceneNode = parent;
+void SceneObject::setId(SceneObjectId id)
+{
+	m_id = id;
 }
 
-SceneNode* SceneObject::getParentSceneNode() const {
-	return m_parentSceneNode;
+SceneObjectId SceneObject::getId() const
+{
+	return m_id;
 }
 
-SceneObjectType SceneObject::getSceneObjectType() const {
-	return m_sceneObjectType;
+void SceneObject::setName(const std::string & name)
+{
+	m_name = name;
+}
+
+std::string SceneObject::getName() const
+{
+	return m_name;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <variant>
-#include <map>
+#include <unordered_map>
 #include <Engine\types.h>
 
 #include "GpuProgram.h"
@@ -12,16 +12,26 @@ public:
 	Material();
 	virtual ~Material();
 
-	virtual void setGpuProgram(GpuProgram* program);
-	virtual GpuProgram* getGpuProgram() const;
+	void setGpuProgram(GpuProgram* program);
+	GpuProgram* getGpuProgram() const;
 
-	virtual void setParameter(const std::string& name, GpuProgram::Parameter value);
-	virtual GpuProgram::Parameter getParameter(const std::string& name) const;
-	virtual bool hasParameter(const std::string& name) const;
+	virtual void create() = 0;
+	virtual void destroy() = 0;
 
-	virtual const std::map<std::string, GpuProgram::Parameter>& getParameters() const;
-private:
-	GpuProgram* m_shader;
+	virtual void bind() = 0;
+	virtual void unbind() = 0;
 
-	std::map<std::string, GpuProgram::Parameter> m_parameters;
+	void setParameter(const std::string& name, int value);
+	void setParameter(const std::string& name, const vector3& value);
+	void setParameter(const std::string& name, const Texture* value);
+
+	template<class T>
+	T getParameter(const std::string& name) {
+		return std::get<T>(m_parameters[name]);
+	}
+protected:
+	GpuProgram* m_gpuProgram;
+
+	using ParameterValue = std::variant<int, vector3, const Texture*>;
+	std::unordered_map<std::string, ParameterValue> m_parameters;
 };

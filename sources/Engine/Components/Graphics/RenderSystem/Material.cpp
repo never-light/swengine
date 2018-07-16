@@ -9,25 +9,24 @@ Material::~Material() {
 }
 
 void Material::setGpuProgram(GpuProgram* program) {
-	m_shader = program;
+	m_gpuProgram = program;
 }
 
 GpuProgram* Material::getGpuProgram() const {
-	return m_shader;
+	return m_gpuProgram;
 }
 
-void Material::setParameter(const std::string& name, GpuProgram::Parameter value) {
-	m_parameters[name] = value;
+void Material::setParameter(const std::string & name, int value)
+{
+	m_parameters.insert({ name, value });
 }
 
-GpuProgram::Parameter Material::getParameter(const std::string& name) const {
-	return m_parameters.at(name);
+void Material::setParameter(const std::string & name, const vector3 & value)
+{
+	m_parameters.insert({ name, value });
 }
 
-bool Material::hasParameter(const std::string& name) const {
-	return m_parameters.find(name) != m_parameters.end();
-}
-
-const std::map<std::string, GpuProgram::Parameter>& Material::getParameters() const {
-	return m_parameters;
+void Material::setParameter(const std::string & name, const Texture * value)
+{
+	m_parameters.insert({ name, value });
 }

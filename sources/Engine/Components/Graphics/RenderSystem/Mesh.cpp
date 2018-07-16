@@ -1,48 +1,69 @@
 #include "Mesh.h"
-#include <Engine\ServiceLocator.h>
 
 Mesh::Mesh()
 {
-	m_geometryBuffer = ServiceLocator::getGraphicsManager()->createHardwareBuffer();
 }
 
-Mesh::Mesh(HardwareBuffer* geometryBuffer)
-	: m_geometryBuffer(geometryBuffer)
+Mesh::~Mesh()
 {
-
 }
 
-Mesh::~Mesh() {
-	if (m_subMeshes.size()) {
-		for (auto it = m_subMeshes.begin(); it != m_subMeshes.end(); it++) {
-			delete (*it);
-		}
-	}
-
-	if (m_geometryBuffer)
-		delete m_geometryBuffer;
+std::vector<vector3> Mesh::getPositions() const
+{
+	return m_positions;
 }
 
-void Mesh::addSubMesh(Mesh* mesh) {
-	m_subMeshes.push_back(mesh);
+void Mesh::setPositions(const std::vector<vector3>& positions)
+{
+	m_positions = positions;
 }
 
-Mesh* Mesh::getSubMesh(size_t index) {
-	return m_subMeshes.at(index);
+std::vector<vector3> Mesh::getNormals() const
+{
+	return m_normals;
 }
 
-const std::vector<Mesh*>& Mesh::getSubMeshesArray() const {
-	return m_subMeshes;
+void Mesh::setNormals(const std::vector<vector3>& normals)
+{
+	m_normals = normals;
 }
 
-void Mesh::setName(const std::string& name) {
-	m_name = name;
+std::vector<vector3> Mesh::getTangents() const
+{
+	return m_tangents;
 }
 
-const std::string& Mesh::getName() const {
+void Mesh::setTangents(const std::vector<vector3>& tangents)
+{
+	m_tangents = tangents;
+}
+
+std::vector<vector2> Mesh::getUV() const
+{
+	return m_uv;
+}
+
+void Mesh::setUV(const std::vector<vector2>& uv)
+{
+	m_uv = uv;
+}
+
+std::vector<uint32> Mesh::getIndices() const
+{
+	return m_indices;
+}
+
+void Mesh::setIndices(const std::vector<uint32>& indices)
+{
+	m_indices = indices;
+}
+
+std::string Mesh::getName() const
+{
 	return m_name;
 }
 
-HardwareBuffer* Mesh::getGeometryBuffer() const {
-	return m_geometryBuffer;
+void Mesh::setName(const std::string & name)
+{
+	m_name = name;
 }

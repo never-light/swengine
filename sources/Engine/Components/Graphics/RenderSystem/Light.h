@@ -1,64 +1,62 @@
 #pragma once
 
 #include <Engine\types.h>
-#include "Color.h"
-
-enum class LightType {
-	Directional = 1, Point = 2, Spotlight = 3
-};
+#include <Engine\Components\Math\types.h>
 
 class Light {
 public:
-	Light(LightType type);
+	enum class Type {
+		Directional = 1, Point = 2, Spotlight = 3
+	};
+public:
+	Light(Type type);
 	virtual ~Light();
 
-	virtual void setType(LightType);
-	virtual LightType getType() const;
+	void setType(Type);
+	Type getType() const;
 
-	virtual void setAmbientColor(const Color&);
-	virtual Color getAmbientColor() const;
+	void setAmbientColor(const vector3&);
+	vector3 getAmbientColor() const;
 
-	virtual void setSpecularColor(const Color&);
-	virtual Color getSpecularColor() const;
+	void setSpecularColor(const vector3&);
+	vector3 getSpecularColor() const;
 
-	virtual void setDuffuseColor(const Color&);
-	virtual Color getDuffuseColor() const;
+	void setDuffuseColor(const vector3&);
+	vector3 getDuffuseColor() const;
 
-	virtual void setDirection(const vector3&);
-	virtual vector3 getDirection() const;
+	void setDirection(const vector3&);
+	vector3 getDirection() const;
 
-	virtual void setPosition(const vector3&);
-	virtual vector3 getPosition() const;
+	void setPosition(const vector3&);
+	vector3 getPosition() const;
 
-	virtual void setAttenuation(real constant, real linear, real quadratic);
+	void setAttenuation(float constant, float linear, float quadratic);
 
-	virtual real getAttenuationConstant() const;
-	virtual real getAttenuationLinear() const;
-	virtual real getAttenuationQuadratic() const;
+	float getAttenuationConstant() const;
+	float getAttenuationLinear() const;
+	float getAttenuationQuadratic() const;
 
-	virtual void setInnerAngle(real);
-	virtual real getInnerAngle() const;
+	void setInnerAngle(float);
+	float getInnerAngle() const;
 
-	virtual void setOuterAngle(real);
-	virtual real getOuterAngle() const;
-
-	virtual const matrix4& getSpaceMatrix();
+	void setOuterAngle(float);
+	float getOuterAngle() const;
 private:
-	LightType m_type;
+	Type m_type;
 
 	vector3 m_position;
 	vector3 m_direction;
 
-	Color m_ambientColor;
-	Color m_specularColor;
-	Color m_diffuseColor;
+	vector3 m_ambientColor;
+	vector3 m_specularColor;
+	vector3 m_diffuseColor;
 
-	real m_innerAngle;
-	real m_outerAngle;
+	float m_innerAngle;
+	float m_outerAngle;
 
-	real m_constant;
-	real m_linear;
-	real m_quadratic;
+	float m_constant;
+	float m_linear;
+	float m_quadratic;
 
 	bool m_needUpdateSpaceMatrix;
 	matrix4 m_spaceMatrix;
