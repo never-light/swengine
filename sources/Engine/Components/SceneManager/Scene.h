@@ -5,22 +5,23 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
-#include <Engine\Components\Graphics\RenderSystem\Light.h>
 #include <Engine\Components\Graphics\RenderSystem\Camera.h>
+#include <Engine\Components\Graphics\RenderSystem\GraphicsContext.h>
+#include <Engine\Components\ResourceManager\ResourceManager.h>
 
 #include "SceneObject.h"
 
+using SceneId = size_t;
+
 class Scene {
 public:
-	Scene(GraphicsResourceFactory* graphicsResourceFactory);
-	~Scene();
+	Scene(GraphicsContext* graphicsContext, ResourceManager* resourceManager);
+	virtual ~Scene();
 
-	void render();
-	void update();
+	void onRegister(SceneId id);
 
-	Light* createLight(const std::string& name, Light::Type type);
-	Light* getLight(const std::string& name);
+	virtual void render();
+	virtual void update();
 
 	void setActiveCamera(Camera* camera);
 	Camera* getActiveCamera() const;
@@ -28,26 +29,28 @@ public:
 	Camera* createCamera(const std::string&);
 	Camera* getCamera(const std::string&);
 
-	void registerSceneObject(SceneObject* sceneObject);
+	SceneObjectId registerSceneObject(SceneObject* sceneObject);
 
 	SceneObject* findSceneObject(SceneObjectId id);
 	SceneObject* findSceneObject(const std::string& name);
 
 	void removeSceneObject(SceneObject* object);
 
+	SceneId getId() const;
 private:
 	SceneObjectId generateSceneObjectId();
 
+protected:
+	GraphicsContext* m_graphicsContext;
+	ResourceManager* m_resourceManager;
+
 private:
+	SceneId m_id;
+
 	SceneObjectId m_maxSceneObjectId;
 
 	Camera* m_activeCamera;
 
-	std::unordered_map<std::string, Light*> m_lights;
 	std::unordered_map<std::string, Camera*> m_cameras;
-
 	std::unordered_map<SceneObjectId, SceneObject*> m_objects;
-
-private:
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 };

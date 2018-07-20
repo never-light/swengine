@@ -7,13 +7,14 @@ using SceneObjectId = size_t;
 
 class SceneObject {
 public:
-	SceneObject(const std::string& name);
+	SceneObject();
 	virtual ~SceneObject();
+
+	void onRegister(SceneObjectId id);
 
 	virtual void render(const Camera* camera) = 0;
 	virtual void update() = 0;
 
-	void setId(SceneObjectId id);
 	SceneObjectId getId() const;
 	
 	void setName(const std::string& name);

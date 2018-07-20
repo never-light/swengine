@@ -7,14 +7,9 @@ GraphicsContext * GraphicsResourceFactory::createGraphicsContext(Window* window,
 	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight);
 }
 
-Material * GraphicsResourceFactory::createMaterial()
+GeometryStore * GraphicsResourceFactory::createGeometryStore()
 {
-	return new OpenGL3Material();
-}
-
-Mesh * GraphicsResourceFactory::createMesh()
-{
-	return new OpenGL3Mesh();
+	return new OpenGL3GeometryStore();
 }
 
 Texture * GraphicsResourceFactory::createTexture()

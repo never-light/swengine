@@ -6,19 +6,27 @@
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include <Engine\Components\ResourceManager\ResourceManager.h>
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
 #include "Scene.h"
 
 class SceneManager {
 public:
-	SceneManager(GraphicsResourceFactory* graphicsResourceFactory);
-	~SceneManager();
+	SceneManager();
+	virtual ~SceneManager();
 
-	Scene* createScene(const std::string&);
-	Scene* getScene(const std::string&) const;
+	virtual void update();
+	virtual void render();
+
+	SceneId registerScene(Scene* scene);
+	Scene* getScene(SceneId id) const;
+
+	void setActiveScene(SceneId id);
+	Scene* getActiveScene() const;
 private:
-	std::unordered_map<std::string, Scene*> m_scenes;
+	SceneId generateSceneId();
 
 private:
-	GraphicsResourceFactory* m_graphicsResourceFactory;
+	SceneId m_maxSceneId;
+
+	Scene* m_activeScene;
+	std::unordered_map<SceneId, Scene*> m_scenes;
 };

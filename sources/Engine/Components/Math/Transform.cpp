@@ -109,6 +109,8 @@ void Transform::yaw(float angle)
 	else {
 		m_orientation *= glm::quat(vector3(0.0, glm::radians(angle), 0.0));
 	}
+
+	m_orientation = glm::normalize(m_orientation);
 }
 
 void Transform::pitch(float angle)

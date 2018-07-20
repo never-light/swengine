@@ -1,7 +1,7 @@
 #include "SceneObject.h"
 
-SceneObject::SceneObject(const std::string& name)
-	: m_id(-1), m_name(name)
+SceneObject::SceneObject()
+	: m_id(0)
 {
 
 }
@@ -10,7 +10,7 @@ SceneObject::~SceneObject()
 {
 }
 
-void SceneObject::setId(SceneObjectId id)
+void SceneObject::onRegister(SceneObjectId id)
 {
 	m_id = id;
 }

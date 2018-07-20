@@ -1,7 +1,8 @@
 #include "Scene.h"
 
-Scene::Scene(GraphicsResourceFactory* graphicsResourceFactory)
-	: m_graphicsResourceFactory(graphicsResourceFactory), m_maxSceneObjectId(0)
+Scene::Scene(GraphicsContext* graphicsContext, ResourceManager* resourceManager)
+	: m_id(0), m_maxSceneObjectId(0), 
+	m_graphicsContext(graphicsContext), m_resourceManager(resourceManager)
 {
 }
 
@@ -9,10 +10,10 @@ Scene::~Scene() {
 	for (auto it = m_cameras.begin(); it != m_cameras.end(); it++) {
 		delete it->second;
 	}
+}
 
-	for (auto it = m_lights.begin(); it != m_lights.end(); it++) {
-		delete it->second;
-	}
+void Scene::onRegister(SceneId id) {
+	m_id = id;
 }
 
 void Scene::render()
@@ -46,12 +47,14 @@ Camera* Scene::getCamera(const std::string& name) {
 	return m_cameras[name];
 }
 
-void Scene::registerSceneObject(SceneObject* sceneObject)
+SceneObjectId Scene::registerSceneObject(SceneObject* sceneObject)
 {
-	assert(sceneObject->getId() == -1);
+	assert(sceneObject->getId() == 0);
 
-	sceneObject->setId(generateSceneObjectId());
+	sceneObject->onRegister(generateSceneObjectId());
 	m_objects.insert({ sceneObject->getId(), sceneObject });
+
+	return sceneObject->getId();
 }
 
 SceneObject* Scene::findSceneObject(SceneObjectId id) {
@@ -62,26 +65,21 @@ SceneObject* Scene::findSceneObject(const std::string& name) {
 	for (const auto& it : m_objects)
 		if (it.second->getName() == name)
 			return it.second;
+
+	return nullptr;
 }
 
 void Scene::removeSceneObject(SceneObject* object) {
 	m_objects.erase(object->getId());
 }
 
+SceneId Scene::getId() const
+{
+	return m_id;
+}
+
 SceneObjectId Scene::generateSceneObjectId() {
 	m_maxSceneObjectId++;
 
 	return m_maxSceneObjectId;
-}
-
-
-Light* Scene::createLight(const std::string& name, Light::Type type) {
-	Light* lightSource = new Light(type);
-	m_lights.insert({ name, lightSource });
-
-	return lightSource;
-}
-
-Light* Scene::getLight(const std::string& name) {
-	return m_lights[name];
 }
