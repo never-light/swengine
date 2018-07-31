@@ -12,14 +12,17 @@
 typedef glm::vec2 vector2;
 typedef glm::vec3 vector3;
 typedef glm::vec4 vector4;
-typedef glm::vec2 point2;
-typedef glm::vec3 point3;
-typedef glm::vec4 point4;
+
+typedef glm::ivec2 ivector2;
+typedef glm::ivec3 ivector3;
+typedef glm::ivec4 ivector4;
+
+typedef glm::uvec2 uivector2;
+typedef glm::uvec3 uivector3;
+typedef glm::uvec4 uivector4;
+
 typedef glm::mat2 matrix2;
 typedef glm::mat3 matrix3;
 typedef glm::mat4 matrix4;
-typedef glm::quat quaternion;
 
-enum class CoordinateSystemType {
-	Local, World, Parent
-};
+typedef glm::quat quaternion;

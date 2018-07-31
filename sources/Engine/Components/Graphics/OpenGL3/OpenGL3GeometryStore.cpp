@@ -104,9 +104,12 @@ void OpenGL3GeometryStore::drawElements(DrawType drawType, size_t offset, size_t
 		drawMode = GL_TRIANGLES;
 
 	GLenum glIndicesType;
+	size_t offsetMultiplier;
 
-	if (indicesType == IndicesType::UnsignedInt)
+	if (indicesType == IndicesType::UnsignedInt) {
 		glIndicesType = GL_UNSIGNED_INT;
+		offsetMultiplier = sizeof(unsigned int);
+	}
 
-	glDrawElements(drawMode, count, glIndicesType, (const void*)offset);
+	glDrawElements(drawMode, count, glIndicesType, (const void*)(offset * offsetMultiplier));
 }

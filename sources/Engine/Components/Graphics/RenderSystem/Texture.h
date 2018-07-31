@@ -9,11 +9,11 @@ public:
 	};
 
 	enum class InternalFormat {
-		RGB, RGBA, SRGB
+		R8, RG8, RGB8, RGBA8, SRGB8, SRGBA8
 	};
 
 	enum class PixelFormat {
-		RGB, RGBA
+		R, RG, RGB, RGBA
 	};
 
 	enum class PixelDataType {

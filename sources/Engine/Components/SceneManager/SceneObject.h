@@ -12,9 +12,6 @@ public:
 
 	void onRegister(SceneObjectId id);
 
-	virtual void render(const Camera* camera) = 0;
-	virtual void update() = 0;
-
 	SceneObjectId getId() const;
 	
 	void setName(const std::string& name);

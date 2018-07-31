@@ -1,19 +1,20 @@
-#include "Utils.h"
+#include "io.h"
 
 #include <Windows.h>
 
-void copyStringToClipboard(const std::string &s) {
+void IOUtils::copyToClipboard(const std::string & string)
+{
 	OpenClipboard(0);
 	EmptyClipboard();
 
-	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, s.size());
+	HGLOBAL hg = GlobalAlloc(GMEM_MOVEABLE, string.size());
 
 	if (!hg) {
 		CloseClipboard();
 		return;
 	}
 
-	memcpy(GlobalLock(hg), s.c_str(), s.size());
+	memcpy(GlobalLock(hg), string.c_str(), string.size());
 	GlobalUnlock(hg);
 	SetClipboardData(CF_TEXT, hg);
 	CloseClipboard();

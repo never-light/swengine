@@ -3,9 +3,7 @@
 #include "HoldingResource.h"
 #include <Engine\Components\Graphics\RenderSystem\Texture.h>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
 
 TextureLoader::TextureLoader(GraphicsResourceFactory* graphicsResourceFactory)
 	: ResourceLoader(), m_graphicsResourceFactory(graphicsResourceFactory)
@@ -20,31 +18,50 @@ Resource* TextureLoader::load(const std::string & filename)
 {
 	int width, height;
 	int nrChannels;
-	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
 
 	if (!data) {
 		throw std::exception(("Texture loading error, file is not available [" + filename + "]").c_str());
 	}
 
-	Texture::PixelFormat pixelFormat = Texture::PixelFormat::RGBA;
+	Texture::PixelFormat pixelFormat;
+	Texture::InternalFormat internalFormat;
+
+	switch (nrChannels) {
+	case 1:
+		pixelFormat = Texture::PixelFormat::R;
+		internalFormat = Texture::InternalFormat::R8;
+		
+		break;
+
+	case 2:
+		pixelFormat = Texture::PixelFormat::RG;
+		internalFormat = Texture::InternalFormat::RG8;
+
+		break;
+
+	case 3:
+		pixelFormat = Texture::PixelFormat::RGB;
+		internalFormat = Texture::InternalFormat::RGB8;
+
+		break;
+
+	case 4:
+		pixelFormat = Texture::PixelFormat::RGBA;
+		internalFormat = Texture::InternalFormat::RGBA8;
+
+		break;
+	}
 
 	Texture* texture = m_graphicsResourceFactory->createTexture();
 	texture->setTarget(Texture::Target::_2D);
-	texture->setInternalFormat(Texture::InternalFormat::RGBA);
+	texture->setInternalFormat(internalFormat);
 	texture->setSize(width, height);
 
 	texture->create();
 	texture->bind();
 
 	texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
-
-	texture->generateMipMaps();
-	texture->setMinificationFilter(Texture::Filter::LinearMipmapLinear);
-	texture->setMagnificationFilter(Texture::Filter::Linear);
-
-	texture->setWrapMode(Texture::WrapMode::Repeat);
-
-	texture->unbind();
 
 	stbi_image_free(data);
 

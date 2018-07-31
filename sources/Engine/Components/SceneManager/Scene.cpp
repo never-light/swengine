@@ -16,16 +16,12 @@ void Scene::onRegister(SceneId id) {
 	m_id = id;
 }
 
-void Scene::render()
+void Scene::activate()
 {
-	for (auto& it : m_objects)
-		it.second->render(m_activeCamera);
 }
 
-void Scene::update()
+void Scene::deactivate()
 {
-	for (auto& it : m_objects)
-		it.second->update();
 }
 
 void Scene::setActiveCamera(Camera* camera) {

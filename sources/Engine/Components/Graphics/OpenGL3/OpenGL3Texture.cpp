@@ -4,14 +4,19 @@
 #include <Engine\Components\Debugging\Log.h>
 
 std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::m_internalFormatMap{
-	{ Texture::InternalFormat::RGB, GL_RGB },
-	{ Texture::InternalFormat::RGBA, GL_RGBA },
-	{ Texture::InternalFormat::SRGB, GL_SRGB },
+	{ Texture::InternalFormat::R8, GL_R8 },
+	{ Texture::InternalFormat::RG8, GL_RG8 },
+	{ Texture::InternalFormat::RGB8, GL_RGB8 },
+	{ Texture::InternalFormat::RGBA8, GL_RGBA8 },
+	{ Texture::InternalFormat::SRGB8, GL_SRGB8 },
+	{ Texture::InternalFormat::SRGBA8, GL_SRGB8_ALPHA8 },
 };
 
 std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::m_pixelFormatMap{
+	{ Texture::PixelFormat::R, GL_RED },
+	{ Texture::PixelFormat::RG, GL_RG },
 	{ Texture::PixelFormat::RGB, GL_RGB },
-	{ Texture::PixelFormat::RGBA, GL_RGBA },
+	{ Texture::PixelFormat::RGBA, GL_RGBA }
 };
 
 std::unordered_map<Texture::PixelDataType, GLenum> OpenGL3Texture::m_pixelDataTypeMap{
@@ -85,7 +90,7 @@ void OpenGL3Texture::setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, P
 GLuint OpenGL3Texture::getTexturePointer() const
 {
 	return m_texture;
-}
+} 
 
 GLenum OpenGL3Texture::getBindingTarget() const
 {

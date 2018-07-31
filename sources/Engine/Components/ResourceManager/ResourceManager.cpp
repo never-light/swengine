@@ -4,6 +4,7 @@
 
 #include "TextureLoader.h"
 #include "GpuProgramLoader.h"
+#include "FontLoader.h"
 
 ResourceManager::ResourceManager(GraphicsResourceFactory* graphicsResourceFactory)
 	: m_graphicsResourceFactory(graphicsResourceFactory)
@@ -12,6 +13,7 @@ ResourceManager::ResourceManager(GraphicsResourceFactory* graphicsResourceFactor
 		{ "png", "jpg", "tga" } );
 
 	registerResourceLoader(new GpuProgramLoader(graphicsResourceFactory), "fx");
+	registerResourceLoader(new FontLoader(graphicsResourceFactory), "font");
 }
 
 ResourceManager::~ResourceManager() {

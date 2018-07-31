@@ -19,24 +19,26 @@ public:
 	void registerEventListener(InputEventsListener* listener);
 	void unregisterEventListener(InputEventsListener* listener);
 
-	KeyState getKeyState(int16 key) const;
-	bool isKeyPressed(int16 key) const;
-	bool isKeyReleased(int16 key) const;
-	bool isKeyRepeated(int16 key) const;
+	KeyState getKeyState(Key key) const;
+	bool isKeyPressed(Key key) const;
+	bool isKeyReleased(Key key) const;
+	bool isKeyRepeated(Key key) const;
 
 	MousePosition getMousePosition() const;
-	MouseButtonState getMouseButtonState(int16 key) const;
+	MouseButtonState getMouseButtonState(MouseButton button) const;
 	MouseState getMouseState() const;
 private:
 	void onKeyEvent(int key, int scancode, int action, int mods);
-	void onMouseMovedEvent(real64 x, real64 y);
+	void onCharacterEnteredEvent(unsigned int character);
+	void onMouseMovedEvent(double x, double y);
 	void onMouseButtonEvent(int button, int action, int mods);
-	void onScrollEvent(real64 offsetX, real64 offsetY);
+	void onScrollEvent(double offsetX, double offsetY);
 
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void mouseMovedCallback(GLFWwindow* window, real64 x, real64 y);
+	static void charCallback(GLFWwindow* window, unsigned int codepoint);
+	static void mouseMovedCallback(GLFWwindow* window, double x, double y);
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-	static void scrollCallback(GLFWwindow* window, real64 offsetX, real64 offsetY);
+	static void scrollCallback(GLFWwindow* window, double offsetX, double offsetY);
 private:
 	Window* m_window;
 

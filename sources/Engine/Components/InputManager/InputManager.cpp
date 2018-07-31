@@ -3,6 +3,7 @@
 InputManager::InputManager(Window* window) : m_window(window) {
 	glfwSetWindowUserPointer(m_window->getWindowPointer(), this);
 	glfwSetKeyCallback(m_window->getWindowPointer(), keyCallback);
+	glfwSetCharCallback(m_window->getWindowPointer(), charCallback);
 	glfwSetCursorPosCallback(m_window->getWindowPointer(), mouseMovedCallback);
 	glfwSetMouseButtonCallback(m_window->getWindowPointer(), mouseButtonCallback);
 	glfwSetScrollCallback(m_window->getWindowPointer(), scrollCallback);
@@ -28,7 +29,7 @@ void InputManager::unregisterEventListener(InputEventsListener* listener) {
 	}
 }
 
-KeyState InputManager::getKeyState(int16 key) const {
+KeyState InputManager::getKeyState(Key key) const {
 	KeyState state = KeyState::Unknown;
 
 	switch (glfwGetKey(m_window->getWindowPointer(), key)) {
@@ -48,15 +49,15 @@ KeyState InputManager::getKeyState(int16 key) const {
 	return state;
 }
 
-bool InputManager::isKeyPressed(int16 key) const {
+bool InputManager::isKeyPressed(Key key) const {
 	return glfwGetKey(m_window->getWindowPointer(), key) == GLFW_PRESS;
 }
 
-bool InputManager::isKeyReleased(int16 key) const {
+bool InputManager::isKeyReleased(Key key) const {
 	return glfwGetKey(m_window->getWindowPointer(), key) == GLFW_RELEASE;
 }
 
-bool InputManager::isKeyRepeated(int16 key) const {
+bool InputManager::isKeyRepeated(Key key) const {
 	return glfwGetKey(m_window->getWindowPointer(), key) == GLFW_REPEAT;
 }
 
@@ -67,10 +68,10 @@ MousePosition InputManager::getMousePosition() const {
 	return pos;
 }
 
-MouseButtonState InputManager::getMouseButtonState(int16 key) const {
+MouseButtonState InputManager::getMouseButtonState(MouseButton button) const {
 	MouseButtonState state = MouseButtonState::Unknown;
 
-	switch (glfwGetMouseButton(m_window->getWindowPointer(), key)) {
+	switch (glfwGetMouseButton(m_window->getWindowPointer(), button)) {
 	case GLFW_PRESS:
 		state = MouseButtonState::Pressed;
 		break;
@@ -131,7 +132,22 @@ void InputManager::onKeyEvent(int key, int scancode, int action, int mods) {
 	}
 }
 
-void InputManager::onMouseMovedEvent(real64 x, real64 y) {
+void InputManager::onCharacterEnteredEvent(unsigned int character)
+{
+	unsigned char ch = static_cast<unsigned char>(character);
+
+	if (1040 <= character && character <= 1103) {
+		ch = (unsigned char)'À' + (character - 1040);
+	}
+	else if (character > 255)
+		return;
+
+	for (InputEventsListener* listener : m_eventListeners) {
+		listener->onCharacterEntered(ch);
+	}
+}
+
+void InputManager::onMouseMovedEvent(double x, double y) {
 	MouseState state;
 	state.position.x = x;
 	state.position.y = y;
@@ -181,7 +197,7 @@ void InputManager::onMouseButtonEvent(int button, int action, int mods) {
 	}
 }
 
-void InputManager::onScrollEvent(real64 offsetX, real64 offsetY) {
+void InputManager::onScrollEvent(double offsetX, double offsetY) {
 	for (InputEventsListener* listener : m_eventListeners) {
 		listener->onScroll(offsetX, offsetY);
 	}
@@ -192,7 +208,13 @@ void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int ac
 	inputManager->onKeyEvent(key, scancode, action, mods);
 }
 
-void InputManager::mouseMovedCallback(GLFWwindow* window, real64 x, real64 y) {
+void InputManager::charCallback(GLFWwindow * window, unsigned int codepoint)
+{
+	auto inputManager = reinterpret_cast<InputManager*>(glfwGetWindowUserPointer(window));
+	inputManager->onCharacterEnteredEvent(codepoint);
+}
+
+void InputManager::mouseMovedCallback(GLFWwindow* window, double x, double y) {
 	auto inputManager = reinterpret_cast<InputManager*>(glfwGetWindowUserPointer(window));
 	inputManager->onMouseMovedEvent(x, y);
 }
@@ -202,7 +224,7 @@ void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int actio
 	inputManager->onMouseButtonEvent(button, action, mods);
 }
 
-void InputManager::scrollCallback(GLFWwindow* window, real64 offsetX, real64 offsetY) {
+void InputManager::scrollCallback(GLFWwindow* window, double offsetX, double offsetY) {
 	auto inputManager = reinterpret_cast<InputManager*>(glfwGetWindowUserPointer(window));
 	inputManager->onScrollEvent(offsetX, offsetY);
 }

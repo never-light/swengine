@@ -44,10 +44,15 @@ Scene* SceneManager::getScene(SceneId id) const {
 
 void SceneManager::setActiveScene(SceneId id)
 {
+	if (m_activeScene != nullptr)
+		m_activeScene->deactivate();
+
 	if (id == 0)
 		m_activeScene = nullptr;
-	else
+	else {
 		m_activeScene = m_scenes.at(id);
+		m_activeScene->activate();
+	}
 }
 
 Scene * SceneManager::getActiveScene() const

@@ -32,7 +32,7 @@ Resource* GpuProgramLoader::load(const std::string & filename)
 	std::regex_search(gpuProgramSource, vertexShaderMatch, vertexShaderRegex);
 
 	std::smatch fragmentShaderMatch;
-	std::regex fragmentShaderRegex("\\[fragment\\]((.|\\n)*)\\[\\/fragment\\]");
+	std::regex fragmentShaderRegex("\\[fragment\\]([^]*)\\[\\/fragment\\]");
 	std::regex_search(gpuProgramSource, fragmentShaderMatch, fragmentShaderRegex);
 
 	std::string vertexShaderSource = vertexShaderMatch[1].str();

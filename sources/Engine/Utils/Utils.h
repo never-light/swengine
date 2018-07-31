@@ -1,5 +1,5 @@
 #pragma once
 
-#include <string>
-
-void copyStringToClipboard(const std::string &s);
+#include "time.h"
+#include "string.h"
+#include "io.h"

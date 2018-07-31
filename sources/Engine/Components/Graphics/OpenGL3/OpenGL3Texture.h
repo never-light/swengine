@@ -28,6 +28,7 @@ public:
 	virtual void setMinificationFilter(Filter filter) override;
 	virtual void setMagnificationFilter(Filter filter) override;
 	virtual void setWrapMode(WrapMode mode) override;
+
 private:
 	GLenum getBindingTarget() const;
 

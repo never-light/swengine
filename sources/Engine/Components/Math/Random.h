@@ -9,7 +9,7 @@ public:
 	static float getFloat(float, float);
 
 private:
-	Random();
-	Random(const Random&);
-	~Random();
+	Random() = default;
+	Random(const Random&) = default;
+	~Random() = default;
 };

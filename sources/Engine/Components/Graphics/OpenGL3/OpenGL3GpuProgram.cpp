@@ -104,6 +104,10 @@ void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vec
 	glUniform3fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, &parameterValue[0]);
 }
 
+void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector4& parameterValue) {
+	glUniform4fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, &parameterValue[0]);
+}
+
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const matrix4& parameterValue) {
 	glUniformMatrix4fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, GL_FALSE, &parameterValue[0][0]);
 }

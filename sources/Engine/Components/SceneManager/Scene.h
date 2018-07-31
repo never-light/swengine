@@ -20,8 +20,11 @@ public:
 
 	void onRegister(SceneId id);
 
-	virtual void render();
-	virtual void update();
+	virtual void render() = 0;
+	virtual void update() = 0;
+
+	virtual void activate();
+	virtual void deactivate();
 
 	void setActiveCamera(Camera* camera);
 	Camera* getActiveCamera() const;

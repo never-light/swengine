@@ -8,13 +8,15 @@ public:
 	InputEventsListener();
 	virtual ~InputEventsListener();
 
-	virtual void onKeyPress(int16 key, KeyEvent::Modifier mod);
-	virtual void onKeyRelease(int16 key, KeyEvent::Modifier mod);
-	virtual void onKeyRepeat(int16 key, KeyEvent::Modifier mod);
+	virtual void onKeyPress(Key key, KeyEvent::Modifier mod);
+	virtual void onKeyRelease(Key key, KeyEvent::Modifier mod);
+	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod);
 
-	virtual void onMouseButtonPress(int16 button, const MouseState&);
-	virtual void onMouseButtonRelease(int16 button, const MouseState&);
+	virtual void onCharacterEntered(unsigned char character);
+
+	virtual void onMouseButtonPress(MouseButton button, const MouseState&);
+	virtual void onMouseButtonRelease(MouseButton button, const MouseState&);
 	virtual void onMouseMove(const MouseState&);
 
-	virtual void onScroll(real64 offsetX, real64 offsetY);
+	virtual void onScroll(double offsetX, double offsetY);
 };

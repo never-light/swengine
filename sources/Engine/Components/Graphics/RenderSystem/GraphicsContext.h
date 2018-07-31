@@ -2,6 +2,7 @@
 
 #include <Engine\Components\GUI\Window.h>
 #include <Engine\Components\Math\types.h>
+#include <Engine\Components\Math\Geometry\Rect.h>
 
 class GraphicsContext {
 public:
@@ -13,6 +14,9 @@ public:
 		Front, Back, FrontBack
 	};
 
+	enum class BlendingMode {
+		Zero, One, SrcAlpha, OneMinusSrcAlpha
+	};
 public:
 	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight);
 	virtual ~GraphicsContext();
@@ -26,6 +30,16 @@ public:
 	virtual void disableFaceCulling() = 0;
 
 	virtual void setFaceCullingMode(FaceCullingMode mode) = 0;
+
+	virtual void enableBlending() = 0;
+	virtual void disableBlending() = 0;
+
+	virtual void enableScissorTest() = 0;
+	virtual void disableScissorTest() = 0;
+
+	virtual void setScissorRectangle(const Rect& rectangle) = 0;
+
+	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) = 0;
 
 	virtual void clear(const vector3& color) = 0;
 	virtual void swapBuffers() = 0;

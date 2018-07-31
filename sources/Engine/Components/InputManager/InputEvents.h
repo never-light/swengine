@@ -2,6 +2,9 @@
 
 #include <Engine\types.h>
 
+using Key = uint16;
+using MouseButton = uint16;
+
 enum class KeyState {
 	Unknown, Pressed, Released, Repeated
 };
@@ -15,7 +18,7 @@ struct KeyEvent {
 		None, Control, Shift, Alt
 	};
 
-	int16 key;
+	Key key;
 	Type type;
 	Modifier mod;
 };
@@ -25,8 +28,8 @@ enum class MouseButtonState {
 };
 
 struct MousePosition {
-	real64 x;
-	real64 y;
+	double x;
+	double y;
 };
 
 struct MouseState {

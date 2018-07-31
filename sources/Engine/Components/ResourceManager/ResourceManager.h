@@ -13,10 +13,15 @@
 #include <Engine\Components\Graphics\GraphicsResourceFactory.h>
 #include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
 #include <Engine\Components\Graphics\RenderSystem\Texture.h>
+#include <Engine\Components\GUI\RawImage.h>
+#include <Engine\Components\GUI\Font.h>
 
 #include "Resource.h"
 #include "HoldingResource.h"
 #include "ResourceLoader.h"
+#include "RawImageLoader.h"
+
+#include <type_traits>
 
 class ResourceManager {
 public:
@@ -81,7 +86,6 @@ inline T * ResourceManager::getResource(const std::string & alias)
 		return holdingResource->getHoldedResource();
 
 	return dynamic_cast<T*>(resource);
-
 }
 
 template<class T>
@@ -97,4 +101,15 @@ inline T * ResourceManager::loadAndCacheResource(const std::string & filename, c
 	m_resources.insert({ alias, std::unique_ptr<Resource>(resource) });
 
 	return getResource<T>(alias);
+}
+
+template<>
+inline RawImage* ResourceManager::loadAndCacheResource(const std::string & filename, const std::string & alias)
+{
+	ResourceLoader* loader = new RawImageLoader();
+	Resource* resource = loader->load(filename);
+
+	m_resources.insert({ alias, std::unique_ptr<Resource>(resource) });
+
+	return getResource<RawImage>(alias);
 }

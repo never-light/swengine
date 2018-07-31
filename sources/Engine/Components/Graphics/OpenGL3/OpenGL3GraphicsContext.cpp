@@ -49,6 +49,62 @@ void OpenGL3GraphicsContext::disableFaceCulling()
 	glDisable(GL_CULL_FACE);
 }
 
+void OpenGL3GraphicsContext::enableBlending()
+{
+	glEnable(GL_BLEND);
+}
+
+void OpenGL3GraphicsContext::disableBlending()
+{
+	glDisable(GL_BLEND);
+}
+
+void OpenGL3GraphicsContext::setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect)
+{
+	GLenum sourceFactor;
+	GLenum destinationFactor;
+
+	if (sourceAffect == BlendingMode::Zero)
+		sourceFactor = GL_ZERO;
+	else if (sourceAffect == BlendingMode::One)
+		sourceFactor = GL_ONE;
+	else if (sourceAffect == BlendingMode::SrcAlpha)
+		sourceFactor = GL_SRC_ALPHA;
+	else if (sourceAffect == BlendingMode::OneMinusSrcAlpha)
+		sourceFactor = GL_ONE_MINUS_SRC_ALPHA;
+
+	if (destinationAffect == BlendingMode::Zero)
+		destinationFactor = GL_ZERO;
+	else if (destinationAffect == BlendingMode::One)
+		destinationFactor = GL_ONE;
+	else if (destinationAffect == BlendingMode::SrcAlpha)
+		destinationFactor = GL_SRC_ALPHA;
+	else if (destinationAffect == BlendingMode::OneMinusSrcAlpha)
+		destinationFactor = GL_ONE_MINUS_SRC_ALPHA;
+
+
+	glBlendFunc(sourceFactor, destinationFactor);
+}
+
+void OpenGL3GraphicsContext::enableScissorTest()
+{
+	glEnable(GL_SCISSOR_TEST);
+}
+
+void OpenGL3GraphicsContext::disableScissorTest()
+{
+	glDisable(GL_SCISSOR_TEST);
+}
+
+#include <iostream>
+
+void OpenGL3GraphicsContext::setScissorRectangle(const Rect & rectangle)
+{
+	glScissor(rectangle.getX(), 
+		m_window->getHeight() - rectangle.getY() - rectangle.getHeight(),
+		rectangle.getWidth(), rectangle.getHeight());
+}
+
 void OpenGL3GraphicsContext::setFaceCullingMode(FaceCullingMode mode)
 {
 	GLenum glMode;
