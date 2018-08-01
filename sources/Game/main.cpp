@@ -1,11 +1,11 @@
 #include <Windows.h>
-#include "Game/Application.h"
+#include "Game/Game.h"
 
 int main() {
 	setlocale(LC_CTYPE, "Russian");
 
-	Application app("TestApplication", 1024, 768);
-	app.run();
+	Game game("Labyrinth", 1324, 768);
+	game.run();
 
 	return 0;
 }

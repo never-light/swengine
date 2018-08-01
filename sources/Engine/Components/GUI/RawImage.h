@@ -5,7 +5,7 @@
 class RawImage {
 public:
 	enum class Format {
-		Invalid, 
+		Invalid,
 		R8,
 		RG8,
 		RGB8,

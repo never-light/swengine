@@ -21,7 +21,11 @@ public:
 
 	void setColor(const vector3& color);
 	void setColor(float r, float g, float b);
-	vector3 getColor() const;
+
+	void setColor(const vector4& color);
+	void setColor(float r, float g, float b, float a);
+
+	vector4 getColor() const;
 
 	void setFont(Font* font);
 	Font* getFont() const;
@@ -41,8 +45,10 @@ public:
 	virtual void render(GeometryStore* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
-	virtual void setBackgroundColor(const vector4& color);
-	virtual void setBackgroundColor(float r, float g, float b, float a);
+	void setBackgroundColor(const vector4& color);
+	void setBackgroundColor(float r, float g, float b, float a);
+
+	vector4 getBackgroundColor() const;
 
 	virtual void onKeyPress(Key key, KeyEvent::Modifier mod) override;
 	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod) override;

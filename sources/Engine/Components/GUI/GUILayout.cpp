@@ -4,6 +4,8 @@
 #include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
 #include <iostream>
 
+#include <algorithm>
+
 GUILayout::GUILayout()
 	: m_lastMouseEnteringWidget(nullptr), 
 	m_backgroundColor(vector4(0.0f, 0.0f, 0.0f, 1.0f)), 
@@ -107,6 +109,10 @@ void GUILayout::addWidget(GUIWidget * widget)
 
 	if (GUILayout* layout = dynamic_cast<GUILayout*>(widget))
 		layout->setOnFocusCallback(m_onFocusCallback);
+
+	std::sort(m_widgets.begin(), m_widgets.end(), [](const GUIWidget* w1, const GUIWidget* w2) {
+		return w2->getZIndex() > w1->getZIndex();
+	});
 }
 
 void GUILayout::removeWidget(GUIWidget* widget)

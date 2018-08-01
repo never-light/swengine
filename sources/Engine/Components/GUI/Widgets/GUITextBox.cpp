@@ -43,9 +43,19 @@ void GUITextBox::setColor(float r, float g, float b)
 	m_text->setColor(r, g, b);
 }
 
-vector3 GUITextBox::getColor() const
+vector4 GUITextBox::getColor() const
 {
 	return m_text->getColor();
+}
+
+void GUITextBox::setColor(const vector4 & color)
+{
+	m_text->setColor(color);
+}
+
+void GUITextBox::setColor(float r, float g, float b, float a)
+{
+	m_text->setColor(r, g, b, a);
 }
 
 void GUITextBox::setFont(Font * font)
@@ -131,6 +141,11 @@ void GUITextBox::setBackgroundColor(float r, float g, float b, float a)
 	m_backgroundColor.g = g;
 	m_backgroundColor.b = b;
 	m_backgroundColor.a = a;
+}
+
+vector4 GUITextBox::getBackgroundColor() const
+{
+	return m_backgroundColor;
 }
 
 void GUITextBox::onKeyPress(Key key, KeyEvent::Modifier mod)

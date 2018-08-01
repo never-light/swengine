@@ -19,7 +19,11 @@ public:
 
 	void setColor(const vector3& color);
 	void setColor(float r, float g, float b);
-	vector3 getColor() const;
+
+	void setColor(const vector4& color);
+	void setColor(float r, float g, float b, float a);
+
+	vector4 getColor() const;
 
 	void setFont(Font* font);
 	Font* getFont() const;
@@ -35,7 +39,7 @@ protected:
 
 protected:
 	Font* m_font;
-	vector3 m_color;
+	vector4 m_color;
 	unsigned int m_fontSize;
 
 	std::string m_text;

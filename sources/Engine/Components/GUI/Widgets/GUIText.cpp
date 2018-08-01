@@ -9,7 +9,7 @@ GUIText::GUIText(GraphicsResourceFactory * graphicsResourceFactory)
 	m_textGeometryVerticesCount(0),
 	m_text(),
 	m_fontSize(0),
-	m_color(1.0f, 1.0f, 1.0f)
+	m_color(1.0f, 1.0f, 1.0f, 1.0f)
 {
 }
 
@@ -55,7 +55,7 @@ void GUIText::removeLastCharacter()
 
 void GUIText::setColor(const vector3 & color)
 {
-	m_color = color;
+	m_color = vector4(color, 1.0f);
 }
 
 void GUIText::setColor(float r, float g, float b)
@@ -65,7 +65,20 @@ void GUIText::setColor(float r, float g, float b)
 	m_color.b = b;
 }
 
-vector3 GUIText::getColor() const
+void GUIText::setColor(const vector4 & color)
+{
+	m_color = color;
+}
+
+void GUIText::setColor(float r, float g, float b, float a)
+{
+	m_color.r = r;
+	m_color.g = g;
+	m_color.b = b;
+	m_color.a = a;
+}
+
+vector4 GUIText::getColor() const
 {
 	return m_color;
 }
@@ -102,7 +115,7 @@ void GUIText::render(GeometryStore * quad, GpuProgram * program)
 
 	program->setParameter("transform.localToWorld", textTransformation);
 
-	program->setParameter("quad.color", vector4(m_color, 1.0));
+	program->setParameter("quad.color", m_color);
 	program->setParameter("quad.texture", 0);
 	program->setParameter("quad.useTexture", true);
 	program->setParameter("quad.useFirstChannel", true);

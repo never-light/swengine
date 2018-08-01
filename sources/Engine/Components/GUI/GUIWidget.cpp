@@ -1,6 +1,7 @@
 #include "GUIWidget.h"
 
 GUIWidget::GUIWidget()
+	: m_zIndex(0)
 {
 }
 
@@ -111,4 +112,15 @@ void GUIWidget::onKeyRepeat(Key key, KeyEvent::Modifier mod)
 
 void GUIWidget::onCharacterEntered(unsigned char character)
 {
+}
+
+
+void GUIWidget::setZIndex(unsigned int index)
+{
+	m_zIndex = index;
+}
+
+unsigned int GUIWidget::getZIndex() const
+{
+	return m_zIndex;
 }

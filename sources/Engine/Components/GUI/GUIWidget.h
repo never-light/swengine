@@ -38,8 +38,11 @@ public:
 
 	bool isVisible() const;
 
-	void show();
-	void hide();
+	virtual void show();
+	virtual void hide();
+
+	void setZIndex(unsigned int index);
+	unsigned int getZIndex() const;
 
 	matrix4 getTransformationMatrix();
 protected:
@@ -47,4 +50,6 @@ protected:
 	uivector2 m_size;
 
 	bool m_visible;
+
+	unsigned int m_zIndex;
 };
