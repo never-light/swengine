@@ -29,11 +29,11 @@ public:
 	virtual void setMagnificationFilter(Filter filter) override;
 	virtual void setWrapMode(WrapMode mode) override;
 
-private:
-	GLenum getBindingTarget() const;
+	virtual void setTarget(Texture::Target target) override;
 
 private:
 	GLuint m_texture;
+	GLenum m_bindingTarget;
 
 private:
 	static std::unordered_map<Texture::InternalFormat, GLint> m_internalFormatMap;

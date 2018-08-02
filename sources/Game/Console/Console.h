@@ -8,7 +8,7 @@
 class Console {
 public:
 	using PrintCallback = std::function<void(const std::string&)>;
-	using CommandHandler = std::function<void(Console*, std::vector<std::string>)>;
+	using CommandHandler = std::function<void(Console*, const std::vector<std::string>&)>;
 public:
 	Console();
 	~Console();
@@ -23,6 +23,8 @@ public:
 	void setPrintCallback(const PrintCallback& callback);
 
 	std::string getLastCommand() const;
+
+	std::vector<std::string> getMessagesHistory() const;
 protected:
 	std::unordered_map<std::string, CommandHandler> m_commandHandlers;
 	std::vector<std::string> m_consoleLog;

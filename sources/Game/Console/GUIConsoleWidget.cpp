@@ -16,6 +16,9 @@ GUIConsoleWidget::GUIConsoleWidget(Console* console, Font * font, unsigned int v
 	m_inputTextBox->onKeyPress(std::bind(&GUIConsoleWidget::onConsoleInputKeyPress, this, std::placeholders::_1, std::placeholders::_2));
 
 	addWidget(m_inputTextBox);
+
+	for (const std::string& message : m_console->getMessagesHistory())
+		onConsolePrint(message);
 }
 
 GUIConsoleWidget::~GUIConsoleWidget()
@@ -32,14 +35,16 @@ void GUIConsoleWidget::print(const std::string & message)
 
 void GUIConsoleWidget::clear()
 {
-	for (GUIText* textLine : m_textLines)
+	for (GUIText* textLine : m_textLines) {
+		this->removeWidget(textLine);
 		delete textLine;
+	}
 
 	m_textLines.clear();
 }
 
 void GUIConsoleWidget::render(GeometryStore * quad, GpuProgram * program)
-{
+{ 
 	matrix4 textArea;
 	textArea = glm::translate(textArea, vector3(m_position, 0.0f));
 	textArea = glm::scale(textArea, vector3(m_viewportWidth, m_paddingTop + m_maxTextLines * m_textLineHeight + m_textBoxMargin, 1.0f));
@@ -73,7 +78,16 @@ void GUIConsoleWidget::hide()
 void GUIConsoleWidget::setMaxTextLines(size_t maxTextLines)
 {
 	m_maxTextLines = maxTextLines;
-	m_textLines.clear();
+
+	if (maxTextLines <= m_textLines.size()) {
+		for (GUIText* textLine : m_textLines)
+			removeWidget(textLine);
+
+		auto m_textLinesRemoveIt = m_textLines.begin();
+		std::advance(m_textLinesRemoveIt, (m_textLines.size() - maxTextLines));
+
+		m_textLines.erase(m_textLines.begin(), m_textLinesRemoveIt);
+	}
 
 	updateLayout();
 }

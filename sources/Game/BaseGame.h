@@ -16,13 +16,8 @@ public:
 protected:
 	Window* m_window;
 
-	GraphicsSystem* m_graphicsSystem;
-	GraphicsContext* m_graphicsContext;
-
 	InputManager* m_inputMgr;
-	ResourceManager* m_resMgr;
 	SceneManager* m_sceneMgr;
-	GUIManager* m_guiMgr;
 
 	double m_lastFrameTime;
 	double m_maxFrameTime;

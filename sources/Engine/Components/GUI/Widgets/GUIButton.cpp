@@ -1,5 +1,7 @@
 #include "GUIButton.h"
 
+#include <Engine\assertions.h>
+
 GUIButton::GUIButton()
 	: m_image(nullptr), m_hoverImage(nullptr), m_hover(false), m_clickCallback(nullptr)
 {
@@ -16,6 +18,8 @@ Texture * GUIButton::getImage() const
 
 void GUIButton::setImage(Texture * image)
 {
+	_assert(image != nullptr);
+
 	m_image = image;
 }
 
@@ -26,6 +30,8 @@ Texture * GUIButton::getHoverImage() const
 
 void GUIButton::setHoverImage(Texture * image)
 {
+	_assert(image != nullptr);
+
 	m_hoverImage = image;
 }
 

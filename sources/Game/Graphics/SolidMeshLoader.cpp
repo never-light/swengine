@@ -18,7 +18,7 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 	std::ifstream in(filename, std::ios::binary | std::ios::in);
 
 	if (!in.is_open())
-		throw std::exception();
+		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	HeaderData header;
 	in.read((char*)&header, sizeof header);
@@ -67,58 +67,65 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 	for (const auto& material : meshMaterials)
 		connectedMaterials.push_back(processConnectedMaterial(material));
 
-	GeometryStore* geometryStore = m_graphicsResourceFactory->createGeometryStore();
+	GeometryStore* geometryStore = nullptr;
 
-	// Create and fill vertex buffer
-	size_t requiredVertexBufferSize = (sizeof(vector3) * 4 + sizeof(vector2)) * description.verticesCount;
-	GeometryStore::BufferId vertexBufferId = geometryStore->requireBuffer(GeometryStore::BufferType::Vertex, requiredVertexBufferSize);
+	try {
+		geometryStore = m_graphicsResourceFactory->createGeometryStore();
 
-	size_t vertexBufferOffset = 0;
-	
-	geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)positions.data());
-	vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+		// Create and fill vertex buffer
+		size_t requiredVertexBufferSize = (sizeof(vector3) * 4 + sizeof(vector2)) * description.verticesCount;
+		GeometryStore::BufferId vertexBufferId = geometryStore->requireBuffer(GeometryStore::BufferType::Vertex, GeometryStore::BufferUsage::StaticDraw, requiredVertexBufferSize);
 
-	geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)normals.data());
-	vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+		size_t vertexBufferOffset = 0;
 
-	geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)tangents.data());
-	vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+		geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)positions.data());
+		vertexBufferOffset += sizeof(vector3) * description.verticesCount;
 
-	geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)bitangents.data());
-	vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+		geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)normals.data());
+		vertexBufferOffset += sizeof(vector3) * description.verticesCount;
 
-	geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector2) * description.verticesCount, (const std::byte*)uv.data());
-	vertexBufferOffset += sizeof(vector2) * description.verticesCount;
+		geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)tangents.data());
+		vertexBufferOffset += sizeof(vector3) * description.verticesCount;
 
-	// Create and fill index buffer
-	size_t requiredIndexBufferSize = sizeof(std::uint32_t) * indices.size();
-	GeometryStore::BufferId indexBufferId = geometryStore->requireBuffer(GeometryStore::BufferType::Index, requiredIndexBufferSize);
+		geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)bitangents.data());
+		vertexBufferOffset += sizeof(vector3) * description.verticesCount;
 
-	geometryStore->setBufferData(indexBufferId, 0, sizeof(std::uint32_t)*description.indicesCount, (const std::byte*)indices.data());
+		geometryStore->setBufferData(vertexBufferId, vertexBufferOffset, sizeof(vector2) * description.verticesCount, (const std::byte*)uv.data());
+		vertexBufferOffset += sizeof(vector2) * description.verticesCount;
 
-	// Set vertex layout description
-	
-	// Positions
-	geometryStore->setVertexLayoutAttribute(0, vertexBufferId, 3, 
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, 0);
+		// Create and fill index buffer
+		size_t requiredIndexBufferSize = sizeof(std::uint32_t) * indices.size();
+		GeometryStore::BufferId indexBufferId = geometryStore->requireBuffer(GeometryStore::BufferType::Index, GeometryStore::BufferUsage::StaticDraw, requiredIndexBufferSize);
 
-	// Normals
-	geometryStore->setVertexLayoutAttribute(1, vertexBufferId, 3, 
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount);
+		geometryStore->setBufferData(indexBufferId, 0, sizeof(std::uint32_t)*description.indicesCount, (const std::byte*)indices.data());
 
-	// Tangents
-	geometryStore->setVertexLayoutAttribute(2, vertexBufferId, 3,
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 2);
+		// Set vertex layout description
 
-	// Bitangents
-	geometryStore->setVertexLayoutAttribute(3, vertexBufferId, 3,
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 3);
+		// Positions
+		geometryStore->setVertexLayoutAttribute(0, vertexBufferId, 3,
+			GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, 0);
 
-	// UV
-	geometryStore->setVertexLayoutAttribute(4, vertexBufferId, 2,
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 4);
+		// Normals
+		geometryStore->setVertexLayoutAttribute(1, vertexBufferId, 3,
+			GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount);
 
-	geometryStore->create();
+		// Tangents
+		geometryStore->setVertexLayoutAttribute(2, vertexBufferId, 3,
+			GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 2);
+
+		// Bitangents
+		geometryStore->setVertexLayoutAttribute(3, vertexBufferId, 3,
+			GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 3);
+
+		// UV
+		geometryStore->setVertexLayoutAttribute(4, vertexBufferId, 2,
+			GeometryStore::VertexLayoutAttributeBaseType::Float, false, 0, sizeof(vector3) * description.verticesCount * 4);
+
+		geometryStore->create();
+	}
+	catch (const RenderSystemException& exception) {
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
+	}
 	
 	return new SolidMesh(geometryStore, partsOffsets, connectedMaterials);
 }

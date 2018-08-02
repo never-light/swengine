@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Engine\Components\Debugging\Logger.h>
+
 #include "OpenGL3\OpenGL3GraphicsContext.h"
 #include "OpenGL3\OpenGL3Texture.h"
 #include "OpenGL3\OpenGL3GpuProgram.h"
@@ -9,7 +11,7 @@
 
 class GraphicsResourceFactory {
 public:
-	GraphicsContext* createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight);
+	GraphicsContext* createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
 
 	GeometryStore* createGeometryStore();
 	Texture* createTexture();

@@ -5,7 +5,7 @@
 
 class OpenGL3Buffer : public Buffer {
 public:
-	OpenGL3Buffer(Buffer::Type type);
+	OpenGL3Buffer(Buffer::Type type, Buffer::Usage usage);
 	virtual ~OpenGL3Buffer();
 
 	virtual void create() override;
@@ -14,6 +14,8 @@ public:
 	virtual void bind() override;
 	virtual void unbind() override;
 
+	virtual void allocateMemory(size_t size) override;
+
 	virtual void setData(size_t length, const std::byte* data) override;
 	virtual void setData(size_t offset, size_t length, const std::byte* data);
 
@@ -21,4 +23,8 @@ public:
 
 protected:
 	GLuint m_bufferPointer;
+	size_t m_size;
+
+	GLenum m_glUsage;
+	GLenum m_glTarget;
 };

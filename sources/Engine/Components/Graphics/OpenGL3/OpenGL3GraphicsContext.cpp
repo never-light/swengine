@@ -1,15 +1,24 @@
 #include "OpenGL3GraphicsContext.h"
 
-#include <exception>
+#include <Engine\Exceptions\EngineException.h>
+#include "OpenGL3Errors.h"
 
-OpenGL3GraphicsContext::OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight)
-	: GraphicsContext(window, viewportWidth, viewportHeight)
+OpenGL3GraphicsContext::OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger)
+	: GraphicsContext(window, viewportWidth, viewportHeight, logger)
 {
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
-		throw std::exception();
+		throw EngineException("Failed to initialize OpenGL", __FILE__, __LINE__, __FUNCTION__);
 
 	glViewport(0, 0, m_viewportWidth, m_viewportHeight);
+
+#ifdef _DEBUG
+	if (GLEW_ARB_debug_output) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+		glDebugMessageCallbackARB((GLDEBUGPROCARB)&debugOutputCallback, this);
+	}
+#endif
 }
 
 OpenGL3GraphicsContext::~OpenGL3GraphicsContext()
@@ -96,8 +105,6 @@ void OpenGL3GraphicsContext::disableScissorTest()
 	glDisable(GL_SCISSOR_TEST);
 }
 
-#include <iostream>
-
 void OpenGL3GraphicsContext::setScissorRectangle(const Rect & rectangle)
 {
 	glScissor(rectangle.getX(), 
@@ -121,9 +128,54 @@ void OpenGL3GraphicsContext::setFaceCullingMode(FaceCullingMode mode)
 
 void OpenGL3GraphicsContext::clear(const vector3& color) {
 	glClearColor(color.r, color.g, color.b, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	OPENGL3_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void OpenGL3GraphicsContext::swapBuffers() {
 	glfwSwapBuffers(m_window->getWindowPointer());
+}
+
+void OpenGL3GraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, GLvoid * userParam)
+{
+	std::string debugMessage = "[OpenGL] ";
+
+	switch (type) {
+	case GL_DEBUG_TYPE_ERROR:
+		debugMessage += "error";
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		debugMessage += "deprecated behavior";
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		debugMessage += "undefined behavior";
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		debugMessage += "portability";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		debugMessage += "perfomance";
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		debugMessage += "common";
+		break;
+	}
+
+	debugMessage += " (" + std::to_string(id) + ", ";
+
+	switch (severity) {
+	case GL_DEBUG_SEVERITY_LOW:
+		debugMessage += "low";
+		break;
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		debugMessage += "medium";
+		break;
+	case GL_DEBUG_SEVERITY_HIGH:
+		debugMessage += "high";
+		break;
+	}
+
+	debugMessage += ") " + std::string(message);
+
+	OpenGL3GraphicsContext* self = static_cast<OpenGL3GraphicsContext*>(userParam);
+	self->m_logger->log(debugMessage);
 }

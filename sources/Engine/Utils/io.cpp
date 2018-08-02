@@ -21,3 +21,18 @@ void IOUtils::copyToClipboard(const std::string & string)
 
 	GlobalFree(hg);
 }
+
+void IOUtils::showMessageBox(const std::string & caption, const std::string & message, MessageBoxButtons buttons, MessageBoxType type)
+{
+	UINT displayFlags = 0;
+
+	if (type == MessageBoxType::Default)
+		displayFlags |= MB_ICONINFORMATION;
+	else if (type == MessageBoxType::Error)
+		displayFlags |= MB_ICONERROR;
+
+	if (buttons == MessageBoxButtons::OK)
+		displayFlags |= MB_OK;
+
+	MessageBox(NULL, message.c_str(), caption.c_str(), displayFlags);
+}

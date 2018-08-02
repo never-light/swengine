@@ -1,7 +1,7 @@
 #include "GraphicsContext.h"
 
-GraphicsContext::GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight)
-	: m_window(window), m_viewportWidth(viewportWidth), m_viewportHeight(viewportHeight)
+GraphicsContext::GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger)
+	: m_window(window), m_viewportWidth(viewportWidth), m_viewportHeight(viewportHeight), m_logger(logger)
 {
 
 }

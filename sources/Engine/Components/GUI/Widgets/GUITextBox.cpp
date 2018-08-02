@@ -1,5 +1,7 @@
 #include "GUITextBox.h"
 
+#include <Engine\assertions.h>
+
 GUITextBox::GUITextBox(GraphicsContext* graphicsContext, GraphicsResourceFactory * graphicsResourceFactory, Font * font)
 	: m_text(new GUIText(graphicsResourceFactory)),
 	m_graphicsContext(graphicsContext),
@@ -60,6 +62,8 @@ void GUITextBox::setColor(float r, float g, float b, float a)
 
 void GUITextBox::setFont(Font * font)
 {
+	_assert(font != nullptr);
+
 	m_text->setFont(font);
 }
 

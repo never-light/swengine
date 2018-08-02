@@ -34,7 +34,7 @@ GUIManager::GUIManager(Window * window,
 
 	m_quad = graphicsResourceFactory->createGeometryStore();
 
-	GeometryStore::BufferId vertexBufferId = m_quad->requireBuffer(GeometryStore::BufferType::Vertex, sizeof(quadVertices));
+	GeometryStore::BufferId vertexBufferId = m_quad->requireBuffer(GeometryStore::BufferType::Vertex, GeometryStore::BufferUsage::StaticDraw, sizeof(quadVertices));
 	m_quad->setBufferData(vertexBufferId, 0, sizeof(quadVertices), (const std::byte*)quadVertices);
 
 	// position and texture coordinates attribute

@@ -29,31 +29,17 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 	// Engine
 	InitializeEngine(m_window);
 
-	// Graphics 
-	m_graphicsSystem = new GraphicsSystem(m_window, GraphicsAPI::OpenGL33);
-	m_graphicsContext = m_graphicsSystem->getGraphicsContext();
 
 	// Input Manager
 	m_inputMgr = new InputManager(m_window);
 
-	// Resource Manager
-	m_resMgr = new ResourceManager(m_graphicsSystem->getResourceFactory());
-
 	// Scene Managaer
 	m_sceneMgr = new SceneManager();
-
-	// GUI Manager
-	m_guiMgr = new GUIManager(m_window, m_inputMgr, m_graphicsContext, m_graphicsSystem->getResourceFactory(),
-		m_resMgr->load<GpuProgram>("resources/shaders/gui/quadwidget.fx"));
 }
 
 BaseGame::~BaseGame() {
 	delete m_sceneMgr;
-	delete m_resMgr;
-	delete m_graphicsSystem;
-
 	delete m_inputMgr;
-	delete m_guiMgr;
 
 	delete m_window;
 

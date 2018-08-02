@@ -44,11 +44,11 @@ public:
 	virtual void bind(unsigned int unit) = 0;
 	virtual void unbind() = 0;
 
-	void setTarget(Target target);
-	Target getTarget() const;
+	virtual void setTarget(Target target);
+	virtual Target getTarget() const;
 
-	void setInternalFormat(InternalFormat format);
-	InternalFormat getInternalFormat() const;
+	virtual void setInternalFormat(InternalFormat format);
+	virtual InternalFormat getInternalFormat() const;
 
 	void setSize(unsigned int width, unsigned int height);
 	

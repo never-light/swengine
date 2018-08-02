@@ -1,7 +1,9 @@
 #include "OpenGL3Texture.h"
 
 #include <iostream>
-#include <Engine\Components\Debugging\Log.h>
+#include "OpenGL3Errors.h"
+
+#include <Engine\assertions.h>
 
 std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::m_internalFormatMap{
 	{ Texture::InternalFormat::R8, GL_R8 },
@@ -49,42 +51,42 @@ void OpenGL3Texture::destroy()
 
 void OpenGL3Texture::bind()
 {
-	glBindTexture(getBindingTarget(), m_texture);
+	OPENGL3_CALL(glBindTexture(m_bindingTarget, m_texture));
 }
 
 void OpenGL3Texture::bind(unsigned int unit)
 {
-	glActiveTexture(GL_TEXTURE0 + unit);
+	OPENGL3_CALL(glActiveTexture(GL_TEXTURE0 + unit));
 	bind();
 }
 
 void OpenGL3Texture::unbind()
 {
-	glBindTexture(getBindingTarget(), 0);
+	glBindTexture(m_bindingTarget, 0);
 }
 
 void OpenGL3Texture::fillMultisampleData(int samplesCount) {
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samplesCount,
-		m_internalFormatMap[m_internalFormat], m_width, m_height, GL_TRUE);
+	OPENGL3_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samplesCount,
+		m_internalFormatMap[m_internalFormat], m_width, m_height, GL_TRUE));
 }
 
 void OpenGL3Texture::setData(PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data)
 {
+	_assert(m_target == Target::_2D);
+
 	GLenum dataTarget;
 
 	if (m_target == Target::_2D)
 		dataTarget = GL_TEXTURE_2D;
-	else
-		throw std::exception();
 
-	glTexImage2D(dataTarget, 0, m_internalFormatMap[m_internalFormat],
-		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data);
+	OPENGL3_CALL(glTexImage2D(dataTarget, 0, m_internalFormatMap[m_internalFormat],
+		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data));
 }
 
 void OpenGL3Texture::setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data)
 {
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)cubeMapFace, 0, m_internalFormatMap[m_internalFormat],
-		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data);
+	OPENGL3_CALL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)cubeMapFace, 0, m_internalFormatMap[m_internalFormat],
+		m_width, m_height, 0, m_pixelFormatMap[pixelFormat], m_pixelDataTypeMap[pixelDataType], data));
 }
 
 GLuint OpenGL3Texture::getTexturePointer() const
@@ -92,19 +94,9 @@ GLuint OpenGL3Texture::getTexturePointer() const
 	return m_texture;
 } 
 
-GLenum OpenGL3Texture::getBindingTarget() const
-{
-	if (m_target == Target::_2D)
-		return GL_TEXTURE_2D;
-	else if (m_target == Target::CubeMap)
-		return GL_TEXTURE_CUBE_MAP;
-	else if (m_target == Target::_2DMultisample)
-		return GL_TEXTURE_2D_MULTISAMPLE;
-}
-
 void OpenGL3Texture::generateMipMaps() {
 	if (m_target == Target::_2D)
-		glGenerateMipmap(GL_TEXTURE_2D);
+		OPENGL3_CALL(glGenerateMipmap(GL_TEXTURE_2D));
 }
 
 void OpenGL3Texture::setMinificationFilter(Filter filter) {
@@ -119,7 +111,7 @@ void OpenGL3Texture::setMinificationFilter(Filter filter) {
 	else if (filter == Filter::LinearMipmapLinear)
 		value = GL_LINEAR_MIPMAP_LINEAR;
 
-	glTexParameteri(getBindingTarget(), GL_TEXTURE_MIN_FILTER, value);
+	OPENGL3_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_MIN_FILTER, value));
 }
 
 void OpenGL3Texture::setMagnificationFilter(Filter filter) {
@@ -134,7 +126,7 @@ void OpenGL3Texture::setMagnificationFilter(Filter filter) {
 	else if (filter == Filter::LinearMipmapLinear)
 		value = GL_LINEAR_MIPMAP_LINEAR;
 
-	glTexParameteri(getBindingTarget(), GL_TEXTURE_MAG_FILTER, value);
+	OPENGL3_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_MAG_FILTER, value));
 }
 
 void OpenGL3Texture::setWrapMode(WrapMode mode) {
@@ -147,6 +139,18 @@ void OpenGL3Texture::setWrapMode(WrapMode mode) {
 	else if (mode == WrapMode::ClampToEdge)
 		value = GL_CLAMP_TO_EDGE;
 
-	glTexParameteri(getBindingTarget(), GL_TEXTURE_WRAP_S, value);
-	glTexParameteri(getBindingTarget(), GL_TEXTURE_WRAP_T, value);
+	OPENGL3_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_WRAP_S, value));
+	OPENGL3_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_WRAP_T, value));
+}
+
+void OpenGL3Texture::setTarget(Texture::Target target)
+{
+	Texture::setTarget(target);
+
+	if (m_target == Target::_2D)
+		m_bindingTarget = GL_TEXTURE_2D;
+	else if (m_target == Target::CubeMap)
+		m_bindingTarget = GL_TEXTURE_CUBE_MAP;
+	else if (m_target == Target::_2DMultisample)
+		m_bindingTarget = GL_TEXTURE_2D_MULTISAMPLE;
 }

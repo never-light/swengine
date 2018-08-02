@@ -5,6 +5,8 @@
 #include "MainMenu.h"
 #include "Console\Console.h"
 #include "Console\GUIConsoleWidget.h"
+#include "Console\ConsoleCommandsHandler.h"
+#include "Console\ConsoleLogger.h"
 
 class Game : public BaseGame, public InputEventsListener {
 public:
@@ -15,11 +17,27 @@ public:
 	void render();
 
 private:
+	virtual void preLoadCommonResources();
 	void onKeyPress(Key key, KeyEvent::Modifier mod) override;
 
+	void initializeInternalConsole();
+	void initializeConsoleGUI();
+
+	void loadScenes();
+
+	void processResourceLoadingError(const ResourceLoadingException& error);
 private:
+	GUIManager * m_guiMgr;
+
+	GraphicsSystem* m_graphicsSystem;
+	GraphicsContext* m_graphicsContext;
+
+	ResourceManager* m_resMgr;
+
 	Console* m_console;
 	GUIConsoleWidget* m_guiConsoleWidget;
+	ConsoleCommandsHandler* m_consoleCommandsHandler;
+	ConsoleLogger* m_consoleLogger;
 
 	MainMenu* m_mainMenu;
 

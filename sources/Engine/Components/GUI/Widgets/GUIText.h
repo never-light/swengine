@@ -10,8 +10,6 @@ public:
 	~GUIText();
 
 	void setText(const std::string& text);
-	//void setText(const std::string& text, ...);
-
 	std::string getText() const;
 
 	void appendCharacter(unsigned char character);

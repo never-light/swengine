@@ -1,5 +1,7 @@
 #include "GUIImage.h"
 
+#include <Engine\assertions.h>
+
 GUIImage::GUIImage(Texture * image)
 	: m_image(image)
 {
@@ -16,6 +18,8 @@ Texture* GUIImage::getImage() const
 
 void GUIImage::setImage(Texture* image)
 {
+	_assert(image != nullptr);
+
 	m_image = image;
 }
 

@@ -1,7 +1,5 @@
 #include "StartScene.h"
 
-#include <Engine\Components\Debugging\Log.h>
-
 StartScene::StartScene(GraphicsContext* graphicsContext, ResourceManager* resourceManager, InputManager* inputManager) 
 	: Scene(graphicsContext, resourceManager),
 	m_inputManager(inputManager),

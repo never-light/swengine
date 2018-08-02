@@ -56,7 +56,7 @@ ResourceLoader * ResourceManager::getResourceLoaderByFileName(const std::string&
 	std::string extension = path.extension().string();
 
 	if (extension.empty())
-		throw std::exception(("Count not recognize resource: " + filename).c_str());
+		return nullptr;
 
 	extension = extension.erase(0, 1);
 

@@ -16,12 +16,15 @@
 #include <Engine\Components\GUI\RawImage.h>
 #include <Engine\Components\GUI\Font.h>
 
+#include <Engine\Utils\files.h>
+
 #include "Resource.h"
 #include "HoldingResource.h"
 #include "ResourceLoader.h"
 #include "RawImageLoader.h"
 
 #include <type_traits>
+#include "ResourceLoadingException.h"
 
 class ResourceManager {
 public:
@@ -93,8 +96,11 @@ inline T * ResourceManager::loadAndCacheResource(const std::string & filename, c
 {
 	ResourceLoader* loader = getResourceLoaderByFileName(filename);
 
+	if (!FilesUtils::isExists(filename))
+		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "",  __FILE__, __LINE__, __FUNCTION__);
+
 	if (loader == nullptr)
-		throw std::exception(("Resource loading error (unknown type): " + filename).c_str());
+		throw ResourceLoadingException(ResourceLoadingError::InvalidType, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	Resource* resource = loader->load(filename);
 
@@ -106,6 +112,9 @@ inline T * ResourceManager::loadAndCacheResource(const std::string & filename, c
 template<>
 inline RawImage* ResourceManager::loadAndCacheResource(const std::string & filename, const std::string & alias)
 {
+	if (!FilesUtils::isExists(filename))
+		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+
 	ResourceLoader* loader = new RawImageLoader();
 	Resource* resource = loader->load(filename);
 

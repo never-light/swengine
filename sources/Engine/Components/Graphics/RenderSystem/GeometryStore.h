@@ -21,11 +21,13 @@ public:
 	enum class IndicesType {
 		UnsignedInt
 	};
+
+	using BufferUsage = Buffer::Usage;
 public:
 	GeometryStore();
 	virtual ~GeometryStore();
 
-	virtual BufferId requireBuffer(BufferType bufferType, size_t size) = 0;
+	virtual BufferId requireBuffer(BufferType bufferType, BufferUsage bufferUsage, size_t size) = 0;
 	virtual void setBufferData(BufferId bufferId, size_t offset, size_t length, const std::byte* data) = 0;
 
 	virtual void setVertexLayoutAttribute(size_t index, BufferId bufferId, size_t size, VertexLayoutAttributeBaseType type, 

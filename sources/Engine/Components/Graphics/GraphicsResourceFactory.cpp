@@ -2,9 +2,9 @@
 
 GraphicsResourceFactory* GraphicsResourceFactory::m_instance = nullptr;
 
-GraphicsContext * GraphicsResourceFactory::createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight)
+GraphicsContext * GraphicsResourceFactory::createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger)
 {
-	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight);
+	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight, logger);
 }
 
 GeometryStore * GraphicsResourceFactory::createGeometryStore()

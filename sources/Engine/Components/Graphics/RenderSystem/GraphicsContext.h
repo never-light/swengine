@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Engine\Components\Debugging\Logger.h>
+
 #include <Engine\Components\GUI\Window.h>
 #include <Engine\Components\Math\types.h>
 #include <Engine\Components\Math\Geometry\Rect.h>
@@ -18,7 +20,7 @@ public:
 		Zero, One, SrcAlpha, OneMinusSrcAlpha
 	};
 public:
-	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight);
+	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
 	virtual ~GraphicsContext();
 
 	virtual void enableDepthTest() = 0;
@@ -52,4 +54,6 @@ protected:
 
 	unsigned int m_viewportWidth;
 	unsigned int m_viewportHeight;
+
+	Logger* m_logger;
 };

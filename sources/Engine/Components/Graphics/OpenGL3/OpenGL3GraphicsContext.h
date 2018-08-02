@@ -3,9 +3,11 @@
 #include <Engine\Components\Graphics\RenderSystem\GraphicsContext.h>
 #include "OpenGL3.h"
 
+#include <Engine\Components\Graphics\RenderSystem\RenderSystemException.h>
+
 class OpenGL3GraphicsContext : public GraphicsContext {
 public:
-	OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight);
+	OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
 	~OpenGL3GraphicsContext();
 
 	virtual void enableDepthTest() override;
@@ -30,4 +32,13 @@ public:
 
 	virtual void clear(const vector3& color) override;
 	virtual void swapBuffers() override;
+
+private:
+	static void APIENTRY debugOutputCallback(GLenum source,
+		GLenum type,
+		GLuint id,
+		GLenum severity,
+		GLsizei length,
+		const GLchar* message,
+		GLvoid* userParam);
 };

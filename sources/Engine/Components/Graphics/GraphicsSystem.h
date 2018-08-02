@@ -1,13 +1,14 @@
 #pragma once
 
 #include <Engine\Components\GUI\Window.h>
+#include <Engine\Components\Debugging\Logger.h>
 
 #include "graphicsApiType.h"
 #include "GraphicsResourceFactory.h"
 
 class GraphicsSystem {
 public:
-	GraphicsSystem(Window* window, GraphicsAPI apiType);
+	GraphicsSystem(Window* window, GraphicsAPI apiType, Logger* logger);
 	~GraphicsSystem();
 
 	GraphicsResourceFactory* getResourceFactory() const;

@@ -63,3 +63,8 @@ std::string Console::getLastCommand() const
 {
 	return m_lastCommand;
 }
+
+std::vector<std::string> Console::getMessagesHistory() const
+{
+	return m_consoleLog;
+}

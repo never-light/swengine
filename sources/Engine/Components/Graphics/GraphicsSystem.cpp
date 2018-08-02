@@ -1,12 +1,12 @@
 #include "GraphicsSystem.h"
 
-GraphicsSystem::GraphicsSystem(Window* window, GraphicsAPI api)
+GraphicsSystem::GraphicsSystem(Window* window, GraphicsAPI api, Logger* logger)
 	: m_window(window), m_resourceFactory(nullptr)
 {
 	GraphicsResourceFactory::initialize(api);
 	m_resourceFactory = GraphicsResourceFactory::getInstance();
 
-	m_graphicsContext = m_resourceFactory->createGraphicsContext(window, window->getWidth(), window->getHeight());
+	m_graphicsContext = m_resourceFactory->createGraphicsContext(window, window->getWidth(), window->getHeight(), logger);
 }
 
 GraphicsSystem::~GraphicsSystem() {

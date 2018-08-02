@@ -3,6 +3,8 @@
 #include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
 #include "OpenGL3.h"
 
+#include <unordered_map>
+
 class OpenGL3GpuProgram : public GpuProgram {
 public:
 	OpenGL3GpuProgram();
@@ -25,7 +27,9 @@ public:
 	void setParameter(const std::string& name, const vector3& value) override;
 	void setParameter(const std::string& name, const vector4& value) override;
 	void setParameter(const std::string& name, const matrix4& value) override;
-	void setParameter(const std::string& name, Texture* value) override;
+
+private:
+	GLint getUniformLocation(const std::string& name) const;
 
 private:
 	GLuint m_program;

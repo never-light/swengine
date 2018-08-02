@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <algorithm>
+#include <Engine\assertions.h>
 
 GUILayout::GUILayout()
 	: m_lastMouseEnteringWidget(nullptr), 
@@ -105,6 +106,8 @@ bool GUILayout::isMouseInWidgetArea(const MousePosition & mousePosition, const u
 
 void GUILayout::addWidget(GUIWidget * widget)
 {
+	_assert(widget != nullptr);
+
 	m_widgets.push_back(widget);
 
 	if (GUILayout* layout = dynamic_cast<GUILayout*>(widget))
@@ -118,7 +121,9 @@ void GUILayout::addWidget(GUIWidget * widget)
 void GUILayout::removeWidget(GUIWidget* widget)
 {
 	auto widgetIt = std::find(m_widgets.begin(), m_widgets.end(), widget);
-	m_widgets.erase(widgetIt);
+
+	if (widgetIt != m_widgets.end())
+		m_widgets.erase(widgetIt);
 }
 
 void GUILayout::setBackgroundImage(Texture* image)

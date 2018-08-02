@@ -1,11 +1,14 @@
 #include "OpenGL3GpuProgram.h"
 
 #include <unordered_map>
-#include <Engine\Components\Debugging\Log.h>
-
 #include <Engine\types.h>
 #include <Engine\Components\Math\Math.h>
 #include "OpenGL3Texture.h"
+
+#include <Engine\Components\Graphics\RenderSystem\RenderSystemException.h>
+#include "OpenGL3Errors.h"
+
+using namespace std::string_literals;
 
 OpenGL3GpuProgram::OpenGL3GpuProgram() 
 	: GpuProgram(), m_program(0), m_vertexShader(0), m_fragmentShader(0)
@@ -28,11 +31,16 @@ void OpenGL3GpuProgram::unbind() {
 
 void OpenGL3GpuProgram::create() {
 	m_program = glCreateProgram();
+
+	if (m_program == 0)
+		throw RenderSystemException("Failed to create OpenGL GPU program", __FILE__, __LINE__, __FUNCTION__);
 }
 
 void OpenGL3GpuProgram::destroy() {
-	glDeleteProgram(0);
-	m_program = 0;
+	if (m_program != 0) {
+		glDeleteProgram(m_program);
+		m_program = 0;
+	}
 }
 
 void OpenGL3GpuProgram::addShader(ShaderType type, const std::string &source) {
@@ -47,10 +55,15 @@ void OpenGL3GpuProgram::addShader(ShaderType type, const std::string &source) {
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
 	if (!status) {
-		GLchar message[512];
-		glGetShaderInfoLog(shader, sizeof(message), NULL, message);
+		GLint infoLogLength;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-		throw std::exception(message);
+		std::string message;
+		message.resize(infoLogLength);
+
+		glGetShaderInfoLog(shader, infoLogLength, NULL, &message[0]);
+
+		throw RenderSystemException(("Failed to compile shader: " + message).c_str(), __FILE__, __LINE__, __FUNCTION__);
 	}
 
 	glAttachShader(m_program, shader);
@@ -66,22 +79,24 @@ void OpenGL3GpuProgram::link() {
 
 	GLint status;
 	glGetProgramiv(m_program, GL_LINK_STATUS, &status);
+
 	if (!status) {
-		GLchar message[512];
-		glGetProgramInfoLog(m_program, sizeof(message), NULL, message);
+		GLint infoLogLength;
+		glGetShaderiv(m_program, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		std::string message;
+		message.resize(infoLogLength);
+
+		glGetProgramInfoLog(m_program, infoLogLength, NULL, &message[0]);
 		
-		throw std::exception(message);
+		throw RenderSystemException(("Failed to link GPU program: " + message).c_str(), __FILE__, __LINE__, __FUNCTION__);
 	}
 
-	if (m_vertexShader != 0) {
-		glDeleteShader(m_vertexShader);
-		m_vertexShader = 0;
-	}
+	glDeleteShader(m_vertexShader);
+	m_vertexShader = 0;
 
-	if (m_fragmentShader != 0) {
-		glDeleteShader(m_fragmentShader);
-		m_fragmentShader = 0;
-	}
+	glDeleteShader(m_fragmentShader);
+	m_fragmentShader = 0;
 }
 
 GLuint OpenGL3GpuProgram::getGpuProgramPointer() const {
@@ -89,29 +104,35 @@ GLuint OpenGL3GpuProgram::getGpuProgramPointer() const {
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, bool parameterValue) {
-	glUniform1i(glGetUniformLocation(m_program, parameterName.c_str()), parameterValue);
+	OPENGL3_CALL(glUniform1i(getUniformLocation(parameterName), parameterValue));
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, int parameterValue) {
-	glUniform1i(glGetUniformLocation(m_program, parameterName.c_str()), parameterValue);
+	OPENGL3_CALL(glUniform1i(getUniformLocation(parameterName), parameterValue));
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, float parameterValue) {
-	glUniform1f(glGetUniformLocation(m_program, parameterName.c_str()), parameterValue);
+	OPENGL3_CALL(glUniform1f(getUniformLocation(parameterName), parameterValue));
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector3& parameterValue) {
-	glUniform3fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, &parameterValue[0]);
+	OPENGL3_CALL(glUniform3fv(getUniformLocation(parameterName), 1, &parameterValue[0]));
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector4& parameterValue) {
-	glUniform4fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, &parameterValue[0]);
+	OPENGL3_CALL(glUniform4fv(getUniformLocation(parameterName), 1, &parameterValue[0]));
 }
 
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const matrix4& parameterValue) {
-	glUniformMatrix4fv(glGetUniformLocation(m_program, parameterName.c_str()), 1, GL_FALSE, &parameterValue[0][0]);
+	OPENGL3_CALL(glUniformMatrix4fv(getUniformLocation(parameterName), 1, GL_FALSE, &parameterValue[0][0]));
 }
 
-void OpenGL3GpuProgram::setParameter(const std::string& name, Texture* value) {
-	glUniform1i(glGetUniformLocation(m_program, name.c_str()), static_cast<OpenGL3Texture*>(value)->getTexturePointer());
+GLint OpenGL3GpuProgram::getUniformLocation(const std::string & name) const
+{
+	GLint location = glGetUniformLocation(m_program, name.c_str());
+
+	if (location == -1)
+		throw RenderSystemException(("Failed to set uniform value: invalid uniform name [" + name + "]").c_str(), __FILE__, __LINE__, __FUNCTION__);
+
+	return location;
 }

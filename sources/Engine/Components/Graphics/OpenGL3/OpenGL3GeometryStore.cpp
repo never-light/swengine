@@ -1,5 +1,7 @@
 #include "OpenGL3GeometryStore.h"
 
+#include "OpenGL3Errors.h"
+
 OpenGL3GeometryStore::OpenGL3GeometryStore()
 	: GeometryStore(), m_VAO(0)
 {
@@ -11,15 +13,15 @@ OpenGL3GeometryStore::~OpenGL3GeometryStore()
 		destroy();
 }
 
-OpenGL3GeometryStore::BufferId OpenGL3GeometryStore::requireBuffer(BufferType bufferType, size_t size)
+OpenGL3GeometryStore::BufferId OpenGL3GeometryStore::requireBuffer(BufferType bufferType, BufferUsage bufferUsage, size_t size)
 {
 	Buffer::Type glBufferType = (bufferType == BufferType::Vertex) ? Buffer::Type::Vertex : Buffer::Type::Index;
-	OpenGL3Buffer* buffer = new OpenGL3Buffer(glBufferType);
+	OpenGL3Buffer* buffer = new OpenGL3Buffer(glBufferType, bufferUsage);
 
 	buffer->create();
 	buffer->bind();
-	buffer->setData(size, nullptr);
-
+	buffer->allocateMemory(size);
+	
 	m_buffers.push_back(buffer);
 
 	return m_buffers.size() - 1;
@@ -38,8 +40,12 @@ void OpenGL3GeometryStore::setVertexLayoutAttribute(size_t index, BufferId buffe
 
 void OpenGL3GeometryStore::create()
 {
-	glGenVertexArrays(1, &m_VAO);
-	glBindVertexArray(m_VAO);
+	OPENGL3_CALL_BLOCK_BEGIN();
+		glGenVertexArrays(1, &m_VAO);
+		glBindVertexArray(m_VAO);
+	OPENGL3_CALL_BLOCK_END();
+
+	OPENGL3_CALL_BLOCK_BEGIN();
 
 	for (const auto& attribute : m_vertexLayoutDescription) {
 		m_buffers[attribute.bufferId]->bind();
@@ -58,6 +64,8 @@ void OpenGL3GeometryStore::create()
 		glVertexAttribPointer(attribute.index, attribute.size, baseType, shouldNormalize, attribute.stride, (GLvoid*)attribute.offset);
 	}
 
+	OPENGL3_CALL_BLOCK_END();
+
 	for (OpenGL3Buffer* buffer : m_buffers)
 		buffer->bind();
 
@@ -73,19 +81,19 @@ void OpenGL3GeometryStore::destroy()
 		m_buffers.clear();
 		m_vertexLayoutDescription.clear();
 
-		glDeleteVertexArrays(1, &m_VAO);
+		OPENGL3_CALL(glDeleteVertexArrays(1, &m_VAO));
 		m_VAO = 0;
 	}
 }
 
 void OpenGL3GeometryStore::bind()
 {
-	glBindVertexArray(m_VAO);
+	OPENGL3_CALL(glBindVertexArray(m_VAO));
 }
 
 void OpenGL3GeometryStore::unbind()
 {
-	glBindVertexArray(0);
+	OPENGL3_CALL(glBindVertexArray(0));
 }
 
 void OpenGL3GeometryStore::drawArrays(DrawType drawType, size_t offset, size_t count) {
@@ -94,7 +102,7 @@ void OpenGL3GeometryStore::drawArrays(DrawType drawType, size_t offset, size_t c
 	if (drawType == DrawType::Triangles)
 		drawMode = GL_TRIANGLES;
 	
-	glDrawArrays(drawMode, offset, count);
+	OPENGL3_CALL(glDrawArrays(drawMode, offset, count));
 }
 
 void OpenGL3GeometryStore::drawElements(DrawType drawType, size_t offset, size_t count, IndicesType indicesType) {
@@ -111,5 +119,5 @@ void OpenGL3GeometryStore::drawElements(DrawType drawType, size_t offset, size_t
 		offsetMultiplier = sizeof(unsigned int);
 	}
 
-	glDrawElements(drawMode, count, glIndicesType, (const void*)(offset * offsetMultiplier));
+	OPENGL3_CALL(glDrawElements(drawMode, count, glIndicesType, (const void*)(offset * offsetMultiplier)));
 }

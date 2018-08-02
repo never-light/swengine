@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <Engine\assertions.h>
+
 GUIText::GUIText(GraphicsResourceFactory * graphicsResourceFactory)
 	: m_graphicsResourceFactory(graphicsResourceFactory), 
 	m_font(nullptr), 
@@ -85,6 +87,8 @@ vector4 GUIText::getColor() const
 
 void GUIText::setFont(Font * font)
 {
+	_assert(font != nullptr);
+
 	m_font = font;
 	m_fontSize = font->getBaseSize();
 
@@ -197,7 +201,7 @@ void GUIText::updateTextGeometry()
 	else
 		m_textGeometry->destroy();
 
-	GeometryStore::BufferId vertexBufferId = m_textGeometry->requireBuffer(GeometryStore::BufferType::Vertex, vertices.size() * sizeof(vertices[0]));
+	GeometryStore::BufferId vertexBufferId = m_textGeometry->requireBuffer(GeometryStore::BufferType::Vertex, GeometryStore::BufferUsage::StaticDraw, vertices.size() * sizeof(vertices[0]));
 	m_textGeometry->setBufferData(vertexBufferId, 0, vertices.size() * sizeof(vertices[0]), (const std::byte*)vertices.data());
 
 	// position and texture coordinates attribute

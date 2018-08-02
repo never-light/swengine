@@ -7,6 +7,7 @@
 #include <Engine\Utils\string.h>
 
 #include <stb_image.h>
+#include "ResourceLoadingException.h"
 
 FontLoader::FontLoader(GraphicsResourceFactory* graphicsResourceFactory)
 	: m_graphicsResourceFactory(graphicsResourceFactory) 
@@ -20,7 +21,11 @@ FontLoader::~FontLoader()
 Resource * FontLoader::load(const std::string & filename)
 {
 	pugi::xml_document fontDescription;
-	fontDescription.load_file(filename.c_str());
+	
+	pugi::xml_parse_result result = fontDescription.load_file(filename.c_str());
+
+	if (!result)
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), result.description(), __FILE__, __LINE__, __FUNCTION__);
 
 	pugi::xml_node fontNode = fontDescription.child("font");
 	std::string bitmapFilename = fontNode.attribute("bitmap").as_string();
@@ -67,25 +72,30 @@ Texture * FontLoader::loadBitmap(const std::string & filename)
 	int nrChannels;
 	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
 
-	if (!data) {
-		throw std::exception(("Font bitmap loading error, file is not available [" + filename + "]").c_str());
+	if (data == 0)
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+
+	if (nrChannels != 1)
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), "Font bitmap must contain only one channel", __FILE__, __LINE__, __FUNCTION__);
+
+	Texture* texture = nullptr;
+
+	try {
+		texture = m_graphicsResourceFactory->createTexture();
+		texture->setTarget(Texture::Target::_2D);
+		texture->setInternalFormat(Texture::InternalFormat::R8);
+		texture->setSize(width, height);
+
+		texture->create();
+		texture->bind();
+		texture->setMinificationFilter(Texture::Filter::Linear);
+		texture->setMagnificationFilter(Texture::Filter::Linear);
+
+		texture->setData(Texture::PixelFormat::R, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
 	}
-
-	if (nrChannels != 1) {
-		throw std::exception(("Font bitmap loading error, file has wrong format [" + filename + "]").c_str());
+	catch (const RenderSystemException& exception) {
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
 	}
-
-	Texture* texture = m_graphicsResourceFactory->createTexture();
-	texture->setTarget(Texture::Target::_2D);
-	texture->setInternalFormat(Texture::InternalFormat::R8);
-	texture->setSize(width, height);
-
-	texture->create();
-	texture->bind();
-	texture->setMinificationFilter(Texture::Filter::Linear);
-	texture->setMagnificationFilter(Texture::Filter::Linear);
-
-	texture->setData(Texture::PixelFormat::R, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
 
 	stbi_image_free(data);
 

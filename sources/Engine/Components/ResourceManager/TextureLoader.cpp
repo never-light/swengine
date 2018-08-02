@@ -4,6 +4,7 @@
 #include <Engine\Components\Graphics\RenderSystem\Texture.h>
 
 #include <stb_image.h>
+#include "ResourceLoadingException.h"
 
 TextureLoader::TextureLoader(GraphicsResourceFactory* graphicsResourceFactory)
 	: ResourceLoader(), m_graphicsResourceFactory(graphicsResourceFactory)
@@ -20,9 +21,8 @@ Resource* TextureLoader::load(const std::string & filename)
 	int nrChannels;
 	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
 
-	if (!data) {
-		throw std::exception(("Texture loading error, file is not available [" + filename + "]").c_str());
-	}
+	if (data == 0)
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	Texture::PixelFormat pixelFormat;
 	Texture::InternalFormat internalFormat;
@@ -53,15 +53,22 @@ Resource* TextureLoader::load(const std::string & filename)
 		break;
 	}
 
-	Texture* texture = m_graphicsResourceFactory->createTexture();
-	texture->setTarget(Texture::Target::_2D);
-	texture->setInternalFormat(internalFormat);
-	texture->setSize(width, height);
+	Texture* texture = nullptr;
 
-	texture->create();
-	texture->bind();
+	try {
+		texture = m_graphicsResourceFactory->createTexture();
+		texture->setTarget(Texture::Target::_2D);
+		texture->setInternalFormat(internalFormat);
+		texture->setSize(width, height);
 
-	texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
+		texture->create();
+		texture->bind();
+
+		texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
+	}
+	catch (const RenderSystemException& exception) {
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
+	}
 
 	stbi_image_free(data);
 

@@ -1,6 +1,7 @@
 #include "Window.h"
 #include <iostream>
-#include <Engine\Components\Debugging\Log.h>
+
+#include <Engine\Exceptions\EngineException.h>
 
 Window::Window(const std::string& name, int width, int height, bool fullscreen, int samples) 
 	: m_width(width),
@@ -14,21 +15,22 @@ Window::Window(const std::string& name, int width, int height, bool fullscreen, 
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+#ifdef _DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#endif
+
 	if (samples > 0)
 		glfwWindowHint(GLFW_SAMPLES, samples);
 
 	GLFWmonitor* monitor = (fullscreen) ? glfwGetPrimaryMonitor() : nullptr;
 	this->m_windowPointer = glfwCreateWindow(width, height, name.c_str(), monitor, nullptr);
 
-	if (!this->m_windowPointer) {
-		errlog() << "Failed to create GLFW window";
-		glfwTerminate();
-	}
+	if (!this->m_windowPointer)
+		throw EngineException("Failed to create window", __FILE__, __LINE__, __FUNCTION__);
 
 	glfwMakeContextCurrent(this->m_windowPointer);
 
 	glfwGetFramebufferSize(this->m_windowPointer, &width, &height);
-	glViewport(0, 0, width, height);
 }
 
 Window::~Window() {

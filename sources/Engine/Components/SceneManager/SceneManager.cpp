@@ -1,4 +1,5 @@
 #include "SceneManager.h"
+#include <Engine\assertions.h>
 
 SceneManager::SceneManager() 
 	: m_maxSceneId(0), m_activeScene(nullptr)
@@ -23,7 +24,7 @@ void SceneManager::render()
 }
 
 SceneId SceneManager::registerScene(Scene* scene) {
-	assert(scene->getId() == 0);
+	_assert(scene != nullptr && scene->getId() == 0);
 
 	scene->onRegister(generateSceneId());
 	m_scenes.insert({ scene->getId(), scene });

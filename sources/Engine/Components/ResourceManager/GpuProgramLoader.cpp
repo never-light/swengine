@@ -7,6 +7,7 @@
 #include <regex>
 
 #include <iostream>
+#include "ResourceLoadingException.h"
 
 GpuProgramLoader::GpuProgramLoader(GraphicsResourceFactory* graphicsResourceFactory)
 	: ResourceLoader(), m_graphicsResourceFactory(graphicsResourceFactory)
@@ -22,28 +23,43 @@ Resource* GpuProgramLoader::load(const std::string & filename)
 	std::ifstream gpuProgramStream(filename);
 
 	if (!gpuProgramStream.is_open())
-		throw std::exception(("GpuProgram loading error, program file is not available [" + filename + "]").c_str());
+		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	std::string gpuProgramSource((std::istreambuf_iterator<char>(gpuProgramStream)), 
 		std::istreambuf_iterator<char>());
 
-	std::smatch vertexShaderMatch;
-	std::regex vertexShaderRegex("\\[vertex\\]([^]*)\\[\\/vertex\\]");
-	std::regex_search(gpuProgramSource, vertexShaderMatch, vertexShaderRegex);
+	std::string vertexShaderSource;
+	std::string fragmentShaderSource;
 
-	std::smatch fragmentShaderMatch;
-	std::regex fragmentShaderRegex("\\[fragment\\]([^]*)\\[\\/fragment\\]");
-	std::regex_search(gpuProgramSource, fragmentShaderMatch, fragmentShaderRegex);
+	try {
+		std::smatch vertexShaderMatch;
+		std::regex vertexShaderRegex("\\[vertex\\]([^]*)\\[\\/vertex\\]");
+		std::regex_search(gpuProgramSource, vertexShaderMatch, vertexShaderRegex);
 
-	std::string vertexShaderSource = vertexShaderMatch[1].str();
-	std::string fragmentShaderSource = fragmentShaderMatch[1].str();
+		std::smatch fragmentShaderMatch;
+		std::regex fragmentShaderRegex("\\[fragment\\]([^]*)\\[\\/fragment\\]");
+		std::regex_search(gpuProgramSource, fragmentShaderMatch, fragmentShaderRegex);
 
-	GpuProgram* gpuProgram = m_graphicsResourceFactory->createGpuProgram();
-	gpuProgram->create();
-	gpuProgram->addShader(GpuProgram::ShaderType::Vertex, vertexShaderSource);
-	gpuProgram->addShader(GpuProgram::ShaderType::Fragment, fragmentShaderSource);
+		vertexShaderSource = vertexShaderMatch[1].str();
+		fragmentShaderSource = fragmentShaderMatch[1].str();
+	}
+	catch (const std::regex_error& exception) {
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), __FILE__, __LINE__, __FUNCTION__);
+	}
 
-	gpuProgram->link();
+	GpuProgram* gpuProgram = nullptr;
+
+	try {
+		gpuProgram = m_graphicsResourceFactory->createGpuProgram();
+		gpuProgram->create();
+		gpuProgram->addShader(GpuProgram::ShaderType::Vertex, vertexShaderSource);
+		gpuProgram->addShader(GpuProgram::ShaderType::Fragment, fragmentShaderSource);
+
+		gpuProgram->link();
+	}
+	catch (const RenderSystemException& exception) {
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
+	}
 
 	return new HoldingResource<GpuProgram>(gpuProgram);
 }

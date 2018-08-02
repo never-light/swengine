@@ -1,5 +1,7 @@
 #include "Font.h"
 
+#include <Engine\assertions.h>
+
 Font::Font()
 	: m_bitmap(nullptr), m_baseSize(0)
 {
@@ -31,6 +33,8 @@ Character Font::getCharacter(unsigned char character) const
 
 void Font::setBitmap(Texture* texture)
 {
+	_assert(texture != nullptr);
+
 	m_bitmap = texture;
 }
 

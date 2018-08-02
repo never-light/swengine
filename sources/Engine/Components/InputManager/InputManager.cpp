@@ -1,5 +1,7 @@
 #include "InputManager.h"
 
+#include <Engine\assertions.h>
+
 InputManager::InputManager(Window* window) : m_window(window) {
 	glfwSetWindowUserPointer(m_window->getWindowPointer(), this);
 	glfwSetKeyCallback(m_window->getWindowPointer(), keyCallback);
@@ -18,6 +20,8 @@ void InputManager::update() {
 }
 
 void InputManager::registerEventListener(InputEventsListener* listener) {
+	_assert(listener != nullptr);
+
 	m_eventListeners.push_back(listener);
 }
 

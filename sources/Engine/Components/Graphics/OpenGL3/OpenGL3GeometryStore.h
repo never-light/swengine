@@ -22,7 +22,7 @@ public:
 	OpenGL3GeometryStore();
 	virtual ~OpenGL3GeometryStore();
 
-	virtual BufferId requireBuffer(BufferType bufferType, size_t size) override;
+	virtual BufferId requireBuffer(BufferType bufferType, BufferUsage bufferUsage, size_t size) override;
 	
 	virtual void setBufferData(BufferId bufferId, size_t offset, size_t length, const std::byte * data) override;
 	virtual void setVertexLayoutAttribute(size_t index, BufferId bufferId, size_t size, VertexLayoutAttributeBaseType type, bool shouldNormalize, size_t stride, size_t offset) override;
