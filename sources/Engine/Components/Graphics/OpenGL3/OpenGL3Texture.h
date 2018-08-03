@@ -31,6 +31,7 @@ public:
 
 	virtual void setTarget(Texture::Target target) override;
 
+	virtual void enableAnisotropicFiltering(float quality);
 private:
 	GLuint m_texture;
 	GLenum m_bindingTarget;

@@ -171,5 +171,7 @@ Texture * SolidMeshLoader::processConnectedTexture(const std::string & filename)
 
 	texture->setWrapMode(Texture::WrapMode::Repeat);
 
+	texture->enableAnisotropicFiltering(16.0f);
+
 	return texture;
 }

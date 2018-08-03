@@ -154,3 +154,10 @@ void OpenGL3Texture::setTarget(Texture::Target target)
 	else if (m_target == Target::_2DMultisample)
 		m_bindingTarget = GL_TEXTURE_2D_MULTISAMPLE;
 }
+
+void OpenGL3Texture::enableAnisotropicFiltering(float quality)
+{
+	Texture::enableAnisotropicFiltering(quality);
+
+	OPENGL3_CALL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, quality));
+}

@@ -72,6 +72,10 @@ public:
 
 	virtual void setWrapMode(WrapMode mode);
 	virtual WrapMode getWrapMode() const;
+
+	virtual void enableAnisotropicFiltering(float quality);
+	virtual bool isAnisotropicFilteringEnabled() const;
+	virtual float getAnisotropicFilteringQuality(float quality);
 protected:
 	Target m_target;
 	InternalFormat m_internalFormat;
@@ -84,4 +88,6 @@ protected:
 
 	WrapMode m_wrapMode;
 
+	bool m_isAnisotropicFilteringEnabled;
+	float m_anisotropicFilteringQuality;
 };

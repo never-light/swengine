@@ -1,6 +1,7 @@
 #include "Texture.h"
 
 Texture::Texture()
+	: m_isAnisotropicFilteringEnabled(false), m_anisotropicFilteringQuality(0.0f)
 {
 }
 
@@ -82,4 +83,20 @@ void Texture::setWrapMode(WrapMode mode)
 Texture::WrapMode Texture::getWrapMode() const
 {
 	return m_wrapMode;
+}
+
+void Texture::enableAnisotropicFiltering(float quality)
+{
+	m_isAnisotropicFilteringEnabled = true;
+	m_anisotropicFilteringQuality = quality;
+}
+
+bool Texture::isAnisotropicFilteringEnabled() const
+{
+	return m_isAnisotropicFilteringEnabled;
+}
+
+float Texture::getAnisotropicFilteringQuality(float quality)
+{
+	return m_anisotropicFilteringQuality;
 }

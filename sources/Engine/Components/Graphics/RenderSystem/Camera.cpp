@@ -39,11 +39,11 @@ float32 Camera::getFarClipDistance() const {
 }
 
 void Camera::setFOVy(float32 FOVy) {
-	m_FOVy = FOVy;
+	m_FOVy = glm::radians(FOVy);
 }
 
 float32 Camera::getFOVy() const {
-	return m_FOVy;
+	return glm::degrees(m_FOVy);
 }
 
 matrix4 Camera::getProjectionMatrix() const {
