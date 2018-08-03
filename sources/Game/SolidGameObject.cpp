@@ -12,7 +12,7 @@ SolidGameObject::SolidGameObject(SolidMesh* mesh)
 
 SolidGameObject::~SolidGameObject()
 {
-
+	delete m_transform;
 }
 
 void SolidGameObject::render(GpuProgram* gpuProgram) {

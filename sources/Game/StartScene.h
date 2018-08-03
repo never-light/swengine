@@ -3,6 +3,7 @@
 #include <Engine\Components\SceneManager\Scene.h>
 #include <Engine\Components\InputManager\InputManager.h>
 #include "SolidGameObject.h"
+#include "PlayerController.h"
 
 class StartScene : public Scene, public InputEventsListener {
 public:
@@ -13,8 +14,17 @@ public:
 	virtual void render() override;
 
 protected:
-	SolidGameObject* m_stalker;
-	SolidGameObject* m_house;
+	void loadResources();
+	void initializeSceneObjects();
+
+protected:
+	SolidGameObject* m_level;
+
+	Player* m_player;
+	PlayerController* m_playerController;
+	Camera* m_playerCamera;
+protected:
+	GpuProgram* m_lightingGpuProgram;
 
 protected:
 	InputManager* m_inputManager;

@@ -1,15 +1,17 @@
 #pragma once
 
 #include "GameObject.h"
+#include "Graphics\SolidMesh.h"
 
 class Player : public GameObject {
 public:
-	Player();
+	Player(SolidMesh* hands);
 	virtual ~Player();
 
-	virtual void render(const Camera* camera) override;
-
+	virtual void render(GpuProgram* gpuProgram) override;
 	Transform* getTransform() const;
-protected:
+
+private:
 	Transform * m_transform;
+	SolidMesh* m_hands;
 };
