@@ -35,6 +35,14 @@ private:
 
 		std::uint32_t partsCount;
 		std::uint32_t materialsCount;
+		std::uint32_t collidersCount;
+	};
+
+	struct ColliderDescription {
+		vector3 origin;
+		vector3 vertex1;
+		vector3 vertex2;
+		vector3 vertex3;
 	};
 public:
 	SolidMeshLoader(ResourceManager* resourceManager, GraphicsResourceFactory* graphicsResourceFactory);

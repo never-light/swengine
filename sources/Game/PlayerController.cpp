@@ -14,6 +14,7 @@ void PlayerController::update()
 	MousePosition mousePosition = m_inputManager->getMousePosition();
 
 	vector3 position = m_playerCamera->getTransform()->getPosition();
+	float oldY = position.y;
 
 	if (m_inputManager->isKeyPressed(GLFW_KEY_W))
 		position += m_playerCamera->getTransform()->getFrontDirection() * m_movementSpeed;
@@ -35,6 +36,8 @@ void PlayerController::update()
 
 	if ((pitchOffset > 0 && currentPitchAngle - pitchOffset > 0.001) || (pitchOffset < 0 && currentPitchAngle - pitchOffset < 179.999))
 		m_playerCamera->getTransform()->pitch(pitchOffset);
+
+	position.y = oldY;
 
 	m_playerCamera->getTransform()->yaw(m_mouseSensitivity * mousePosition.x * -1.0f);
 	m_playerCamera->getTransform()->setPosition(position);

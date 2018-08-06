@@ -2,7 +2,7 @@
 
 #include <Engine\types.h>
 #include <Engine\Components\Math\types.h>
-#include <Engine\Components\Math\Geometry\Volumes\Sphere.h>
+#include <Engine\Components\Physics\Colliders\Sphere.h>
 
 class Light {
 public:

@@ -7,6 +7,11 @@ GraphicsContext * GraphicsResourceFactory::createGraphicsContext(Window* window,
 	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight, logger);
 }
 
+Buffer * GraphicsResourceFactory::createBuffer(Buffer::Type type, Buffer::Usage usage)
+{
+	return new OpenGL3Buffer(type, usage);
+}
+
 GeometryStore * GraphicsResourceFactory::createGeometryStore()
 {
 	return new OpenGL3GeometryStore();

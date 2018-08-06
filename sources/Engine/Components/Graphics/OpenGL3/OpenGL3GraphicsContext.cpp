@@ -105,6 +105,16 @@ void OpenGL3GraphicsContext::disableScissorTest()
 	glDisable(GL_SCISSOR_TEST);
 }
 
+void OpenGL3GraphicsContext::enableWireframeRendering()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void OpenGL3GraphicsContext::disableWireframeRendering()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
 void OpenGL3GraphicsContext::setScissorRectangle(const Rect & rectangle)
 {
 	glScissor(rectangle.getX(), 

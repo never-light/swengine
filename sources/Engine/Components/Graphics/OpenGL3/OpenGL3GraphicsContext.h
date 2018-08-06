@@ -28,11 +28,13 @@ public:
 	virtual void enableScissorTest() override;
 	virtual void disableScissorTest() override;
 
+	virtual void enableWireframeRendering() override;
+	virtual void disableWireframeRendering() override;
+
 	virtual void setScissorRectangle(const Rect& rectangle) override;
 
 	virtual void clear(const vector3& color) override;
 	virtual void swapBuffers() override;
-
 private:
 	static void APIENTRY debugOutputCallback(GLenum source,
 		GLenum type,

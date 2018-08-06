@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine\Components\Math\types.h>
-#include <Engine\Components\Math\Geometry\Ray.h>
+#include <Engine\Components\Physics\Ray.h>
 
 class AABB {
 public:
@@ -16,6 +16,7 @@ public:
 	vector3 getMax() const;
 
 	bool isRayIntersecting(const Ray& ray);
+
 protected:
 	vector3 m_min;
 	vector3 m_max;

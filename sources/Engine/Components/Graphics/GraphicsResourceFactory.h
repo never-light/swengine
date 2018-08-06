@@ -13,6 +13,7 @@ class GraphicsResourceFactory {
 public:
 	GraphicsContext* createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
 
+	Buffer* createBuffer(Buffer::Type type, Buffer::Usage usage);
 	GeometryStore* createGeometryStore();
 	Texture* createTexture();
 	GpuProgram* createGpuProgram();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine\Components\Math\types.h>
-#include <Engine\Components\Math\Geometry\Ray.h>
+#include <Engine\Components\Physics\Ray.h>
 
 class Sphere {
 public:

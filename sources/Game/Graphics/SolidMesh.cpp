@@ -2,10 +2,12 @@
 
 SolidMesh::SolidMesh(GeometryStore * geometry, 
 	const std::vector<size_t>& groupsOffsets, 
-	const std::vector<DefaultMaterial*> materials)
+	const std::vector<DefaultMaterial*>& materials,
+	const std::vector<OBB>& colliders)
 	: m_geometry(geometry), 
 	m_groupsOffsets(groupsOffsets),
-	m_materials(materials)
+	m_materials(materials),
+	m_colliders(colliders)
 {
 }
 
@@ -13,7 +15,7 @@ SolidMesh::~SolidMesh()
 {
 }
 
-void SolidMesh::render(GpuProgram* gpuProgram) {
+void SolidMesh::render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) {
 	m_geometry->bind();
 
 	for (size_t i = 0; i < m_groupsOffsets.size(); i++) {
@@ -25,6 +27,11 @@ void SolidMesh::render(GpuProgram* gpuProgram) {
 		m_geometry->drawElements(GeometryStore::DrawType::Triangles, groupOffset, count, 
 			GeometryStore::IndicesType::UnsignedInt);
 	}
+}
+
+std::vector<OBB> SolidMesh::getColliders() const
+{
+	return m_colliders;
 }
 
 void SolidMesh::bindMaterial(GpuProgram* gpuProgram, const DefaultMaterial* material) {
@@ -40,6 +47,9 @@ void SolidMesh::bindMaterial(GpuProgram* gpuProgram, const DefaultMaterial* mate
 
 		gpuProgram->setParameter("material.useDiffuseTexture", true);
 		gpuProgram->setParameter("material.diffuseTexture", 0);
+	}
+	else {
+		gpuProgram->setParameter("material.useDiffuseTexture", false);
 	}
 
 	Texture* specularTexture = material->getSpecularTexture();

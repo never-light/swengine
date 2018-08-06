@@ -67,6 +67,15 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 	for (const auto& material : meshMaterials)
 		connectedMaterials.push_back(processConnectedMaterial(material));
 
+	// Colliders
+	std::vector<ColliderDescription> collidersDescriptions(description.collidersCount);
+	in.read((char*)collidersDescriptions.data(), sizeof(ColliderDescription) * description.collidersCount);
+
+	std::vector<OBB> colliders;
+
+	for (const auto& collider : collidersDescriptions)
+		colliders.push_back(OBB(collider.origin, collider.vertex1, collider.vertex2, collider.vertex3));
+
 	GeometryStore* geometryStore = nullptr;
 
 	try {
@@ -127,7 +136,7 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
 	}
 	
-	return new SolidMesh(geometryStore, partsOffsets, connectedMaterials);
+	return new SolidMesh(geometryStore, partsOffsets, connectedMaterials, colliders);
 }
 
 DefaultMaterial* SolidMeshLoader::processConnectedMaterial(const MaterialDescription& materialDescription)

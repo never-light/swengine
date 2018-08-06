@@ -46,6 +46,9 @@ public:
 	virtual void clear(const vector3& color) = 0;
 	virtual void swapBuffers() = 0;
 
+	virtual void enableWireframeRendering() = 0;
+	virtual void disableWireframeRendering() = 0;
+
 	unsigned int getViewportWidth() const;
 	unsigned int getViewportHeight() const;
 

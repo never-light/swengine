@@ -8,9 +8,11 @@ public:
 	Player(SolidMesh* hands);
 	virtual ~Player();
 
-	virtual void render(GpuProgram* gpuProgram) override;
+	virtual void render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) override;
 	Transform* getTransform() const;
 
+	OBB getWorldPlacedCollider() const;
+	vector3 getPosition() const;
 private:
 	Transform * m_transform;
 	SolidMesh* m_hands;
