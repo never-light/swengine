@@ -4,6 +4,8 @@
 #include <Engine\Components\InputManager\InputManager.h>
 
 #include <Game\Graphics\Primitives\BoxPrimitive.h>
+#include <Game\Graphics\Animation\Animation.h>
+#include <Game\Graphics\Animation\Animator.h>
 
 #include "SolidGameObject.h"
 #include "PlayerController.h"
@@ -30,8 +32,11 @@ protected:
 
 	SolidMesh* m_levelMesh;
 	SolidMesh* m_playerMesh;
+
 protected:
 	GpuProgram* m_lightingGpuProgram;
+	GpuProgram* m_animatedLightingGpuProgram;
+
 	GpuProgram* m_boundingVolumeGpuProgram;
 
 	bool m_isCollision = false;

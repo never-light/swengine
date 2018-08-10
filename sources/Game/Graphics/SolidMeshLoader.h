@@ -36,6 +36,8 @@ private:
 		std::uint32_t partsCount;
 		std::uint32_t materialsCount;
 		std::uint32_t collidersCount;
+
+		bool hasSkeleton;
 	};
 
 	struct ColliderDescription {
@@ -43,6 +45,24 @@ private:
 		vector3 vertex1;
 		vector3 vertex2;
 		vector3 vertex3;
+	};
+
+	struct BoneDescription {
+		std::uint32_t id;
+		char name[SOLID_MESH_LOADER_MAX_NAMES_LENGTH];
+		bool isHelper;
+
+		std::int32_t parentId;
+		std::uint32_t childrenCount;
+		std::vector<std::uint32_t> children;
+
+		matrix4 localToBoneSpaceTransform;
+		matrix4 relativeToParentSpaceTransform;
+	};
+
+	struct SkeletonDescription {
+		std::uint32_t bonesCount;
+		matrix4 globalInverseTransform;
 	};
 public:
 	SolidMeshLoader(ResourceManager* resourceManager, GraphicsResourceFactory* graphicsResourceFactory);

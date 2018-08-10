@@ -50,11 +50,11 @@ void StartScene::update()
 		}
 	}
 
-	if (minDistance >= 1.0f) {
+	if (minDistance >= 1.7f) {
 		vector3 oldPosition = m_playerCamera->getTransform()->getPosition();
 
 		oldPosition.y -= 0.30f;
-		oldPosition.y = std::max(oldPosition.y, 1.0f);
+		oldPosition.y = std::max(oldPosition.y, 1.7f);
 
 		m_playerCamera->getTransform()->setPosition(oldPosition);
 		m_player->getTransform()->setPosition(oldPosition);
@@ -64,17 +64,30 @@ void StartScene::update()
 void StartScene::render()
 {
 	m_graphicsContext->enableDepthTest();
-	m_lightingGpuProgram->bind();
 
+	m_lightingGpuProgram->bind();
 	m_lightingGpuProgram->setParameter("scene.viewTransform", getActiveCamera()->getViewMatrix());
 	m_lightingGpuProgram->setParameter("scene.projectionTransform", getActiveCamera()->getProjectionMatrix());
 
 	m_graphicsContext->enableFaceCulling();
 	m_graphicsContext->setFaceCullingMode(GraphicsContext::FaceCullingMode::Back);
 
+	// Draw static objects
 	m_level->render(m_graphicsContext, m_lightingGpuProgram);
-	m_player->render(m_graphicsContext, m_lightingGpuProgram);
 
+	// Draw animated objects
+	m_animatedLightingGpuProgram->bind();
+	m_animatedLightingGpuProgram->setParameter("scene.viewTransform", getActiveCamera()->getViewMatrix());
+	m_animatedLightingGpuProgram->setParameter("scene.projectionTransform", getActiveCamera()->getProjectionMatrix());
+
+	for (size_t boneIndex = 0; boneIndex < m_playerMesh->getSkeleton()->getBonesCount(); boneIndex++) {
+		m_animatedLightingGpuProgram->setParameter("bonesTransforms[" + std::to_string(boneIndex) + "]", m_playerMesh->getSkeleton()->getBones()[boneIndex].getCurrentPoseTransform());
+
+	}
+
+	m_player->render(m_graphicsContext, m_animatedLightingGpuProgram);
+
+	// Draw bounding volumes
 	m_graphicsContext->enableWireframeRendering();
 	m_graphicsContext->disableFaceCulling();
 	m_boundingVolumeGpuProgram->bind();
@@ -97,25 +110,32 @@ void StartScene::render()
 
 	m_boundingVolumeGpuProgram->setParameter("transform.localToWorld", m_player->getTransform()->getTransformationMatrix());
 	m_boxPrimitive->setVertices(m_playerMesh->getColliders()[0].getVertices());
-	m_boxPrimitive->render();
+
 	m_graphicsContext->disableWireframeRendering();
 }
 
 void StartScene::loadResources()
 {
 	m_lightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong.fx");
+	m_animatedLightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong_animated.fx");
+
 	m_boundingVolumeGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/bounding_volume.fx");
 
 	m_levelMesh = m_resourceManager->load<SolidMesh>("resources/models/level.mod", "meshes_level");
-	m_playerMesh = m_resourceManager->load<SolidMesh>("resources/models/hands.mod", "meshes_hands");
+	m_playerMesh = m_resourceManager->load<SolidMesh>("resources/models/player/arms.mod", "meshes_player_arms");
+
+	// Player animations
+	m_resourceManager->load<Animation>("resources/animations/player/arms_idle.anim", "animations_player_arms_idle");
+	m_resourceManager->load<Animation>("resources/animations/player/arms_running.anim", "animations_player_arms_running");
+	m_resourceManager->load<Animation>("resources/animations/player/arms_taking.anim", "animations_player_arms_taking");
+
 }
 
-void StartScene::initializeSceneObjects()
-{
-	m_level = new SolidGameObject(m_resourceManager->getResource<SolidMesh>("meshes_level"));
+void StartScene::initializeSceneObjects() {
+	m_level = new SolidGameObject(m_levelMesh);
 	this->registerSceneObject(m_level);
 
-	m_player = new Player(m_resourceManager->getResource<SolidMesh>("meshes_hands"));
+	m_player = new Player(m_playerMesh);
 	this->registerSceneObject(m_player);
 
 	m_playerCamera = createCamera("playerCamera");
@@ -131,7 +151,12 @@ void StartScene::initializeSceneObjects()
 	m_playerCamera->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
 	m_playerCamera->getTransform()->lookAt(0, 0, 10);
 
-	m_playerController = new PlayerController(m_player, m_playerCamera, m_inputManager);
+	std::vector<Animation*> playerAnimations(PlayerController::PLAYER_STATES_COUNT);
+	playerAnimations[(size_t)PlayerController::PlayerState::Idle] = m_resourceManager->getResource<Animation>("animations_player_arms_idle");
+	playerAnimations[(size_t)PlayerController::PlayerState::Running] = m_resourceManager->getResource<Animation>("animations_player_arms_running");
+	playerAnimations[(size_t)PlayerController::PlayerState::Taking] = m_resourceManager->getResource<Animation>("animations_player_arms_taking");
+
+	m_playerController = new PlayerController(m_player, m_playerCamera, m_inputManager, playerAnimations);
 	m_playerController->setMovementSpeed(0.15f);
 
 	initializePrimitives();

@@ -1,11 +1,13 @@
 #include "Player.h"
 
-Player::Player(SolidMesh * hands)
-	: m_hands(hands), m_transform(new Transform())
+#include <Engine\assertions.h>
+
+Player::Player(SolidMesh * armsMesh)
+	: m_armsMesh(armsMesh), 
+	m_transform(new Transform())
 {
-	m_transform->setPosition(0, 0, 0);
-	m_transform->setOrientation(quaternion());
-	m_transform->setScale(1, 1, 1);
+	_assert(m_armsMesh->getColliders().size() == 1);
+	_assert(m_armsMesh->hasSkeleton());
 }
 
 Player::~Player()
@@ -16,7 +18,7 @@ Player::~Player()
 void Player::render(GraphicsContext* graphicsContext, GpuProgram * gpuProgram)
 {
 	gpuProgram->setParameter("transform.localToWorld", m_transform->getTransformationMatrix());
-	m_hands->render(graphicsContext, gpuProgram);
+	m_armsMesh->render(graphicsContext, gpuProgram);
 }
 
 Transform * Player::getTransform() const
@@ -26,10 +28,15 @@ Transform * Player::getTransform() const
 
 OBB Player::getWorldPlacedCollider() const
 {
-	return OBB(m_hands->getColliders()[0], m_transform->getTransformationMatrix());
+	return OBB(m_armsMesh->getColliders()[0], m_transform->getTransformationMatrix());
 }
 
 vector3 Player::getPosition() const
 {
 	return m_transform->getPosition();
+}
+
+Skeleton* Player::getSkeleton() const
+{
+	return m_armsMesh->getSkeleton();
 }

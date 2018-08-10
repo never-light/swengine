@@ -3,10 +3,17 @@
 #include "Player.h"
 
 #include <Engine\Components\InputManager\InputManager.h>
+#include <Game\Graphics\Animation\Animator.h>
 
 class PlayerController : public InputEventsListener {
 public:
-	PlayerController(Player* player, Camera* camera, InputManager* inputManager);
+	enum class PlayerState {
+		Idle = 0, Running = 1, Taking = 2
+	};
+
+	static const size_t PLAYER_STATES_COUNT = 3;
+public:
+	PlayerController(Player* player, Camera* camera, InputManager* inputManager, const std::vector<Animation*>& statesAnimations);
 	~PlayerController();
 
 	void update();
@@ -19,9 +26,20 @@ public:
 	void setMouseSensitivity(float sensitivity);
 	float getMouseSensitivity() const;
 
+	PlayerState getCurrentPlayerState() const;
+
+	virtual void onKeyPress(Key key, KeyEvent::Modifier mod);
 private:
+	void changeState(PlayerState state);
+
+private:
+	PlayerState m_currentPlayerState;
+
 	float m_movementSpeed = 0.10f;
 	float m_mouseSensitivity = 0.15f;
+
+	std::vector<Animation*> m_statesAnimations;
+	Animator* m_playerAnimator;
 
 private:
 	Player * m_player;

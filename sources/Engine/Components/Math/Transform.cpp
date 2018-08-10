@@ -1,9 +1,10 @@
 #include "Transform.h"
 
 Transform::Transform()
-	: m_scale(vector3(1.0, 1.0, 1.0)),
+	: m_scale(1.0f, 1.0f, 1.0f),
 	m_fixedYAxis(false),
-	m_orientation(quaternion())
+	m_orientation(quaternion()),
+	m_position(0.0f, 0.0f, 0.0f)
 {
 
 }

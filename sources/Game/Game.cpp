@@ -1,6 +1,7 @@
  #include "Game.h"
 #include "config.h"
 #include "Graphics\SolidMeshLoader.h"
+#include "Graphics\AnimationLoader.h"
 
 #include <Windows.h>
 
@@ -27,6 +28,7 @@ Game::Game(const std::string& windowName, unsigned int width, unsigned int heigh
 	// Resource Manager
 	m_resMgr = new ResourceManager(m_graphicsSystem->getResourceFactory());
 	m_resMgr->registerResourceLoader(new SolidMeshLoader(m_resMgr, m_graphicsSystem->getResourceFactory()), "mod");
+	m_resMgr->registerResourceLoader(new AnimationLoader(), "anim");
 
 	preLoadCommonResources();
 

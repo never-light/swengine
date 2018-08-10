@@ -3,16 +3,20 @@
 SolidMesh::SolidMesh(GeometryStore * geometry, 
 	const std::vector<size_t>& groupsOffsets, 
 	const std::vector<DefaultMaterial*>& materials,
-	const std::vector<OBB>& colliders)
+	const std::vector<OBB>& colliders,
+	Skeleton* skeleton)
 	: m_geometry(geometry), 
 	m_groupsOffsets(groupsOffsets),
 	m_materials(materials),
-	m_colliders(colliders)
+	m_colliders(colliders),
+	m_skeleton(skeleton)
 {
 }
 
 SolidMesh::~SolidMesh()
 {
+	if (m_skeleton != nullptr)
+		delete m_skeleton;
 }
 
 void SolidMesh::render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) {
@@ -32,6 +36,16 @@ void SolidMesh::render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram)
 std::vector<OBB> SolidMesh::getColliders() const
 {
 	return m_colliders;
+}
+
+bool SolidMesh::hasSkeleton() const
+{
+	return m_skeleton != nullptr;
+}
+
+Skeleton * SolidMesh::getSkeleton() const
+{
+	return m_skeleton;
 }
 
 void SolidMesh::bindMaterial(GpuProgram* gpuProgram, const DefaultMaterial* material) {

@@ -11,7 +11,7 @@ public:
 	};
 
 	enum class VertexLayoutAttributeBaseType {
-		Float, UnsignedByte, UnsignedShort
+		Float, UnsignedByte, UnsignedShort, Int, UnsignedInt
 	};
 
 	enum class DrawType {

@@ -53,15 +53,37 @@ void OpenGL3GeometryStore::create()
 		GLboolean shouldNormalize = attribute.shouldNormalize ? GL_TRUE : GL_FALSE;
 		GLenum baseType;
 
-		if (attribute.type == VertexLayoutAttributeBaseType::Float)
+		switch (attribute.type) {
+		case VertexLayoutAttributeBaseType::Float:
 			baseType = GL_FLOAT;
-		else if (attribute.type == VertexLayoutAttributeBaseType::UnsignedByte)
+			break;
+
+		case VertexLayoutAttributeBaseType::UnsignedByte:
 			baseType = GL_UNSIGNED_BYTE;
-		else if (attribute.type == VertexLayoutAttributeBaseType::UnsignedShort)
+			break;
+
+		case VertexLayoutAttributeBaseType::UnsignedShort:
 			baseType = GL_UNSIGNED_SHORT;
+			break;
+
+		case VertexLayoutAttributeBaseType::UnsignedInt:
+			baseType = GL_UNSIGNED_INT;
+			break;
+
+		case VertexLayoutAttributeBaseType::Int:
+			baseType = GL_INT;
+			break;
+
+		}
 
 		glEnableVertexAttribArray(attribute.index);
-		glVertexAttribPointer(attribute.index, attribute.size, baseType, shouldNormalize, attribute.stride, (GLvoid*)attribute.offset);
+
+		if (baseType == GL_FLOAT) {
+			glVertexAttribPointer(attribute.index, attribute.size, baseType, shouldNormalize, attribute.stride, (GLvoid*)attribute.offset);
+		}
+		else {
+			glVertexAttribIPointer(attribute.index, attribute.size, baseType, attribute.stride, (GLvoid*)attribute.offset);
+		}
 	}
 
 	OPENGL3_CALL_BLOCK_END();
