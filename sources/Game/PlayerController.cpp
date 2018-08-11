@@ -4,15 +4,17 @@
 #include <Game\config.h>
 
 PlayerController::PlayerController(Player * player, Camera * camera, InputManager * inputManager, const std::vector<Animation*>& statesAnimations)
-	: m_player(player), 
+	: InputController(inputManager), 
+	m_player(player), 
 	m_playerCamera(camera), 
-	m_inputManager(inputManager),
 	m_statesAnimations(statesAnimations),
 	m_playerAnimator(nullptr)
 {
 	_assert(statesAnimations.size() == PLAYER_STATES_COUNT);
 
 	inputManager->registerEventListener(this);
+
+	m_player->getTransform()->fixYAxis();
 
 	m_playerAnimator = new Animator(m_player->getSkeleton());
 	changeState(PlayerState::Idle);
@@ -41,8 +43,6 @@ void PlayerController::update()
 	bool needMove = false;
 
 	MousePosition mousePosition = m_inputManager->getMousePosition();
-
-	m_player->getTransform()->fixYAxis();
 
 	vector3 position = m_player->getTransform()->getPosition();
 	float oldY = position.y;

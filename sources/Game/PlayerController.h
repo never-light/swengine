@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Player.h"
+#include "InputController.h"
 
-#include <Engine\Components\InputManager\InputManager.h>
 #include <Game\Graphics\Animation\Animator.h>
 
-class PlayerController : public InputEventsListener {
+class PlayerController : public InputController, public InputEventsListener {
 public:
 	enum class PlayerState {
 		Idle = 0, Running = 1, Taking = 2
@@ -44,7 +44,4 @@ private:
 private:
 	Player* m_player;
 	Camera* m_playerCamera;
-
-private:
-	InputManager * m_inputManager;
 };

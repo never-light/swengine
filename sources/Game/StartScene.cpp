@@ -4,14 +4,22 @@
 
 #include <iostream>
 
-StartScene::StartScene(GraphicsContext* graphicsContext, GraphicsResourceFactory* graphicsResourceFactory, ResourceManager* resourceManager, InputManager* inputManager)
+StartScene::StartScene(GraphicsContext* graphicsContext, 
+	GraphicsResourceFactory* graphicsResourceFactory, 
+	ResourceManager* resourceManager, 
+	InputManager* inputManager,
+	Console* console)
 	: Scene(graphicsContext, resourceManager),
 	m_inputManager(inputManager),
 	m_graphicsResourceFactory(graphicsResourceFactory),
-	m_level(nullptr)
+	m_level(nullptr),
+	m_activeInputController(nullptr)
 {
 	loadResources();
 	initializeSceneObjects();
+
+	console->registerCommandHandler("set_camera", 
+		std::bind(&StartScene::changeCameraCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 StartScene::~StartScene()
@@ -19,6 +27,8 @@ StartScene::~StartScene()
 	delete m_level;
 
 	delete m_playerController;
+	delete m_freeCameraController;
+
 	delete m_player;
 
 	delete m_boxPrimitive;
@@ -26,14 +36,14 @@ StartScene::~StartScene()
 
 void StartScene::update()
 {
-	m_playerController->update();
+	m_activeInputController->update();
 
 	OBB newPlayerObb = m_player->getWorldPlacedCollider();
 
 	Intersection intersection;
 	for (const OBB& obb : m_levelMesh->getColliders()) {
 		if (newPlayerObb.intersects(obb, intersection)) {
-			m_player->getTransform()->setPosition(m_player->getTransform()->getPosition() + intersection.getDirection() * intersection.getDepth());
+			m_player->getTransform()->move(intersection.getDirection() * intersection.getDepth());
 		}
 	}
 
@@ -66,7 +76,6 @@ void StartScene::update()
 
 	m_playerCamera->getTransform()->setOrientation(m_player->getTransform()->getOrientation());
 	m_playerCamera->getTransform()->setPosition(boneWorldPosition);
-
 }
 
 void StartScene::render()
@@ -136,14 +145,16 @@ void StartScene::loadResources()
 	m_resourceManager->load<Animation>("resources/animations/player/arms_idle.anim", "animations_player_arms_idle");
 	m_resourceManager->load<Animation>("resources/animations/player/arms_running.anim", "animations_player_arms_running");
 	m_resourceManager->load<Animation>("resources/animations/player/arms_taking.anim", "animations_player_arms_taking");
-
 }
 
 void StartScene::initializeSceneObjects() {
 	m_level = new SolidGameObject(m_levelMesh);
 	this->registerSceneObject(m_level);
 
+	// Player initialization
 	m_player = new Player(m_playerMesh);
+	m_player->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
+
 	this->registerSceneObject(m_player);
 
 	m_playerCamera = createCamera("playerCamera");
@@ -153,12 +164,7 @@ void StartScene::initializeSceneObjects() {
 	m_playerCamera->setFarClipDistance(300.0f);
 	m_playerCamera->setFOVy(45.0f);
 	m_playerCamera->setAspectRatio((float)m_graphicsContext->getViewportWidth() / m_graphicsContext->getViewportHeight());
-
 	m_playerCamera->getTransform()->fixYAxis();
-
-	m_player->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
-	m_playerCamera->getTransform()->setPosition(m_player->getTransform()->getPosition() + vector3(0, 0.5, 0));
-	m_playerCamera->getTransform()->lookAt(0, 0, 10);
 
 	Animation* playerArmsIdle = m_resourceManager->getResource<Animation>("animations_player_arms_idle");
 	playerArmsIdle->setEndBehaviour(Animation::EndBehaviour::Repeat);
@@ -179,10 +185,42 @@ void StartScene::initializeSceneObjects() {
 	m_playerController = new PlayerController(m_player, m_playerCamera, m_inputManager, playerAnimations);
 	m_playerController->setMovementSpeed(0.15f);
 
+	m_activeInputController = m_playerController;
+
+	// Free camera controller
+	m_freeCamera = createCamera("freeCamera");
+	m_freeCamera->setNearClipDistance(0.1f);
+	m_freeCamera->setFarClipDistance(300.0f);
+	m_freeCamera->setFOVy(45.0f);
+	m_freeCamera->setAspectRatio((float)m_graphicsContext->getViewportWidth() / m_graphicsContext->getViewportHeight());
+
+	m_freeCamera->getTransform()->fixYAxis();
+	m_freeCamera->getTransform()->setPosition(0.0f, 0.0f, 0.0f);
+	m_freeCamera->getTransform()->lookAt(0.0f, 0.0f, 10.0f);
+
+	m_freeCameraController = new FreeCameraController(m_freeCamera, m_inputManager);
+
 	initializePrimitives();
 }
 
 void StartScene::initializePrimitives()
 {
 	m_boxPrimitive = new BoxPrimitive(m_graphicsResourceFactory);
+}
+
+void StartScene::changeCameraCommandHandler(Console * console, const std::vector<std::string>& args)
+{
+	if (args.empty())
+		return;
+
+	if (args.front() == "free") {
+		m_activeInputController = m_freeCameraController;
+		setActiveCamera(m_freeCamera);
+	}
+	else if (args.front() == "fps") {
+		m_activeInputController = m_playerController;
+		setActiveCamera(m_playerCamera);
+	}
+	else
+		console->print("Unknown camera type");
 }

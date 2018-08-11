@@ -141,7 +141,7 @@ void Game::initializeConsoleGUI()
 void Game::loadScenes()
 {
 	try {
-		m_startScene = new StartScene(m_graphicsContext, m_graphicsSystem->getResourceFactory(), m_resMgr, m_inputMgr);
+		m_startScene = new StartScene(m_graphicsContext, m_graphicsSystem->getResourceFactory(), m_resMgr, m_inputMgr, m_console);
 		m_sceneMgr->registerScene(m_startScene);
 
 		m_mainMenu = new MainMenu(m_window, m_graphicsSystem->getResourceFactory(), m_graphicsContext, m_resMgr, m_guiMgr->getMainLayout());
