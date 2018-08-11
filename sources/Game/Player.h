@@ -16,6 +16,7 @@ public:
 
 	Skeleton* getSkeleton() const;
 
+	void applyPose(const SkeletonPose& pose);
 private:
 	Transform * m_transform;
 	SolidMesh* m_armsMesh;

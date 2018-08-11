@@ -11,9 +11,7 @@
 BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned int height)
 	: m_window(nullptr), 
 	m_inputMgr(nullptr),
-	m_sceneMgr(nullptr),
-	m_lastFrameTime(0),
-	m_maxFrameTime(0)
+	m_sceneMgr(nullptr)
 {
 	using std::experimental::filesystem::path;
 	using std::experimental::filesystem::current_path;
@@ -55,12 +53,13 @@ void BaseGame::render() {
 }
 
 void BaseGame::run() {
-	const int FRAMES_PER_SECOND = GAME_SPEED;
+	const int FRAMES_PER_SECOND = GAME_STATE_UPDATES_PER_SECOND;
 	const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
 
 	unsigned long nextTick = GetTickCount();
 
 	int sleepTime = 0;
+
 
 	while (true) {
 		if (m_window->shouldClose()) {
@@ -70,16 +69,11 @@ void BaseGame::run() {
 		glfwPollEvents();
 		
 		update();
-
-		double time = TimeUtils::getCurrentTime();
 		render();
-		m_lastFrameTime = TimeUtils::getCurrentTime() - time;
-
-		if (m_lastFrameTime > m_maxFrameTime)
-			m_maxFrameTime = m_lastFrameTime;
 
 		nextTick += SKIP_TICKS;
 		sleepTime = nextTick - GetTickCount();
+
 		if (sleepTime >= 0) {
 			Sleep(sleepTime);
 		}

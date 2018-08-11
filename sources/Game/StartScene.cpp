@@ -33,12 +33,11 @@ void StartScene::update()
 	Intersection intersection;
 	for (const OBB& obb : m_levelMesh->getColliders()) {
 		if (newPlayerObb.intersects(obb, intersection)) {
-			m_playerCamera->getTransform()->setPosition(m_playerCamera->getTransform()->getPosition() + intersection.getDirection() * intersection.getDepth());
-			m_player->getTransform()->setPosition(m_playerCamera->getTransform()->getPosition());
+			m_player->getTransform()->setPosition(m_player->getTransform()->getPosition() + intersection.getDirection() * intersection.getDepth());
 		}
 	}
 
-	Ray downRay(m_playerCamera->getTransform()->getPosition(), vector3(0.0f, -1.0f, 0.0f));
+	Ray downRay(m_player->getTransform()->getPosition(), vector3(0.0f, -1.0f, 0.0f));
 	float distance = 0.0f;
 
 	float minDistance = std::numeric_limits<float>::infinity();
@@ -51,14 +50,23 @@ void StartScene::update()
 	}
 
 	if (minDistance >= 1.7f) {
-		vector3 oldPosition = m_playerCamera->getTransform()->getPosition();
+		vector3 oldPosition = m_player->getTransform()->getPosition();
 
 		oldPosition.y -= 0.30f;
 		oldPosition.y = std::max(oldPosition.y, 1.7f);
 
-		m_playerCamera->getTransform()->setPosition(oldPosition);
 		m_player->getTransform()->setPosition(oldPosition);
 	}
+
+
+	Bone* head = m_player->getSkeleton()->getBone("HumanHead");
+
+	const matrix4& headBoneLocal = head->getCurrentPoseTransform();
+	vector3 boneWorldPosition = m_player->getTransform()->getTransformationMatrix() * vector4(vector3(headBoneLocal[3]), 1.0f);
+
+	m_playerCamera->getTransform()->setOrientation(m_player->getTransform()->getOrientation());
+	m_playerCamera->getTransform()->setPosition(boneWorldPosition);
+
 }
 
 void StartScene::render()
@@ -148,13 +156,25 @@ void StartScene::initializeSceneObjects() {
 
 	m_playerCamera->getTransform()->fixYAxis();
 
-	m_playerCamera->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
+	m_player->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
+	m_playerCamera->getTransform()->setPosition(m_player->getTransform()->getPosition() + vector3(0, 0.5, 0));
 	m_playerCamera->getTransform()->lookAt(0, 0, 10);
 
+	Animation* playerArmsIdle = m_resourceManager->getResource<Animation>("animations_player_arms_idle");
+	playerArmsIdle->setEndBehaviour(Animation::EndBehaviour::Repeat);
+
+	Animation* playerArmsRunning = m_resourceManager->getResource<Animation>("animations_player_arms_running");
+	playerArmsRunning->setSpeedFactor(2.0f);
+	playerArmsRunning->setEndBehaviour(Animation::EndBehaviour::Repeat);
+
+	Animation* playerArmsTaking = m_resourceManager->getResource<Animation>("animations_player_arms_taking");
+	playerArmsTaking->setSpeedFactor(4.0f);
+	playerArmsTaking->setEndBehaviour(Animation::EndBehaviour::Stop);
+
 	std::vector<Animation*> playerAnimations(PlayerController::PLAYER_STATES_COUNT);
-	playerAnimations[(size_t)PlayerController::PlayerState::Idle] = m_resourceManager->getResource<Animation>("animations_player_arms_idle");
-	playerAnimations[(size_t)PlayerController::PlayerState::Running] = m_resourceManager->getResource<Animation>("animations_player_arms_running");
-	playerAnimations[(size_t)PlayerController::PlayerState::Taking] = m_resourceManager->getResource<Animation>("animations_player_arms_taking");
+	playerAnimations[(size_t)PlayerController::PlayerState::Idle] = playerArmsIdle;
+	playerAnimations[(size_t)PlayerController::PlayerState::Running] = playerArmsRunning;
+	playerAnimations[(size_t)PlayerController::PlayerState::Taking] = playerArmsTaking;
 
 	m_playerController = new PlayerController(m_player, m_playerCamera, m_inputManager, playerAnimations);
 	m_playerController->setMovementSpeed(0.15f);

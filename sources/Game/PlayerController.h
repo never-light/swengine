@@ -42,7 +42,7 @@ private:
 	Animator* m_playerAnimator;
 
 private:
-	Player * m_player;
+	Player* m_player;
 	Camera* m_playerCamera;
 
 private:

@@ -1,6 +1,7 @@
 #include "PlayerController.h"
 
 #include <Engine\assertions.h>
+#include <Game\config.h>
 
 PlayerController::PlayerController(Player * player, Camera * camera, InputManager * inputManager, const std::vector<Animation*>& statesAnimations)
 	: m_player(player), 
@@ -11,10 +12,11 @@ PlayerController::PlayerController(Player * player, Camera * camera, InputManage
 {
 	_assert(statesAnimations.size() == PLAYER_STATES_COUNT);
 
+	inputManager->registerEventListener(this);
+
 	m_playerAnimator = new Animator(m_player->getSkeleton());
 	changeState(PlayerState::Idle);
-
-	inputManager->registerEventListener(this);
+	m_playerAnimator->play();
 }
 
 PlayerController::~PlayerController()
@@ -27,51 +29,55 @@ PlayerController::~PlayerController()
 
 void PlayerController::update()
 {
-	m_playerAnimator->update(0.0333f);
+	if (m_currentPlayerState == PlayerState::Taking && m_playerAnimator->isStopped()) {
+		changeState(PlayerState::Idle);
+		m_playerAnimator->play();
+	}
+
+	m_playerAnimator->increaseAnimationTime(1.0f / GAME_STATE_UPDATES_PER_SECOND);
+
+	m_player->applyPose(m_playerAnimator->getAnimatedPose());
 
 	bool needMove = false;
 
 	MousePosition mousePosition = m_inputManager->getMousePosition();
 
-	vector3 position = m_playerCamera->getTransform()->getPosition();
+	m_player->getTransform()->fixYAxis();
+
+	vector3 position = m_player->getTransform()->getPosition();
 	float oldY = position.y;
 
 	if (m_inputManager->isKeyPressed(GLFW_KEY_W)) {
-		position += m_playerCamera->getTransform()->getFrontDirection() * m_movementSpeed;
+		position += m_player->getTransform()->getFrontDirection() * m_movementSpeed;
 		needMove = true;
 	}
 	else if (m_inputManager->isKeyPressed(GLFW_KEY_S)) {
-		position -= m_playerCamera->getTransform()->getFrontDirection() * m_movementSpeed;
+		position -= m_player->getTransform()->getFrontDirection() * m_movementSpeed;
 		needMove = true;
 	}
 
 	if (m_inputManager->isKeyPressed(GLFW_KEY_A)) {
-		position -= m_playerCamera->getTransform()->getRightDirection() * m_movementSpeed;
+		position -= m_player->getTransform()->getRightDirection() * m_movementSpeed;
 		needMove = true;
 	}
 	else if (m_inputManager->isKeyPressed(GLFW_KEY_D)) {
-		position += m_playerCamera->getTransform()->getRightDirection() * m_movementSpeed;
+		position += m_player->getTransform()->getRightDirection() * m_movementSpeed;
 		needMove = true;
 	}
 
-	real currentPitchAngle = glm::degrees(glm::angle(vector3(0, 1, 0), glm::normalize(m_playerCamera->getTransform()->getFrontDirection())));
+	real currentPitchAngle = glm::degrees(glm::angle(vector3(0, 1, 0), glm::normalize(m_player->getTransform()->getFrontDirection())));
 	real pitchOffset = m_mouseSensitivity * mousePosition.y * -1.0f;
 
 	if ((pitchOffset > 0 && currentPitchAngle - pitchOffset > 0.001) || (pitchOffset < 0 && currentPitchAngle - pitchOffset < 179.999))
-		m_playerCamera->getTransform()->pitch(pitchOffset);
+		m_player->getTransform()->pitch(pitchOffset);
 
 	position.y = oldY;
 
-	m_playerCamera->getTransform()->yaw(m_mouseSensitivity * mousePosition.x * -1.0f);
-	m_playerCamera->getTransform()->setPosition(position);
-
-	m_player->getTransform()->setOrientation(m_playerCamera->getTransform()->getOrientation());
-	m_player->getTransform()->yaw(179.9f);
-
-	m_player->getTransform()->setPosition(m_playerCamera->getTransform()->getPosition() - vector3(0, 0.4f, 0.0f));
+	m_player->getTransform()->yaw(m_mouseSensitivity * mousePosition.x * -1.0f);
+	m_player->getTransform()->setPosition(position);
 
 	if (needMove && m_currentPlayerState != PlayerState::Running)
-		changeState(PlayerState::Idle);
+		changeState(PlayerState::Running);
 	
 	if (!needMove && m_currentPlayerState == PlayerState::Running)
 		changeState(PlayerState::Idle);
@@ -110,7 +116,14 @@ PlayerController::PlayerState PlayerController::getCurrentPlayerState() const
 void PlayerController::onKeyPress(Key key, KeyEvent::Modifier mod)
 {
 	if (key == GLFW_KEY_F) {
-		changeState(PlayerState::Taking);
+		if (!m_inputManager->isKeyPressed(GLFW_KEY_W) && 
+			!m_inputManager->isKeyPressed(GLFW_KEY_A) &&
+			!m_inputManager->isKeyPressed(GLFW_KEY_S) &&
+			!m_inputManager->isKeyPressed(GLFW_KEY_D)
+			) 
+		{
+			changeState(PlayerState::Taking);
+		}
 	}
 }
 

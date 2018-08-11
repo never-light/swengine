@@ -28,6 +28,15 @@ Bone* Skeleton::getBone(size_t id) const
 	return const_cast<Bone*>(&m_bones[id]);
 }
 
+Bone * Skeleton::getBone(const std::string & name) const
+{
+	for (const Bone& bone : m_bones)
+		if (bone.getName() == name)
+			return const_cast<Bone*>(&bone);
+
+	return nullptr;
+}
+
 size_t Skeleton::getBonesCount() const
 {
 	return m_bones.size();
@@ -63,4 +72,32 @@ void Skeleton::resetPose()
 const matrix4 & Skeleton::getGlobalInverseTransform() const
 {
 	return m_globalInverseTransform;
+}
+
+void Skeleton::applyPose(const SkeletonPose & pose)
+{
+	applyTransformsToBonesHierarchy(pose, m_rootBone, matrix4());
+}
+
+const matrix4& Skeleton::getLocalBoneTransform(size_t boneId) const
+{
+	return m_bones[boneId].getCurrentPoseTransform();
+}
+
+void Skeleton::applyTransformsToBonesHierarchy(const SkeletonPose& pose, Bone* bone, const matrix4& parentTransform) {
+	matrix4 currentBoneTransform;
+
+	if (!pose.isBoneAffected(bone->getId())) {
+		currentBoneTransform = parentTransform * bone->getRelativeToParentSpaceTransform();
+	}
+	else {
+		currentBoneTransform = parentTransform * pose.getBoneTransform(bone->getId());
+	}
+
+	for (size_t childId : m_bones[bone->getId()].getChildren()) {
+		applyTransformsToBonesHierarchy(pose, &m_bones[childId], currentBoneTransform);
+	}
+
+	if (pose.isBoneAffected(bone->getId()))
+		bone->setCurrentPoseTransform(m_globalInverseTransform * currentBoneTransform * bone->getLocalToBoneSpaceTransform());
 }

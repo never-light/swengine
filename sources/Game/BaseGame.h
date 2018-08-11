@@ -18,7 +18,4 @@ protected:
 
 	InputManager* m_inputMgr;
 	SceneManager* m_sceneMgr;
-
-	double m_lastFrameTime;
-	double m_maxFrameTime;
 };

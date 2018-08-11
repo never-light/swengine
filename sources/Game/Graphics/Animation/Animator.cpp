@@ -3,30 +3,23 @@
 #include <Engine\assertions.h>
 
 Animator::Animator(Skeleton* skeleton)
-	: m_currentAnimation(nullptr), m_skeleton(skeleton), m_behaviour(Behaviour::Stop),
-	m_currentTime(0.0f), m_speed(1.0f)
+	: m_currentAnimation(nullptr), 
+	m_skeleton(skeleton), 
+	m_currentTime(0.0f), 
+	m_currentPose(skeleton->getBonesCount()),
+	m_currentAnimationState(AnimationState::Stopped)
 {
-	_assert(skeleton != nullptr);
+
 }
 
 Animator::~Animator()
 {
 }
 
-float Animator::getSpeed() const
-{
-	return m_speed;
-}
-
-void Animator::setSpeed(float speed)
-{
-	m_speed = speed;
-}
-
 void Animator::setCurrentAnimation(Animation * animation)
 {
 	m_currentAnimation = animation;
-	m_speed = animation->getSpeed();
+	m_currentTime = 0.0f;
 }
 
 Animation * Animator::getCurrentAnimation()
@@ -34,32 +27,30 @@ Animation * Animator::getCurrentAnimation()
 	return m_currentAnimation;
 }
 
-void Animator::setBehaviour(Behaviour behaviour)
+void Animator::increaseAnimationTime(float delta)
 {
-	m_behaviour = behaviour;
+	if (m_currentAnimation == nullptr || m_currentAnimationState == AnimationState::Stopped)
+		return;
+
+	m_currentTime += delta * m_currentAnimation->getSpeed() * m_currentAnimation->getSpeedFactor();
+
+	if (m_currentTime > m_currentAnimation->getDuration()) {
+		if (m_currentAnimation->getEndBehaviour() == Animation::EndBehaviour::Repeat) {
+			m_currentTime -= m_currentAnimation->getDuration();
+		}
+		else {
+			m_currentTime = 0.0f;
+			m_currentAnimationState = AnimationState::Stopped;
+		}
+	}
+
+	updatePose();
 }
 
-Animator::Behaviour Animator::getBehaviour() const
-{
-	return m_behaviour;
-}
+void Animator::updatePose() {
+	m_currentPose.reset();
 
-void Animator::update(float delta)
-{
-	m_currentTime += delta * m_speed;
-
-	if (m_currentTime > m_currentAnimation->getDuration())
-		m_currentTime -= m_currentAnimation->getDuration();
-
-	const std::vector<BoneAnimation>& bonesAnimations = m_currentAnimation->getBonesAnimations();
-
-	size_t bonesCount = m_skeleton->getBonesCount();
-	std::vector<matrix4> bonesTransforms(bonesCount);
-	std::vector<bool> marks(bonesCount, false);
-
-	//for (size_t boneIndex = 0; boneIndex < bonesAnimations.size(); boneIndex++) {
-		//const BoneAnimation& boneAnimation = bonesAnimations[boneIndex];
-	for (const BoneAnimation& boneAnimation : bonesAnimations) {
+	for (const BoneAnimation& boneAnimation : m_currentAnimation->getBonesAnimations()) {
 		size_t boneTransformIndex = m_skeleton->getBones()[boneAnimation.getBoneIndex()].getId();
 
 		const BonePositionKeyFrame* nextPosition = &boneAnimation.getPositionKeyFrames()[0];
@@ -115,11 +106,9 @@ void Animator::update(float delta)
 
 		quaternion interpolatedOrientation = glm::slerp(prevOrientation->orientation, nextOrientation->orientation, orientationsProgress);
 
-		bonesTransforms[boneTransformIndex] = glm::translate(matrix4(), interpolatedPosition) * glm::toMat4(interpolatedOrientation) * glm::scale(vector3(1.0f, 1.0f, 1.0f));
-		marks[boneTransformIndex] = true;
+		matrix4 boneTransform = glm::translate(matrix4(), interpolatedPosition) * glm::toMat4(interpolatedOrientation) * glm::scale(vector3(1.0f, 1.0f, 1.0f));
+		m_currentPose.setBoneTransform(boneTransformIndex, boneTransform);
 	}
-
-	applyTransformsToBonesHierarchy(bonesTransforms, marks, m_skeleton->getRootBone(), matrix4());
 }
 
 bool Animator::isPlaying() const
@@ -132,26 +121,17 @@ bool Animator::isStopped() const
 	return m_currentAnimationState == AnimationState::Stopped;
 }
 
-void Animator::resetAnimation()
+void Animator::play()
 {
-	m_skeleton->resetPose();
+	m_currentAnimationState = AnimationState::Playing;
 }
 
-void Animator::applyTransformsToBonesHierarchy(const std::vector<matrix4>& transforms, const std::vector<bool>& marks, Bone* bone, const matrix4& parentTransform) {
-	matrix4 currentBoneTransform;
+void Animator::stop()
+{
+	m_currentAnimationState = AnimationState::Stopped;
+}
 
-	if (!marks[bone->getId()]) {
-		currentBoneTransform = parentTransform * bone->getRelativeToParentSpaceTransform();
-	}
-	else {
-		currentBoneTransform = parentTransform * transforms[bone->getId()];
-	}
-
-	for (Bone* childBone : m_skeleton->getChildBones(bone->getId())) {
-		applyTransformsToBonesHierarchy(transforms, marks, childBone, currentBoneTransform);
-	}
-
-	if (marks[bone->getId()])
-		//bone->setCurrentPoseTransform(currentBoneTransform * bone->getLocalToBoneSpaceTransform());
-		bone->setCurrentPoseTransform(m_skeleton->getGlobalInverseTransform() * currentBoneTransform * bone->getLocalToBoneSpaceTransform());
-}   
+const SkeletonPose & Animator::getAnimatedPose() const
+{
+	return m_currentPose;
+}

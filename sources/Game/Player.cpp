@@ -40,3 +40,8 @@ Skeleton* Player::getSkeleton() const
 {
 	return m_armsMesh->getSkeleton();
 }
+
+void Player::applyPose(const SkeletonPose & pose)
+{
+	m_armsMesh->getSkeleton()->applyPose(pose);
+}
