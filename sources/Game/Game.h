@@ -22,6 +22,7 @@ private:
 
 	void initializeInternalConsole();
 	void initializeConsoleGUI();
+	void addConsoleCommandHotkey(Key key, const std::string& command);
 
 	void loadScenes();
 
@@ -38,6 +39,8 @@ private:
 	GUIConsoleWidget* m_guiConsoleWidget;
 	ConsoleCommandsHandler* m_consoleCommandsHandler;
 	ConsoleLogger* m_consoleLogger;
+	
+	std::unordered_map<Key, std::string> m_consoleCommandsHotkeys;
 
 	MainMenu* m_mainMenu;
 

@@ -94,6 +94,13 @@ void Game::onKeyPress(Key key, KeyEvent::Modifier mod) {
 			m_guiConsoleWidget->show();
 		}
 	}
+
+	if (mod == KeyEvent::Modifier::Control) {
+		auto hotkeyCommandIt = m_consoleCommandsHotkeys.find(key);
+
+		if (hotkeyCommandIt != m_consoleCommandsHotkeys.end())
+			m_console->executeCommand(hotkeyCommandIt->second);
+	}
 }
 
 void Game::preLoadCommonResources()
@@ -112,6 +119,9 @@ void Game::initializeInternalConsole()
 	m_console = new Console();
 	m_consoleCommandsHandler = new ConsoleCommandsHandler(m_console);
 	m_consoleLogger = new ConsoleLogger(m_console);
+
+	addConsoleCommandHotkey(GLFW_KEY_O, "set_camera free");
+	addConsoleCommandHotkey(GLFW_KEY_P, "set_camera fps");
 }
 
 void Game::initializeConsoleGUI()
@@ -136,6 +146,11 @@ void Game::initializeConsoleGUI()
 	m_guiConsoleWidget->hide();
 
 	m_consoleCommandsHandler->attachGUIConsoleWidget(m_guiConsoleWidget);
+}
+
+void Game::addConsoleCommandHotkey(Key key, const std::string & command)
+{
+	m_consoleCommandsHotkeys.insert({ key, command });
 }
 
 void Game::loadScenes()
