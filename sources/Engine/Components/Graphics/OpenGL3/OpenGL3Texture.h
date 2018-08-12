@@ -22,6 +22,7 @@ public:
 	virtual void setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, PixelDataType pixelDataType, const std::byte* data) override;
 
 	GLuint getTexturePointer() const; 
+	GLenum getBindingTarget() const;
 
 	virtual void generateMipMaps() override;
 

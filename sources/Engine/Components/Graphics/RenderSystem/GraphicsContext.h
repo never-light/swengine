@@ -6,6 +6,8 @@
 #include <Engine\Components\Math\types.h>
 #include <Engine\Components\Math\Geometry\Rect.h>
 
+#include "RenderTarget.h"
+
 class GraphicsContext {
 public:
 	enum class DepthFunction {
@@ -20,7 +22,7 @@ public:
 		Zero, One, SrcAlpha, OneMinusSrcAlpha
 	};
 public:
-	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
+	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger);
 	virtual ~GraphicsContext();
 
 	virtual void enableDepthTest() = 0;
@@ -43,7 +45,6 @@ public:
 
 	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) = 0;
 
-	virtual void clear(const vector3& color) = 0;
 	virtual void swapBuffers() = 0;
 
 	virtual void enableWireframeRendering() = 0;
@@ -52,11 +53,23 @@ public:
 	unsigned int getViewportWidth() const;
 	unsigned int getViewportHeight() const;
 
+	RenderTarget* getWindowRenderTarget() const;
+
+	void setClearColor(float r, float g, float b, float a = 1.0f);
+	void setClearColor(const vector3& color);
+	void setClearColor(const vector4& color);
+
+	void setDepthClearValue(float depthValue);
+	void setStencilClearValue(int stencilValue);
+
+	void clear(unsigned int mode);
 protected:
 	Window* m_window;
 
 	unsigned int m_viewportWidth;
 	unsigned int m_viewportHeight;
+
+	RenderTarget* m_windowRenderTarget;
 
 	Logger* m_logger;
 };

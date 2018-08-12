@@ -1,10 +1,15 @@
 #include "GraphicsResourceFactory.h"
 
+#include <Engine\Components\Graphics\OpenGL3\OpenGL3WindowRenderTarget.h>
+
 GraphicsResourceFactory* GraphicsResourceFactory::m_instance = nullptr;
 
 GraphicsContext * GraphicsResourceFactory::createGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger)
 {
-	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight, logger);
+	RenderTarget* windowRenderTarget = new OpenGL3WindowRenderTarget();
+	windowRenderTarget->create();
+
+	return new OpenGL3GraphicsContext(window, viewportWidth, viewportHeight, windowRenderTarget, logger);
 }
 
 Buffer * GraphicsResourceFactory::createBuffer(Buffer::Type type, Buffer::Usage usage)
@@ -25,6 +30,11 @@ Texture * GraphicsResourceFactory::createTexture()
 GpuProgram * GraphicsResourceFactory::createGpuProgram()
 {
 	return new OpenGL3GpuProgram();
+}
+
+RenderTarget * GraphicsResourceFactory::createRenderTarget()
+{
+	return new OpenGL3RenderTarget();
 }
 
 void GraphicsResourceFactory::initialize(GraphicsAPI api)

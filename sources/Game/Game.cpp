@@ -73,7 +73,8 @@ void Game::update() {
 }
 
 void Game::render() {
-	m_graphicsContext->clear(vector3(0.6, 0.6, 0.8));
+	m_graphicsContext->setClearColor(0.6f, 0.6f, 0.8f);
+	m_graphicsContext->clear(RenderTarget::CLEAR_COLOR | RenderTarget::CLEAR_DEPTH);
 
 	m_sceneMgr->render();
 	m_guiMgr->render();

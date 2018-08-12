@@ -3,8 +3,8 @@
 #include <Engine\Exceptions\EngineException.h>
 #include "OpenGL3Errors.h"
 
-OpenGL3GraphicsContext::OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger)
-	: GraphicsContext(window, viewportWidth, viewportHeight, logger)
+OpenGL3GraphicsContext::OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger)
+	: GraphicsContext(window, viewportWidth, viewportHeight, windowRenderTarget, logger)
 {
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
@@ -134,11 +134,6 @@ void OpenGL3GraphicsContext::setFaceCullingMode(FaceCullingMode mode)
 		glMode = GL_FRONT_AND_BACK;
 
 	glCullFace(glMode);
-}
-
-void OpenGL3GraphicsContext::clear(const vector3& color) {
-	glClearColor(color.r, color.g, color.b, 1.0f);
-	OPENGL3_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void OpenGL3GraphicsContext::swapBuffers() {

@@ -6,24 +6,39 @@
 #include <Engine\assertions.h>
 
 std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::m_internalFormatMap{
+	{ Texture::InternalFormat::SRGB8, GL_SRGB8 },
+	{ Texture::InternalFormat::SRGBA8, GL_SRGB8_ALPHA8 },
+
 	{ Texture::InternalFormat::R8, GL_R8 },
 	{ Texture::InternalFormat::RG8, GL_RG8 },
 	{ Texture::InternalFormat::RGB8, GL_RGB8 },
 	{ Texture::InternalFormat::RGBA8, GL_RGBA8 },
-	{ Texture::InternalFormat::SRGB8, GL_SRGB8 },
-	{ Texture::InternalFormat::SRGBA8, GL_SRGB8_ALPHA8 },
+
+	{ Texture::InternalFormat::R16, GL_R16 },
+	{ Texture::InternalFormat::RG16, GL_RG16 },
+	{ Texture::InternalFormat::RGB16, GL_RGB16 },
+	{ Texture::InternalFormat::RGBA16, GL_RGBA16 },
+
+	{ Texture::InternalFormat::R16F, GL_R16F },
+	{ Texture::InternalFormat::RG16F, GL_RG16F },
+	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
+	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
+
+	{ Texture::InternalFormat::Depth24Stencil8, GL_DEPTH24_STENCIL8 }
 };
 
 std::unordered_map<Texture::PixelFormat, GLenum> OpenGL3Texture::m_pixelFormatMap{
 	{ Texture::PixelFormat::R, GL_RED },
 	{ Texture::PixelFormat::RG, GL_RG },
 	{ Texture::PixelFormat::RGB, GL_RGB },
-	{ Texture::PixelFormat::RGBA, GL_RGBA }
+	{ Texture::PixelFormat::RGBA, GL_RGBA },
+	{ Texture::PixelFormat::DepthStencil, GL_DEPTH_STENCIL }
 };
 
 std::unordered_map<Texture::PixelDataType, GLenum> OpenGL3Texture::m_pixelDataTypeMap{
 	{ Texture::PixelDataType::Float, GL_FLOAT },
-	{ Texture::PixelDataType::UnsignedByte, GL_UNSIGNED_BYTE }
+	{ Texture::PixelDataType::UnsignedByte, GL_UNSIGNED_BYTE },
+	{ Texture::PixelDataType::UnsignedInt24_8, GL_UNSIGNED_INT_24_8 }
 };
 
 OpenGL3Texture::OpenGL3Texture()
@@ -92,7 +107,12 @@ void OpenGL3Texture::setData(CubeMapFace cubeMapFace, PixelFormat pixelFormat, P
 GLuint OpenGL3Texture::getTexturePointer() const
 {
 	return m_texture;
-} 
+}
+GLenum OpenGL3Texture::getBindingTarget() const
+{
+	return m_bindingTarget;
+}
+
 
 void OpenGL3Texture::generateMipMaps() {
 	if (m_target == Target::_2D)

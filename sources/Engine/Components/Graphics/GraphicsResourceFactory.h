@@ -6,6 +6,7 @@
 #include "OpenGL3\OpenGL3Texture.h"
 #include "OpenGL3\OpenGL3GpuProgram.h"
 #include "OpenGL3\OpenGL3GeometryStore.h"
+#include "OpenGL3\OpenGL3RenderTarget.h"
 
 #include "graphicsApiType.h"
 
@@ -18,6 +19,7 @@ public:
 	Texture* createTexture();
 	GpuProgram* createGpuProgram();
 
+	RenderTarget* createRenderTarget();
 public:
 	static void initialize(GraphicsAPI api);
 	static void destroy();

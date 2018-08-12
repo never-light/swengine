@@ -7,7 +7,7 @@
 
 class OpenGL3GraphicsContext : public GraphicsContext {
 public:
-	OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, Logger* logger);
+	OpenGL3GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger);
 	~OpenGL3GraphicsContext();
 
 	virtual void enableDepthTest() override;
@@ -33,7 +33,6 @@ public:
 
 	virtual void setScissorRectangle(const Rect& rectangle) override;
 
-	virtual void clear(const vector3& color) override;
 	virtual void swapBuffers() override;
 private:
 	static void APIENTRY debugOutputCallback(GLenum source,

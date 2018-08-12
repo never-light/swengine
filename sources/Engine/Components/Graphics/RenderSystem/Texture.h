@@ -9,15 +9,18 @@ public:
 	};
 
 	enum class InternalFormat {
-		R8, RG8, RGB8, RGBA8, SRGB8, SRGBA8
+		R8, RG8, RGB8, RGBA8, SRGB8, SRGBA8,
+		R16, RG16, RGB16, RGBA16,
+		R16F, RG16F, RGB16F, RGBA16F,
+		Depth24Stencil8
 	};
 
 	enum class PixelFormat {
-		R, RG, RGB, RGBA
+		R, RG, RGB, RGBA, DepthStencil
 	};
 
 	enum class PixelDataType {
-		UnsignedByte, Float
+		UnsignedByte, Float, UnsignedInt24_8
 	};
 
 	enum class CubeMapFace {
