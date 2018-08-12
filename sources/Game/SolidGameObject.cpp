@@ -1,7 +1,8 @@
 #include "SolidGameObject.h"
 
-SolidGameObject::SolidGameObject(SolidMesh* mesh)
+SolidGameObject::SolidGameObject(SolidMesh* mesh, BaseMaterial* baseMaterial)
 	: GameObject(), 
+	Renderable(baseMaterial),
 	m_mesh(mesh), 
 	m_transform(new Transform())
 {
@@ -15,22 +16,11 @@ SolidGameObject::~SolidGameObject()
 	delete m_transform;
 }
 
-void SolidGameObject::render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) {
-	gpuProgram->setParameter("transform.localToWorld", m_transform->getTransformationMatrix());
+void SolidGameObject::render() {
+	if (m_baseMaterial->isTransformsDataRequired())
+		m_baseMaterial->getGpuProgram()->setParameter("transform.localToWorld", m_transform->getTransformationMatrix());
 
-	if (m_mesh->hasSkeleton()) {
-		Skeleton* skeleton = m_mesh->getSkeleton();
-		size_t bonesCount = skeleton->getBonesCount();
-
-		size_t boneIndex = 0;
-
-		for (const Bone& bone : skeleton->getBones()) {
-			gpuProgram->setParameter("bonesTransforms[" + std::to_string(boneIndex) + "]", bone.getCurrentPoseTransform());
-			boneIndex++;
-		}
-	}
-
-	m_mesh->render(graphicsContext, gpuProgram);
+	m_mesh->render(m_baseMaterial);
 }
 
 Transform * SolidGameObject::getTransform() const

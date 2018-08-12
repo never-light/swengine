@@ -1,14 +1,15 @@
 #pragma once
 
 #include "GameObject.h"
-#include "Graphics\SolidMesh.h"
+#include <Game\Graphics\SolidMesh.h>
+#include <Game\Graphics\Renderable.h>
 
-class Player : public GameObject {
+class Player : public GameObject, public Renderable {
 public:
-	Player(SolidMesh* armsMesh);
+	Player(SolidMesh* armsMesh, BaseMaterial* baseMaterial);
 	virtual ~Player();
 
-	virtual void render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) override;
+	virtual void render() override;
 	Transform* getTransform() const;
 
 	OBB getWorldPlacedCollider() const;

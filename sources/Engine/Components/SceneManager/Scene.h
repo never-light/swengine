@@ -26,7 +26,7 @@ public:
 	virtual void activate();
 	virtual void deactivate();
 
-	void setActiveCamera(Camera* camera);
+	virtual void setActiveCamera(Camera* camera);
 	Camera* getActiveCamera() const;
 
 	Camera* createCamera(const std::string&);

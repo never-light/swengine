@@ -9,6 +9,4 @@ class GameObject : public SceneObject {
 public:
 	GameObject();
 	virtual ~GameObject();
-
-	virtual void render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) = 0;
 };

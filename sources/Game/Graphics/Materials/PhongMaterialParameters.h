@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Material.h"
+#include "MaterialParameters.h"
+
 #include <Engine\Components\Math\types.h>
 #include <Engine\Components\Graphics\RenderSystem\Texture.h>
 
-class DefaultMaterial : public Material {
+class PhongMaterialParameters : public MaterialParameters {
 public:
-	DefaultMaterial();
-	virtual ~DefaultMaterial();
+	PhongMaterialParameters();
+	virtual ~PhongMaterialParameters();
 
 	vector3 getEmissiveColor() const;
 	void setEmissiveColor(const vector3& color);

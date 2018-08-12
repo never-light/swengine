@@ -8,6 +8,9 @@
 #include <Game\Graphics\Animation\Animator.h>
 #include <Game\Console\Console.h>
 
+#include <Game\Graphics\LevelRenderer.h>
+#include <Game\Graphics\Materials\PhongLightingMaterial.h>
+
 #include "SolidGameObject.h"
 #include "PlayerController.h"
 #include "FreeCameraController.h"
@@ -25,6 +28,7 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 
+	virtual void setActiveCamera(Camera* camera);
 protected:
 	void loadResources();
 	void initializeSceneObjects();
@@ -32,6 +36,11 @@ protected:
 
 private:
 	void changeCameraCommandHandler(Console* console, const std::vector<std::string>& args);
+
+protected:
+	PhongLightingMaterial * m_phongLightingBaseMaterial;
+
+	LevelRenderer * m_levelRenderer;
 
 protected:
 	PlayerController* m_playerController;
@@ -48,8 +57,6 @@ protected:
 	InputController* m_activeInputController;
 protected:
 	GpuProgram* m_lightingGpuProgram;
-	GpuProgram* m_animatedLightingGpuProgram;
-
 	GpuProgram* m_boundingVolumeGpuProgram;
 
 	bool m_isCollision = false;

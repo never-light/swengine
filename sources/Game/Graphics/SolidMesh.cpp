@@ -2,12 +2,12 @@
 
 SolidMesh::SolidMesh(GeometryStore * geometry, 
 	const std::vector<size_t>& groupsOffsets, 
-	const std::vector<DefaultMaterial*>& materials,
+	const std::vector<MaterialParameters*>& materials,
 	const std::vector<OBB>& colliders,
 	Skeleton* skeleton)
 	: m_geometry(geometry), 
 	m_groupsOffsets(groupsOffsets),
-	m_materials(materials),
+	m_materialsParameters(materials),
 	m_colliders(colliders),
 	m_skeleton(skeleton)
 {
@@ -15,15 +15,32 @@ SolidMesh::SolidMesh(GeometryStore * geometry,
 
 SolidMesh::~SolidMesh()
 {
+	for (MaterialParameters* parameters : m_materialsParameters)
+		delete parameters;
+
 	if (m_skeleton != nullptr)
 		delete m_skeleton;
 }
 
-void SolidMesh::render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) {
+void SolidMesh::render(BaseMaterial* baseMaterial) {
+	bool isAnimated = m_skeleton != nullptr;
+
+	GpuProgram* gpuProgram = baseMaterial->getGpuProgram();
+	gpuProgram->setParameter("animation.isAnimated", isAnimated);
+
+	if (isAnimated) {
+		size_t boneIndex = 0;
+
+		for (const Bone& bone : m_skeleton->getBones()) {
+			baseMaterial->getGpuProgram()->setParameter("animation.bones[" + std::to_string(boneIndex) + "]", bone.getCurrentPoseTransform());
+			boneIndex++;
+		}
+	}
+
 	m_geometry->bind();
 
 	for (size_t i = 0; i < m_groupsOffsets.size(); i++) {
-		bindMaterial(gpuProgram, m_materials[i]);
+		baseMaterial->applySpecifier(m_materialsParameters[i]);
 		
 		size_t groupOffset = (i == 0) ? 0 : m_groupsOffsets[i - 1];
 		size_t count = (i == 0) ? m_groupsOffsets[0] : m_groupsOffsets[i] - m_groupsOffsets[i - 1];
@@ -46,39 +63,4 @@ bool SolidMesh::hasSkeleton() const
 Skeleton * SolidMesh::getSkeleton() const
 {
 	return m_skeleton;
-}
-
-void SolidMesh::bindMaterial(GpuProgram* gpuProgram, const DefaultMaterial* material) {
-	gpuProgram->setParameter("material.diffuseColor", material->getDiffuseColor());
-	gpuProgram->setParameter("material.specularColor", material->getSpecularColor());
-	gpuProgram->setParameter("material.specularFactor", material->getSpecularFactor());
-	gpuProgram->setParameter("material.emissiveColor", material->getEmissiveColor());
-
-	Texture* diffuseTexture = material->getDiffuseTexture();
-
-	if (diffuseTexture != nullptr) {
-		diffuseTexture->bind(0);
-
-		gpuProgram->setParameter("material.useDiffuseTexture", true);
-		gpuProgram->setParameter("material.diffuseTexture", 0);
-	}
-	else {
-		gpuProgram->setParameter("material.useDiffuseTexture", false);
-	}
-
-	Texture* specularTexture = material->getSpecularTexture();
-
-	if (specularTexture != nullptr) {
-		specularTexture->bind(1);
-		gpuProgram->setParameter("material.useSpecularTexture", true);
-		gpuProgram->setParameter("material.specularTexture", 1);
-	}
-
-	Texture* normalMap = material->getNormalMap();
-
-	if (normalMap != nullptr) {
-		normalMap->bind(2);
-		gpuProgram->setParameter("material.useNormalMapping", true);
-		gpuProgram->setParameter("material.normalMap", 2);
-	}
 }

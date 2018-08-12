@@ -1,14 +1,15 @@
 #pragma once
 
 #include "GameObject.h"
-#include "Graphics\SolidMesh.h"
+#include <Game\Graphics\SolidMesh.h>
+#include <Game\Graphics\Renderable.h>
 
-class SolidGameObject : public GameObject {
+class SolidGameObject : public GameObject, public Renderable {
 public:
-	SolidGameObject(SolidMesh* mesh);
+	SolidGameObject(SolidMesh* mesh, BaseMaterial* baseMaterial);
 	virtual ~SolidGameObject();
 
-	virtual void render(GraphicsContext* graphicsContext, GpuProgram* gpuProgram) override;
+	virtual void render() override;
 
 	Transform* getTransform() const;
 

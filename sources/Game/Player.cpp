@@ -2,8 +2,9 @@
 
 #include <Engine\assertions.h>
 
-Player::Player(SolidMesh * armsMesh)
-	: m_armsMesh(armsMesh), 
+Player::Player(SolidMesh * armsMesh, BaseMaterial* baseMaterial)
+	: Renderable(baseMaterial),
+	m_armsMesh(armsMesh), 
 	m_transform(new Transform())
 {
 	_assert(m_armsMesh->getColliders().size() == 1);
@@ -15,10 +16,12 @@ Player::~Player()
 	delete m_transform;
 }
 
-void Player::render(GraphicsContext* graphicsContext, GpuProgram * gpuProgram)
+void Player::render()
 {
-	gpuProgram->setParameter("transform.localToWorld", m_transform->getTransformationMatrix());
-	m_armsMesh->render(graphicsContext, gpuProgram);
+	if (m_baseMaterial->isTransformsDataRequired())
+		m_baseMaterial->getGpuProgram()->setParameter("transform.localToWorld", m_transform->getTransformationMatrix());
+
+	m_armsMesh->render(m_baseMaterial);
 }
 
 Transform * Player::getTransform() const

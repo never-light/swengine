@@ -73,10 +73,10 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 		std::vector<MaterialDescription> meshMaterials(description.materialsCount);
 		in.read((char*)meshMaterials.data(), sizeof(MaterialDescription) * description.materialsCount);
 
-		std::vector<DefaultMaterial*> connectedMaterials;
+		std::vector<MaterialParameters*> connectedMaterialsParameters;
 
 		for (const auto& material : meshMaterials)
-			connectedMaterials.push_back(processConnectedMaterial(material));
+			connectedMaterialsParameters.push_back(processConnectedMaterial(material));
 
 		// Colliders
 		std::vector<ColliderDescription> collidersDescriptions(description.collidersCount);
@@ -211,7 +211,7 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 
 		geometryStore->create();
 
-		return new SolidMesh(geometryStore, partsOffsets, connectedMaterials, colliders, skeleton);
+		return new SolidMesh(geometryStore, partsOffsets, connectedMaterialsParameters, colliders, skeleton);
 	}
 	catch (const std::ifstream::failure& failture) {
 		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), failture.what(), __FILE__, __LINE__, __FUNCTION__);
@@ -224,34 +224,29 @@ Resource * SolidMeshLoader::load(const std::string & filename)
 	}
 }
 
-DefaultMaterial* SolidMeshLoader::processConnectedMaterial(const MaterialDescription& materialDescription)
+PhongMaterialParameters* SolidMeshLoader::processConnectedMaterial(const MaterialDescription& materialDescription)
 {
-	if (m_resourceManager->isResourceLoaded(materialDescription.name))
-		return dynamic_cast<DefaultMaterial*>(m_resourceManager->getResource<Material>(materialDescription.name));
+	PhongMaterialParameters* materialParameters = new PhongMaterialParameters();
 
-	DefaultMaterial* material = new DefaultMaterial();
+	materialParameters->setEmissiveColor(materialDescription.emissiveColor);
+	materialParameters->setDiffuseColor(materialDescription.diffuseColor);
 
-	material->setEmissiveColor(materialDescription.emissiveColor);
-	material->setDiffuseColor(materialDescription.diffuseColor);
-
-	material->setSpecularColor(materialDescription.specularColor);
-	material->setSpecularFactor(materialDescription.specularFactor);
+	materialParameters->setSpecularColor(materialDescription.specularColor);
+	materialParameters->setSpecularFactor(materialDescription.specularFactor);
 
 	if (!std::string(materialDescription.diffuseMap).empty()) {
-		material->setDiffuseTexture(processConnectedTexture(materialDescription.diffuseMap));
+		materialParameters->setDiffuseTexture(processConnectedTexture(materialDescription.diffuseMap));
 	}
 
 	if (!std::string(materialDescription.specularMap).empty()) {
-		material->setSpecularTexture(processConnectedTexture(materialDescription.specularMap));
+		materialParameters->setSpecularTexture(processConnectedTexture(materialDescription.specularMap));
 	}
 
 	if (!std::string(materialDescription.normalMap).empty()) {
-		material->setNormalMap(processConnectedTexture(materialDescription.normalMap));
+		materialParameters->setNormalMap(processConnectedTexture(materialDescription.normalMap));
 	}
 
-	m_resourceManager->registerResource(materialDescription.name, material);
-
-	return material;
+	return materialParameters;
 }
 
 Texture * SolidMeshLoader::processConnectedTexture(const std::string & filename)

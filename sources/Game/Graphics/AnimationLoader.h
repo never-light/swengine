@@ -3,8 +3,6 @@
 #include <Engine\Components\ResourceManager\ResourceLoader.h>
 #include <Engine\Components\ResourceManager\ResourceManager.h>
 
-#include "DefaultMaterial.h"
-
 #define SOLID_MESH_LOADER_MAX_NAMES_LENGTH 256
 #define SOLID_MESH_LOADER_MAX_PATH_LENGTH 256
 

@@ -13,7 +13,9 @@ StartScene::StartScene(GraphicsContext* graphicsContext,
 	m_inputManager(inputManager),
 	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_level(nullptr),
-	m_activeInputController(nullptr)
+	m_activeInputController(nullptr),
+	m_levelRenderer(new LevelRenderer(graphicsContext, graphicsResourceFactory)),
+	m_phongLightingBaseMaterial(nullptr)
 {
 	loadResources();
 	initializeSceneObjects();
@@ -24,11 +26,15 @@ StartScene::StartScene(GraphicsContext* graphicsContext,
 
 StartScene::~StartScene()
 {
+	if (m_phongLightingBaseMaterial != nullptr)
+		delete m_phongLightingBaseMaterial;
+
+	delete m_levelRenderer;
+
 	delete m_level;
 
 	delete m_playerController;
 	delete m_freeCameraController;
-
 	delete m_player;
 
 	delete m_boxPrimitive;
@@ -80,62 +86,18 @@ void StartScene::update()
 
 void StartScene::render()
 {
-	m_graphicsContext->enableDepthTest();
+	m_levelRenderer->render();
+}
 
-	m_lightingGpuProgram->bind();
-	m_lightingGpuProgram->setParameter("scene.viewTransform", getActiveCamera()->getViewMatrix());
-	m_lightingGpuProgram->setParameter("scene.projectionTransform", getActiveCamera()->getProjectionMatrix());
-
-	m_graphicsContext->enableFaceCulling();
-	m_graphicsContext->setFaceCullingMode(GraphicsContext::FaceCullingMode::Back);
-
-	// Draw static objects
-	m_level->render(m_graphicsContext, m_lightingGpuProgram);
-
-	// Draw animated objects
-	m_animatedLightingGpuProgram->bind();
-	m_animatedLightingGpuProgram->setParameter("scene.viewTransform", getActiveCamera()->getViewMatrix());
-	m_animatedLightingGpuProgram->setParameter("scene.projectionTransform", getActiveCamera()->getProjectionMatrix());
-
-	for (size_t boneIndex = 0; boneIndex < m_playerMesh->getSkeleton()->getBonesCount(); boneIndex++) {
-		m_animatedLightingGpuProgram->setParameter("bonesTransforms[" + std::to_string(boneIndex) + "]", m_playerMesh->getSkeleton()->getBones()[boneIndex].getCurrentPoseTransform());
-
-	}
-
-	m_player->render(m_graphicsContext, m_animatedLightingGpuProgram);
-
-	// Draw bounding volumes
-	m_graphicsContext->enableWireframeRendering();
-	m_graphicsContext->disableFaceCulling();
-	m_boundingVolumeGpuProgram->bind();
-	m_boundingVolumeGpuProgram->setParameter("scene.viewTransform", getActiveCamera()->getViewMatrix());
-	m_boundingVolumeGpuProgram->setParameter("scene.projectionTransform", getActiveCamera()->getProjectionMatrix());
-
-	m_boundingVolumeGpuProgram->setParameter("material.color", vector3(1.0, 1.0, 1.0));
-
-	matrix4 levelTransformationMatrix = m_level->getTransform()->getTransformationMatrix();
-
-	for (const OBB& collider : m_levelMesh->getColliders()) {
-		m_boundingVolumeGpuProgram->setParameter("transform.localToWorld", levelTransformationMatrix);
-
-		m_boxPrimitive->setVertices(collider.getVertices());
-		m_boxPrimitive->render();
-	}
-
-	if (m_isCollision)
-		m_boundingVolumeGpuProgram->setParameter("material.color", vector3(0.0, 1.0, 0.0));
-
-	m_boundingVolumeGpuProgram->setParameter("transform.localToWorld", m_player->getTransform()->getTransformationMatrix());
-	m_boxPrimitive->setVertices(m_playerMesh->getColliders()[0].getVertices());
-
-	m_graphicsContext->disableWireframeRendering();
+void StartScene::setActiveCamera(Camera * camera)
+{
+	Scene::setActiveCamera(camera);
+	m_levelRenderer->setActiveCamera(camera);
 }
 
 void StartScene::loadResources()
 {
 	m_lightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong.fx");
-	m_animatedLightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong_animated.fx");
-
 	m_boundingVolumeGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/bounding_volume.fx");
 
 	m_levelMesh = m_resourceManager->load<SolidMesh>("resources/models/level.mod", "meshes_level");
@@ -148,14 +110,15 @@ void StartScene::loadResources()
 }
 
 void StartScene::initializeSceneObjects() {
-	m_level = new SolidGameObject(m_levelMesh);
-	this->registerSceneObject(m_level);
+	m_phongLightingBaseMaterial = new PhongLightingMaterial("materials.phong_base", m_lightingGpuProgram);
+
+	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
+	registerSceneObject(m_level);
 
 	// Player initialization
-	m_player = new Player(m_playerMesh);
+	m_player = new Player(m_playerMesh, m_phongLightingBaseMaterial);
 	m_player->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
-
-	this->registerSceneObject(m_player);
+	registerSceneObject(m_player);
 
 	m_playerCamera = createCamera("playerCamera");
 	setActiveCamera(m_playerCamera);
@@ -201,6 +164,12 @@ void StartScene::initializeSceneObjects() {
 	m_freeCameraController = new FreeCameraController(m_freeCamera, m_inputManager);
 
 	initializePrimitives();
+
+	// Register objects in level renderer
+	m_levelRenderer->registerBaseMaterial(m_phongLightingBaseMaterial);
+
+	m_levelRenderer->addRenderableObject(m_level);
+	m_levelRenderer->addRenderableObject(m_player);
 }
 
 void StartScene::initializePrimitives()
