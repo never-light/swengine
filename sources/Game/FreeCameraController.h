@@ -18,7 +18,7 @@ public:
 	float getMouseSensitivity() const;
 
 private:
-	float m_movementSpeed = 0.5f;
+	float m_movementSpeed = 0.15f;
 	float m_mouseSensitivity = 0.2f;
 
 private:

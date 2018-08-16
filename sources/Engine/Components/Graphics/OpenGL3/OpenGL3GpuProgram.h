@@ -24,6 +24,7 @@ public:
 	void setParameter(const std::string& name, bool value) override;
 	void setParameter(const std::string& name, int value) override;
 	void setParameter(const std::string& name, float value) override;
+	void setParameter(const std::string& name, const vector2& value) override;
 	void setParameter(const std::string& name, const vector3& value) override;
 	void setParameter(const std::string& name, const vector4& value) override;
 	void setParameter(const std::string& name, const matrix4& value) override;

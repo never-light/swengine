@@ -24,6 +24,11 @@ std::unordered_map<Texture::InternalFormat, GLint> OpenGL3Texture::m_internalFor
 	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
 	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
 
+	{ Texture::InternalFormat::R32F, GL_R32F },
+	{ Texture::InternalFormat::RG32F, GL_RG32F },
+	{ Texture::InternalFormat::RGB32F, GL_RGB32F },
+	{ Texture::InternalFormat::RGBA32F, GL_RGBA32F },
+
 	{ Texture::InternalFormat::Depth24Stencil8, GL_DEPTH24_STENCIL8 }
 };
 

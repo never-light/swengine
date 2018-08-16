@@ -115,6 +115,11 @@ void OpenGL3GpuProgram::setParameter(const std::string& parameterName, float par
 	OPENGL3_CALL(glUniform1f(getUniformLocation(parameterName), parameterValue));
 }
 
+void OpenGL3GpuProgram::setParameter(const std::string & parameterName, const vector2 & parameterValue)
+{
+	OPENGL3_CALL(glUniform2fv(getUniformLocation(parameterName), 1, &parameterValue[0]));
+}
+
 void OpenGL3GpuProgram::setParameter(const std::string& parameterName, const vector3& parameterValue) {
 	OPENGL3_CALL(glUniform3fv(getUniformLocation(parameterName), 1, &parameterValue[0]));
 }

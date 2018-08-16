@@ -4,7 +4,10 @@ BaseMaterial::BaseMaterial(const std::string & name,
 	GpuProgram * gpuProgram)
 	: m_name(name),
 	m_gpuProgram(gpuProgram),
-	m_graphicsPipelineState()
+	m_graphicsPipelineState(),
+	m_supportDeferred(false),
+	m_lightsDataRequired(false),
+	m_transformsDataRequired(false)
 {
 }
 
@@ -29,12 +32,17 @@ std::string BaseMaterial::getName() const
 
 bool BaseMaterial::isTransformsDataRequired() const
 {
-	return m_lightsDataRequired;
+	return m_transformsDataRequired;
 }
 
 bool BaseMaterial::isLightsDataRequired() const
 {
 	return m_lightsDataRequired;
+}
+
+bool BaseMaterial::isSupportDeferred() const
+{
+	return m_supportDeferred;
 }
 
 GpuProgram * BaseMaterial::getGpuProgram() const

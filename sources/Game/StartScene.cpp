@@ -1,6 +1,9 @@
 #include "StartScene.h"
 
 #include <Engine\Utils\time.h>
+#include <Engine\Components\Math\Random.h>
+#include <Engine\Utils\string.h>
+#include <Engine\Utils\io.h>
 
 #include <iostream>
 
@@ -14,18 +17,34 @@ StartScene::StartScene(GraphicsContext* graphicsContext,
 	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_level(nullptr),
 	m_activeInputController(nullptr),
-	m_levelRenderer(new LevelRenderer(graphicsContext, graphicsResourceFactory)),
+	m_levelRenderer(nullptr),
 	m_phongLightingBaseMaterial(nullptr)
 {
 	loadResources();
+
+	m_levelRenderer = new LevelRenderer(graphicsContext, graphicsResourceFactory, m_deferredLightingProgram);
+
 	initializeSceneObjects();
 
 	console->registerCommandHandler("set_camera", 
 		std::bind(&StartScene::changeCameraCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
+
+	console->registerCommandHandler("gamma",
+		std::bind(&StartScene::changeGammaCorrectionCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
+
+	console->registerCommandHandler("pos",
+		std::bind(&StartScene::pickPositionCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
+
+	console->registerCommandHandler("dir",
+		std::bind(&StartScene::pickDirectionCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
+
 }
 
 StartScene::~StartScene()
 {
+	for (Light* light : m_lights)
+		delete light;
+
 	if (m_phongLightingBaseMaterial != nullptr)
 		delete m_phongLightingBaseMaterial;
 
@@ -65,11 +84,11 @@ void StartScene::update()
 		}
 	}
 
-	if (minDistance >= 1.7f) {
+	if (minDistance >= 1.4f) {
 		vector3 oldPosition = m_player->getTransform()->getPosition();
 
 		oldPosition.y -= 0.30f;
-		oldPosition.y = std::max(oldPosition.y, 1.7f);
+		oldPosition.y = std::max(oldPosition.y, 1.4f);
 
 		m_player->getTransform()->setPosition(oldPosition);
 	}
@@ -97,6 +116,7 @@ void StartScene::setActiveCamera(Camera * camera)
 
 void StartScene::loadResources()
 {
+	m_deferredLightingProgram = m_resourceManager->load<GpuProgram>("resources/shaders/deferred_lighting.fx");
 	m_lightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong.fx");
 	m_boundingVolumeGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/bounding_volume.fx");
 
@@ -117,7 +137,9 @@ void StartScene::initializeSceneObjects() {
 
 	// Player initialization
 	m_player = new Player(m_playerMesh, m_phongLightingBaseMaterial);
-	m_player->getTransform()->setPosition(4.27676010, 11.4990520, -7.80581093);
+	m_player->getTransform()->setPosition(-0.25916, 1.40000, 0.4456);
+	m_player->getTransform()->setOrientation(quaternion(-0.6608, 0.22277, 0.67916, 0.22895));
+	//m_player->getTransform()->lookAt(0.0, 0.0f, 0.0f);
 	registerSceneObject(m_player);
 
 	m_playerCamera = createCamera("playerCamera");
@@ -165,11 +187,26 @@ void StartScene::initializeSceneObjects() {
 
 	initializePrimitives();
 
+	// Initialize lights
+	Light* whileLight = new Light(Light::Type::Point);
+	whileLight->setColor(vector3(1.0f, 1.0f, 1.0f));
+	whileLight->setAmbientIntensity(0.002f);
+	whileLight->setDiffuseIntensity(0.08f);
+	whileLight->setPosition(vector3(-0.76580, 1.4, -1.0655));
+
+	whileLight->setAttenuation(1.0f, 0.8f, 0.8f);
+
+	m_lights.push_back(whileLight);
+
 	// Register objects in level renderer
 	m_levelRenderer->registerBaseMaterial(m_phongLightingBaseMaterial);
 
 	m_levelRenderer->addRenderableObject(m_level);
 	m_levelRenderer->addRenderableObject(m_player);
+
+	for (Light* lightSource : m_lights)
+		m_levelRenderer->registerLightSource(lightSource);
+
 }
 
 void StartScene::initializePrimitives()
@@ -192,4 +229,40 @@ void StartScene::changeCameraCommandHandler(Console * console, const std::vector
 	}
 	else
 		console->print("Unknown camera type");
+}
+
+void StartScene::changeGammaCorrectionCommandHandler(Console * console, const std::vector<std::string>& args)
+{
+	if (args.empty()) {
+		console->print(std::to_string(m_levelRenderer->getGamma()));
+
+		return;
+	}
+
+	if (args.front() == "on")
+		m_levelRenderer->enableGammaCorrection();
+	else if (args.front() == "off")
+		m_levelRenderer->disableGammaCorrection();
+	else
+		m_levelRenderer->setGamma(std::stof(args.front()));
+}
+
+void StartScene::pickPositionCommandHandler(Console * console, const std::vector<std::string>& args)
+{
+	vector3 position = m_player->getPosition();
+
+	std::string result = StringUtils::format("%.5f, %.5f, %.5f", position.x, position.y, position.z);
+
+	console->print(result);
+	IOUtils::copyToClipboard(result);
+}
+
+void StartScene::pickDirectionCommandHandler(Console * console, const std::vector<std::string>& args)
+{
+	quaternion orientation = m_player->getTransform()->getOrientation();
+
+	std::string result = StringUtils::format("%.5f, %.5f, %.5f, %.5f", orientation.x, orientation.y, orientation.z, orientation.w);
+
+	console->print(result);
+	IOUtils::copyToClipboard(result);
 }

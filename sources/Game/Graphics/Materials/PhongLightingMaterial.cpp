@@ -5,6 +5,10 @@
 PhongLightingMaterial::PhongLightingMaterial(const std::string & name, GpuProgram * gpuProgram)
 	: BaseMaterial(name, gpuProgram)
 {
+	m_lightsDataRequired = true;
+	m_transformsDataRequired = true;
+
+	m_supportDeferred = true;
 }
 
 PhongLightingMaterial::~PhongLightingMaterial()

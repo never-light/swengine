@@ -29,6 +29,7 @@ public:
 	virtual void setParameter(const std::string& name, bool value) = 0;
 	virtual void setParameter(const std::string& name, int value) = 0;
 	virtual void setParameter(const std::string& name, float value) = 0;
+	virtual void setParameter(const std::string& name, const vector2& value) = 0;
 	virtual void setParameter(const std::string& name, const vector3& value) = 0;
 	virtual void setParameter(const std::string& name, const vector4& value) = 0;
 	virtual void setParameter(const std::string& name, const matrix4& value) = 0;

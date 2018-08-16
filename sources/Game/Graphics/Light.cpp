@@ -7,9 +7,13 @@ Light::Light(Type type)
 	m_innerAngle(0.0f),
 	m_outerAngle(0.0f),
 	m_constant(1.0f),
-	m_linear(0.22f),
-	m_quadratic(0.2f),
-	m_boundingVolume()
+	m_linear(0.9f),
+	m_quadratic(0.1f),
+	m_color(1.0f, 1.0f, 1.0f),
+	m_ambientIntensity(0.0f),
+	m_diffuseIntensity(1.0f),
+	m_boundingVolume(),
+	m_id(-1)
 {
 
 }
@@ -26,20 +30,32 @@ Light::Type Light::getType() const {
 	return m_type;
 }
 
-void Light::setSpecularColor(const vector3& color) {
-	m_specularColor = color;
+void Light::setColor(const vector3& color) {
+	m_color = color;
 }
 
-vector3 Light::getSpecularColor() const {
-	return m_specularColor;
+vector3 Light::getColor() const {
+	return m_color;
 }
 
-void Light::setDuffuseColor(const vector3& color) {
-	m_diffuseColor = color;
+void Light::setDiffuseIntensity(float intensity)
+{
+	m_diffuseIntensity = intensity;
 }
 
-vector3 Light::getDuffuseColor() const {
-	return m_diffuseColor;
+float Light::getDiffuseIntensity() const
+{
+	return m_diffuseIntensity;
+}
+
+void Light::setAmbientIntensity(float intensity)
+{
+	m_ambientIntensity = intensity;
+}
+
+float Light::getAmbientIntensity() const
+{
+	return m_ambientIntensity;
 }
 
 void Light::setPosition(const vector3& position) {
@@ -82,6 +98,16 @@ void Light::setBoundingVolume(const Sphere & volume)
 Sphere Light::getBoundingVolume()
 {
 	return m_boundingVolume;
+}
+
+void Light::setId(size_t id)
+{
+	m_id = id;
+}
+
+size_t Light::getId() const
+{
+	return m_id;
 }
 
 void Light::setAttenuation(float constant, float linear, float quadratic) {

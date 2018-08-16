@@ -5,12 +5,11 @@
 
 #include "Texture.h"
 
+/*!
+ * Allows rendering to texture and supports Multiple Render Targets
+ */
 class RenderTarget {
 public:
-	enum class Component {
-		Color, Depth, DepthStencil
-	};
-
 	static const unsigned int CLEAR_DEPTH = 1;
 	static const unsigned int CLEAR_COLOR = 2;
 	static const unsigned int CLEAR_STENCIL = 4;
@@ -18,11 +17,6 @@ public:
 	enum class CopyFilter {
 		Nearest, Linear
 	};
-
-	static const unsigned int COPY_DEPTH = 1;
-	static const unsigned int COPY_COLOR = 2;
-	static const unsigned int COPY_STENCIL = 4;
-
 public:
 	RenderTarget();
 	virtual ~RenderTarget();
@@ -40,12 +34,69 @@ public:
 	virtual void setDepthClearValue(float depthValue) = 0;
 	virtual void setStencilClearValue(int stencilValue) = 0;
 
+	/*!
+	 * Clear render target data
+	 * 
+	 * \param mode Bitfield with clear flags
+	 */
 	virtual void clear(unsigned int mode) = 0 ;
 
-	virtual void attachComponent(Component type, Texture* texture) = 0;
+	/*!
+	 * Attach color component to render target 
+	 * 
+	 * \param index Index between 0 and MAX_RENDER_TARGET_COLOR_ATTACHMENTS
+	 * \param texture 2D texture
+	 */
+	virtual void attachColorComponent(size_t index, Texture* texture) = 0;
 
-	virtual void copyComponentRawData(RenderTarget* destination, 
+	/*!
+	 * Attach depth and stencil component to render target
+	 * 
+	 * \param texture Attachment, should be DepthStencil texture
+	 */
+	virtual void attachDepthStencilComponent(Texture* texture) = 0;
+
+	/*!
+	 * Copy one color component from current render target to another.
+	 * 
+	 * \param sourceComponent Index of the component in current render target
+	 * \param destination Destination render target
+	 * \param destinationComponentIndex Index of the component in destination render target
+	 * \param sourceArea The size of a region to get data from source render target
+	 * \param destinationArea The size of a region to insert data in destination render target
+	 * \param copyFilter Interpolation filter to be applied if the component is stretched
+	 */
+	virtual void copyColorComponentData(
+		size_t sourceComponentIndex,
+		RenderTarget* destination, 
+		size_t destinationComponentIndex,
 		const Rect& sourceArea, const Rect& destinationArea,
-		unsigned int copyMode,
-		CopyFilter copyFilter = CopyFilter::Linear) = 0;
+		CopyFilter copyFilter = CopyFilter::Linear
+	) = 0;
+
+	virtual void copyColorComponentData(
+		size_t sourceComponentIndex,
+		RenderTarget* destination,
+		size_t destinationComponentIndex,
+		const Rect& area
+	);
+
+	/*!
+	 * Copy depth component from current render target to another.
+	 * 
+	 * \param destination Destination render target
+	 * \param sourceArea The size of a region to get data from source render target
+	 * \param destinationArea The size of a region to insert data in destination render target
+	 * \param copyFilter Interpolation filter to be applied if the component is stretched
+	 */
+	virtual void copyDepthStencilComponentData(
+		RenderTarget* destination,
+		const Rect& sourceArea, const Rect& destinationArea,
+		CopyFilter copyFilter = CopyFilter::Linear
+	) = 0;
+
+	virtual void copyDepthStencilComponentData(
+		RenderTarget* destination,
+		const Rect& area
+	);
 };

@@ -48,6 +48,16 @@ void OpenGL3GraphicsContext::setDepthTestFunction(DepthFunction function)
 	glDepthFunc(func);
 }
 
+void OpenGL3GraphicsContext::enableWritingToDepthBuffer()
+{
+	glDepthMask(GL_TRUE);
+}
+
+void OpenGL3GraphicsContext::disableWritingToDepthBuffer()
+{
+	glDepthMask(GL_FALSE);
+}
+
 void OpenGL3GraphicsContext::enableFaceCulling()
 {
 	glEnable(GL_CULL_FACE);
@@ -93,6 +103,24 @@ void OpenGL3GraphicsContext::setBlendingMode(BlendingMode sourceAffect, Blending
 
 
 	glBlendFunc(sourceFactor, destinationFactor);
+}
+
+void OpenGL3GraphicsContext::setBlendingEquation(BlendingEquation equation)
+{
+	GLenum glEquation;
+
+	if (equation == BlendingEquation::Add)
+		glEquation = GL_FUNC_ADD;
+	else if (equation == BlendingEquation::Subtract)
+		glEquation = GL_FUNC_SUBTRACT;
+	else if (equation == BlendingEquation::ReverseSubtract)
+		glEquation = GL_FUNC_REVERSE_SUBTRACT;
+	else if (equation == BlendingEquation::Min)
+		glEquation = GL_MIN;
+	else if (equation == BlendingEquation::Max)
+		glEquation = GL_MAX;
+
+	glBlendEquation(glEquation);
 }
 
 void OpenGL3GraphicsContext::enableScissorTest()

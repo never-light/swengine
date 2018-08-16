@@ -15,7 +15,7 @@ public:
 	};
 
 	enum class DrawType {
-		Triangles
+		Triangles, TrianglesStrip
 	};
 
 	enum class IndicesType {

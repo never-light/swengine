@@ -24,18 +24,33 @@ public:
 
 	virtual void clear(unsigned int mode) override;
 
-	virtual void attachComponent(Component type, Texture * texture) override;
+	virtual void attachColorComponent(size_t index, Texture* texture) override;
+	virtual void attachDepthStencilComponent(Texture* texture) override;
 
-	virtual void copyComponentRawData(RenderTarget * destination, 
-		const Rect & sourceArea, const Rect& destinationArea,
-		unsigned int copyMode,
-		CopyFilter copyFilter = CopyFilter::Linear) override;
-	
+	virtual void copyColorComponentData(
+		size_t sourceComponentIndex,
+		RenderTarget* destination,
+		size_t destinationComponentIndex,
+		const Rect& sourceArea, const Rect& destinationArea,
+		CopyFilter copyFilter = CopyFilter::Linear
+	) override;
+
+	virtual void copyDepthStencilComponentData(
+		RenderTarget* destination,
+		const Rect& sourceArea, const Rect& destinationArea,
+		CopyFilter copyFilter = CopyFilter::Linear
+	) override;
+
 	GLuint getFrameBufferPointer() const;
 
 protected:
 	GLuint m_frameBuffer;
 
 private:
+	const static size_t MAX_COLOR_ATTACHMENTS = 8;
+
 	size_t m_freeColorAttachment;
+	GLenum* m_colorAttachments;
+
+	bool m_isComplete;
 };

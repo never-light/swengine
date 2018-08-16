@@ -123,6 +123,8 @@ void OpenGL3GeometryStore::drawArrays(DrawType drawType, size_t offset, size_t c
 
 	if (drawType == DrawType::Triangles)
 		drawMode = GL_TRIANGLES;
+	else if (drawType == DrawType::TrianglesStrip)
+		drawMode = GL_TRIANGLE_STRIP;
 	
 	OPENGL3_CALL(glDrawArrays(drawMode, offset, count));
 }

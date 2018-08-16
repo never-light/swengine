@@ -15,6 +15,9 @@ public:
 
 	virtual void setDepthTestFunction(DepthFunction function) override;
 
+	virtual void enableWritingToDepthBuffer() override;
+	virtual void disableWritingToDepthBuffer() override;
+
 	virtual void enableFaceCulling() override;
 	virtual void disableFaceCulling() override;
 
@@ -24,6 +27,7 @@ public:
 	virtual void disableBlending() override;
 
 	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) override;
+	virtual void setBlendingEquation(BlendingEquation equation);
 
 	virtual void enableScissorTest() override;
 	virtual void disableScissorTest() override;

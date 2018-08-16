@@ -21,6 +21,10 @@ public:
 	enum class BlendingMode {
 		Zero, One, SrcAlpha, OneMinusSrcAlpha
 	};
+
+	enum class BlendingEquation {
+		Add, Subtract, ReverseSubtract, Min, Max
+	};
 public:
 	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger);
 	virtual ~GraphicsContext();
@@ -29,6 +33,9 @@ public:
 	virtual void disableDepthTest() = 0;
 
 	virtual void setDepthTestFunction(DepthFunction function) = 0;
+
+	virtual void enableWritingToDepthBuffer() = 0;
+	virtual void disableWritingToDepthBuffer() = 0;
 
 	virtual void enableFaceCulling() = 0;
 	virtual void disableFaceCulling() = 0;
@@ -44,6 +51,7 @@ public:
 	virtual void setScissorRectangle(const Rect& rectangle) = 0;
 
 	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) = 0;
+	virtual void setBlendingEquation(BlendingEquation equation) = 0;
 
 	virtual void swapBuffers() = 0;
 

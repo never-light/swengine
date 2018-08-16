@@ -5,15 +5,21 @@
 
 #include "OpenGL3Texture.h"
 
+#include <Engine\Components\Graphics\RenderSystem\RenderSystemException.h>
+
 OpenGL3RenderTarget::OpenGL3RenderTarget()
 	: RenderTarget(),
 	m_frameBuffer(0),
-	m_freeColorAttachment(0)
+	m_freeColorAttachment(0),
+	m_colorAttachments(new GLenum[MAX_COLOR_ATTACHMENTS]),
+	m_isComplete(false)
 {
 }
 
 OpenGL3RenderTarget::~OpenGL3RenderTarget()
 {
+	delete m_colorAttachments;
+
 	if (m_frameBuffer != 0)
 		destroy();
 }
@@ -38,6 +44,16 @@ void OpenGL3RenderTarget::bind()
 
 void OpenGL3RenderTarget::unbind()
 {
+	if (!m_isComplete && m_freeColorAttachment != 0) {
+		OPENGL3_CALL(glDrawBuffers(m_freeColorAttachment, m_colorAttachments));
+
+		GLenum glFrameBufferState = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		if (glFrameBufferState != GL_FRAMEBUFFER_COMPLETE) {
+			throw RenderSystemException("Framebuffer is not complete", __FILE__, __LINE__, __FUNCTION__);
+		}
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -82,52 +98,46 @@ void OpenGL3RenderTarget::clear(unsigned int mode)
 	glClear(mask);
 }
 
-void OpenGL3RenderTarget::attachComponent(Component type, Texture * texture)
+void OpenGL3RenderTarget::attachColorComponent(size_t index, Texture * texture)
 {
 	OpenGL3Texture* glTexture = static_cast<OpenGL3Texture*>(texture);
+	_assert(glTexture->getBindingTarget() == GL_TEXTURE_2D);
 
-	_assert(glTexture->getBindingTarget());
-
-	GLenum attachmentType;
-
-	if (type == Component::Color) {
-		attachmentType = GL_COLOR_ATTACHMENT0 + m_freeColorAttachment;
-		m_freeColorAttachment++;
-	}
-	else if (type == Component::Depth) {
-		attachmentType = GL_DEPTH_ATTACHMENT;
-	}
-	else if (type == Component::DepthStencil) {
-		attachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
-	}
+	GLenum attachmentType = GL_COLOR_ATTACHMENT0 + m_freeColorAttachment;
+	m_colorAttachments[m_freeColorAttachment] = attachmentType;
+	m_freeColorAttachment++;
 
 	texture->bind();
 
-	OPENGL3_CALL(glFramebufferTexture2D(
-		GL_FRAMEBUFFER, 
-		attachmentType, GL_TEXTURE_2D, 
-		glTexture->getTexturePointer(),
-		0));
+	OPENGL3_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
 }
 
-void OpenGL3RenderTarget::copyComponentRawData(RenderTarget * destination, const Rect& sourceArea, const Rect& destinationArea, unsigned int copyMode, CopyFilter copyFilter) {
+void OpenGL3RenderTarget::attachDepthStencilComponent(Texture * texture)
+{
+	OpenGL3Texture* glTexture = static_cast<OpenGL3Texture*>(texture);
+	_assert(glTexture->getBindingTarget() == GL_TEXTURE_2D);
+
+	texture->bind();
+
+	OPENGL3_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
+}
+
+void OpenGL3RenderTarget::copyColorComponentData(size_t sourceComponentIndex, 
+	RenderTarget * destination, 
+	size_t destinationComponentIndex,
+	const Rect & sourceArea, 
+	const Rect & destinationArea, 
+	CopyFilter copyFilter)
+{
+	_assert(destination != nullptr || (destination == nullptr && destinationComponentIndex == 0));
+
+	OpenGL3RenderTarget* glDestinationTarget = nullptr;
 	GLuint destinationTargetPointer = 0;
-	
+
 	if (destination != nullptr) {
-		OpenGL3RenderTarget* glDestinationTarget = static_cast<OpenGL3RenderTarget*>(destination);
+		glDestinationTarget = static_cast<OpenGL3RenderTarget*>(destination);
 		destinationTargetPointer = glDestinationTarget->getFrameBufferPointer();
 	}
-	
-	GLbitfield glCopyMask = 0;
-
-	if (copyMode & RenderTarget::COPY_COLOR)
-		glCopyMask |= GL_COLOR_BUFFER_BIT;
-	
-	if (copyMode & RenderTarget::COPY_DEPTH)
-		glCopyMask |= GL_DEPTH_BUFFER_BIT;
-
-	if (copyMode & RenderTarget::COPY_STENCIL)
-		glCopyMask |= GL_STENCIL_BUFFER_BIT;
 
 	GLenum glCopyFilter;
 
@@ -137,13 +147,52 @@ void OpenGL3RenderTarget::copyComponentRawData(RenderTarget * destination, const
 		glCopyFilter = GL_LINEAR;
 
 	OPENGL3_CALL_BLOCK_BEGIN();
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destinationTargetPointer);
-		glBlitFramebuffer(
-			sourceArea.getX(), sourceArea.getY(), sourceArea.getWidth(), sourceArea.getHeight(), 
-			destinationArea.getX(), destinationArea.getY(), destinationArea.getWidth(), destinationArea.getHeight(),
-			glCopyMask, glCopyFilter
-		);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destinationTargetPointer);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + sourceComponentIndex);
+
+	if (destinationTargetPointer != 0) {
+		glDrawBuffer(GL_COLOR_ATTACHMENT0 + destinationComponentIndex);
+	}
+
+	glBlitFramebuffer(
+		sourceArea.getX(), sourceArea.getY(), sourceArea.getX() + sourceArea.getWidth(), sourceArea.getY() + sourceArea.getHeight(),
+		destinationArea.getX(), destinationArea.getY(), destinationArea.getX() + destinationArea.getWidth(), destinationArea.getY() + destinationArea.getHeight(),
+		GL_COLOR_BUFFER_BIT, glCopyFilter
+	);
+	
+	if (destinationTargetPointer != 0) {
+		glDrawBuffers(glDestinationTarget->m_freeColorAttachment, glDestinationTarget->m_colorAttachments);
+	}
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
+	OPENGL3_CALL_BLOCK_END();
+}
+
+void OpenGL3RenderTarget::copyDepthStencilComponentData(RenderTarget * destination, const Rect & sourceArea, const Rect & destinationArea, CopyFilter copyFilter)
+{
+	OpenGL3RenderTarget* glDestinationTarget = nullptr;
+	GLuint destinationTargetPointer = 0;
+
+	if (destination != nullptr) {
+		glDestinationTarget = static_cast<OpenGL3RenderTarget*>(destination);
+		destinationTargetPointer = glDestinationTarget->getFrameBufferPointer();
+	}
+
+	GLenum glCopyFilter;
+
+	if (copyFilter == CopyFilter::Nearest)
+		glCopyFilter = GL_NEAREST;
+	else if (copyFilter == CopyFilter::Linear)
+		glCopyFilter = GL_LINEAR;
+
+	OPENGL3_CALL_BLOCK_BEGIN();
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destinationTargetPointer);
+	glBlitFramebuffer(
+		sourceArea.getX(), sourceArea.getY(), sourceArea.getX() + sourceArea.getWidth(), sourceArea.getY() + sourceArea.getHeight(),
+		destinationArea.getX(), destinationArea.getY(), destinationArea.getX() + destinationArea.getWidth(), destinationArea.getY() + destinationArea.getHeight(),
+		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, glCopyFilter
+	);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
 	OPENGL3_CALL_BLOCK_END();
 }
 

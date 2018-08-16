@@ -36,6 +36,9 @@ protected:
 
 private:
 	void changeCameraCommandHandler(Console* console, const std::vector<std::string>& args);
+	void changeGammaCorrectionCommandHandler(Console* console, const std::vector<std::string>& args);
+	void pickPositionCommandHandler(Console* console, const std::vector<std::string>& args);
+	void pickDirectionCommandHandler(Console* console, const std::vector<std::string>& args);
 
 protected:
 	PhongLightingMaterial * m_phongLightingBaseMaterial;
@@ -43,6 +46,8 @@ protected:
 	LevelRenderer * m_levelRenderer;
 
 protected:
+	std::vector<Light*> m_lights;
+
 	PlayerController* m_playerController;
 	Player* m_player;
 	Camera* m_playerCamera;
@@ -56,6 +61,7 @@ protected:
 
 	InputController* m_activeInputController;
 protected:
+	GpuProgram * m_deferredLightingProgram;
 	GpuProgram* m_lightingGpuProgram;
 	GpuProgram* m_boundingVolumeGpuProgram;
 

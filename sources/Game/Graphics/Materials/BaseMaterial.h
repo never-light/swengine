@@ -19,6 +19,8 @@ public:
 	bool isTransformsDataRequired() const;
 	bool isLightsDataRequired() const;
 
+	bool isSupportDeferred() const;
+
 	GpuProgram* getGpuProgram() const;
 
 	const GraphicsPipelineState& getRequiredGraphicsPipelineState() const;
@@ -26,6 +28,7 @@ protected:
 	bool m_transformsDataRequired;
 	bool m_lightsDataRequired;
 
+	bool m_supportDeferred;
 protected:
 	std::string m_name;
 
