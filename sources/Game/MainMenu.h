@@ -35,4 +35,6 @@ protected:
 	GUIButton* m_exitButton;
 
 	GUIText* m_text;
+
+	CursorType m_lastCursorState;
 };

@@ -18,4 +18,9 @@ protected:
 
 	InputManager* m_inputMgr;
 	SceneManager* m_sceneMgr;
+
+	double m_updateTime;
+	double m_renderTime;
+
+	double m_fullFrameTime;
 };

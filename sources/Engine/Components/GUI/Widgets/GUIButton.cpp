@@ -66,7 +66,7 @@ void GUIButton::onMouseLeave(const MousePosition & mousePosition)
 	m_hover = false;
 }
 
-void GUIButton::onClick(const MousePosition & mousePosition)
+void GUIButton::onClick(const MousePosition & mousePosition, MouseButton button)
 {
 	if (m_clickCallback != nullptr) {
 		m_clickCallback(mousePosition);

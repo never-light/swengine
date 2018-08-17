@@ -26,6 +26,9 @@ public:
 	virtual void update();
 
 	GUILayout* getMainLayout() const;
+
+	virtual void setCursorType(CursorType type);
+	virtual CursorType getCursorType() const;
 protected:
 	virtual void onMouseButtonPress(MouseButton button, const MouseState&) override;
 	virtual void onKeyPress(Key key, KeyEvent::Modifier mod) override;

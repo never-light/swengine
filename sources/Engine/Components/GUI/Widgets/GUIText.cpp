@@ -113,6 +113,9 @@ unsigned int GUIText::getFontSize() const
 
 void GUIText::render(GeometryStore * quad, GpuProgram * program)
 {
+	if (m_text.empty())
+		return;
+
 	m_font->getBitmap()->bind(0);
 
 	matrix4 textTransformation = glm::translate(vector3(m_position, 0.0));
@@ -143,14 +146,23 @@ void GUIText::updateTextGeometry()
 	unsigned int bitmapHeight = m_font->getBitmap()->getHeight();
 
 	unsigned int cursorPosition = 0;
+	unsigned int cursorLineOffset = 0;
+
 	unsigned int maxHeight = 0;
 
 	for (unsigned char character : m_text) {
+		if (character == '\n') {
+			cursorPosition = 0;
+			cursorLineOffset += m_font->getHeight();
+
+			continue;
+		}
+
 		Character characterDescription = m_font->getCharacter(character);
 		uivector2 atlasPosition = characterDescription.rectangleInAtlas.getPosition();
 		uivector2 characterSize = characterDescription.rectangleInAtlas.getSize();
 
-		ivector2 originPosition(cursorPosition, 0);
+		ivector2 originPosition(cursorPosition, cursorLineOffset);
 
 		vector4 topLeftVertex(
 			originPosition.x + characterDescription.xOffset, 

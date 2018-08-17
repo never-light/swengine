@@ -32,25 +32,22 @@ LevelRenderer::~LevelRenderer()
 	delete m_gBufferTarget;
 }
 
-void LevelRenderer::registerLightSource(Light * lightSource)
-{
-	_assert(lightSource->getId() == -1);
-
-	lightSource->setId(m_lightsSources.size());
+void LevelRenderer::registerLightSource(Light * lightSource) {
 	m_lightsSources.push_back(lightSource);
-
 	updateLightSource(lightSource);
 }
 
 void LevelRenderer::updateLightSource(const Light * lightSource)
 {
-	_assert(lightSource->getId() != -1);
-
-	passLightSourceDataToGpuProgram(lightSource->getId(), lightSource, m_deferredLightingProgram);
+	for (size_t lightSourceIndex = 0; lightSourceIndex < m_lightsSources.size(); lightSourceIndex++) {
+		if (lightSource == m_lightsSources[lightSourceIndex]) {
+			passLightSourceDataToGpuProgram(lightSource->getGameObjectId(), lightSource, m_deferredLightingProgram);
+			break;
+		}
+	}
 }
 
-void LevelRenderer::removeLightSource(const Light * lightSource)
-{
+void LevelRenderer::removeLightSource(const Light * lightSource) {
 	m_lightsSources.erase(std::remove(m_lightsSources.begin(), m_lightsSources.end(), lightSource), m_lightsSources.end());
 }
 
@@ -169,7 +166,6 @@ float LevelRenderer::calculateLightSourceSphereRadius(const Light * light) const
 
 	return (-attenuationLinear + std::sqrtf(attenuationLinear * attenuationLinear - 4 * attenuationExp * (attenuationExp - (256.0 / 5.0) * maxChannel)))
 		/ (2 * attenuationExp);
-
 }
 
 void LevelRenderer::passLightSourceDataToGpuProgram(size_t index, const Light* light, GpuProgram* gpuProgram) const {

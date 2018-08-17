@@ -157,7 +157,10 @@ void Game::addConsoleCommandHotkey(Key key, const std::string & command)
 void Game::loadScenes()
 {
 	try {
-		m_startScene = new StartScene(m_graphicsContext, m_graphicsSystem->getResourceFactory(), m_resMgr, m_inputMgr, m_console);
+		m_startScene = new LevelScene(m_graphicsContext, 
+			m_graphicsSystem->getResourceFactory(), 
+			m_resMgr, m_inputMgr, m_guiMgr, m_console);
+
 		m_sceneMgr->registerScene(m_startScene);
 
 		m_mainMenu = new MainMenu(m_window, m_graphicsSystem->getResourceFactory(), m_graphicsContext, m_resMgr, m_guiMgr->getMainLayout());

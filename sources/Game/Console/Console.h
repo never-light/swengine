@@ -9,6 +9,7 @@ class Console {
 public:
 	using PrintCallback = std::function<void(const std::string&)>;
 	using CommandHandler = std::function<void(Console*, const std::vector<std::string>&)>;
+
 public:
 	Console();
 	~Console();

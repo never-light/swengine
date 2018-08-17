@@ -30,7 +30,7 @@ int main() {
 	}
 	catch (const std::exception& exception) {
 		showFatalErrorBox(exception.what());
-	 }
+	}
 	catch (...) {
 		showFatalErrorBox("Unknown internal error");
 	}

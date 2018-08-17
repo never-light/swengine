@@ -3,12 +3,16 @@
 #include <Engine\assertions.h>
 
 Font::Font()
-	: m_bitmap(nullptr), m_baseSize(0)
+	: m_bitmap(nullptr), 
+	m_baseSize(0),
+	m_height(0)
 {
 }
 
 Font::Font(Texture* bitmap)
-	: m_bitmap(bitmap), m_baseSize(0)
+	: m_bitmap(bitmap),
+	m_baseSize(0),
+	m_height(0)
 {
 
 }
@@ -51,4 +55,14 @@ unsigned int Font::getBaseSize() const
 void Font::setBaseSize(unsigned int size)
 {
 	m_baseSize = size;
+}
+
+unsigned int Font::getHeight() const
+{
+	return m_height;
+}
+
+void Font::setHeight(unsigned int height)
+{
+	m_height = height;
 }

@@ -4,7 +4,9 @@
 #include <Engine\Components\Math\types.h>
 #include <Engine\Components\Physics\Colliders\Sphere.h>
 
-class Light {
+#include <Game\GameObject.h>
+
+class Light : public GameObject {
 public:
 	enum class Type {
 		Point
@@ -29,7 +31,7 @@ public:
 	vector3 getDirection() const;
 
 	void setPosition(const vector3&);
-	vector3 getPosition() const;
+	vector3 getPosition() const override;
 
 	void setAttenuation(float constant, float linear, float quadratic);
 
@@ -43,11 +45,9 @@ public:
 	void setOuterAngle(float);
 	float getOuterAngle() const;
 
-	void setBoundingVolume(const Sphere& volume);
-	Sphere getBoundingVolume();
+	void setBoundingRadius(float radius);
+	float getBoundingRadius() const;
 
-	void setId(size_t id);
-	size_t getId() const;
 private:
 	Type m_type;
 
@@ -66,7 +66,5 @@ private:
 	float m_linear;
 	float m_quadratic;
 
-	Sphere m_boundingVolume;
-
-	size_t m_id;
+	float m_boundingRadius;
 };

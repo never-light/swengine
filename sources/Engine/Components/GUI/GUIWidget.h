@@ -13,7 +13,7 @@ public:
 	virtual void render(GeometryStore* quad, GpuProgram* program) = 0;
 	virtual void update(const MousePosition& mousePosition) = 0;
 
-	virtual void onClick(const MousePosition& mousePosition);
+	virtual void onClick(const MousePosition& mousePosition, MouseButton button);
 	virtual void onHover(const MousePosition& mousePosition);
 	virtual void onMouseEnter(const MousePosition& mousePosition);
 	virtual void onMouseLeave(const MousePosition& mousePosition);

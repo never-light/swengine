@@ -14,6 +14,8 @@ public:
 	Transform* getTransform() const;
 
 	std::vector<OBB> getColliders() const;
+
+	vector3 getPosition() const override;
 protected:
 	Transform* m_transform;
 	SolidMesh* m_mesh;

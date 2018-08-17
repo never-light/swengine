@@ -86,7 +86,7 @@ matrix4 GUIWidget::getTransformationMatrix()
 	return transformation;
 }
 
-void GUIWidget::onClick(const MousePosition& mousePosition)
+void GUIWidget::onClick(const MousePosition& mousePosition, MouseButton button)
 {
 }
 

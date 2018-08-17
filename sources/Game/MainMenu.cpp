@@ -7,7 +7,8 @@ MainMenu::MainMenu(Window* window, GraphicsResourceFactory* graphicsResourceFact
 	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_mainMenuGUILayout(new GUILayout()),
 	m_newGameButton(new GUIButton()),
-	m_exitButton(new GUIButton())
+	m_exitButton(new GUIButton()),
+	m_lastCursorState(CursorType::Default)
 
 {
 	m_mainMenuGUILayout->setPosition(0, 0);
@@ -85,14 +86,16 @@ void MainMenu::render()
 
 void MainMenu::activate()
 {
+	m_lastCursorState = m_window->getCursorType();
+
 	m_window->setCursorType(CursorType::Default);
 	m_mainGUILayout->addWidget(m_mainMenuGUILayout);
 }
-
+ 
 void MainMenu::deactivate()
 {
 	m_mainGUILayout->removeWidget(m_mainMenuGUILayout);
-	m_window->setCursorType(CursorType::Hidden);
+	m_window->setCursorType(m_lastCursorState);
 }
 
 void MainMenu::onButtonClick(ButtonType buttonType, const GUIButton::ClickCallback & callback)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseGame.h"
-#include "StartScene.h"
+#include "LevelScene.h"
 #include "MainMenu.h"
 #include "Console\Console.h"
 #include "Console\GUIConsoleWidget.h"
@@ -44,5 +44,5 @@ private:
 
 	MainMenu* m_mainMenu;
 
-	StartScene* m_startScene;
+	LevelScene* m_startScene;
 };

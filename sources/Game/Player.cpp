@@ -5,15 +5,19 @@
 Player::Player(SolidMesh * armsMesh, BaseMaterial* baseMaterial)
 	: Renderable(baseMaterial),
 	m_armsMesh(armsMesh), 
-	m_transform(new Transform())
+	m_transform(new Transform()),
+	m_inventory(new Inventory())
 {
 	_assert(m_armsMesh->getColliders().size() == 1);
 	_assert(m_armsMesh->hasSkeleton());
+
+	setGameObjectUsage(GameObject::Usage::Player);
 }
 
 Player::~Player()
 {
 	delete m_transform;
+	delete m_inventory;
 }
 
 void Player::render()
@@ -47,4 +51,9 @@ Skeleton* Player::getSkeleton() const
 void Player::applyPose(const SkeletonPose & pose)
 {
 	m_armsMesh->getSkeleton()->applyPose(pose);
+}
+
+Inventory * Player::getInventory() const
+{
+	return m_inventory;
 }

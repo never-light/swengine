@@ -31,11 +31,13 @@ Resource * FontLoader::load(const std::string & filename)
 	std::string bitmapFilename = fontNode.attribute("bitmap").as_string();
 
 	unsigned int baseSize = fontNode.attribute("size").as_uint();
-	
+	unsigned int height = fontNode.attribute("height").as_uint();
+
 	Texture* bitmap = loadBitmap(bitmapFilename);
 	
 	Font* font = new Font(bitmap);
 	font->setBaseSize(baseSize);
+	font->setHeight(height);
 
 	for (auto charNode : fontNode.children()) {
 		std::vector<std::string> bitmapParts = StringUtils::split(charNode.attribute("rect").as_string(), ' ');

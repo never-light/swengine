@@ -23,7 +23,7 @@ public:
 	virtual void onMouseEnter(const MousePosition& mousePosition) override;
 	virtual void onMouseLeave(const MousePosition& mousePosition) override;
 
-	virtual void onClick(const MousePosition& mousePosition) override;
+	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
 	virtual void onClick(const ClickCallback& callback);
 protected:
 	Texture* m_image;

@@ -2,6 +2,7 @@
 
 #include <Engine\Components\SceneManager\Scene.h>
 #include <Engine\Components\InputManager\InputManager.h>
+#include <Engine\Components\GUI\GUIManager.h>
 
 #include <Game\Graphics\Primitives\BoxPrimitive.h>
 #include <Game\Graphics\Animation\Animation.h>
@@ -10,37 +11,54 @@
 
 #include <Game\Graphics\LevelRenderer.h>
 #include <Game\Graphics\Materials\PhongLightingMaterial.h>
+#include <Game\Game\GameObjectsStore.h>
+
+#include <Game\Game\Inventory\InventoryViewer.h>
 
 #include "SolidGameObject.h"
 #include "PlayerController.h"
 #include "FreeCameraController.h"
 
-class StartScene : public Scene, public InputEventsListener {
+class LevelScene : public Scene, public InputEventsListener {
 public:
-	StartScene(GraphicsContext* graphicsContext, 
+	LevelScene(GraphicsContext* graphicsContext, 
 		GraphicsResourceFactory* graphicsResourceFactory,
 		ResourceManager* resourceManager, 
 		InputManager* inputManager,
+		GUIManager* guiManager,
 		Console* console);
 
-	virtual ~StartScene();
+	virtual ~LevelScene();
 
 	virtual void update() override;
 	virtual void render() override;
 
 	virtual void setActiveCamera(Camera* camera);
+
+	virtual void activate() override;
+	virtual void deactivate() override;
 protected:
 	void loadResources();
 	void initializeSceneObjects();
 	void initializePrimitives();
 
+	void initializePlayer();
+	void initializeFreeCamera();
 private:
+	void removeGameObjectCallback(GameObject* object);
+	void registerGameObjectCallback(GameObject* object);
+	void relocateGameObjectCallback(GameObject* object, GameObject::Location oldLocation, GameObject::Location newLocation);
+
 	void changeCameraCommandHandler(Console* console, const std::vector<std::string>& args);
 	void changeGammaCorrectionCommandHandler(Console* console, const std::vector<std::string>& args);
 	void pickPositionCommandHandler(Console* console, const std::vector<std::string>& args);
 	void pickDirectionCommandHandler(Console* console, const std::vector<std::string>& args);
 
 protected:
+	GUILayout * m_levelGUILayout;
+
+protected:
+	GameObjectsStore * m_gameObjectsStore;
 	PhongLightingMaterial * m_phongLightingBaseMaterial;
 
 	LevelRenderer * m_levelRenderer;
@@ -61,7 +79,7 @@ protected:
 
 	InputController* m_activeInputController;
 protected:
-	GpuProgram * m_deferredLightingProgram;
+	GpuProgram* m_deferredLightingProgram;
 	GpuProgram* m_lightingGpuProgram;
 	GpuProgram* m_boundingVolumeGpuProgram;
 
@@ -72,4 +90,5 @@ protected:
 protected:
 	InputManager* m_inputManager;
 	GraphicsResourceFactory* m_graphicsResourceFactory;
+	GUIManager* m_guiManager;
 };

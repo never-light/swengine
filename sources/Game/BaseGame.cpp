@@ -11,7 +11,9 @@
 BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned int height)
 	: m_window(nullptr), 
 	m_inputMgr(nullptr),
-	m_sceneMgr(nullptr)
+	m_sceneMgr(nullptr),
+	m_updateTime(0.0),
+	m_renderTime(0.0)
 {
 	using std::experimental::filesystem::path;
 	using std::experimental::filesystem::current_path;
@@ -26,7 +28,6 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 
 	// Engine
 	InitializeEngine(m_window);
-
 
 	// Input Manager
 	m_inputMgr = new InputManager(m_window);
@@ -62,17 +63,26 @@ void BaseGame::run() {
 
 
 	while (true) {
+		double frameStartTime = TimeUtils::getCurrentTime();
+
 		if (m_window->shouldClose()) {
 			break;
 		}
 
 		glfwPollEvents();
 		
+		double startTime = TimeUtils::getCurrentTime();
 		update();
+		m_updateTime = TimeUtils::getCurrentTime() - startTime;
+
+		startTime = TimeUtils::getCurrentTime();
 		render();
+		m_renderTime = TimeUtils::getCurrentTime() - startTime;
 
 		nextTick += SKIP_TICKS;
 		sleepTime = nextTick - GetTickCount();
+
+		m_fullFrameTime = TimeUtils::getCurrentTime() - frameStartTime;
 
 		if (sleepTime >= 0) {
 			Sleep(sleepTime);

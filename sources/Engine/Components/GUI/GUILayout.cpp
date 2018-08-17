@@ -22,28 +22,8 @@ GUILayout::~GUILayout()
 
 void GUILayout::render(GeometryStore * quad, GpuProgram * program)
 {
-	if (m_renderBackground) {
-		program->setParameter("transform.localToWorld", getTransformationMatrix());
-		program->setParameter("quad.color", m_backgroundColor);
-
-		if (m_backgroundImage) {
-			m_backgroundImage->bind(0);
-
-			program->setParameter("quad.texture", 0);
-			program->setParameter("quad.useTexture", true);
-		}
-		else {
-			program->setParameter("quad.useTexture", false);
-		}
-
-		program->setParameter("quad.useFirstChannel", false);
-		
-		quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
-	}
-
-	for (GUIWidget* widget : m_widgets)
-		if (widget->isVisible())
-			widget->render(quad, program);
+	renderBackground(quad, program);
+	renderWidgets(quad, program);
 }
 
 void GUILayout::update(const MousePosition& mousePosition)
@@ -53,14 +33,14 @@ void GUILayout::update(const MousePosition& mousePosition)
 			widget->update(mousePosition);
 }
 
-void GUILayout::onClick(const MousePosition & mousePosition)
+void GUILayout::onClick(const MousePosition & mousePosition, MouseButton button)
 {
 	for (GUIWidget* widget : m_widgets) {
 		if (isMouseInWidgetArea(mousePosition, widget->getPosition(), widget->getSize())) {
 			if (m_onFocusCallback != nullptr)
 				m_onFocusCallback(widget);
 
-			widget->onClick(mousePosition);
+			widget->onClick(mousePosition, button);
 		}
 	}
 }
@@ -101,6 +81,35 @@ bool GUILayout::isMouseInWidgetArea(const MousePosition & mousePosition, const u
 {
 	return widgetPosition.x <= mousePosition.x && mousePosition.x <= (widgetPosition.x + widgetSize.x) &&
 		widgetPosition.y <= mousePosition.y && mousePosition.y <= (widgetPosition.y + widgetSize.y);
+}
+
+void GUILayout::renderBackground(GeometryStore * quad, GpuProgram * program)
+{
+	if (m_renderBackground) {
+		program->setParameter("transform.localToWorld", getTransformationMatrix());
+		program->setParameter("quad.color", m_backgroundColor);
+
+		if (m_backgroundImage) {
+			m_backgroundImage->bind(0);
+
+			program->setParameter("quad.texture", 0);
+			program->setParameter("quad.useTexture", true);
+		}
+		else {
+			program->setParameter("quad.useTexture", false);
+		}
+
+		program->setParameter("quad.useFirstChannel", false);
+
+		quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+	}
+}
+
+void GUILayout::renderWidgets(GeometryStore * quad, GpuProgram * program)
+{
+	for (GUIWidget* widget : m_widgets)
+		if (widget->isVisible())
+			widget->render(quad, program);
 }
 
 
@@ -153,7 +162,7 @@ void GUILayout::enableBackgroundRendering()
 
 void GUILayout::disableBackgroundRendering()
 {
-	m_renderBackground = true;
+	m_renderBackground = false;
 }
 
 bool GUILayout::isBackgroundRenderingEnabled() const

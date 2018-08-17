@@ -30,9 +30,14 @@ public:
 
 	unsigned int getBaseSize() const;
 	void setBaseSize(unsigned int size);
+
+	unsigned int getHeight() const;
+	void setHeight(unsigned int height);
 protected:
 	Texture* m_bitmap;
 	unsigned int m_baseSize;
 
 	Character m_characters[256];
+
+	unsigned int m_height;
 };

@@ -1,7 +1,8 @@
 #include "Light.h"
 
 Light::Light(Type type)
-	: m_type(type), 
+	: GameObject(),
+	m_type(type), 
 	m_position(),
 	m_direction(),
 	m_innerAngle(0.0f),
@@ -11,11 +12,9 @@ Light::Light(Type type)
 	m_quadratic(0.1f),
 	m_color(1.0f, 1.0f, 1.0f),
 	m_ambientIntensity(0.0f),
-	m_diffuseIntensity(1.0f),
-	m_boundingVolume(),
-	m_id(-1)
+	m_diffuseIntensity(1.0f)
 {
-
+	GameObject::setGameObjectUsage(GameObject::Usage::LightSource);
 }
 
 Light::~Light() {
@@ -90,24 +89,14 @@ float Light::getOuterAngle() const {
 	return m_outerAngle;
 }
 
-void Light::setBoundingVolume(const Sphere & volume)
+void Light::setBoundingRadius(float radius)
 {
-	m_boundingVolume = volume;
+	m_boundingRadius = radius;
 }
 
-Sphere Light::getBoundingVolume()
+float Light::getBoundingRadius() const
 {
-	return m_boundingVolume;
-}
-
-void Light::setId(size_t id)
-{
-	m_id = id;
-}
-
-size_t Light::getId() const
-{
-	return m_id;
+	return m_boundingRadius;
 }
 
 void Light::setAttenuation(float constant, float linear, float quadratic) {

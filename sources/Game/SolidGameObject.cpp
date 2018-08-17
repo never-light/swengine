@@ -32,3 +32,8 @@ std::vector<OBB> SolidGameObject::getColliders() const
 {
 	return m_mesh->getColliders();
 }
+
+vector3 SolidGameObject::getPosition() const
+{
+	return m_transform->getPosition();
+}

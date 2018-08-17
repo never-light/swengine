@@ -92,6 +92,16 @@ GUILayout * GUIManager::getMainLayout() const
 	return m_mainLayout;
 }
 
+void GUIManager::setCursorType(CursorType type)
+{
+	m_window->setCursorType(type);
+}
+
+CursorType GUIManager::getCursorType() const
+{
+	return m_window->getCursorType();
+}
+
 void GUIManager::onMouseButtonPress(MouseButton button, const MouseState &)
 {
 	CursorType cursorType = m_window->getCursorType();
@@ -102,7 +112,7 @@ void GUIManager::onMouseButtonPress(MouseButton button, const MouseState &)
 
 	MousePosition mousePosition = m_inputManager->getMousePosition();
 
-	m_mainLayout->onClick(mousePosition);
+	m_mainLayout->onClick(mousePosition, button);
 }
 
 void GUIManager::onKeyPress(Key key, KeyEvent::Modifier mod)
