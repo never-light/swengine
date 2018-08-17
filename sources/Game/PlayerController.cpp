@@ -202,8 +202,11 @@ void PlayerController::initializeGUI()
 
 void PlayerController::takeObject(GameObject * object)
 {
-	m_player->getInventory()->addObject(dynamic_cast<InventoryObject*>(object));
+	InventoryObject* inventoryObject = dynamic_cast<InventoryObject*>(object);
+
+	m_player->getInventory()->addObject(inventoryObject);
 	m_gameObjectsStore->relocateObject(object, GameObject::Location::Inventory);
+	inventoryObject->triggerTake();
 }
 
 void PlayerController::updateAnimation()

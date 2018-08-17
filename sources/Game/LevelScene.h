@@ -15,6 +15,9 @@
 
 #include <Game\Game\Inventory\InventoryViewer.h>
 
+#include <Game\Game\InfoportionsStore.h>
+#include <Game\Game\Tasks\TaskManager.h>
+
 #include "SolidGameObject.h"
 #include "PlayerController.h"
 #include "FreeCameraController.h"
@@ -44,7 +47,15 @@ protected:
 
 	void initializePlayer();
 	void initializeFreeCamera();
+
+	void initializeInfoportions();
+	void initializeTasks();
+	void initializeGUI();
+
+	void startGame();
 private:
+	void changeCurrentTaskCallback(const Task* newCurrentTask);
+
 	void removeGameObjectCallback(GameObject* object);
 	void registerGameObjectCallback(GameObject* object);
 	void relocateGameObjectCallback(GameObject* object, GameObject::Location oldLocation, GameObject::Location newLocation);
@@ -57,6 +68,12 @@ private:
 protected:
 	GUILayout * m_levelGUILayout;
 
+protected:
+	InfoportionsStore * m_infoportionsStore;
+	TaskManager* m_taskManager;
+
+	GUIText* m_currentTaskText;
+	GUIText* m_currentObjectiveText;
 protected:
 	GameObjectsStore * m_gameObjectsStore;
 	PhongLightingMaterial * m_phongLightingBaseMaterial;

@@ -22,6 +22,9 @@ public:
 	void triggerUse();
 	void setUseCallback(const ActionCallback& callback);
 
+	void triggerTake();
+	void setTakeCallback(const ActionCallback& callback);
+
 	const std::string& getInventoryTitle() const;
 	void setInventoryTitle(const std::string& title);
 
@@ -32,6 +35,7 @@ protected:
 	std::string m_inventoryTitle;
 
 	ActionCallback m_useCallback;
+	ActionCallback m_takeCallback;
 
 	InventoryUsage m_inventoryUsage;
 };

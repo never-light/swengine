@@ -27,6 +27,17 @@ void InventoryObject::setUseCallback(const ActionCallback & callback)
 	m_useCallback = callback;
 }
 
+void InventoryObject::triggerTake()
+{
+	if (m_takeCallback != nullptr)
+		m_takeCallback(this);
+}
+
+void InventoryObject::setTakeCallback(const ActionCallback & callback)
+{
+	m_takeCallback = callback;
+}
+
 const std::string & InventoryObject::getInventoryTitle() const
 {
 	return m_inventoryTitle;

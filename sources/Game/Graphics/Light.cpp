@@ -15,6 +15,7 @@ Light::Light(Type type)
 	m_diffuseIntensity(1.0f)
 {
 	GameObject::setGameObjectUsage(GameObject::Usage::LightSource);
+	GameObject::setGameObjectLocation(GameObject::Location::World);
 }
 
 Light::~Light() {

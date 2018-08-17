@@ -55,11 +55,23 @@ LevelScene::LevelScene(GraphicsContext* graphicsContext,
 	console->registerCommandHandler("dir",
 		std::bind(&LevelScene::pickDirectionCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
 
+	initializeGUI();
+
 	initializeSceneObjects();
+	initializeInfoportions();
+	initializeTasks();
+
+	startGame();
 }
 
 LevelScene::~LevelScene()
 {
+	delete m_currentObjectiveText;
+	delete m_currentTaskText;
+
+	delete m_taskManager;
+	delete m_infoportionsStore;
+	
 	delete m_levelGUILayout;
 
 	delete m_gameObjectsStore;
@@ -189,6 +201,14 @@ void LevelScene::initializeSceneObjects() {
 	book->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
 	book->setGameObjectInteractiveTitle(bookTitle);
 
+	book->setTakeCallback([&infoportionsStore = m_infoportionsStore](InventoryObject* object) {
+		infoportionsStore->addInfoportion("task_intro_book_found");
+	});
+
+	book->setUseCallback([&infoportionsStore = m_infoportionsStore](InventoryObject* object) {
+		infoportionsStore->addInfoportion("task_intro_book_read");
+	});
+
 	std::string book2Title = "Какая-то книга";
 	std::string book2Text = "Hello, world!\nHello, world in new line!";
 
@@ -200,7 +220,6 @@ void LevelScene::initializeSceneObjects() {
 	book2->setGameObjectLocation(GameObject::Location::World);
 	book2->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
 	book2->setGameObjectInteractiveTitle(book2Title);
-
 
 	// Initialize level
 	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
@@ -286,6 +305,81 @@ void LevelScene::initializeFreeCamera()
 	m_freeCamera->getTransform()->lookAt(0.0f, 0.0f, 10.0f);
 
 	m_freeCameraController = new FreeCameraController(m_freeCamera, m_inputManager);
+}
+
+void LevelScene::initializeInfoportions()
+{
+	m_infoportionsStore = new InfoportionsStore();
+}
+
+void LevelScene::initializeTasks()
+{
+	m_taskManager = new TaskManager(m_infoportionsStore);
+	m_taskManager->setChangeCurrentTaskCallback(std::bind(&LevelScene::changeCurrentTaskCallback, this, std::placeholders::_1));
+
+	Objective taskIntroLookAround("Осмотреться");
+	taskIntroLookAround.setCompleteInfoportion("task_intro_book_found");
+	
+	Objective taskIntroReadBook("Изучить записки");
+	taskIntroReadBook.setCompleteInfoportion("task_intro_book_read");
+
+	//Objective taskIntroOpenDoor("Открыть дверь");
+	//taskIntroOpenDoor.setCompleteInfoportion("task_intro_door_opened");
+
+	Task taskIntro(
+		"Где я?", {
+			taskIntroLookAround,
+			taskIntroReadBook,
+			//taskIntroOpenDoor
+		}
+	);
+
+	taskIntro.setStartInfoportion("game_started");
+
+	m_taskManager->addTask(taskIntro);
+}
+
+void LevelScene::initializeGUI()
+{
+	m_currentTaskText = new GUIText(m_graphicsResourceFactory);
+	m_currentTaskText->setPosition(120, 50);
+	m_currentTaskText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
+	m_currentTaskText->setFontSize(14);
+	m_currentTaskText->setColor(1.0, 1.0, 1.0);
+	//m_currentTaskText->hide();
+
+	m_levelGUILayout->addWidget(m_currentTaskText);
+
+	m_currentObjectiveText = new GUIText(m_graphicsResourceFactory);
+	m_currentObjectiveText->setPosition(135, 85);
+	m_currentObjectiveText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
+	m_currentObjectiveText->setFontSize(11);
+	m_currentObjectiveText->setColor(1.0, 1.0, 1.0);
+	m_currentObjectiveText->hide();
+
+	m_levelGUILayout->addWidget(m_currentObjectiveText);
+}
+
+void LevelScene::startGame()
+{
+	m_infoportionsStore->addInfoportion("game_started");
+}
+
+void LevelScene::changeCurrentTaskCallback(const Task * newCurrentTask)
+{
+	if (newCurrentTask != nullptr) {
+		//m_currentTaskText->show();
+		m_currentObjectiveText->show();
+
+		m_currentTaskText->setText(newCurrentTask->getTitle());
+		m_currentObjectiveText->setText(newCurrentTask->getCurrentObjective()->getTitle());
+	}
+	else {
+		m_currentTaskText->setText("Активных задач нет");
+
+		//m_currentTaskText->hide();
+		m_currentObjectiveText->hide();
+	}
 }
 
 void LevelScene::removeGameObjectCallback(GameObject * object)
