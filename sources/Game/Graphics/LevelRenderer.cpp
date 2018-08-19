@@ -56,8 +56,7 @@ void LevelRenderer::setActiveCamera(const Camera * camera)
 	m_activeCamera = camera;
 }
 
-void LevelRenderer::prepareBaseMaterials()
-{
+void LevelRenderer::prepareBaseMaterials() {
 	for (const BaseMaterial* baseMaterial : m_baseMaterials) {
 		GpuProgram* gpuProgram = baseMaterial->getGpuProgram();
 		gpuProgram->bind();
@@ -65,10 +64,6 @@ void LevelRenderer::prepareBaseMaterials()
 		if (baseMaterial->isTransformsDataRequired()) {
 			gpuProgram->setParameter("scene.viewTransform", m_activeCamera->getViewMatrix());
 			gpuProgram->setParameter("scene.projectionTransform", m_activeCamera->getProjectionMatrix());
-		}
-
-		if (baseMaterial->isLightsDataRequired()) {
-			// TODO: pass lights data to GPU program
 		}
 	}
 }

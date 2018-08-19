@@ -15,6 +15,14 @@ GameObjectsStore::~GameObjectsStore()
 		delete object;
 }
 
+void GameObjectsStore::update()
+{
+	for (GameObject* object : m_removedObjects)
+		delete object;
+
+	m_removedObjects.clear();
+}
+
 void GameObjectsStore::registerGameObject(GameObject * object)
 {
 	_assert(object->getGameObjectId() == 0);
@@ -29,12 +37,13 @@ void GameObjectsStore::registerGameObject(GameObject * object)
 		m_registerObjectCallback(object);
 }
 
-void GameObjectsStore::removeGameObject(GameObject * object)
-{
-	m_gameObjects.erase(m_gameObjects.begin() + (object->getGameObjectId() - 1));
+void GameObjectsStore::removeGameObject(GameObject * object) {
+	m_gameObjects.erase((m_gameObjects.begin() + (object->getGameObjectId() - 1)));
 
 	if (m_removeObjectCallback != nullptr)
 		m_removeObjectCallback(object);
+
+	m_removedObjects.push_back(object);
 }
 
 void GameObjectsStore::relocateObject(GameObject * object, GameObject::Location newLocation)

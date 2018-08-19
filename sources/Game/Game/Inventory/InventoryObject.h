@@ -11,19 +11,10 @@ public:
 	};
 
 public:
-	using ActionCallback = std::function<void(InventoryObject*)>;
-
-public:
 	InventoryObject(Texture* icon);
 	virtual ~InventoryObject();
 
 	Texture* getInventoryIcon() const;
-
-	void triggerUse();
-	void setUseCallback(const ActionCallback& callback);
-
-	void triggerTake();
-	void setTakeCallback(const ActionCallback& callback);
 
 	const std::string& getInventoryTitle() const;
 	void setInventoryTitle(const std::string& title);
@@ -33,9 +24,6 @@ public:
 protected:
 	Texture* m_inventoryIcon;
 	std::string m_inventoryTitle;
-
-	ActionCallback m_useCallback;
-	ActionCallback m_takeCallback;
 
 	InventoryUsage m_inventoryUsage;
 };

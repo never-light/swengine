@@ -17,6 +17,11 @@
 
 #include <Game\Game\InfoportionsStore.h>
 #include <Game\Game\Tasks\TaskManager.h>
+#include <Game\Game\Time\TimeManager.h>
+
+#include <Game\Game\HUD\GameHUD.h>
+
+#include <Game\Game\Dynamic\LockedDoor.h>
 
 #include "SolidGameObject.h"
 #include "PlayerController.h"
@@ -71,9 +76,11 @@ protected:
 protected:
 	InfoportionsStore * m_infoportionsStore;
 	TaskManager* m_taskManager;
+	TimeManager* m_timeManager;
 
-	GUIText* m_currentTaskText;
-	GUIText* m_currentObjectiveText;
+	GameHUD* m_hud;
+
+	GUIText* m_winText;
 protected:
 	GameObjectsStore * m_gameObjectsStore;
 	PhongLightingMaterial * m_phongLightingBaseMaterial;
@@ -92,6 +99,8 @@ protected:
 	Camera* m_freeCamera;
 
 	SolidGameObject* m_level;
+	LockedDoor* m_levelDoor;
+
 	SolidMesh* m_levelMesh;
 
 	InputController* m_activeInputController;

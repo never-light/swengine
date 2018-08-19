@@ -14,7 +14,7 @@ int main() {
 	setlocale(LC_CTYPE, "Russian");
 
 	try {
-		Game game("Labyrinth", 1280, 768);
+		Game game("Labyrinth", 1280, 720);
 		game.run();
 	}
 	catch (const EngineException& exception) {

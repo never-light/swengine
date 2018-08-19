@@ -12,6 +12,10 @@
 #include <Engine\Components\GUI\Widgets\GUIImage.h>
 #include <Engine\Components\GUI\Widgets\GUIButton.h>
 #include <Engine\Components\GUI\Widgets\GUIText.h>
+#include <Engine\Components\GUI\Widgets\GUIWindow.h>
+#include <Engine\Components\GUI\Widgets\GUIBlock.h>
+#include <Engine\Components\GUI\Widgets\GUITextBox.h>
+
 
 class GUIManager : public InputEventsListener {
 public:

@@ -8,6 +8,7 @@
 #include <Game\Game\GameObjectsStore.h>
 
 #include <Game\Game\Inventory\InventoryViewer.h>
+#include <Game\Game\HUD\GameHUD.h>
 
 class PlayerController : public InputController, public InputEventsListener {
 public:
@@ -22,9 +23,7 @@ public:
 		InputManager* inputManager, 
 		const std::vector<Animation*>& statesAnimations,
 		GameObjectsStore* gameObjectsStore,
-		Font* textFont,
-		GUIManager* guiManager,
-		GUILayout* levelGUILayout,
+		GameHUD* hud,
 		GraphicsResourceFactory* graphicsResourceFactory);
 
 	~PlayerController();
@@ -43,13 +42,10 @@ public:
 
 	virtual void onKeyPress(Key key, KeyEvent::Modifier mod);
 
-	void blockControl();
-	void unblockControl();
-	bool isControlBlocked() const;
-
 private:
 	void initializeGUI();
 	void takeObject(GameObject* object);
+	void useObject(GameObject* object);
 
 	void updateAnimation();
 
@@ -64,8 +60,6 @@ private:
 	float m_movementSpeed = 0.10f;
 	float m_mouseSensitivity = 0.15f;
 
-	bool m_isControlBlocked;
-
 	std::vector<Animation*> m_statesAnimations;
 	Animator* m_playerAnimator;
 private:
@@ -75,12 +69,8 @@ private:
 	Camera* m_playerCamera;
 
 private:
-	GUIManager* m_guiManager;
-	GUILayout* m_levelGUILayout;
-	GraphicsResourceFactory* m_graphicsResourceFactory;
-	Font* m_textFont;
-
-	GUIText * m_takeTextWidget;
-
+	GameHUD * m_hud;
 	InventoryViewer* m_inventoryViewer;
+
+	GraphicsResourceFactory* m_graphicsResourceFactory;
 };

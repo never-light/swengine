@@ -15,6 +15,8 @@ public:
 	GameObjectsStore();
 	~GameObjectsStore();
 
+	void update();
+
 	void registerGameObject(GameObject* object);
 	void removeGameObject(GameObject* object);
 
@@ -28,6 +30,8 @@ public:
 	void setRegisterObjectCallback(const RegisterObjectCallback& callback);
 protected:
 	std::vector<GameObject*> m_gameObjects;
+
+	std::list<GameObject*> m_removedObjects;
 
 	Player* m_player;
 	RemoveObjectCallback m_removeObjectCallback;

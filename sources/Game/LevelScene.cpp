@@ -5,7 +5,8 @@
 #include <Engine\Utils\string.h>
 #include <Engine\Utils\io.h>
 
-#include <Game\Game\Book.h>
+#include <Game\Game\Dynamic\Book.h>
+#include <Game\config.h>
 
 #include <iostream>
 
@@ -55,6 +56,9 @@ LevelScene::LevelScene(GraphicsContext* graphicsContext,
 	console->registerCommandHandler("dir",
 		std::bind(&LevelScene::pickDirectionCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
 
+	m_timeManager = new TimeManager();
+	m_timeManager->setRealTimeFactor(1000 / GAME_STATE_UPDATES_PER_SECOND);
+
 	initializeGUI();
 
 	initializeSceneObjects();
@@ -66,12 +70,13 @@ LevelScene::LevelScene(GraphicsContext* graphicsContext,
 
 LevelScene::~LevelScene()
 {
-	delete m_currentObjectiveText;
-	delete m_currentTaskText;
+	delete m_winText;
+	delete m_hud;
 
 	delete m_taskManager;
 	delete m_infoportionsStore;
-	
+	delete m_timeManager;
+
 	delete m_levelGUILayout;
 
 	delete m_gameObjectsStore;
@@ -86,15 +91,36 @@ LevelScene::~LevelScene()
 	delete m_boxPrimitive;
 }
 
-void LevelScene::update()
-{
+void LevelScene::update() {
+	if (m_hud->isControlLocked())
+		return;
+	
+	if (m_player->getPosition().z < -5.5f && !m_infoportionsStore->hasInfoportion("task_intro_room_leaved")) {
+		m_infoportionsStore->addInfoportion("task_intro_room_leaved");
+	}
+
+	if (m_infoportionsStore->hasInfoportion("task_intro_room_leaved")) {
+		m_winText->show();
+		return;
+	}
+
+	m_timeManager->update();
 	m_activeInputController->update();
+	m_hud->update();
+	m_gameObjectsStore->update();
 
 	OBB newPlayerObb = m_player->getWorldPlacedCollider();
 
 	Intersection intersection;
+
 	for (const OBB& obb : m_levelMesh->getColliders()) {
 		if (newPlayerObb.intersects(obb, intersection)) {
+			m_player->getTransform()->move(intersection.getDirection() * intersection.getDepth());
+		}
+	}
+
+	if (m_levelDoor != nullptr) {
+		if (newPlayerObb.intersects(OBB(m_levelDoor->getColliders()[0], m_levelDoor->getTransform()->getTransformationMatrix()), intersection)) {
 			m_player->getTransform()->move(intersection.getDirection() * intersection.getDepth());
 		}
 	}
@@ -128,6 +154,8 @@ void LevelScene::update()
 
 	m_playerCamera->getTransform()->setOrientation(m_player->getTransform()->getOrientation());
 	m_playerCamera->getTransform()->setPosition(boneWorldPosition);
+
+
 }
 
 void LevelScene::render()
@@ -160,6 +188,7 @@ void LevelScene::loadResources()
 	m_levelMesh = m_resourceManager->load<SolidMesh>("resources/models/level.mod", "meshes_level");
 	m_playerMesh = m_resourceManager->load<SolidMesh>("resources/models/player/arms.mod", "meshes_player_arms");
 	m_resourceManager->load<SolidMesh>("resources/models/book.mod", "meshes_dynamic_book");
+	m_resourceManager->load<SolidMesh>("resources/models/door.mod", "meshes_dynamic_door");
 
 	// Textures
 	Texture* bookIcon = m_resourceManager->load<Texture>("resources/textures/icons/book.png", "textues_dynamic_book_icon");
@@ -201,11 +230,11 @@ void LevelScene::initializeSceneObjects() {
 	book->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
 	book->setGameObjectInteractiveTitle(bookTitle);
 
-	book->setTakeCallback([&infoportionsStore = m_infoportionsStore](InventoryObject* object) {
+	book->setTakeCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
 		infoportionsStore->addInfoportion("task_intro_book_found");
 	});
 
-	book->setUseCallback([&infoportionsStore = m_infoportionsStore](InventoryObject* object) {
+	book->setUseCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
 		infoportionsStore->addInfoportion("task_intro_book_read");
 	});
 
@@ -225,12 +254,28 @@ void LevelScene::initializeSceneObjects() {
 	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
 	m_level->setGameObjectUsage(GameObject::Usage::StaticEnvironmentObject);
 
+	m_levelDoor = new LockedDoor(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_door"), m_phongLightingBaseMaterial, m_timeManager);
+	m_levelDoor->setGameObjectInteractiveTitle("Панель");
+	m_levelDoor->getTransform()->setPosition(-1.316f, 1.752f, -4.66f);
+
+	m_levelDoor->setOpenCallback([
+			&infoportionsStore = m_infoportionsStore,
+			&gameObjectsStore = m_gameObjectsStore,
+			&m_door = m_levelDoor
+		] (LockedDoor* door) {
+			gameObjectsStore->removeGameObject(door);
+
+			infoportionsStore->addInfoportion("task_intro_door_opened");
+			m_door = nullptr;
+		}
+	);
+
 	// Initialize lights
 	Light* whileLight = new Light(Light::Type::Point);
 	whileLight->setColor(vector3(1.0f, 1.0f, 1.0f));
 	whileLight->setAmbientIntensity(0.002f);
 	whileLight->setDiffuseIntensity(0.86f);
-	whileLight->setPosition(vector3(-0.76580, 1.4, -1.0655));
+	whileLight->setPosition(vector3(-0.76580, 2.7, -1.0655));
 
 	whileLight->setAttenuation(1.0f, 0.8f, 0.8f);
 
@@ -241,6 +286,9 @@ void LevelScene::initializeSceneObjects() {
 
 	m_gameObjectsStore->registerGameObject(m_player);
 	m_gameObjectsStore->registerGameObject(m_level);
+	m_gameObjectsStore->registerGameObject(m_levelDoor);
+
+
 	m_gameObjectsStore->registerGameObject(book);
 	m_gameObjectsStore->registerGameObject(book2);
 
@@ -285,8 +333,7 @@ void LevelScene::initializePlayer()
 	playerAnimations[(size_t)PlayerController::PlayerState::Taking] = playerArmsTaking;
 
 	m_playerController = new PlayerController(m_player, m_playerCamera, 
-		m_inputManager, playerAnimations, m_gameObjectsStore, 
-		m_resourceManager->getResource<Font>("fonts_tuffy"), m_guiManager, m_levelGUILayout, m_graphicsResourceFactory);
+		m_inputManager, playerAnimations, m_gameObjectsStore, m_hud, m_graphicsResourceFactory);
 
 	m_playerController->setMovementSpeed(0.15f);
 }
@@ -323,14 +370,18 @@ void LevelScene::initializeTasks()
 	Objective taskIntroReadBook("Изучить записки");
 	taskIntroReadBook.setCompleteInfoportion("task_intro_book_read");
 
-	//Objective taskIntroOpenDoor("Открыть дверь");
-	//taskIntroOpenDoor.setCompleteInfoportion("task_intro_door_opened");
+	Objective taskIntroOpenDoor("Открыть дверь");
+	taskIntroOpenDoor.setCompleteInfoportion("task_intro_door_opened");
+
+	Objective taskIntroLeaveRoom("Выбраться из комнаты");
+	taskIntroLeaveRoom.setCompleteInfoportion("task_intro_room_leaved");
 
 	Task taskIntro(
 		"Где я?", {
 			taskIntroLookAround,
 			taskIntroReadBook,
-			//taskIntroOpenDoor
+			taskIntroOpenDoor,
+			taskIntroLeaveRoom
 		}
 	);
 
@@ -341,23 +392,22 @@ void LevelScene::initializeTasks()
 
 void LevelScene::initializeGUI()
 {
-	m_currentTaskText = new GUIText(m_graphicsResourceFactory);
-	m_currentTaskText->setPosition(120, 50);
-	m_currentTaskText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
-	m_currentTaskText->setFontSize(14);
-	m_currentTaskText->setColor(1.0, 1.0, 1.0);
-	//m_currentTaskText->hide();
+	m_hud = new GameHUD(
+		m_graphicsResourceFactory, 
+		m_resourceManager->getResource<Font>("fonts_tuffy"),
+		m_guiManager, 
+		m_levelGUILayout
+	);
 
-	m_levelGUILayout->addWidget(m_currentTaskText);
+	m_winText = new GUIText(m_graphicsResourceFactory);
+	m_winText->setPosition(535, 235);
+	m_winText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
+	m_winText->setFontSize(32);
+	m_winText->setColor(1.0, 1.0, 1.0);
+	m_winText->setText("Игра завершена!");
+	m_winText->hide();
 
-	m_currentObjectiveText = new GUIText(m_graphicsResourceFactory);
-	m_currentObjectiveText->setPosition(135, 85);
-	m_currentObjectiveText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
-	m_currentObjectiveText->setFontSize(11);
-	m_currentObjectiveText->setColor(1.0, 1.0, 1.0);
-	m_currentObjectiveText->hide();
-
-	m_levelGUILayout->addWidget(m_currentObjectiveText);
+	m_levelGUILayout->addWidget(m_winText);
 }
 
 void LevelScene::startGame()
@@ -368,18 +418,13 @@ void LevelScene::startGame()
 void LevelScene::changeCurrentTaskCallback(const Task * newCurrentTask)
 {
 	if (newCurrentTask != nullptr) {
-		//m_currentTaskText->show();
-		m_currentObjectiveText->show();
-
-		m_currentTaskText->setText(newCurrentTask->getTitle());
-		m_currentObjectiveText->setText(newCurrentTask->getCurrentObjective()->getTitle());
+		m_hud->setCurrentTaskInfo(newCurrentTask->getTitle(), newCurrentTask->getCurrentObjective()->getTitle());
 	}
 	else {
-		m_currentTaskText->setText("Активных задач нет");
-
-		//m_currentTaskText->hide();
-		m_currentObjectiveText->hide();
+		m_hud->setNoActiveTask();
 	}
+
+	m_hud->showTaskInfo();
 }
 
 void LevelScene::removeGameObjectCallback(GameObject * object)

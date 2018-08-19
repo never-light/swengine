@@ -5,9 +5,7 @@
 
 PlayerController::PlayerController(Player * player, Camera * camera, InputManager * inputManager, 
 	const std::vector<Animation*>& statesAnimations, GameObjectsStore* gameObjectsStore,
-	Font* textFont,
-	GUIManager* guiManager,
-	GUILayout* levelGUILayout,
+	GameHUD* hud,
 	GraphicsResourceFactory* graphicsResourceFactory)
 	: InputController(inputManager), 
 	m_player(player), 
@@ -15,10 +13,7 @@ PlayerController::PlayerController(Player * player, Camera * camera, InputManage
 	m_statesAnimations(statesAnimations),
 	m_playerAnimator(nullptr),
 	m_gameObjectsStore(gameObjectsStore),
-	m_isControlBlocked(false),
-	m_guiManager(guiManager),
-	m_textFont(textFont),
-	m_levelGUILayout(levelGUILayout),
+	m_hud(hud),
 	m_graphicsResourceFactory(graphicsResourceFactory)
 {
 	_assert(statesAnimations.size() == PLAYER_STATES_COUNT);
@@ -35,20 +30,11 @@ PlayerController::PlayerController(Player * player, Camera * camera, InputManage
 
 PlayerController::~PlayerController()
 {
-	if (m_playerAnimator != nullptr) {
-		delete m_playerAnimator;
-		m_playerAnimator = nullptr;
-	}
-
-	delete m_takeTextWidget;
+	delete m_playerAnimator;
 	delete m_inventoryViewer;
 }
 
-void PlayerController::update()
-{
-	if (isControlBlocked())
-		return;
-
+void PlayerController::update() {
 	updateAnimation();
 
 	bool needMove = false;
@@ -129,20 +115,13 @@ PlayerController::PlayerState PlayerController::getCurrentPlayerState() const
 void PlayerController::onKeyPress(Key key, KeyEvent::Modifier mod)
 {
 	if (key == GLFW_KEY_I) {
-		if (m_inventoryViewer->isVisible()) {
-			m_inventoryViewer->onClose();
-			m_inventoryViewer->hide();
-			m_guiManager->setCursorType(CursorType::Hidden);
-			unblockControl();
-		}
-		else {
-			m_inventoryViewer->show();
-			m_guiManager->setCursorType(CursorType::Default);
-			blockControl();
-		}
+		if (m_inventoryViewer->isOpened())
+			m_inventoryViewer->close();
+		else
+			m_inventoryViewer->open();
 	}
 
-	if (key == GLFW_KEY_F && !isControlBlocked()) {
+	if (key == GLFW_KEY_F) {
 		if (!m_inputManager->isKeyPressed(GLFW_KEY_W) && 
 			!m_inputManager->isKeyPressed(GLFW_KEY_A) &&
 			!m_inputManager->isKeyPressed(GLFW_KEY_S) &&
@@ -159,54 +138,35 @@ void PlayerController::onKeyPress(Key key, KeyEvent::Modifier mod)
 			if (interactiveObject->isTakeable()) {
 				takeObject(interactiveObject);
 			}
+			else if (interactiveObject->isUsable()) {
+				useObject(interactiveObject);
+			}
 		}
 	}
 }
 
-void PlayerController::blockControl()
-{
-	m_isControlBlocked = true;
-}
-
-void PlayerController::unblockControl()
-{
-	m_isControlBlocked = false;
-}
-
-bool PlayerController::isControlBlocked() const
-{
-	return m_isControlBlocked;
-}
-
-void PlayerController::initializeGUI()
-{
-	m_takeTextWidget = new GUIText(m_graphicsResourceFactory);
-	m_takeTextWidget->setPosition(m_levelGUILayout->getWidth() / 2, m_levelGUILayout->getHeight() - 185);
-	m_takeTextWidget->setFont(m_textFont);
-	m_takeTextWidget->setFontSize(12);
-	m_takeTextWidget->setColor(1.0, 1.0, 1.0);
-	m_takeTextWidget->hide();
-
-	m_levelGUILayout->addWidget(m_takeTextWidget);
-
-	m_inventoryViewer = new InventoryViewer(m_player->getInventory(), m_graphicsResourceFactory, m_textFont);
+void PlayerController::initializeGUI() {
+	m_inventoryViewer = new InventoryViewer(m_player->getInventory(), m_graphicsResourceFactory, m_hud->getDefaultFont());
 	m_inventoryViewer->setBackgroundColor(vector4(0.168f, 0.172f, 0.25f, 0.8f));
 	m_inventoryViewer->setSize(800, 600);
-	m_inventoryViewer->setPosition(m_levelGUILayout->getWidth() / 2 - 400,
-		m_levelGUILayout->getHeight() / 2 - 300);
+	m_inventoryViewer->setPosition(m_hud->getScreenWidth() / 2 - 400,
+		m_hud->getScreenHeight() / 2 - 300);
 	m_inventoryViewer->enableBackgroundRendering();
 	m_inventoryViewer->hide();
 
-	m_levelGUILayout->addWidget(m_inventoryViewer);
+	m_hud->registerModalWindow(m_inventoryViewer);
 }
 
 void PlayerController::takeObject(GameObject * object)
 {
-	InventoryObject* inventoryObject = dynamic_cast<InventoryObject*>(object);
-
-	m_player->getInventory()->addObject(inventoryObject);
+	m_player->getInventory()->addObject(dynamic_cast<InventoryObject*>(object));
 	m_gameObjectsStore->relocateObject(object, GameObject::Location::Inventory);
-	inventoryObject->triggerTake();
+	object->triggerTake();
+}
+
+void PlayerController::useObject(GameObject * object)
+{
+	object->triggerUse();
 }
 
 void PlayerController::updateAnimation()
@@ -223,23 +183,22 @@ void PlayerController::updateAnimation()
 
 void PlayerController::checkInteractiveObjects()
 {
-	m_takeTextWidget->hide();
+	m_hud->hideInteractiveObjectHint();
 
 	GameObject* nearestInteractiveObject = findNearestInteractiveObject();
 
 	if (nearestInteractiveObject == nullptr)
 		return;
 
-	if (nearestInteractiveObject->isTakeable()) {
-		std::string title = nearestInteractiveObject->getGameObjectInteractiveTitle();
+	std::string title = nearestInteractiveObject->getGameObjectInteractiveTitle();
+	
+	if (nearestInteractiveObject->isUsable())
+		title += " - Использовать (F)";
+	else if (nearestInteractiveObject->isTakeable())
 		title += " - Взять (F)";
 
-		m_takeTextWidget->setText(title);
-
-		uivector2 oldPosition = m_takeTextWidget->getPosition();
-		m_takeTextWidget->setPosition(oldPosition.x, oldPosition.y);
-		m_takeTextWidget->show();
-	}
+	m_hud->setInteractiveObjectHint(title);
+	m_hud->showInteractiveObjectHint();
 }
 
 GameObject * PlayerController::findNearestInteractiveObject() const

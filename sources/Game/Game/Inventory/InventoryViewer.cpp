@@ -1,6 +1,7 @@
 #include "InventoryViewer.h"
 
-#include <Game\Game\Book.h>
+#include <Game\GameObject.h>
+#include <Game\Game\Dynamic\Book.h>
 
 InventoryViewer::InventoryViewer(Inventory* inventory, GraphicsResourceFactory* graphicsResourceFactory, Font* textFont)
 	: m_inventory(inventory), 
@@ -119,7 +120,7 @@ void InventoryViewer::onClick(const MousePosition & mousePosition, MouseButton b
 			if (hoveredObject == nullptr)
 				return;
 
-			hoveredObject->triggerUse();
+			dynamic_cast<GameObject*>(hoveredObject)->triggerUse();
 
 			if (hoveredObject->getInventoryUsage() == InventoryObject::InventoryUsage::Book) {
 
@@ -133,9 +134,11 @@ void InventoryViewer::onClick(const MousePosition & mousePosition, MouseButton b
 	}
 }
 
-void InventoryViewer::onClose()
+void InventoryViewer::close()
 {
 	closeSubWindow();
+
+	HUDWindow::close();
 }
 
 InventoryObject * InventoryViewer::findHoveredObject(const MousePosition& mousePosition) const

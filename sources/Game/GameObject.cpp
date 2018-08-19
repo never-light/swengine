@@ -6,7 +6,9 @@ GameObject::GameObject()
 	: m_gameObjectId(0),
 	m_gameObjectUsage(Usage::Dummy),
 	m_gameObjectLocation(Location::None),
-	m_gameObjectInteractiveMode(InteractiveMode::None)
+	m_gameObjectInteractiveMode(InteractiveMode::None),
+	m_useCallback(nullptr),
+	m_takeCallback(nullptr)
 {
 
 }
@@ -25,6 +27,11 @@ void GameObject::setGameObjectId(GameObject::Id id)
 	_assert(m_gameObjectId == 0);
 
 	m_gameObjectId = id;
+}
+
+void GameObject::resetGameObjectId()
+{
+	m_gameObjectId = 0;
 }
 
 GameObject::Usage GameObject::getGameObjectUsage() const
@@ -97,4 +104,26 @@ void GameObject::setGameObjectInteractiveTitle(const std::string & title)
 const std::string & GameObject::getGameObjectInteractiveTitle() const
 {
 	return m_gameObjectInteractiveTitle;
+}
+
+void GameObject::triggerUse()
+{
+	if (m_useCallback != nullptr)
+		m_useCallback(this);
+}
+
+void GameObject::setUseCallback(const ActionCallback & callback)
+{
+	m_useCallback = callback;
+}
+
+void GameObject::triggerTake()
+{
+	if (m_takeCallback != nullptr)
+		m_takeCallback(this);
+}
+
+void GameObject::setTakeCallback(const ActionCallback & callback)
+{
+	m_takeCallback = callback;
 }

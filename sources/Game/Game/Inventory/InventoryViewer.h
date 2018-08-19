@@ -1,14 +1,15 @@
 #pragma once
 
 #include <Engine\Components\GUI\GUIWidget.h>
-#include <Engine\Components\GUI\Widgets\GUIWindow.h>
 #include <Engine\Components\GUI\Widgets\GUIText.h>
 #include <Engine\Components\GUI\Widgets\GUIBlock.h>
 #include <Engine\Components\GUI\Widgets\GUIImage.h>
 
+#include <Game\Game\HUD\HUDWindow.h>
+
 #include "Inventory.h"
 
-class InventoryViewer : public GUIWindow {
+class InventoryViewer : public HUDWindow {
 public:
 	InventoryViewer(Inventory* inventory, GraphicsResourceFactory* graphicsResourceFactory, Font* textFont);
 	~InventoryViewer();
@@ -18,7 +19,8 @@ public:
 	
 	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
 
-	void onClose();
+	virtual void close() override;
+
 protected:
 	InventoryObject * findHoveredObject(const MousePosition& mousePosition) const;
 

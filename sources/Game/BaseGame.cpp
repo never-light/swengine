@@ -23,7 +23,7 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 	Random::initialize();
 
 	// Window
-	m_window = new Window(windowName, width, height);
+	m_window = new Window(windowName, width, height, false);
 	m_window->setCursorType(CursorType::Hidden);
 
 	// Engine
