@@ -104,6 +104,9 @@ Font * GUIText::getFont() const
 void GUIText::setFontSize(unsigned int size)
 {
 	m_fontSize = size;
+
+	if (!m_text.empty())
+		updateTextGeometry();
 }
 
 unsigned int GUIText::getFontSize() const

@@ -25,7 +25,7 @@ void GameObjectsStore::update()
 
 void GameObjectsStore::registerGameObject(GameObject * object)
 {
-	_assert(object->getGameObjectId() == 0);
+	_assert(object != nullptr && object->getGameObjectId() == 0);
 
 	object->setGameObjectId(m_gameObjects.size() + 1);
 	m_gameObjects.push_back(object);
@@ -38,6 +38,8 @@ void GameObjectsStore::registerGameObject(GameObject * object)
 }
 
 void GameObjectsStore::removeGameObject(GameObject * object) {
+	_assert(object != nullptr && object->getGameObjectId() != 0);
+
 	m_gameObjects.erase((m_gameObjects.begin() + (object->getGameObjectId() - 1)));
 
 	if (m_removeObjectCallback != nullptr)
@@ -48,7 +50,7 @@ void GameObjectsStore::removeGameObject(GameObject * object) {
 
 void GameObjectsStore::relocateObject(GameObject * object, GameObject::Location newLocation)
 {
-	_assert(object->getGameObjectId() != 0);
+	_assert(object != nullptr && object->getGameObjectId() != 0);
 
 	GameObject::Location oldLocation = object->getGameObjectLocation();
 

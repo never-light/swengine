@@ -6,8 +6,8 @@ MainMenu::MainMenu(Window* window, GraphicsResourceFactory* graphicsResourceFact
 	m_mainGUILayout(mainGUILayout), 
 	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_mainMenuGUILayout(new GUILayout()),
-	m_newGameButton(new GUIButton()),
-	m_exitButton(new GUIButton()),
+	m_newGameButton(new GUIButton(graphicsResourceFactory, resourceManager->getResource<Font>("fonts_tuffy"))),
+	m_exitButton(new GUIButton(graphicsResourceFactory, resourceManager->getResource<Font>("fonts_tuffy"))),
 	m_lastCursorState(CursorType::Default)
 
 {

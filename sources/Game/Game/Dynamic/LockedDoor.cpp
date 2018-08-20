@@ -1,8 +1,9 @@
 #include "LockedDoor.h"
 
-LockedDoor::LockedDoor(SolidMesh * mesh, BaseMaterial * baseMaterial, TimeManager* timeManager)
+LockedDoor::LockedDoor(SolidMesh * mesh, BaseMaterial * baseMaterial, TimeManager* timeManager, GameHUD* hud)
 	: SolidGameObject(mesh, baseMaterial),
 	m_timeManager(timeManager),
+	m_hud(hud),
 	m_isOpened(false),
 	m_openCallback(nullptr)
 {
@@ -18,8 +19,13 @@ LockedDoor::~LockedDoor() {
 
 void LockedDoor::open()
 {
-	if (!m_isOpened)
-		m_timeManager->setIntervalTimer(33, std::bind(&LockedDoor::openAnimationStep, this));
+	if (!m_isOpened) {
+		CodePanel* panel = m_hud->getCodePanelWindow();
+
+		panel->setCode(m_secretCode);
+		panel->setSuccessulEnterCallback(std::bind(&LockedDoor::successfulCodeEnterCallback, this));
+		panel->open();
+	}
 }
 
 bool LockedDoor::isOpened() const {
@@ -28,6 +34,16 @@ bool LockedDoor::isOpened() const {
 
 void LockedDoor::setOpenCallback(const OpenCallback & callback) {
 	m_openCallback = callback;
+}
+
+void LockedDoor::setSecretCode(const std::string & secretCode)
+{
+	m_secretCode = secretCode;
+}
+
+std::string LockedDoor::getSecretCode() const
+{
+	return m_secretCode;
 }
 
 void LockedDoor::useCallback(GameObject * object) {
@@ -49,4 +65,12 @@ bool LockedDoor::openAnimationStep()
 
 	return true;
 
+}
+
+void LockedDoor::successfulCodeEnterCallback()
+{
+	if (!m_isOpened) {
+		m_isOpened = true;
+		m_timeManager->setIntervalTimer(33, std::bind(&LockedDoor::openAnimationStep, this));
+	}
 }

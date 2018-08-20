@@ -254,9 +254,14 @@ void LevelScene::initializeSceneObjects() {
 	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
 	m_level->setGameObjectUsage(GameObject::Usage::StaticEnvironmentObject);
 
-	m_levelDoor = new LockedDoor(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_door"), m_phongLightingBaseMaterial, m_timeManager);
+	m_levelDoor = new LockedDoor(
+		m_resourceManager->getResource<SolidMesh>("meshes_dynamic_door"), 
+		m_phongLightingBaseMaterial, m_timeManager, m_hud);
+
 	m_levelDoor->setGameObjectInteractiveTitle("Панель");
 	m_levelDoor->getTransform()->setPosition(-1.316f, 1.752f, -4.66f);
+
+	m_levelDoor->setSecretCode("12345");
 
 	m_levelDoor->setOpenCallback([
 			&infoportionsStore = m_infoportionsStore,
@@ -393,6 +398,7 @@ void LevelScene::initializeTasks()
 void LevelScene::initializeGUI()
 {
 	m_hud = new GameHUD(
+		m_graphicsContext,
 		m_graphicsResourceFactory, 
 		m_resourceManager->getResource<Font>("fonts_tuffy"),
 		m_guiManager, 

@@ -3,9 +3,13 @@
 #include <Engine\Components\GUI\GUIManager.h>
 #include <Game\Game\HUD\HUDWindow.h>
 
+#include "CodePanel.h"
+
 class GameHUD {
 public:
-	GameHUD(GraphicsResourceFactory* graphicsResourceFactory, Font* defaultFont, GUIManager* guiManager, GUILayout* guiLayout);
+	GameHUD(GraphicsContext* graphicsContext, 
+		GraphicsResourceFactory* graphicsResourceFactory, 
+		Font* defaultFont, GUIManager* guiManager, GUILayout* guiLayout);
 	~GameHUD();
 
 	void update();
@@ -31,6 +35,8 @@ public:
 
 	Font* getDefaultFont() const;
 
+	CodePanel* getCodePanelWindow() const;
+
 private:
 	void openModalWindowCallback(HUDWindow* window);
 	void closeModalWindowCallback(HUDWindow* window);
@@ -38,6 +44,9 @@ private:
 private:
 	bool m_isControlLocked;
 	bool m_isActiveTaskExists;
+
+private:
+	CodePanel * m_codePanel;
 
 private:
 	GUIText* m_currentTaskText;
@@ -53,4 +62,5 @@ private:
 
 	GUIManager* m_guiManager;
 	GraphicsResourceFactory* m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
 };

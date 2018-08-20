@@ -1,8 +1,13 @@
 #include "GameHUD.h"
 
-GameHUD::GameHUD(GraphicsResourceFactory* graphicsResourceFactory,  Font* defaultFont, GUIManager * guiManager, GUILayout * guiLayout)
+GameHUD::GameHUD(GraphicsContext* graphicsContext, 
+	GraphicsResourceFactory* graphicsResourceFactory, 
+	Font* defaultFont, 
+	GUIManager * guiManager, 
+	GUILayout * guiLayout)
 	: m_guiManager(guiManager),
 	m_guiLayout(guiLayout),
+	m_graphicsContext(graphicsContext),
 	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_defaultFont(defaultFont),
 	m_isControlLocked(false),
@@ -33,10 +38,20 @@ GameHUD::GameHUD(GraphicsResourceFactory* graphicsResourceFactory,  Font* defaul
 	m_interactiveHint->hide();
 
 	m_guiLayout->addWidget(m_interactiveHint);
+
+	m_codePanel = new CodePanel(m_graphicsContext, m_graphicsResourceFactory, m_defaultFont);
+	m_codePanel->setPosition(m_guiLayout->getWidth() / 2 - m_codePanel->getWidth() / 2,
+		m_guiLayout->getHeight() / 2 - m_codePanel->getHeight() / 2);
+
+	m_codePanel->hide();
+
+	registerModalWindow(m_codePanel);
 }
 
 GameHUD::~GameHUD()
 {
+	delete m_codePanel;
+
 	delete m_interactiveHint;
 	delete m_currentTaskText;
 	delete m_currentObjectiveText;
@@ -127,6 +142,11 @@ unsigned int GameHUD::getScreenHeight() const
 Font * GameHUD::getDefaultFont() const
 {
 	return m_defaultFont;
+}
+
+CodePanel * GameHUD::getCodePanelWindow() const
+{
+	return m_codePanel;
 }
 
 void GameHUD::openModalWindowCallback(HUDWindow * window)
