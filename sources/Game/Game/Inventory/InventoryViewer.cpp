@@ -97,7 +97,7 @@ void InventoryViewer::onHover(const MousePosition & mousePosition)
 
 	if (hoveredObject != nullptr) {
 		m_hoverTextVisible = true;
-		m_hoverText->setPosition(static_cast<uint32>(mousePosition.x) + 15, static_cast<uint32>(mousePosition.y) + 8);
+		m_hoverText->setPosition(static_cast<uint32>(mousePosition.x) + 40, static_cast<uint32>(mousePosition.y) + 8);
 		m_hoverText->setText(hoveredObject->getInventoryTitle());
 	}
 	else {

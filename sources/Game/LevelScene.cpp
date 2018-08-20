@@ -218,37 +218,38 @@ void LevelScene::initializeSceneObjects() {
 	initializePrimitives();
 
 	// Initialize objects
-	std::string bookTitle = "Странные записки";
-	std::string bookText = "Lorem ipsum dolor sit amet, consectetur adipiscing\nelit, sed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\nullamco laboris nisi ut aliquip";
+	std::string strangeDiaryTitle = "Странные записки";
+	std::string strangeDiaryText = "Ж чжунъ хшпеъ рнэб ьецчб фнцбсе,\nЕ ижйхб ъхетнч ънчхйоэно пуи,\nТу пргь цйпхйче фхуцч жйцбсе\nЧа жцфустн рнэб чйпшюно зуи!";
 
-	Book* book = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
-		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), bookTitle, bookText);
-	book->getTransform()->setPosition(-2.60989, 1.18929, -2.3509);
+	Book* strangeDiary = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
+		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), strangeDiaryTitle, strangeDiaryText);
+	strangeDiary->getTransform()->setPosition(-2.60989, 1.18929, -2.3509);
 
-	book->setGameObjectUsage(GameObject::Usage::DynamicObject);
-	book->setGameObjectLocation(GameObject::Location::World);
-	book->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
-	book->setGameObjectInteractiveTitle(bookTitle);
+	strangeDiary->setGameObjectUsage(GameObject::Usage::DynamicObject);
+	strangeDiary->setGameObjectLocation(GameObject::Location::World);
+	strangeDiary->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
+	strangeDiary->setGameObjectInteractiveTitle(strangeDiaryTitle);
 
-	book->setTakeCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
+	strangeDiary->setTakeCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
 		infoportionsStore->addInfoportion("task_intro_book_found");
 	});
 
-	book->setUseCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
+	strangeDiary->setUseCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
 		infoportionsStore->addInfoportion("task_intro_book_read");
 	});
 
-	std::string book2Title = "Какая-то книга";
-	std::string book2Text = "Hello, world!\nHello, world in new line!";
+	std::string historyArticleTitle = "Заметки";
+	std::string historyArticleText = "Гай Юлий Цезарь - один из самых известных древнеримских\nполитических деятелей.\n"
+		"Пять - третье простое число.";
 
-	Book* book2 = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
-		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), book2Title, book2Text);
-	book2->getTransform()->setPosition(-2.60989, 1.18929, -1.3509);
+	Book* historyArticle = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
+		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), historyArticleTitle, historyArticleText);
+	historyArticle->getTransform()->setPosition(-2.60989, 1.18929, -1.3509);
 
-	book2->setGameObjectUsage(GameObject::Usage::DynamicObject);
-	book2->setGameObjectLocation(GameObject::Location::World);
-	book2->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
-	book2->setGameObjectInteractiveTitle(book2Title);
+	historyArticle->setGameObjectUsage(GameObject::Usage::DynamicObject);
+	historyArticle->setGameObjectLocation(GameObject::Location::World);
+	historyArticle->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
+	historyArticle->setGameObjectInteractiveTitle(historyArticleTitle);
 
 	// Initialize level
 	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
@@ -261,7 +262,7 @@ void LevelScene::initializeSceneObjects() {
 	m_levelDoor->setGameObjectInteractiveTitle("Панель");
 	m_levelDoor->getTransform()->setPosition(-1.316f, 1.752f, -4.66f);
 
-	m_levelDoor->setSecretCode("12345");
+	m_levelDoor->setSecretCode("2018");
 
 	m_levelDoor->setOpenCallback([
 			&infoportionsStore = m_infoportionsStore,
@@ -279,7 +280,7 @@ void LevelScene::initializeSceneObjects() {
 	Light* whileLight = new Light(Light::Type::Point);
 	whileLight->setColor(vector3(1.0f, 1.0f, 1.0f));
 	whileLight->setAmbientIntensity(0.002f);
-	whileLight->setDiffuseIntensity(0.86f);
+	whileLight->setDiffuseIntensity(0.96f);
 	whileLight->setPosition(vector3(-0.76580, 2.7, -1.0655));
 
 	whileLight->setAttenuation(1.0f, 0.8f, 0.8f);
@@ -294,8 +295,8 @@ void LevelScene::initializeSceneObjects() {
 	m_gameObjectsStore->registerGameObject(m_levelDoor);
 
 
-	m_gameObjectsStore->registerGameObject(book);
-	m_gameObjectsStore->registerGameObject(book2);
+	m_gameObjectsStore->registerGameObject(strangeDiary);
+	m_gameObjectsStore->registerGameObject(historyArticle);
 
 	for (Light* lightSource : m_lights) {
 		m_gameObjectsStore->registerGameObject(lightSource);
