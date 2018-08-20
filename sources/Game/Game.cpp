@@ -36,6 +36,8 @@ Game::Game(const std::string& windowName, unsigned int width, unsigned int heigh
 	m_guiMgr = new GUIManager(m_window, m_inputMgr, m_graphicsContext, m_graphicsSystem->getResourceFactory(),
 		m_resMgr->getResource<GpuProgram>("gpu_programs_gui_program"));
 
+	m_guiMgr->setCurrentCursor(m_defaultGameCursor);
+
 	initializeConsoleGUI();
 
 	m_console->print("[LOG] Start engine loading...");
@@ -48,6 +50,8 @@ Game::Game(const std::string& windowName, unsigned int width, unsigned int heigh
 }
 
 Game::~Game() {
+	delete m_defaultGameCursor;
+
 	delete m_consoleLogger;
 	delete m_consoleCommandsHandler;
 	delete m_console;
@@ -109,6 +113,8 @@ void Game::preLoadCommonResources()
 	try {
 		m_resMgr->load<Font>("resources/fonts/tuffy.font", "fonts_tuffy");
 		m_resMgr->load<GpuProgram>("resources/shaders/gui/quadwidget.fx", "gpu_programs_gui_program");
+
+		m_defaultGameCursor = new Cursor(*m_resMgr->load<RawImage>("resources/textures/cursors/default.png", "images_cursors_default"));
 	}
 	catch (const ResourceLoadingException& exception) {
 		processResourceLoadingError(exception);

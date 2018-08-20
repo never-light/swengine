@@ -45,4 +45,6 @@ private:
 	MainMenu* m_mainMenu;
 
 	LevelScene* m_startScene;
+
+	Cursor* m_defaultGameCursor;
 };

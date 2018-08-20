@@ -8,7 +8,7 @@ MainMenu::MainMenu(Window* window, GraphicsResourceFactory* graphicsResourceFact
 	m_mainMenuGUILayout(new GUILayout()),
 	m_newGameButton(new GUIButton(graphicsResourceFactory, resourceManager->getResource<Font>("fonts_tuffy"))),
 	m_exitButton(new GUIButton(graphicsResourceFactory, resourceManager->getResource<Font>("fonts_tuffy"))),
-	m_lastCursorState(CursorType::Default)
+	m_lastCursorMode(CursorMode::Default)
 
 {
 	m_mainMenuGUILayout->setPosition(0, 0);
@@ -86,16 +86,16 @@ void MainMenu::render()
 
 void MainMenu::activate()
 {
-	m_lastCursorState = m_window->getCursorType();
+	m_lastCursorMode = m_window->getCursorMode();
 
-	m_window->setCursorType(CursorType::Default);
+	m_window->setCursorMode(CursorMode::Default);
 	m_mainGUILayout->addWidget(m_mainMenuGUILayout);
 }
  
 void MainMenu::deactivate()
 {
 	m_mainGUILayout->removeWidget(m_mainMenuGUILayout);
-	m_window->setCursorType(m_lastCursorState);
+	m_window->setCursorMode(m_lastCursorMode);
 }
 
 void MainMenu::onButtonClick(ButtonType buttonType, const GUIButton::ClickCallback & callback)

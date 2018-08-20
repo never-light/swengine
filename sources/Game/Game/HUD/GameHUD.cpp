@@ -153,7 +153,7 @@ void GameHUD::openModalWindowCallback(HUDWindow * window)
 {
 	m_activeWindow = window;
 
-	m_guiManager->setCursorType(CursorType::Default);
+	m_guiManager->setCursorMode(CursorMode::Default);
 	lockControl();
 }
 
@@ -161,6 +161,6 @@ void GameHUD::closeModalWindowCallback(HUDWindow * window)
 {
 	m_activeWindow = nullptr;
 
-	m_guiManager->setCursorType(CursorType::Hidden);
+	m_guiManager->setCursorMode(CursorMode::UnlimitedHidden);
 	unlockControl();
 }

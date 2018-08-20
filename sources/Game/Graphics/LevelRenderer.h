@@ -74,11 +74,9 @@ protected:
 	Texture* m_gBufferAlbedo;
 	Texture* m_gBufferNormals;
 	Texture* m_gBufferPosition;
-	Texture* m_gBufferUV;
 	Texture* m_gBufferDepthStencil;
 
 	static const size_t ALBEDO_BUFFER_INDEX = 0;
 	static const size_t NORMALS_BUFFER_INDEX = 1;
 	static const size_t POSITION_BUFFER_INDEX = 2;
-	static const size_t UV_BUFFER_INDEX = 3;
 };

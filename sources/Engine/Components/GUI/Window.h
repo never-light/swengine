@@ -3,6 +3,8 @@
 #include <Engine\types.h>
 #include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
 
+#include "Cursor.h"
+
 #include <string>
 
 struct WindowCursorState {
@@ -10,8 +12,8 @@ struct WindowCursorState {
 	real64 y;
 };
 
-enum class CursorType {
-	Default, Hidden, Manual
+enum class CursorMode {
+	Default, Hidden, UnlimitedHidden
 };
 
 class Window {
@@ -26,8 +28,14 @@ public:
 	int16 getWidth() const;
 	int16 getHeight() const;
 
-	void setCursorType(CursorType);
-	CursorType getCursorType() const;
+	void setCursorMode(CursorMode mode);
+	CursorMode getCursorMode() const;
+
+	void resetCurrentCursor();
+	void setCurrentCursor(Cursor* cursor);
+	Cursor* getCurrentCursor() const;
+
+	Cursor* getDefaultCursor() const;
 
 	void setCursorPosition(real64, real64);
 	void resetCursorPosition();
@@ -41,8 +49,11 @@ public:
 
 private:
 	GLFWwindow* m_windowPointer;
-	CursorType m_cursorType;
+	CursorMode m_cursorMode;
 
 	int16 m_width;
 	int16 m_height;
+
+	Cursor* m_currentCursor;
+	Cursor* m_defaultCursor;
 };

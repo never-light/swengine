@@ -2,10 +2,12 @@
 #include <iostream>
 
 #include <Engine\Exceptions\EngineException.h>
+#include <Engine\assertions.h>
 
 Window::Window(const std::string& name, int width, int height, bool fullscreen, int samples) 
 	: m_width(width),
-	m_height(height)
+	m_height(height),
+	m_defaultCursor(new Cursor(Cursor::System::Arrow))
 {
 	glfwInit();
 
@@ -34,11 +36,11 @@ Window::Window(const std::string& name, int width, int height, bool fullscreen, 
 }
 
 Window::~Window() {
-
+	delete m_defaultCursor;
 }
 
 void Window::update() {
-	if (m_cursorType == CursorType::Hidden) {
+	if (m_cursorMode == CursorMode::UnlimitedHidden) {
 		resetCursorPosition();
 	}
 }
@@ -51,20 +53,42 @@ int16 Window::getHeight() const {
 	return m_height;
 }
 
-void Window::setCursorType(CursorType type) {
-	m_cursorType = type;
+void Window::setCursorMode(CursorMode mode) {
+	m_cursorMode = mode;
 
-	if (type == CursorType::Default) {
+	if (mode == CursorMode::Default)
 		glfwSetInputMode(m_windowPointer, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	}
-	else if (type == CursorType::Hidden) {
+	else if (mode == CursorMode::Hidden)
+		glfwSetInputMode(m_windowPointer, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	else if (mode == CursorMode::UnlimitedHidden) {
 		glfwSetInputMode(m_windowPointer, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		resetCursorPosition();
 	}
 }
 
-CursorType Window::getCursorType() const {
-	return m_cursorType;
+CursorMode Window::getCursorMode() const {
+	return m_cursorMode;
+}
+
+void Window::resetCurrentCursor()
+{
+	setCurrentCursor(m_defaultCursor);
+}
+
+void Window::setCurrentCursor(Cursor * cursor) {
+	_assert(cursor != nullptr);
+
+	m_currentCursor = cursor;
+	glfwSetCursor(m_windowPointer, cursor->getRawCursorPointer());
+}
+
+Cursor * Window::getCurrentCursor() const
+{
+	return m_currentCursor;
+}
+
+Cursor * Window::getDefaultCursor() const {
+	return m_defaultCursor;
 }
 
 void Window::setCursorPosition(real64 x, real64 y) {

@@ -27,7 +27,6 @@ LevelRenderer::~LevelRenderer()
 	delete m_gBufferAlbedo;
 	delete m_gBufferNormals;
 	delete m_gBufferPosition;
-	delete m_gBufferUV;
 
 	delete m_gBufferTarget;
 }
@@ -114,12 +113,10 @@ void LevelRenderer::render()
 	m_gBufferPosition->bind(POSITION_BUFFER_INDEX);
 	m_gBufferAlbedo->bind(ALBEDO_BUFFER_INDEX);
 	m_gBufferNormals->bind(NORMALS_BUFFER_INDEX);
-	m_gBufferUV->bind(UV_BUFFER_INDEX);
 
 	m_deferredLightingProgram->setParameter("g_position", (int)POSITION_BUFFER_INDEX);
 	m_deferredLightingProgram->setParameter("g_albedo", (int)ALBEDO_BUFFER_INDEX);
 	m_deferredLightingProgram->setParameter("g_normal", (int)NORMALS_BUFFER_INDEX);
-	m_deferredLightingProgram->setParameter("g_uv", (int)UV_BUFFER_INDEX);
 
 	m_ndcQuad->render();
 
@@ -144,10 +141,6 @@ void LevelRenderer::showGBuffer()
 
 	m_gBufferTarget->copyColorComponentData(POSITION_BUFFER_INDEX, nullptr, 0,
 		Rect(0, 0, viewportWidth, viewportHeight), Rect(halfWidth, halfHeight, halfWidth, halfHeight),
-		RenderTarget::CopyFilter::Linear);
-
-	m_gBufferTarget->copyColorComponentData(UV_BUFFER_INDEX, nullptr, 0,
-		Rect(0, 0, viewportWidth, viewportHeight), Rect(halfWidth, 0, halfWidth, halfHeight),
 		RenderTarget::CopyFilter::Linear);
 }
 
@@ -237,7 +230,6 @@ void LevelRenderer::initializeRenderTarget()
 	m_gBufferAlbedo = createGBufferColorTexture();
 	m_gBufferNormals = createGBufferColorTexture();
 	m_gBufferPosition = createGBufferColorTexture();
-	m_gBufferUV = createGBufferColorTexture();
 
 	m_gBufferDepthStencil = createGBufferDepthStencilTexture();
 
@@ -248,7 +240,6 @@ void LevelRenderer::initializeRenderTarget()
 	m_gBufferTarget->attachColorComponent(ALBEDO_BUFFER_INDEX, m_gBufferAlbedo);
 	m_gBufferTarget->attachColorComponent(NORMALS_BUFFER_INDEX, m_gBufferNormals);
 	m_gBufferTarget->attachColorComponent(POSITION_BUFFER_INDEX, m_gBufferPosition);
-	m_gBufferTarget->attachColorComponent(UV_BUFFER_INDEX, m_gBufferUV);
 	m_gBufferTarget->attachDepthStencilComponent(m_gBufferDepthStencil);
 	m_gBufferTarget->unbind();
 }

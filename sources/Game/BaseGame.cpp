@@ -24,7 +24,7 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 
 	// Window
 	m_window = new Window(windowName, width, height, false);
-	m_window->setCursorType(CursorType::Hidden);
+	m_window->setCursorMode(CursorMode::UnlimitedHidden);
 
 	// Engine
 	InitializeEngine(m_window);

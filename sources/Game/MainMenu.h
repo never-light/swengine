@@ -36,5 +36,5 @@ protected:
 
 	GUIText* m_text;
 
-	CursorType m_lastCursorState;
+	CursorMode m_lastCursorMode;
 };

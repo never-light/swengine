@@ -75,10 +75,9 @@ void GUIManager::render()
 
 void GUIManager::update()
 {
-	CursorType cursorType = m_window->getCursorType();
-	MousePosition mousePosition = m_inputManager->getMousePosition();
+	bool needTriggerMouseEvents = getCursorMode() == CursorMode::Default;
 
-	bool needTriggerMouseEvents = cursorType == CursorType::Default || cursorType == CursorType::Manual;
+	MousePosition mousePosition = m_inputManager->getMousePosition();
 
 	if (needTriggerMouseEvents) {
 		m_mainLayout->onHover(mousePosition);
@@ -92,20 +91,33 @@ GUILayout * GUIManager::getMainLayout() const
 	return m_mainLayout;
 }
 
-void GUIManager::setCursorType(CursorType type)
+void GUIManager::setCursorMode(CursorMode mode)
 {
-	m_window->setCursorType(type);
+	m_window->setCursorMode(mode);
 }
 
-CursorType GUIManager::getCursorType() const
+CursorMode GUIManager::getCursorMode() const
 {
-	return m_window->getCursorType();
+	return m_window->getCursorMode();
+}
+
+void GUIManager::resetCurrentCursor() {
+
+}
+
+void GUIManager::setCurrentCursor(Cursor * cursor)
+{
+	m_window->setCurrentCursor(cursor);
+}
+
+Cursor * GUIManager::getCurrentCursor() const
+{
+	return m_window->getCurrentCursor();
 }
 
 void GUIManager::onMouseButtonPress(MouseButton button, const MouseState &)
 {
-	CursorType cursorType = m_window->getCursorType();
-	bool needTriggerMouseEvents = cursorType == CursorType::Default || cursorType == CursorType::Manual;
+	bool needTriggerMouseEvents = getCursorMode() == CursorMode::Default;
 
 	if (!needTriggerMouseEvents)
 		return;

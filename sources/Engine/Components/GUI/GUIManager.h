@@ -31,8 +31,13 @@ public:
 
 	GUILayout* getMainLayout() const;
 
-	virtual void setCursorType(CursorType type);
-	virtual CursorType getCursorType() const;
+	void setCursorMode(CursorMode mode);
+	CursorMode getCursorMode() const;
+
+	void resetCurrentCursor();
+	void setCurrentCursor(Cursor* cursor);
+	Cursor* getCurrentCursor() const; 
+
 protected:
 	virtual void onMouseButtonPress(MouseButton button, const MouseState&) override;
 	virtual void onKeyPress(Key key, KeyEvent::Modifier mod) override;
@@ -58,4 +63,6 @@ protected:
 	InputManager* m_inputManager;
 	GraphicsContext* m_graphicsContext;
 	GraphicsResourceFactory* m_graphicsResourceFactory;
+
+	Cursor* m_defaultCursor;
 };
