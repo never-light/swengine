@@ -6,119 +6,110 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
-#include <experimental\filesystem>
+#include <experimental/filesystem>
 #include <filesystem>
 
-#include <Engine\types.h>
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
-#include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
-#include <Engine\Components\Graphics\RenderSystem\Texture.h>
-#include <Engine\Components\GUI\RawImage.h>
-#include <Engine\Components\GUI\Font.h>
+#include <Engine/Utils/typeid.h>
 
-#include <Engine\Utils\files.h>
+#include <Engine/types.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
-#include "Resource.h"
-#include "HoldingResource.h"
+#include <Engine/Components/GUI/RawImage.h>
+#include <Engine/Components/GUI/Font.h>
+
+#include <Engine/Utils/files.h>
+
 #include "ResourceLoader.h"
 #include "RawImageLoader.h"
-
-#include <type_traits>
 #include "ResourceLoadingException.h"
+
+#include "ResourceInstance.h"
+#include "ResourceHandle.h"
 
 class ResourceManager {
 public:
-	ResourceManager(GraphicsResourceFactory* graphicsResourceFactory);
+	ResourceManager(GraphicsContext* graphicsContext);
 	~ResourceManager();
 
 	template<class T>
-	T* load(const std::string& filename);
+	void registerResourceLoader(ResourceLoader* resourceLoader);
 
 	template<class T>
-	T* load(const std::string& filename, const std::string& alias);
+	void unregisterResourceLoader();
 
-	template<class T> 
-	T* getResource(const std::string& alias);
+	template<class ResourceType>
+	ResourceHandle<ResourceType> loadResource(const std::string& path);
+
+	template<class ResourceType>
+	ResourceHandle<ResourceType> loadResource(const std::string& path, const std::string& alias);
+
+	template<class ResourceType>
+	ResourceHandle<ResourceType> loadResource(const std::string& path, const std::string& alias, std::optional<std::any> options);
+
+	template<class ResourceType>
+	ResourceHandle<ResourceType> getResource(const std::string& alias);
 
 	bool isResourceLoaded(const std::string& alias) const;
-	void registerResource(const std::string& alias, Resource* resource);
-	
-	void registerResourceLoader(ResourceLoader* resourceLoader, const std::string& extension);
-	void registerResourceLoader(ResourceLoader* resourceLoader, const std::vector<std::string>& extensions);
+private:
+	std::unordered_map<TypeId, ResourceLoader*> m_resourceLoaders;
+	std::unordered_map<std::string, BaseResourceInstance*> m_resources;
 
 private:
-	template<class T>
-	T* loadAndCacheResource(const std::string& filename, const std::string& alias);
-
-private:
-	ResourceLoader* getResourceLoaderByFileName(const std::string& filename);
-
-private:
-	std::unordered_map<std::string, std::unique_ptr<Resource>> m_resources;
-	std::unordered_map<std::string, ResourceLoader*> m_resourceLoaders;
-private:
-	GraphicsResourceFactory* m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
 };
 
 template<class T>
-inline T * ResourceManager::load(const std::string & filename)
+inline void ResourceManager::registerResourceLoader(ResourceLoader * resourceLoader)
 {
-	auto resourceIt = m_resources.find(filename);
-	if (resourceIt != m_resources.end())
-		return getResource<T>(filename);
-
-	return loadAndCacheResource<T>(filename, filename);
+	m_resourceLoaders.insert({ getTypeId<T>(), resourceLoader });
 }
 
 template<class T>
-inline T * ResourceManager::load(const std::string & filename, const std::string & alias)
+inline void ResourceManager::unregisterResourceLoader()
 {
-	auto resourceIt = m_resources.find(alias);
-	if (resourceIt != m_resources.end())
-		return getResource<T>(alias);
-
-	return loadAndCacheResource<T>(filename, alias);
+	m_resourceLoaders.erase(getTypeId<T>());
 }
 
-template<class T>
-inline T * ResourceManager::getResource(const std::string & alias)
+template<class ResourceType>
+inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::string& path)
 {
-	Resource* resource = m_resources.at(alias).get();
-
-	if (HoldingResource<T>* holdingResource = dynamic_cast<HoldingResource<T>*>(resource))
-		return holdingResource->getHoldedResource();
-
-	return dynamic_cast<T*>(resource);
+	return loadResource<ResourceType>(path, path, std::optional<std::any>());
 }
 
-template<class T>
-inline T * ResourceManager::loadAndCacheResource(const std::string & filename, const std::string & alias)
+template<class ResourceType>
+inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::string & path, const std::string & alias)
 {
-	ResourceLoader* loader = getResourceLoaderByFileName(filename);
+	return loadResource<ResourceType>(path, alias, std::optional<std::any>());
+}
 
-	if (!FilesUtils::isExists(filename))
-		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "",  __FILE__, __LINE__, __FUNCTION__);
+template<class ResourceType>
+inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::string & path, const std::string & alias, std::optional<std::any> options)
+{
+	if (!FilesUtils::isExists(path))
+		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, path.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+
+	ResourceLoader* loader = m_resourceLoaders[getTypeId<ResourceType>()];
 
 	if (loader == nullptr)
-		throw ResourceLoadingException(ResourceLoadingError::InvalidType, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+		throw ResourceLoadingException(ResourceLoadingError::InvalidType, path.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
-	Resource* resource = loader->load(filename);
+	BaseResourceInstance* resource = loader->load(path, options);
 
-	m_resources.insert({ alias, std::unique_ptr<Resource>(resource) });
+	m_resources.insert({ alias, resource });
 
-	return getResource<T>(alias);
+	return ResourceHandle<ResourceType>(static_cast<ResourceInstance<ResourceType>*>(resource));
 }
 
-template<>
-inline RawImage* ResourceManager::loadAndCacheResource(const std::string & filename, const std::string & alias)
+template<class ResourceType>
+inline ResourceHandle<ResourceType> ResourceManager::getResource(const std::string & alias)
 {
-	if (!FilesUtils::isExists(filename))
-		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+	auto resourceIt = m_resources.find(alias);
 
-	ResourceLoader* loader = new RawImageLoader();
-	Resource* resource = loader->load(filename);
+	if (resourceIt == m_resources.end())
+		return ResourceHandle<ResourceType>(nullptr);
 
-	m_resources.insert({ alias, std::unique_ptr<Resource>(resource) });
+	ResourceInstance<ResourceType>* resourceInstnace =
+		dynamic_cast<ResourceInstance<ResourceType>*>(resourceIt->second);
 
-	return getResource<RawImage>(alias);
+	return ResourceHandle<ResourceType>(resourceInstnace);
 }

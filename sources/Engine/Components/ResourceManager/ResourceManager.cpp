@@ -5,64 +5,29 @@
 #include "TextureLoader.h"
 #include "GpuProgramLoader.h"
 #include "FontLoader.h"
+#include "MeshLoader.h"
+#include "AnimationLoader.h"
 
-ResourceManager::ResourceManager(GraphicsResourceFactory* graphicsResourceFactory)
-	: m_graphicsResourceFactory(graphicsResourceFactory)
+ResourceManager::ResourceManager(GraphicsContext* graphicsContext)
+	: m_graphicsContext(graphicsContext)
 {
-	registerResourceLoader(new TextureLoader(graphicsResourceFactory), 
-		{ "png", "jpg", "tga" } );
-
-	registerResourceLoader(new GpuProgramLoader(graphicsResourceFactory), "fx");
-	registerResourceLoader(new FontLoader(graphicsResourceFactory), "font");
+	registerResourceLoader<Texture>(new TextureLoader(graphicsContext));
+	registerResourceLoader<GpuProgram>(new GpuProgramLoader(graphicsContext));
+	registerResourceLoader<Font>(new FontLoader(graphicsContext));
+	registerResourceLoader<Mesh>(new MeshLoader(graphicsContext));
+	registerResourceLoader<Animation>(new AnimationLoader());
+	registerResourceLoader<RawImage>(new RawImageLoader());
 }
 
 ResourceManager::~ResourceManager() {
-	std::unordered_set<ResourceLoader*> resourceLoaders;
+	for (auto&[alias, resourceInstance] : m_resources)
+		delete resourceInstance;
 
-	for (const auto& it : m_resourceLoaders)
-		resourceLoaders.insert(it.second);
-
-	for (auto& loader : resourceLoaders)
-		delete loader;
+	for (auto& [ typeId, resourceLoader ] : m_resourceLoaders)
+		delete resourceLoader;
 }
 
-bool ResourceManager::isResourceLoaded(const std::string& name) const
+bool ResourceManager::isResourceLoaded(const std::string& alias) const
 {
-	return m_resources.find(name) != m_resources.end();
-}
-
-void ResourceManager::registerResource(const std::string & alias, Resource * resource)
-{
-	m_resources.insert({ alias, std::unique_ptr<Resource>(resource) });
-}
-
-void ResourceManager::registerResourceLoader(ResourceLoader* resourceLoader, const std::string & extension)
-{
-	m_resourceLoaders.insert({ extension, resourceLoader });
-}
-
-void ResourceManager::registerResourceLoader(ResourceLoader* resourceLoader, const std::vector<std::string>& extensions)
-{
-	for (const auto& extension : extensions)
-		registerResourceLoader(resourceLoader, extension);
-}
-
-ResourceLoader * ResourceManager::getResourceLoaderByFileName(const std::string& filename)
-{
-	namespace fs = std::experimental::filesystem;
-
-	fs::path path(filename);
-
-	std::string extension = path.extension().string();
-
-	if (extension.empty())
-		return nullptr;
-
-	extension = extension.erase(0, 1);
-
-	auto resourceLoaderIt = m_resourceLoaders.find(extension);
-	if (resourceLoaderIt != m_resourceLoaders.end())
-		return resourceLoaderIt->second;
-
-	return nullptr;
+	return m_resources.find(alias) != m_resources.end();
 }

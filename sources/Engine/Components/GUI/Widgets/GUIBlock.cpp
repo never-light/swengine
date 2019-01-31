@@ -18,7 +18,7 @@ void GUIBlock::setColor(const vector4 & color)
 	m_color = color;
 }
 
-void GUIBlock::render(GeometryStore * quad, GpuProgram * program)
+void GUIBlock::render(GeometryInstance * quad, GpuProgram * program)
 {
 	program->setParameter("transform.localToWorld", getTransformationMatrix());
 
@@ -26,7 +26,7 @@ void GUIBlock::render(GeometryStore * quad, GpuProgram * program)
 	program->setParameter("quad.useTexture", false);
 	program->setParameter("quad.useFirstChannel", false);
 
-	quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+	quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 
 }
 

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <functional>
 
-#include <Engine\Utils\typeid.h>
+#include <Engine/Utils/typeid.h>
 
 #include "GameSystem.h"
 #include "GameObject.h"
@@ -18,9 +18,11 @@
 class GameWorld {
 public:
 	GameWorld();
-	virtual ~GameWorld();
+	~GameWorld();
+
 
 	void update(float delta);
+	void render();
 
 	void addGameSystem(GameSystem* system);
 	void removeGameSystem(GameSystem* system);

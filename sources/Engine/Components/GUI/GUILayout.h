@@ -10,7 +10,7 @@ public:
 	GUILayout();
 	virtual ~GUILayout();
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
 	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
@@ -36,8 +36,8 @@ public:
 protected:
 	bool isMouseInWidgetArea(const MousePosition& mousePosition, const uivector2& widgetPosition, const uivector2& widgetSize) const;
 
-	void renderBackground(GeometryStore* quad, GpuProgram* program);
-	void renderWidgets(GeometryStore* quad, GpuProgram* program);
+	void renderBackground(GeometryInstance* quad, GpuProgram* program);
+	void renderWidgets(GeometryInstance* quad, GpuProgram* program);
 
 protected:
 	std::function<void(GUIWidget*)> m_onFocusCallback;

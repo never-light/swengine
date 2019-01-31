@@ -1,21 +1,22 @@
 #pragma once
 
 #include "ResourceLoader.h"
-#include <Engine\Components\Graphics\RenderSystem\Texture.h>
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
+#include <Engine/Components/Graphics/RenderSystem/Texture.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
-#include <Engine\Components\GUI\Font.h>
+#include <Engine/Components/GUI/Font.h>
 
 class FontLoader : public ResourceLoader {
 public:
-	FontLoader(GraphicsResourceFactory* graphicsResourceFactory);
+	FontLoader(GraphicsContext* graphicsContext);
 	virtual ~FontLoader();
-
-	virtual Resource* load(const std::string & filename) override;
 
 protected:
 	Texture * loadBitmap(const std::string& filename);
 
 protected:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
+	GraphicsContext * m_graphicsContext;
+
+	// Inherited via ResourceLoader
+	virtual BaseResourceInstance * load(const std::string & path, std::optional<std::any> options) override;
 };

@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <variant>
 
-#include <Engine\types.h>
-#include <Engine\Components\Math\Math.h>
+#include <Engine/types.h>
+#include <Engine/Components/Math/Math.h>
 #include "Texture.h"
 
 class GpuProgram {

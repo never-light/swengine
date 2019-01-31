@@ -60,7 +60,7 @@ void GraphicsContext::setStencilClearValue(int stencilValue)
 	m_windowRenderTarget->setStencilClearValue(stencilValue);
 }
 
-void GraphicsContext::clear(unsigned int mode)
+void GraphicsContext::clear(RTClearMode mode)
 {
 	m_windowRenderTarget->clear(mode);
 }

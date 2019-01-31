@@ -1,12 +1,14 @@
 #pragma once
 
-#include <Engine\Components\Debugging\Logger.h>
+#include <Engine/Components/Debugging/Logger.h>
 
-#include <Engine\Components\GUI\Window.h>
-#include <Engine\Components\Math\types.h>
-#include <Engine\Components\Math\Geometry\Rect.h>
+#include <Engine/Components/GUI/Window.h>
+#include <Engine/Components/Math/types.h>
+#include <Engine/Components/Math/Geometry/Rect.h>
 
 #include "RenderTarget.h"
+#include "GpuProgram.h"
+#include "GeometryInstance.h"
 
 class GraphicsContext {
 public:
@@ -58,6 +60,15 @@ public:
 	virtual void enableWireframeRendering() = 0;
 	virtual void disableWireframeRendering() = 0;
 
+	virtual GeometryInstance* getNDCQuadInstance() const = 0;
+
+	virtual GeometryInstance* createGeometryInstance() = 0;
+	virtual Texture* createTexture() = 0;
+	virtual GpuProgram* createGpuProgram() = 0;
+
+	virtual RenderTarget* createRenderTarget() = 0;
+
+
 	unsigned int getViewportWidth() const;
 	unsigned int getViewportHeight() const;
 
@@ -70,7 +81,8 @@ public:
 	void setDepthClearValue(float depthValue);
 	void setStencilClearValue(int stencilValue);
 
-	void clear(unsigned int mode);
+	void clear(RTClearMode mode);
+
 protected:
 	Window* m_window;
 

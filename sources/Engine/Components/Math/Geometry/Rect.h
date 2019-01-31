@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine\Components\Math\types.h>
+#include <Engine/Components/Math/types.h>
 
 class Rect {
 public:

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Engine\types.h>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
+#include <Engine/types.h>
+#include <Engine/Components/Graphics/OpenGL4/GL.h>
 
 #include "Cursor.h"
 

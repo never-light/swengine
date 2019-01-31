@@ -1,11 +1,11 @@
 #include "GUILayout.h"
 
 #include <algorithm>
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
+#include <Engine/Components/Graphics/OpenGL4/GL.h>
 #include <iostream>
 
 #include <algorithm>
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
 GUILayout::GUILayout()
 	: m_lastMouseEnteringWidget(nullptr), 
@@ -20,7 +20,7 @@ GUILayout::~GUILayout()
 	
 }
 
-void GUILayout::render(GeometryStore * quad, GpuProgram * program)
+void GUILayout::render(GeometryInstance* quad, GpuProgram * program)
 {
 	renderBackground(quad, program);
 	renderWidgets(quad, program);
@@ -83,7 +83,7 @@ bool GUILayout::isMouseInWidgetArea(const MousePosition & mousePosition, const u
 		widgetPosition.y <= mousePosition.y && mousePosition.y <= (widgetPosition.y + widgetSize.y);
 }
 
-void GUILayout::renderBackground(GeometryStore * quad, GpuProgram * program)
+void GUILayout::renderBackground(GeometryInstance * quad, GpuProgram * program)
 {
 	if (m_renderBackground) {
 		program->setParameter("transform.localToWorld", getTransformationMatrix());
@@ -101,11 +101,11 @@ void GUILayout::renderBackground(GeometryStore * quad, GpuProgram * program)
 
 		program->setParameter("quad.useFirstChannel", false);
 
-		quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+		quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 	}
 }
 
-void GUILayout::renderWidgets(GeometryStore * quad, GpuProgram * program)
+void GUILayout::renderWidgets(GeometryInstance * quad, GpuProgram * program)
 {
 	for (GUIWidget* widget : m_widgets)
 		if (widget->isVisible())

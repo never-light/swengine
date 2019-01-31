@@ -1,9 +1,9 @@
 #include "GUITextBox.h"
 
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
-GUITextBox::GUITextBox(GraphicsContext* graphicsContext, GraphicsResourceFactory * graphicsResourceFactory, Font * font)
-	: m_text(new GUIText(graphicsResourceFactory)),
+GUITextBox::GUITextBox(GraphicsContext* graphicsContext, Font * font)
+	: m_text(new GUIText(graphicsContext)),
 	m_graphicsContext(graphicsContext),
 	m_paddingTop(0), m_paddingLeft(0), m_backgroundColor(1.0, 1.0, 1.0, 1.0),
 	m_keyPressCallback(nullptr)
@@ -116,13 +116,13 @@ void GUITextBox::setPosition(uint32 x, uint32 y)
 	m_text->setPosition(m_position + uivector2(m_paddingLeft, m_paddingTop));
 }
 
-void GUITextBox::render(GeometryStore * quad, GpuProgram * program)
+void GUITextBox::render(GeometryInstance * quad, GpuProgram * program)
 {
 	program->setParameter("transform.localToWorld", getTransformationMatrix());
 	program->setParameter("quad.color", m_backgroundColor);
 	program->setParameter("quad.useTexture", false);
 
-	quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+	quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 
 	m_graphicsContext->enableScissorTest();
 	m_graphicsContext->setScissorRectangle(Rect(m_position, m_size));

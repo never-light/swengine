@@ -1,17 +1,17 @@
 #pragma once
 
-#include <Engine\Components\GUI\GUIWidget.h>
-#include <Engine\Components\GUI\Widgets\GUIText.h>
-#include <Engine\Components\Graphics\RenderSystem\GeometryStore.h>
-
 #include <functional>
+
+#include <Engine/Components/GUI/GUIWidget.h>
+#include <Engine/Components/GUI/Widgets/GUIText.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
 class GUITextBox : public GUIWidget {
 public:
 	using KeyPressCallback = std::function<void(Key, KeyEvent::Modifier)>;
 
 public:
-	GUITextBox(GraphicsContext* graphicsContext, GraphicsResourceFactory* graphicsResourceFactory, Font* font);
+	GUITextBox(GraphicsContext* graphicsContext, Font* font);
 	~GUITextBox();
 
 	void setText(const std::string& text);
@@ -42,7 +42,7 @@ public:
 	virtual void setPosition(const uivector2& position);
 	virtual void setPosition(uint32 x, uint32 y);
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
 	void setBackgroundColor(const vector4& color);
@@ -67,6 +67,5 @@ protected:
 	KeyPressCallback m_keyPressCallback;
 
 protected:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
 	GraphicsContext* m_graphicsContext;
 };

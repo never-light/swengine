@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Engine\Components\GUI\GUIWidget.h>
-#include <Engine\Components\GUI\Font.h>
-#include <Engine\Components\Graphics\RenderSystem\GeometryStore.h>
+#include <Engine/Components/GUI/GUIWidget.h>
+#include <Engine/Components/GUI/Font.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
 class GUIText : public GUIWidget {
 public:
-	GUIText(GraphicsResourceFactory* graphicsResourceFactory);
+	GUIText(GraphicsContext* graphicsContext);
 	~GUIText();
 
 	void setText(const std::string& text);
@@ -29,7 +29,7 @@ public:
 	void setFontSize(unsigned int size);
 	unsigned int getFontSize() const;
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
 protected:
@@ -42,9 +42,9 @@ protected:
 
 	std::string m_text;
 
-	GeometryStore* m_textGeometry;
+	GeometryInstance* m_textGeometry;
 	size_t m_textGeometryVerticesCount;
 
 protected:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
 };

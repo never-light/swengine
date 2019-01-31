@@ -1,16 +1,16 @@
 #pragma once
 
-#include <Engine\Components\Math\types.h>
-#include <Engine\Components\Graphics\RenderSystem\GeometryStore.h>
-#include <Engine\Components\Graphics\RenderSystem\GpuProgram.h>
-#include <Engine\Components\InputManager\InputEvents.h>
+#include <Engine/Components/Math/types.h>
+#include <Engine/Components/Graphics/RenderSystem/GeometryInstance.h>
+#include <Engine/Components/Graphics/RenderSystem/GpuProgram.h>
+#include <Engine/Components/InputManager/InputEvents.h>
 
 class GUIWidget {
 public:
 	GUIWidget();
 	virtual ~GUIWidget();
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) = 0;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) = 0;
 	virtual void update(const MousePosition& mousePosition) = 0;
 
 	virtual void onClick(const MousePosition& mousePosition, MouseButton button);

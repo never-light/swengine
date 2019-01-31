@@ -6,12 +6,10 @@
 GUIManager::GUIManager(Window * window, 
 	InputManager* inputManager, 
 	GraphicsContext* graphicsContext, 
-	GraphicsResourceFactory* graphicsResourceFactory,
 	GpuProgram* guiGpuProgram)
 	: m_window(window), 
 	m_inputManager(inputManager), 
 	m_graphicsContext(graphicsContext),
-	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_gpuProgram(guiGpuProgram),
 	m_quad(nullptr),
 	m_mainLayout(new GUILayout()),
@@ -32,15 +30,12 @@ GUIManager::GUIManager(Window * window,
 		1.0f, 0.0f, 1.0f, 0.0f
 	};
 
-	m_quad = graphicsResourceFactory->createGeometryStore();
-
-	GeometryStore::BufferId vertexBufferId = m_quad->requireBuffer(GeometryStore::BufferType::Vertex, GeometryStore::BufferUsage::StaticDraw, sizeof(quadVertices));
-	m_quad->setBufferData(vertexBufferId, 0, sizeof(quadVertices), (const std::byte*)quadVertices);
+	m_quad = m_graphicsContext->createGeometryInstance();
+	m_quad->setVerticesData(6, sizeof(quadVertices), (const std::byte*)quadVertices, GeometryInstance::DataUsage::StaticDraw);
 
 	// position and texture coordinates attribute
-	m_quad->setVertexLayoutAttribute(0, vertexBufferId, 4,
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 4 * sizeof(float), 0);
-	
+	m_quad->setAttributeDesc(0, GeometryAttributeDesc(GeometryAttributeType::Float, 0, 4, 4 * sizeof(float)));
+
 	m_quad->create();
 
 	m_mainLayout->setPosition(0, 0);

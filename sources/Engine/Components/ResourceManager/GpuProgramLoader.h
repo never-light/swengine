@@ -1,15 +1,16 @@
 #pragma once
 
 #include "ResourceLoader.h"
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
 class GpuProgramLoader : public ResourceLoader {
 public:
-	GpuProgramLoader(GraphicsResourceFactory* graphicsResourceFactory);
+	GpuProgramLoader(GraphicsContext* graphicsContext);
 	virtual ~GpuProgramLoader();
 
-	virtual Resource* load(const std::string & filename) override;
-	
+	virtual BaseResourceInstance * load(const std::string & path, std::optional<std::any> options) override;
+
 protected:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
+
 };

@@ -1,5 +1,5 @@
 #include "SceneManager.h"
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
 SceneManager::SceneManager() 
 	: m_maxSceneId(0), m_activeScene(nullptr)

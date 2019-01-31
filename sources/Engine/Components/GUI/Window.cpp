@@ -1,8 +1,8 @@
 #include "Window.h"
 #include <iostream>
 
-#include <Engine\Exceptions\EngineException.h>
-#include <Engine\assertions.h>
+#include <Engine/Exceptions/EngineException.h>
+#include <Engine/assertions.h>
 
 Window::Window(const std::string& name, int width, int height, bool fullscreen, int samples) 
 	: m_width(width),

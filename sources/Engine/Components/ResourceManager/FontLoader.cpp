@@ -2,15 +2,15 @@
 
 #include <pugixml.hpp>
 
-#include "HoldingResource.h"
-#include <Engine\Components\Math\Geometry\Rect.h>
-#include <Engine\Utils\string.h>
+#include <Engine/Components/Graphics/RenderSystem/RenderSystemException.h>
+#include <Engine/Components/Math/Geometry/Rect.h>
+#include <Engine/Utils/string.h>
 
 #include <stb_image.h>
 #include "ResourceLoadingException.h"
 
-FontLoader::FontLoader(GraphicsResourceFactory* graphicsResourceFactory)
-	: m_graphicsResourceFactory(graphicsResourceFactory) 
+FontLoader::FontLoader(GraphicsContext* graphicsContext)
+	: m_graphicsContext(graphicsContext)
 {
 }
 
@@ -18,14 +18,14 @@ FontLoader::~FontLoader()
 {
 }
 
-Resource * FontLoader::load(const std::string & filename)
+BaseResourceInstance * FontLoader::load(const std::string & path, std::optional<std::any> options)
 {
 	pugi::xml_document fontDescription;
 	
-	pugi::xml_parse_result result = fontDescription.load_file(filename.c_str());
+	pugi::xml_parse_result result = fontDescription.load_file(path.c_str());
 
 	if (!result)
-		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), result.description(), __FILE__, __LINE__, __FUNCTION__);
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), result.description(), __FILE__, __LINE__, __FUNCTION__);
 
 	pugi::xml_node fontNode = fontDescription.child("font");
 	std::string bitmapFilename = fontNode.attribute("bitmap").as_string();
@@ -65,7 +65,7 @@ Resource * FontLoader::load(const std::string & filename)
 		font->addCharacter(character, characterDescription);
 	}
 
-	return new HoldingResource<Font>(font);
+	return new ResourceInstance<Font>(font);
 }
 
 Texture * FontLoader::loadBitmap(const std::string & filename)
@@ -83,7 +83,7 @@ Texture * FontLoader::loadBitmap(const std::string & filename)
 	Texture* texture = nullptr;
 
 	try {
-		texture = m_graphicsResourceFactory->createTexture();
+		texture = m_graphicsContext->createTexture();
 		texture->setTarget(Texture::Target::_2D);
 		texture->setInternalFormat(Texture::InternalFormat::R8);
 		texture->setSize(width, height);

@@ -1,15 +1,21 @@
 #pragma once
 
 #include "ResourceLoader.h"
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
+
+struct TextureLoadingOptions {
+	enum class Format {
+
+	};
+};
 
 class TextureLoader : public ResourceLoader {
 public:
-	TextureLoader(GraphicsResourceFactory* graphicsResourceFactory);
+	TextureLoader(GraphicsContext* graphicsContext);
 	virtual ~TextureLoader();
 
-	virtual Resource* load(const std::string & filename) override;
-	
 protected:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
+
+	virtual BaseResourceInstance* load(const std::string& path, std::optional<std::any> options) override;
 };

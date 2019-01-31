@@ -2,10 +2,10 @@
 
 #include <vector>
 
-#include <Engine\types.h>
-#include <Engine\Components\Math\Math.h>
+#include <Engine/types.h>
+#include <Engine/Components/Math/Math.h>
 
-#include <Engine\Components\GUI\Window.h>
+#include <Engine/Components/GUI/Window.h>
 #include "InputEvents.h"
 #include "InputEventsListener.h"
 

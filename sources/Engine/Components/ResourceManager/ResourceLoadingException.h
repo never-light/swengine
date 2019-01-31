@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine\Exceptions\EngineException.h>
+#include <Engine/Exceptions/EngineException.h>
 
 enum class ResourceLoadingError {
 	Unknown, FileNotAvailable, InvalidType, InvalidData

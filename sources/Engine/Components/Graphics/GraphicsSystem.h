@@ -1,22 +1,23 @@
 #pragma once
 
-#include <Engine\Components\GUI\Window.h>
-#include <Engine\Components\Debugging\Logger.h>
+#include <Engine/Components/GUI/Window.h>
+#include <Engine/Components/Debugging/Logger.h>
+
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
 #include "graphicsApiType.h"
-#include "GraphicsResourceFactory.h"
 
 class GraphicsSystem {
 public:
 	GraphicsSystem(Window* window, GraphicsAPI apiType, Logger* logger);
 	~GraphicsSystem();
 
-	GraphicsResourceFactory* getResourceFactory() const;
 	GraphicsContext* getGraphicsContext() const;
+	
+	void update(float delta);
 
 private:
 	Window* m_window;
 
-	GraphicsResourceFactory* m_resourceFactory;
 	GraphicsContext* m_graphicsContext;
 };

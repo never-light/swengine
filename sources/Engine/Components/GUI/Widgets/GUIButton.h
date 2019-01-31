@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Engine\Components\GUI\GUIWidget.h>
-#include <Engine\Components\GUI\Widgets\GUIText.h>
+#include <Engine/Components/GUI/GUIWidget.h>
+#include <Engine/Components/GUI/Widgets/GUIText.h>
 #include <functional>
 
 class GUIButton : public GUIWidget {
@@ -9,7 +9,7 @@ public:
 	using ClickCallback = std::function<void(const MousePosition& mousePosition)>;
 
 public:
-	GUIButton(GraphicsResourceFactory* grahicsResourceFactory, Font* font);
+	GUIButton(GraphicsContext* graphicsContext, Font* font);
 	virtual ~GUIButton();
 
 	Texture* getImage() const;
@@ -33,7 +33,7 @@ public:
 	void setPadding(const uivector2& padding);
 	uivector2 getPadding() const;
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
 	virtual void onMouseEnter(const MousePosition& mousePosition) override;
@@ -60,6 +60,6 @@ protected:
 
 	bool m_hover;
 protected:
-	GraphicsResourceFactory* m_graphicsResourceFactory;
+	GraphicsContext* m_graphicsContext;
 	Font* m_font;
 };

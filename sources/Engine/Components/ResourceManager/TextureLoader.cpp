@@ -1,13 +1,13 @@
 #include "TextureLoader.h"
 
-#include "HoldingResource.h"
-#include <Engine\Components\Graphics\RenderSystem\Texture.h>
+#include <Engine/Components/Graphics/RenderSystem/Texture.h>
+#include <Engine/Components/Graphics/RenderSystem/RenderSystemException.h>
 
 #include <stb_image.h>
 #include "ResourceLoadingException.h"
 
-TextureLoader::TextureLoader(GraphicsResourceFactory* graphicsResourceFactory)
-	: ResourceLoader(), m_graphicsResourceFactory(graphicsResourceFactory)
+TextureLoader::TextureLoader(GraphicsContext* graphicsContext)
+	: ResourceLoader(), m_graphicsContext(graphicsContext)
 {
 }
 
@@ -15,14 +15,14 @@ TextureLoader::~TextureLoader()
 {
 }
 
-Resource* TextureLoader::load(const std::string & filename)
+BaseResourceInstance * TextureLoader::load(const std::string& path, std::optional<std::any> options)
 {
 	int width, height;
 	int nrChannels;
-	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
 	if (data == 0)
-		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	Texture::PixelFormat pixelFormat;
 	Texture::InternalFormat internalFormat;
@@ -31,7 +31,7 @@ Resource* TextureLoader::load(const std::string & filename)
 	case 1:
 		pixelFormat = Texture::PixelFormat::R;
 		internalFormat = Texture::InternalFormat::R8;
-		
+
 		break;
 
 	case 2:
@@ -56,7 +56,7 @@ Resource* TextureLoader::load(const std::string & filename)
 	Texture* texture = nullptr;
 
 	try {
-		texture = m_graphicsResourceFactory->createTexture();
+		texture = m_graphicsContext->createTexture();
 		texture->setTarget(Texture::Target::_2D);
 		texture->setInternalFormat(internalFormat);
 		texture->setSize(width, height);
@@ -67,10 +67,10 @@ Resource* TextureLoader::load(const std::string & filename)
 		texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
 	}
 	catch (const RenderSystemException& exception) {
-		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());
 	}
 
 	stbi_image_free(data);
 
-	return new HoldingResource<Texture>(texture);
+	return new ResourceInstance<Texture>(texture);
 }

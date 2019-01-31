@@ -28,6 +28,12 @@ void GameWorld::update(float delta)
 	removeDestroyedObjects();
 }
 
+void GameWorld::render()
+{
+	for (GameSystem* system : m_gameSystems)
+		system->render(this);
+}
+
 void GameWorld::addGameSystem(GameSystem * system)
 {
 	m_gameSystems.push_back(system);

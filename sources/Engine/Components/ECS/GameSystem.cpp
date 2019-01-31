@@ -8,10 +8,18 @@ GameSystem::~GameSystem()
 {
 }
 
-void GameSystem::configure(GameWorld * gameWorld)
+void GameSystem::update(GameWorld* gameWorld, float delta)
 {
 }
 
-void GameSystem::unconfigure(GameWorld * gameWorld)
+void GameSystem::render(GameWorld* gameWorld)
+{
+}
+
+void GameSystem::configure(GameWorld* gameWorld)
+{
+}
+
+void GameSystem::unconfigure(GameWorld* gameWorld)
 {
 }

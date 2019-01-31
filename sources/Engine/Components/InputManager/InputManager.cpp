@@ -1,6 +1,6 @@
 #include "InputManager.h"
 
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
 InputManager::InputManager(Window* window) : m_window(window) {
 	glfwSetWindowUserPointer(m_window->getWindowPointer(), this);

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Engine\Components\Math\types.h>
-#include <Engine\Components\Physics\Ray.h>
-#include <Engine\Components\Physics\ProjectionBounds.h>
-#include <Engine\Components\Physics\Intersection.h>
+#include <Engine/Components/Math/types.h>
+#include <Engine/Components/Physics/Ray.h>
+#include <Engine/Components/Physics/ProjectionBounds.h>
+#include <Engine/Components/Physics/Intersection.h>
 
 #include <vector>
 

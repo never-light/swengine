@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RawImage.h"
-#include <Engine\Components\Graphics\OpenGL3\OpenGL3.h>
+#include <Engine/Components/Graphics/OpenGL4/GL.h>
 
 class Cursor {
 public:

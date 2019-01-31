@@ -1,8 +1,7 @@
 #include "RawImageLoader.h"
 
 #include "ResourceLoadingException.h"
-#include "HoldingResource.h"
-#include <Engine\Components\GUI\RawImage.h>
+#include <Engine/Components/GUI/RawImage.h>
 
 #include <stb_image.h>
 
@@ -14,14 +13,14 @@ RawImageLoader::~RawImageLoader()
 {
 }
 
-Resource * RawImageLoader::load(const std::string & filename)
+BaseResourceInstance* RawImageLoader::load(const std::string & path, std::optional<std::any> options)
 {
 	int width, height;
 	int nrChannels;
-	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
 	if (data == 0)
-		throw ResourceLoadingException(ResourceLoadingError::InvalidData, filename.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), "", __FILE__, __LINE__, __FUNCTION__);
 
 	std::byte* rawImageData = new std::byte[width * height * nrChannels];
 	std::memcpy(rawImageData, data, width * height * nrChannels);
@@ -41,5 +40,5 @@ Resource * RawImageLoader::load(const std::string & filename)
 
 	RawImage* image = new RawImage(format, width, height, rawImageData);
 
-	return new HoldingResource<RawImage>(image);
+	return new ResourceInstance<RawImage>(image);
 }

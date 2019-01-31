@@ -3,9 +3,9 @@
 #include <string>
 #include <unordered_map>
 
-#include <Engine\types.h>
-#include <Engine\Components\Math\Math.h>
-#include <Engine\Components\ResourceManager\ResourceManager.h>
+#include <Engine/types.h>
+#include <Engine/Components/Math/Math.h>
+#include <Engine/Components/ResourceManager/ResourceManager.h>
 #include "Scene.h"
 
 class SceneManager {
@@ -21,6 +21,7 @@ public:
 
 	void setActiveScene(SceneId id);
 	Scene* getActiveScene() const;
+
 private:
 	SceneId generateSceneId();
 

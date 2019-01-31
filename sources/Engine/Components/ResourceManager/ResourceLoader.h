@@ -1,12 +1,16 @@
 #pragma once
 
-#include "Resource.h"
 #include <string>
+
+#include <optional>
+#include <any>
+
+#include "ResourceInstance.h"
 
 class ResourceLoader {
 public:
 	ResourceLoader();
 	virtual ~ResourceLoader();
 
-	virtual Resource* load(const std::string& filename) = 0;
+	virtual BaseResourceInstance* load(const std::string& path, std::optional<std::any> options) = 0;
 };

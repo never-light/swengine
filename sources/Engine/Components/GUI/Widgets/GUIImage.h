@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine\Components\GUI\GUIWidget.h>
+#include <Engine/Components/GUI/GUIWidget.h>
 
 class GUIImage : public GUIWidget {
 public:
@@ -10,7 +10,7 @@ public:
 	Texture* getImage() const;
 	void setImage(Texture* image);
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void update(const MousePosition& mousePosition) override;
 
 protected:

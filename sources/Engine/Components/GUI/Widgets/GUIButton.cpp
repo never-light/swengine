@@ -1,9 +1,9 @@
 #include "GUIButton.h"
 
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
-GUIButton::GUIButton(GraphicsResourceFactory * grahicsResourceFactory, Font * font)
-	: m_graphicsResourceFactory(grahicsResourceFactory),
+GUIButton::GUIButton(GraphicsContext* graphicsContext, Font * font)
+	: m_graphicsContext(graphicsContext),
 	m_font(font),
 	m_image(nullptr), 
 	m_hoverImage(nullptr),
@@ -73,7 +73,7 @@ std::string GUIButton::getText() const
 void GUIButton::setText(const std::string & text)
 {
 	if (m_text == nullptr) {
-		m_text = new GUIText(m_graphicsResourceFactory);
+		m_text = new GUIText(m_graphicsContext);
 
 		m_text->setPosition(m_position + m_padding);
 		m_text->setFont(m_font);
@@ -105,7 +105,7 @@ uivector2 GUIButton::getPadding() const
 	return m_padding;
 }
 
-void GUIButton::render(GeometryStore * quad, GpuProgram * program)
+void GUIButton::render(GeometryInstance * quad, GpuProgram * program)
 {
 	if (m_image != nullptr) {
 
@@ -129,7 +129,7 @@ void GUIButton::render(GeometryStore * quad, GpuProgram * program)
 	program->setParameter("transform.localToWorld", getTransformationMatrix());
 	program->setParameter("quad.useFirstChannel", false);
 
-	quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+	quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 
 	if (m_text != nullptr) {
 		m_text->render(quad, program);

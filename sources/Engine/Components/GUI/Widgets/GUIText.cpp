@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-#include <Engine\assertions.h>
+#include <Engine/assertions.h>
 
-GUIText::GUIText(GraphicsResourceFactory * graphicsResourceFactory)
-	: m_graphicsResourceFactory(graphicsResourceFactory), 
+GUIText::GUIText(GraphicsContext* graphicsContext)
+	: m_graphicsContext(graphicsContext),
 	m_font(nullptr), 
 	m_textGeometry(nullptr),
 	m_textGeometryVerticesCount(0),
@@ -114,7 +114,7 @@ unsigned int GUIText::getFontSize() const
 	return m_fontSize;
 }
 
-void GUIText::render(GeometryStore * quad, GpuProgram * program)
+void GUIText::render(GeometryInstance* quad, GpuProgram * program)
 {
 	if (m_text.empty())
 		return;
@@ -131,7 +131,7 @@ void GUIText::render(GeometryStore * quad, GpuProgram * program)
 	program->setParameter("quad.useFirstChannel", true);
 
 	m_textGeometry->bind();
-	m_textGeometry->drawArrays(GeometryStore::DrawType::Triangles, 0, m_textGeometryVerticesCount);
+	m_textGeometry->draw(GeometryInstance::DrawMode::Triangles, 0, m_textGeometryVerticesCount);
 
 	quad->bind();
 }
@@ -154,7 +154,7 @@ void GUIText::updateTextGeometry()
 	unsigned int maxHeight = 0;
 
 	for (unsigned char character : m_text) {
-		if (character == '\n') {
+		if (character == '/n') {
 			cursorPosition = 0;
 			cursorLineOffset += m_font->getHeight();
 
@@ -212,16 +212,14 @@ void GUIText::updateTextGeometry()
 	}
 
 	if (m_textGeometry == nullptr)
-		m_textGeometry = m_graphicsResourceFactory->createGeometryStore();
+		m_textGeometry = m_graphicsContext->createGeometryInstance();
 	else
 		m_textGeometry->destroy();
 
-	GeometryStore::BufferId vertexBufferId = m_textGeometry->requireBuffer(GeometryStore::BufferType::Vertex, GeometryStore::BufferUsage::StaticDraw, vertices.size() * sizeof(vertices[0]));
-	m_textGeometry->setBufferData(vertexBufferId, 0, vertices.size() * sizeof(vertices[0]), (const std::byte*)vertices.data());
+	m_textGeometry->setVerticesData(vertices.size(), vertices.size() * sizeof(vertices[0]), (const std::byte*)vertices.data(), GeometryInstance::DataUsage::StaticDraw);
 
 	// position and texture coordinates attribute
-	m_textGeometry->setVertexLayoutAttribute(0, vertexBufferId, 4,
-		GeometryStore::VertexLayoutAttributeBaseType::Float, false, 4 * sizeof(float), 0);
+	m_textGeometry->setAttributeDesc(0, GeometryAttributeDesc(GeometryAttributeType::Float, 0, 4, 4 * sizeof(float)));
 
 	m_textGeometry->create();
 

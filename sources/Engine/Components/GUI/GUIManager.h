@@ -1,20 +1,19 @@
 #pragma once
 
-#include <Engine\Components\GUI\GUI.h>
-#include <Engine\Components\Graphics\GraphicsResourceFactory.h>
-#include <Engine\Components\Graphics\RenderSystem\GraphicsContext.h>
-#include <Engine\Components\InputManager\InputManager.h>
+#include <Engine/Components/GUI/GUI.h>
+#include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
+#include <Engine/Components/InputManager/InputManager.h>
 
 #include <vector>
 #include "GUIWidget.h"
 #include "GUILayout.h"
 
-#include <Engine\Components\GUI\Widgets\GUIImage.h>
-#include <Engine\Components\GUI\Widgets\GUIButton.h>
-#include <Engine\Components\GUI\Widgets\GUIText.h>
-#include <Engine\Components\GUI\Widgets\GUIWindow.h>
-#include <Engine\Components\GUI\Widgets\GUIBlock.h>
-#include <Engine\Components\GUI\Widgets\GUITextBox.h>
+#include <Engine/Components/GUI/Widgets/GUIImage.h>
+#include <Engine/Components/GUI/Widgets/GUIButton.h>
+#include <Engine/Components/GUI/Widgets/GUIText.h>
+#include <Engine/Components/GUI/Widgets/GUIWindow.h>
+#include <Engine/Components/GUI/Widgets/GUIBlock.h>
+#include <Engine/Components/GUI/Widgets/GUITextBox.h>
 
 
 class GUIManager : public InputEventsListener {
@@ -22,7 +21,6 @@ public:
 	GUIManager(Window* window, 
 		InputManager* inputManager, 
 		GraphicsContext* graphicsContext,
-		GraphicsResourceFactory* graphicsResourceFactory,
 		GpuProgram* guiGpuProgram);
 	virtual ~GUIManager();
 
@@ -54,7 +52,7 @@ protected:
 
 	matrix4 m_orthographicProjection;
 protected:
-	GeometryStore * m_quad;
+	GeometryInstance * m_quad;
 	GpuProgram* m_gpuProgram;
 
 protected:
@@ -62,7 +60,6 @@ protected:
 
 	InputManager* m_inputManager;
 	GraphicsContext* m_graphicsContext;
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 
 	Cursor* m_defaultCursor;
 };

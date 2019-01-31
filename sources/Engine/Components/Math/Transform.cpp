@@ -153,5 +153,7 @@ void Transform::lookAt(const vector3& target)
 
 matrix4 Transform::getTransformationMatrix() const
 {
+	vector3 position(10, 20, 30);
+
 	return glm::translate(matrix4(), m_position) * glm::toMat4(m_orientation) * glm::scale(matrix4(), m_scale);
 }
