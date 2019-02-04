@@ -216,6 +216,9 @@ void GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint i
 {
 	std::string debugMessage = "[OpenGL] ";
 
+	if (type == GL_DEBUG_TYPE_OTHER)
+		return;
+
 	switch (type) {
 	case GL_DEBUG_TYPE_ERROR:
 		debugMessage += "error";

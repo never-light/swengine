@@ -73,7 +73,7 @@ void GLRenderTarget::setClearColor(const vector4 & color)
 
 void GLRenderTarget::setDepthClearValue(float depthValue)
 {
-	glClearDepth(depthValue);
+	glClearDepthf(depthValue);
 }
 
 void GLRenderTarget::setStencilClearValue(int stencilValue)
@@ -121,6 +121,16 @@ void GLRenderTarget::attachDepthStencilComponent(Texture * texture)
 	GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
 }
 
+void GLRenderTarget::attachDepthComponent(Texture * texture)
+{
+	GLTexture* glTexture = static_cast<GLTexture*>(texture);
+	_assert(glTexture->getBindingTarget() == GL_TEXTURE_2D);
+
+	texture->bind();
+
+	GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
+}
+
 void GLRenderTarget::copyColorComponentData(size_t sourceComponentIndex, 
 	RenderTarget * destination, 
 	size_t destinationComponentIndex,
@@ -146,24 +156,20 @@ void GLRenderTarget::copyColorComponentData(size_t sourceComponentIndex,
 		glCopyFilter = GL_LINEAR;
 
 	GL_CALL_BLOCK_BEGIN();
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destinationTargetPointer);
-	glReadBuffer(GL_COLOR_ATTACHMENT0 + sourceComponentIndex);
+
+	glNamedFramebufferReadBuffer(m_frameBuffer, GL_COLOR_ATTACHMENT0 + sourceComponentIndex);
 
 	if (destinationTargetPointer != 0) {
-		glDrawBuffer(GL_COLOR_ATTACHMENT0 + destinationComponentIndex);
+		glNamedFramebufferDrawBuffer(destinationTargetPointer, GL_COLOR_ATTACHMENT0 + destinationComponentIndex);
 	}
 
-	glBlitFramebuffer(
+	glBlitNamedFramebuffer(
+		m_frameBuffer, destinationTargetPointer,
 		sourceArea.getX(), sourceArea.getY(), sourceArea.getX() + sourceArea.getWidth(), sourceArea.getY() + sourceArea.getHeight(),
 		destinationArea.getX(), destinationArea.getY(), destinationArea.getX() + destinationArea.getWidth(), destinationArea.getY() + destinationArea.getHeight(),
 		GL_COLOR_BUFFER_BIT, glCopyFilter
 	);
-	
-	if (destinationTargetPointer != 0) {
-		glDrawBuffers(glDestinationTarget->m_freeColorAttachment, glDestinationTarget->m_colorAttachments);
-	}
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
 	GL_CALL_BLOCK_END();
 }
 
@@ -185,13 +191,12 @@ void GLRenderTarget::copyDepthStencilComponentData(RenderTarget * destination, c
 		glCopyFilter = GL_LINEAR;
 
 	GL_CALL_BLOCK_BEGIN();
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destinationTargetPointer);
-	glBlitFramebuffer(
+	glBlitNamedFramebuffer(
+		m_frameBuffer, destinationTargetPointer,
 		sourceArea.getX(), sourceArea.getY(), sourceArea.getX() + sourceArea.getWidth(), sourceArea.getY() + sourceArea.getHeight(),
 		destinationArea.getX(), destinationArea.getY(), destinationArea.getX() + destinationArea.getWidth(), destinationArea.getY() + destinationArea.getHeight(),
 		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, glCopyFilter
 	);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
 	GL_CALL_BLOCK_END();
 }
 

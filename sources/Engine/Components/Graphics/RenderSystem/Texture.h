@@ -13,11 +13,12 @@ public:
 		R16, RG16, RGB16, RGBA16,
 		R16F, RG16F, RGB16F, RGBA16F,
 		R32F, RG32F, RGB32F, RGBA32F,
-		Depth24Stencil8
+		R11FG11FB10F,
+		Depth24Stencil8, Depth24, Depth32
 	};
 
 	enum class PixelFormat {
-		R, RG, RGB, RGBA, DepthStencil
+		R, RG, RGB, RGBA, DepthStencil, Depth
 	};
 
 	enum class PixelDataType {

@@ -17,6 +17,7 @@ public:
 	void removeLightSource(Light* lightSource);
 
 	const std::vector<Light*>& getLightSources() const;
+	size_t getLightSourcesCount() const;
 
 private:
 	Camera* m_activeCamera;

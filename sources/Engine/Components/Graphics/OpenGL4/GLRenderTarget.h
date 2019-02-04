@@ -26,6 +26,7 @@ public:
 
 	virtual void attachColorComponent(size_t index, Texture* texture) override;
 	virtual void attachDepthStencilComponent(Texture* texture) override;
+	virtual void attachDepthComponent(Texture* texture) override;
 
 	virtual void copyColorComponentData(
 		size_t sourceComponentIndex,

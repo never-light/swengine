@@ -23,13 +23,16 @@ std::unordered_map<Texture::InternalFormat, GLint> GLTexture::m_internalFormatMa
 	{ Texture::InternalFormat::RG16F, GL_RG16F },
 	{ Texture::InternalFormat::RGB16F, GL_RGB16F },
 	{ Texture::InternalFormat::RGBA16F, GL_RGBA16F },
+	{ Texture::InternalFormat::R11FG11FB10F, GL_R11F_G11F_B10F },
 
 	{ Texture::InternalFormat::R32F, GL_R32F },
 	{ Texture::InternalFormat::RG32F, GL_RG32F },
 	{ Texture::InternalFormat::RGB32F, GL_RGB32F },
 	{ Texture::InternalFormat::RGBA32F, GL_RGBA32F },
 
-	{ Texture::InternalFormat::Depth24Stencil8, GL_DEPTH24_STENCIL8 }
+	{ Texture::InternalFormat::Depth24Stencil8, GL_DEPTH24_STENCIL8 },
+	{ Texture::InternalFormat::Depth24, GL_DEPTH_COMPONENT24 },
+	{ Texture::InternalFormat::Depth32, GL_DEPTH_COMPONENT32F },
 };
 
 std::unordered_map<Texture::PixelFormat, GLenum> GLTexture::m_pixelFormatMap{
@@ -37,7 +40,8 @@ std::unordered_map<Texture::PixelFormat, GLenum> GLTexture::m_pixelFormatMap{
 	{ Texture::PixelFormat::RG, GL_RG },
 	{ Texture::PixelFormat::RGB, GL_RGB },
 	{ Texture::PixelFormat::RGBA, GL_RGBA },
-	{ Texture::PixelFormat::DepthStencil, GL_DEPTH_STENCIL }
+	{ Texture::PixelFormat::DepthStencil, GL_DEPTH_STENCIL },
+	{ Texture::PixelFormat::Depth, GL_DEPTH_COMPONENT },
 };
 
 std::unordered_map<Texture::PixelDataType, GLenum> GLTexture::m_pixelDataTypeMap{
@@ -121,7 +125,7 @@ GLenum GLTexture::getBindingTarget() const
 
 void GLTexture::generateMipMaps() {
 	if (m_target == Target::_2D)
-		GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+		GL_CALL(glGenerateTextureMipmap(m_texture));
 }
 
 void GLTexture::setMinificationFilter(Filter filter) {
@@ -136,7 +140,7 @@ void GLTexture::setMinificationFilter(Filter filter) {
 	else if (filter == Filter::LinearMipmapLinear)
 		value = GL_LINEAR_MIPMAP_LINEAR;
 
-	GL_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_MIN_FILTER, value));
+	GL_CALL(glTextureParameteri(m_texture, GL_TEXTURE_MIN_FILTER, value));
 }
 
 void GLTexture::setMagnificationFilter(Filter filter) {
@@ -151,7 +155,7 @@ void GLTexture::setMagnificationFilter(Filter filter) {
 	else if (filter == Filter::LinearMipmapLinear)
 		value = GL_LINEAR_MIPMAP_LINEAR;
 
-	GL_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_MAG_FILTER, value));
+	GL_CALL(glTextureParameteri(m_texture, GL_TEXTURE_MAG_FILTER, value));
 }
 
 void GLTexture::setWrapMode(WrapMode mode) {
@@ -164,8 +168,8 @@ void GLTexture::setWrapMode(WrapMode mode) {
 	else if (mode == WrapMode::ClampToEdge)
 		value = GL_CLAMP_TO_EDGE;
 
-	GL_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_WRAP_S, value));
-	GL_CALL(glTexParameteri(m_bindingTarget, GL_TEXTURE_WRAP_T, value));
+	GL_CALL(glTextureParameteri(m_texture, GL_TEXTURE_WRAP_S, value));
+	GL_CALL(glTextureParameteri(m_texture, GL_TEXTURE_WRAP_T, value));
 }
 
 void GLTexture::setTarget(Texture::Target target)
@@ -184,5 +188,5 @@ void GLTexture::enableAnisotropicFiltering(float quality)
 {
 	Texture::enableAnisotropicFiltering(quality);
 
-	GL_CALL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, quality));
+	GL_CALL(glTextureParameterf(m_texture, GL_TEXTURE_MAX_ANISOTROPY_EXT, quality));
 }

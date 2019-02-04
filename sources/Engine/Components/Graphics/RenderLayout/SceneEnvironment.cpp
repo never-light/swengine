@@ -36,3 +36,8 @@ const std::vector<Light*>& SceneEnvironment::getLightSources() const
 {
 	return m_lightSources;
 }
+
+size_t SceneEnvironment::getLightSourcesCount() const
+{
+	return m_lightSources.size();
+}

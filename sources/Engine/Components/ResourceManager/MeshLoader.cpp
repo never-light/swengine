@@ -81,7 +81,7 @@ BaseResourceInstance* MeshLoader::load(const std::string & path, std::optional<s
 				baseBufferComponentsSize += (sizeof(ivector4) + sizeof(vector4));
 			}
 
-			size_t requiredVertexBufferSize = baseBufferComponentsSize * description.verticesCount;
+			size_t requiredVertexBufferSize = baseBufferComponentsSize * partDescription.verticesCount;
 
 
 			subMeshGeometry->setVerticesData(partDescription.verticesCount, 
@@ -89,27 +89,27 @@ BaseResourceInstance* MeshLoader::load(const std::string & path, std::optional<s
 
 			size_t vertexBufferOffset = 0;
 
-			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)positions.data());
-			vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * partDescription.verticesCount, (const std::byte*)positions.data());
+			vertexBufferOffset += sizeof(vector3) * partDescription.verticesCount;
 
-			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)normals.data());
-			vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * partDescription.verticesCount, (const std::byte*)normals.data());
+			vertexBufferOffset += sizeof(vector3) * partDescription.verticesCount;
 
-			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)tangents.data());
-			vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * partDescription.verticesCount, (const std::byte*)tangents.data());
+			vertexBufferOffset += sizeof(vector3) * partDescription.verticesCount;
 
-			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * description.verticesCount, (const std::byte*)bitangents.data());
-			vertexBufferOffset += sizeof(vector3) * description.verticesCount;
+			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector3) * partDescription.verticesCount, (const std::byte*)bitangents.data());
+			vertexBufferOffset += sizeof(vector3) * partDescription.verticesCount;
 
-			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector2) * description.verticesCount, (const std::byte*)uv.data());
-			vertexBufferOffset += sizeof(vector2) * description.verticesCount;
+			subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector2) * partDescription.verticesCount, (const std::byte*)uv.data());
+			vertexBufferOffset += sizeof(vector2) * partDescription.verticesCount;
 
 			if (description.hasSkeleton) {
-				subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(ivector4) * description.verticesCount, (const std::byte*)bonesIds.data());
-				vertexBufferOffset += sizeof(ivector4) * description.verticesCount;
+				subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(ivector4) * partDescription.verticesCount, (const std::byte*)bonesIds.data());
+				vertexBufferOffset += sizeof(ivector4) * partDescription.verticesCount;
 
-				subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector4) * description.verticesCount, (const std::byte*)bonesWeights.data());
-				vertexBufferOffset += sizeof(vector4) * description.verticesCount;
+				subMeshGeometry->setVerticesDataPart(vertexBufferOffset, sizeof(vector4) * partDescription.verticesCount, (const std::byte*)bonesWeights.data());
+				vertexBufferOffset += sizeof(vector4) * partDescription.verticesCount;
 			}
 
 			// Create and fill index buffer
@@ -126,34 +126,34 @@ BaseResourceInstance* MeshLoader::load(const std::string & path, std::optional<s
 
 			// Normals
 			subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::Normal,
-				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * description.verticesCount, 3, 0));
+				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * partDescription.verticesCount, 3, 0));
 
 			// Tangents
 			subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::Tangent,
-				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * description.verticesCount * 2, 3, 0));
+				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * partDescription.verticesCount * 2, 3, 0));
 
 			// Bitangents
 			subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::Bitangent,
-				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * description.verticesCount * 3, 3, 0));
+				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * partDescription.verticesCount * 3, 3, 0));
 
 			// UV
 			subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::UV,
-				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * description.verticesCount * 4, 2, 0));
+				GeometryAttributeDesc(GeometryAttributeType::Float, sizeof(vector3) * partDescription.verticesCount * 4, 2, 0));
 
 			if (description.hasSkeleton) {
-				size_t attributeOffset = sizeof(vector3) * description.verticesCount * 4 + sizeof(vector2) * description.verticesCount;
+				size_t attributeOffset = sizeof(vector3) * partDescription.verticesCount * 4 + sizeof(vector2) * partDescription.verticesCount;
 
 				// Bones IDs
 				subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::JointsIds,
 					GeometryAttributeDesc(GeometryAttributeType::Int, attributeOffset, 4, 0));
 
-				attributeOffset += sizeof(ivector4) * description.verticesCount;
+				attributeOffset += sizeof(ivector4) * partDescription.verticesCount;
 
 				// Bones weights
 				subMeshGeometry->setAttributeDesc(GeometryInstance::CommonAttrs::JointsWeights,
 					GeometryAttributeDesc(GeometryAttributeType::Float, attributeOffset, 4, 0));
 
-				attributeOffset += sizeof(vector4) * description.verticesCount;
+				attributeOffset += sizeof(vector4) * partDescription.verticesCount;
 			}
 
 			subMeshGeometry->create();

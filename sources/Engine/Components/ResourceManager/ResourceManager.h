@@ -83,7 +83,8 @@ inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::str
 }
 
 template<class ResourceType>
-inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::string & path, const std::string & alias, std::optional<std::any> options)
+inline ResourceHandle<ResourceType> ResourceManager::loadResource(const std::string & path, 
+	const std::string & alias, std::optional<std::any> options)
 {
 	if (!FilesUtils::isExists(path))
 		throw ResourceLoadingException(ResourceLoadingError::FileNotAvailable, path.c_str(), "", __FILE__, __LINE__, __FUNCTION__);

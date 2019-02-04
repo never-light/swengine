@@ -38,6 +38,8 @@ void MeshRenderingSystem::render(GameWorld * gameWorld)
 	graphicsContext->enableFaceCulling();
 	graphicsContext->setFaceCullingMode(GraphicsContext::FaceCullingMode::Back);
 
+	graphicsContext->disableBlending();
+
 	m_graphicsPipeline->getGBuffer()->bind();
 	m_graphicsPipeline->getGBuffer()->setClearColor(0.0f, 0.0f, 0.0f);
 	m_graphicsPipeline->getGBuffer()->clear(RenderTarget::CLEAR_COLOR | RenderTarget::CLEAR_DEPTH);
@@ -68,28 +70,56 @@ void MeshRenderingSystem::render(GameWorld * gameWorld)
 		}
 	}
 
-	//showGBuffer();
-	m_graphicsPipeline->getGBuffer()->unbind();
+	unsigned int viewportWidth = m_graphicsPipeline->getGraphicsContext()->getViewportWidth();
+	unsigned int viewportHeight = m_graphicsPipeline->getGraphicsContext()->getViewportHeight();
 
-	return;
+	m_graphicsPipeline->getGBuffer()->copyDepthStencilComponentData(m_graphicsPipeline->getHDRBuffer(), 
+		Rect(0, 0, viewportWidth, viewportHeight));
+
+	m_graphicsPipeline->getGBuffer()->unbind();
 
 	graphicsContext->disableWritingToDepthBuffer();
 	graphicsContext->disableDepthTest();
 
 	// Lighting pass
+	m_graphicsPipeline->getHDRBuffer()->bind();
+
 	m_lightingPassProgram->bind();
 	m_lightingPassProgram->setParameter("g_cameraPosition",
 		activeCamera->getTransform()->getPosition());
 
+	m_lightingPassProgram->setParameter("g_invViewTransform", glm::inverse(activeCamera->getViewMatrix()));
+	m_lightingPassProgram->setParameter("g_invProjectionTransform", glm::inverse(activeCamera->getProjectionMatrix()));
+
+	size_t lightSourceIndex = 0;
+
+	for (Light* lightSource : m_sceneEnvironment->getLightSources()) {
+		std::string str = "g_lights[" + std::to_string(lightSourceIndex) + "].position";
+
+		m_lightingPassProgram->setParameter("g_lights[" + std::to_string(lightSourceIndex) + "].position", lightSource->getPosition());
+		m_lightingPassProgram->setParameter("g_lights[" + std::to_string(lightSourceIndex) + "].color", lightSource->getColor());
+
+		lightSourceIndex++;
+	}
+
+	m_lightingPassProgram->setParameter("g_lightsCount", static_cast<int>(lightSourceIndex));
+
 	m_graphicsPipeline->getGBufferAttachment0()->bind(0);
 	m_graphicsPipeline->getGBufferAttachment1()->bind(1);
 	m_graphicsPipeline->getGBufferAttachment2()->bind(2);
+	m_graphicsPipeline->getGBufferAttachmentDS()->bind(3);
 
-	m_lightingPassProgram->setParameter("g_position", 0);
-	m_lightingPassProgram->setParameter("g_albedo", 1);
-	m_lightingPassProgram->setParameter("g_normal", 2);
-
+	graphicsContext->getNDCQuadInstance()->bind();
 	graphicsContext->getNDCQuadInstance()->draw(GeometryInstance::DrawMode::TrianglesStrip);
+
+	m_graphicsPipeline->getHDRBuffer()->unbind();
+
+	//showGBuffer();
+
+	m_graphicsPipeline->getHDRBuffer()->copyColorComponentData(0, nullptr, 0,
+		Rect(0, 0, viewportWidth, viewportHeight), Rect(0, 0, viewportWidth, viewportHeight),
+		RenderTarget::CopyFilter::Linear);
+
 }
 
 void MeshRenderingSystem::showGBuffer()
@@ -110,6 +140,10 @@ void MeshRenderingSystem::showGBuffer()
 
 	m_graphicsPipeline->getGBuffer()->copyColorComponentData(2, nullptr, 0,
 		Rect(0, 0, viewportWidth, viewportHeight), Rect(halfWidth, halfHeight, halfWidth, halfHeight),
+		RenderTarget::CopyFilter::Linear);
+
+	m_graphicsPipeline->getHDRBuffer()->copyColorComponentData(0, nullptr, 0,
+		Rect(0, 0, viewportWidth, viewportHeight), Rect(halfWidth, 0, halfWidth, halfHeight),
 		RenderTarget::CopyFilter::Linear);
 }
 

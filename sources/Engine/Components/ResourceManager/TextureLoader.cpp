@@ -27,6 +27,9 @@ BaseResourceInstance * TextureLoader::load(const std::string& path, std::optiona
 	Texture::PixelFormat pixelFormat;
 	Texture::InternalFormat internalFormat;
 
+	TextureLoadingOptions loadingOptions = 
+		(options.has_value()) ? std::any_cast<TextureLoadingOptions>(options.value()) : TextureLoadingOptions();
+
 	switch (nrChannels) {
 	case 1:
 		pixelFormat = Texture::PixelFormat::R;
@@ -44,11 +47,17 @@ BaseResourceInstance * TextureLoader::load(const std::string& path, std::optiona
 		pixelFormat = Texture::PixelFormat::RGB;
 		internalFormat = Texture::InternalFormat::RGB8;
 
+		if (loadingOptions.format == TextureLoadingOptions::Format::sRGB)
+			internalFormat = Texture::InternalFormat::SRGB8;
+
 		break;
 
 	case 4:
 		pixelFormat = Texture::PixelFormat::RGBA;
 		internalFormat = Texture::InternalFormat::RGBA8;
+
+		if (loadingOptions.format == TextureLoadingOptions::Format::sRGB)
+			internalFormat = Texture::InternalFormat::SRGBA8;
 
 		break;
 	}
@@ -65,6 +74,14 @@ BaseResourceInstance * TextureLoader::load(const std::string& path, std::optiona
 		texture->bind();
 
 		texture->setData(pixelFormat, Texture::PixelDataType::UnsignedByte, (const std::byte*)data);
+
+		texture->generateMipMaps();
+		texture->setMinificationFilter(Texture::Filter::LinearMipmapLinear);
+		texture->setMagnificationFilter(Texture::Filter::Linear);
+
+		texture->setWrapMode(Texture::WrapMode::Repeat);
+
+		texture->enableAnisotropicFiltering(16.0f);
 	}
 	catch (const RenderSystemException& exception) {
 		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), exception.what(), exception.getFile(), exception.getLine(), exception.getFunction());

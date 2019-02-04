@@ -5,8 +5,12 @@
 
 struct TextureLoadingOptions {
 	enum class Format {
-
+		Default, sRGB
 	};
+
+	TextureLoadingOptions(Format format = Format::Default) : format(format) { }
+
+	Format format;
 };
 
 class TextureLoader : public ResourceLoader {

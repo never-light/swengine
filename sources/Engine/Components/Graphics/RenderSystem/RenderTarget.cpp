@@ -15,5 +15,5 @@ void RenderTarget::copyColorComponentData(size_t sourceComponentIndex, RenderTar
 
 void RenderTarget::copyDepthStencilComponentData(RenderTarget * destination, const Rect & area)
 {
-	copyDepthStencilComponentData(destination, area, area, CopyFilter::Linear);
+	copyDepthStencilComponentData(destination, area, area, CopyFilter::Nearest);
 }

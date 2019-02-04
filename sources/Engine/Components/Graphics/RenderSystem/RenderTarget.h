@@ -19,7 +19,6 @@ public:
 	enum class CopyFilter {
 		Nearest, Linear
 	};
-
 public:
 	RenderTarget();
 	virtual ~RenderTarget();
@@ -58,6 +57,7 @@ public:
 	 * /param texture Attachment, should be DepthStencil texture
 	 */
 	virtual void attachDepthStencilComponent(Texture* texture) = 0;
+	virtual void attachDepthComponent(Texture* texture) = 0;
 
 	/*!
 	 * Copy one color component from current render target to another.

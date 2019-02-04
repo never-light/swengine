@@ -13,7 +13,7 @@ GLGeometryInstance::GLGeometryInstance()
 	m_verticesCount(0),
 	m_indicesCount(0)
 {
-	m_vertexLayoutDescription.resize(16);
+	m_vertexLayoutDescription.resize(16, std::optional<GeometryAttributeDesc>());
 }
 
 GLGeometryInstance::~GLGeometryInstance()
