@@ -9,7 +9,10 @@
 GLRenderTarget::GLRenderTarget()
 	: RenderTarget(),
 	m_frameBuffer(0),
+	m_depthRenderBuffer(0),
 	m_freeColorAttachment(0),
+	m_width(0),
+	m_height(0),
 	m_colorAttachments(new GLenum[MAX_COLOR_ATTACHMENTS]),
 	m_isComplete(false)
 {
@@ -23,6 +26,22 @@ GLRenderTarget::~GLRenderTarget()
 		destroy();
 }
 
+void GLRenderTarget::setSize(unsigned int width, unsigned int height)
+{
+	m_width = width;
+	m_height = height;
+}
+
+unsigned int GLRenderTarget::getWidth() const
+{
+	return m_width;
+}
+
+unsigned int GLRenderTarget::getHeight() const
+{
+	return m_height;
+}
+
 void GLRenderTarget::create()
 {
 	glGenFramebuffers(1, &m_frameBuffer);
@@ -34,11 +53,21 @@ void GLRenderTarget::destroy()
 		glDeleteFramebuffers(1, &m_frameBuffer);
 		m_frameBuffer = 0;
 	}
+
+	if (m_depthRenderBuffer != 0) {
+		glDeleteRenderbuffers(1, &m_depthRenderBuffer);
+		m_depthRenderBuffer = 0;
+	}
 }
 
 void GLRenderTarget::bind()
 {
-	GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, m_frameBuffer));
+	GL_CALL_BLOCK_BEGIN();
+
+	glViewport(0, 0, m_width, m_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_frameBuffer);
+
+	GL_CALL_BLOCK_END();
 }
 
 void GLRenderTarget::unbind()
@@ -51,6 +80,8 @@ void GLRenderTarget::unbind()
 		if (glFrameBufferState != GL_FRAMEBUFFER_COMPLETE) {
 			throw RenderSystemException("Framebuffer is not complete", __FILE__, __LINE__, __FUNCTION__);
 		}
+
+		m_isComplete = true;
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -108,7 +139,7 @@ void GLRenderTarget::attachColorComponent(size_t index, Texture * texture)
 
 	texture->bind();
 
-	GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
+	GL_CALL(glNamedFramebufferTexture(m_frameBuffer, attachmentType, glTexture->getTexturePointer(), 0));
 }
 
 void GLRenderTarget::attachDepthStencilComponent(Texture * texture)
@@ -118,7 +149,7 @@ void GLRenderTarget::attachDepthStencilComponent(Texture * texture)
 
 	texture->bind();
 
-	GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
+	GL_CALL(glNamedFramebufferTexture(m_frameBuffer, GL_DEPTH_STENCIL_ATTACHMENT, glTexture->getTexturePointer(), 0));
 }
 
 void GLRenderTarget::attachDepthComponent(Texture * texture)
@@ -128,7 +159,18 @@ void GLRenderTarget::attachDepthComponent(Texture * texture)
 
 	texture->bind();
 
-	GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, glTexture->getTexturePointer(), 0));
+	GL_CALL(glNamedFramebufferTexture(m_frameBuffer, GL_DEPTH_ATTACHMENT, glTexture->getTexturePointer(), 0));
+}
+
+void GLRenderTarget::createDefaultDepthComponent()
+{
+	_assert(m_width != 0 && m_height != 0);
+
+	unsigned int m_depthRenderBuffer;
+	glGenRenderbuffers(1, &m_depthRenderBuffer);
+
+	glNamedRenderbufferStorage(m_depthRenderBuffer, GL_DEPTH24_STENCIL8, m_width, m_height);
+	glNamedFramebufferRenderbuffer(m_frameBuffer, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthRenderBuffer);
 }
 
 void GLRenderTarget::copyColorComponentData(size_t sourceComponentIndex, 

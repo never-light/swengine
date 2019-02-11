@@ -23,6 +23,10 @@ public:
 	RenderTarget();
 	virtual ~RenderTarget();
 
+	virtual void setSize(unsigned int width, unsigned int height) = 0;
+	virtual unsigned int getWidth() const = 0;
+	virtual unsigned int getHeight() const = 0;
+
 	virtual void create() = 0;
 	virtual void destroy() = 0;
 
@@ -58,6 +62,11 @@ public:
 	 */
 	virtual void attachDepthStencilComponent(Texture* texture) = 0;
 	virtual void attachDepthComponent(Texture* texture) = 0;
+
+	/*!
+	 * Creates standart depth component for the render target
+	 */
+	virtual void createDefaultDepthComponent() = 0;
 
 	/*!
 	 * Copy one color component from current render target to another.

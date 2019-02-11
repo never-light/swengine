@@ -55,6 +55,8 @@ GUIManager::~GUIManager()
 
 void GUIManager::render()
 {
+	m_graphicsContext->getWindowRenderTarget()->bind();
+
 	m_graphicsContext->disableDepthTest();
 	m_graphicsContext->enableBlending();
 	m_graphicsContext->setBlendingMode(GraphicsContext::BlendingMode::SrcAlpha, 

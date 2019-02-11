@@ -80,8 +80,7 @@ void GLTexture::bind()
 
 void GLTexture::bind(unsigned int unit)
 {
-	GL_CALL(glActiveTexture(GL_TEXTURE0 + unit));
-	bind();
+	GL_CALL(glBindTextureUnit(unit, m_texture));
 }
 
 void GLTexture::unbind()

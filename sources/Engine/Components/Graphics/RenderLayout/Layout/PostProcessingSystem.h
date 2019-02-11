@@ -10,7 +10,7 @@
 class PostProcessingSystem : public GameSystem {
 public:
 	PostProcessingSystem(GraphicsPipeline* graphicsPipeline, SceneEnvironment* sceneEnvironment,
-		GpuProgram* postProcessingProgram);
+		GpuProgram* brightFilterProgram, GpuProgram* blurProgram, GpuProgram* postProcessingProgram);
 	
 	virtual ~PostProcessingSystem();
 
@@ -21,5 +21,7 @@ private:
 	GraphicsPipeline* m_graphicsPipeline;
 	SceneEnvironment* m_sceneEnvironment;
 
+	GpuProgram* m_brightFilterProgram;
+	GpuProgram* m_blurProgram;
 	GpuProgram* m_postProcessingProgram;
 };

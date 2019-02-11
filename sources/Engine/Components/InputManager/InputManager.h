@@ -9,6 +9,10 @@
 #include "InputEvents.h"
 #include "InputEventsListener.h"
 
+/*!
+ * \brief Class for user input management
+ * 
+ */
 class InputManager {
 public:
 	InputManager(Window* window);
@@ -16,12 +20,50 @@ public:
 
 	void update();
 
+	/*!
+	 * \brief Registers an event listener in the input management system
+	 * 
+	 * \param listener
+	 */
 	void registerEventListener(InputEventsListener* listener);
+
+	/*!
+	 * \brief Removes an event listener from the input management system
+	 *
+	 * \param listener
+	 */
 	void unregisterEventListener(InputEventsListener* listener);
 
+	/*!
+	 * \brief Get current keyboard key state
+	 * 
+	 * \param key
+	 * \return The current state of the specified key
+	 */
 	KeyState getKeyState(Key key) const;
+
+	/*!
+	 * \brief Checks whether the key is pressed
+	 * 
+	 * \param key
+	 * \return 
+	 */
 	bool isKeyPressed(Key key) const;
+
+	/*!
+	 * \brief Checks whether the key is released
+	 *
+	 * \param key
+	 * \return
+	 */
 	bool isKeyReleased(Key key) const;
+
+	/*!
+	 * \brief Checks whether the key is repeated
+	 *
+	 * \param key
+	 * \return
+	 */
 	bool isKeyRepeated(Key key) const;
 
 	MousePosition getMousePosition() const;

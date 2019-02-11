@@ -31,6 +31,8 @@ void MeshRenderingSystem::render(GameWorld * gameWorld)
 	m_geometryPassProgram->bind();
 	m_geometryPassProgram->setParameter("scene.viewTransform", activeCamera->getViewMatrix());
 	m_geometryPassProgram->setParameter("scene.projectionTransform", activeCamera->getProjectionMatrix());
+	
+	m_geometryPassProgram->setParameter("graphics.isNormalMappingEnabled", m_graphicsPipeline->isNormalMappingEnabled());
 
 	graphicsContext->enableWritingToDepthBuffer();
 	graphicsContext->enableDepthTest();
@@ -41,7 +43,7 @@ void MeshRenderingSystem::render(GameWorld * gameWorld)
 	graphicsContext->disableBlending();
 
 	m_graphicsPipeline->getGBuffer()->bind();
-	m_graphicsPipeline->getGBuffer()->setClearColor(0.0f, 0.0f, 0.0f);
+	m_graphicsPipeline->getGBuffer()->setClearColor(0.86f, 0.86f, 0.86f);
 	m_graphicsPipeline->getGBuffer()->clear(RenderTarget::CLEAR_COLOR | RenderTarget::CLEAR_DEPTH);
 
 	for (GameObject* gameObject : gameWorld->allWith<Transform, MeshComponent>()) {
@@ -113,13 +115,6 @@ void MeshRenderingSystem::render(GameWorld * gameWorld)
 	graphicsContext->getNDCQuadInstance()->draw(GeometryInstance::DrawMode::TrianglesStrip);
 
 	m_graphicsPipeline->getHDRBuffer()->unbind();
-
-	//showGBuffer();
-
-	m_graphicsPipeline->getHDRBuffer()->copyColorComponentData(0, nullptr, 0,
-		Rect(0, 0, viewportWidth, viewportHeight), Rect(0, 0, viewportWidth, viewportHeight),
-		RenderTarget::CopyFilter::Linear);
-
 }
 
 void MeshRenderingSystem::showGBuffer()

@@ -9,6 +9,8 @@ GraphicsSystem::GraphicsSystem(Window* window, GraphicsAPI api, Logger* logger)
 	RenderTarget* windowRenderTarget = new GLWindowRenderTarget();
 	windowRenderTarget->create();
 
+	windowRenderTarget->setSize(window->getWidth(), window->getHeight());
+
 	m_graphicsContext = new GLGraphicsContext(window, window->getWidth(), window->getHeight(), windowRenderTarget, logger);
 }
 

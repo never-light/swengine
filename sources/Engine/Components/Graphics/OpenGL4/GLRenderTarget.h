@@ -9,6 +9,10 @@ public:
 	GLRenderTarget();
 	virtual ~GLRenderTarget();
 
+	virtual void setSize(unsigned int width, unsigned int height) override;
+	virtual unsigned int getWidth() const override;
+	virtual unsigned int getHeight() const override;
+
 	virtual void create() override;
 	virtual void destroy() override;
 
@@ -28,6 +32,8 @@ public:
 	virtual void attachDepthStencilComponent(Texture* texture) override;
 	virtual void attachDepthComponent(Texture* texture) override;
 
+	virtual void createDefaultDepthComponent() override;
+
 	virtual void copyColorComponentData(
 		size_t sourceComponentIndex,
 		RenderTarget* destination,
@@ -46,6 +52,10 @@ public:
 
 protected:
 	GLuint m_frameBuffer;
+	GLuint m_depthRenderBuffer;
+
+	unsigned int m_width;
+	unsigned int m_height;
 
 private:
 	const static size_t MAX_COLOR_ATTACHMENTS = 8;
