@@ -200,8 +200,8 @@ BaseResourceInstance* MeshLoader::load(const std::string & path, std::optional<s
 				bones.push_back(Bone(boneDescription.id,
 					boneDescription.name,
 					boneDescription.isHelper,
-					boneDescription.parentId,
-					boneDescription.children,
+					(int)boneDescription.parentId,
+					std::vector<size_t>(boneDescription.children.begin(), boneDescription.children.end()),
 					boneDescription.localToBoneSpaceTransform,
 					boneDescription.relativeToParentSpaceTransform));
 			}

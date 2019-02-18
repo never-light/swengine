@@ -1,15 +1,13 @@
- #include "Game.h"
+#include "Game.h"
 #include "config.h"
-#include "Graphics\SolidMeshLoader.h"
-#include "Graphics\AnimationLoader.h"
 
 #include <Windows.h>
 
-#include <Engine\Utils\string.h>
-#include <Engine\Utils\time.h>
-#include <Engine\Utils\io.h>
+#include <Engine/Utils/string.h>
+#include <Engine/Utils/time.h>
+#include <Engine/Utils/io.h>
 
-#include "Exceptions\FatalErrorException.h"
+#include "Exceptions/FatalErrorException.h"
 
 Game::Game(const std::string& windowName, unsigned int width, unsigned int height) 
 	: BaseGame(windowName, width, height),
@@ -26,15 +24,13 @@ Game::Game(const std::string& windowName, unsigned int width, unsigned int heigh
 	m_graphicsContext = m_graphicsSystem->getGraphicsContext();
 
 	// Resource Manager
-	m_resMgr = new ResourceManager(m_graphicsSystem->getResourceFactory());
-	m_resMgr->registerResourceLoader(new SolidMeshLoader(m_resMgr, m_graphicsSystem->getResourceFactory()), "mod");
-	m_resMgr->registerResourceLoader(new AnimationLoader(), "anim");
+	m_resMgr = new ResourceManager(m_graphicsSystem->getGraphicsContext());
 
 	preLoadCommonResources();
 
 	// GUI Manager
-	m_guiMgr = new GUIManager(m_window, m_inputMgr, m_graphicsContext, m_graphicsSystem->getResourceFactory(),
-		m_resMgr->getResource<GpuProgram>("gpu_programs_gui_program"));
+	m_guiMgr = new GUIManager(m_window, m_inputMgr, m_graphicsContext,
+		m_resMgr->getResource<GpuProgram>("gpu_programs_gui_program").getRawPtr());
 
 	m_guiMgr->setCurrentCursor(m_defaultGameCursor);
 
@@ -111,10 +107,10 @@ void Game::onKeyPress(Key key, KeyEvent::Modifier mod) {
 void Game::preLoadCommonResources()
 {
 	try {
-		m_resMgr->load<Font>("resources/fonts/tuffy.font", "fonts_tuffy");
-		m_resMgr->load<GpuProgram>("resources/shaders/gui/quadwidget.fx", "gpu_programs_gui_program");
+		m_resMgr->loadResource<Font>("resources/fonts/tuffy.font", "fonts_tuffy").getRawPtr();
+		m_resMgr->loadResource<GpuProgram>("resources/shaders/gui/quadwidget.fx", "gpu_programs_gui_program").getRawPtr();
 
-		m_defaultGameCursor = new Cursor(*m_resMgr->load<RawImage>("resources/textures/cursors/default.png", "images_cursors_default"));
+		m_defaultGameCursor = new Cursor(*m_resMgr->loadResource<RawImage>("resources/textures/cursors/default.png", "images_cursors_default").getRawPtr());
 	}
 	catch (const ResourceLoadingException& exception) {
 		processResourceLoadingError(exception);
@@ -133,7 +129,8 @@ void Game::initializeInternalConsole()
 
 void Game::initializeConsoleGUI()
 {
-	m_guiConsoleWidget = new GUIConsoleWidget(m_console, m_resMgr->getResource<Font>("fonts_tuffy"), m_window->getWidth(), m_graphicsSystem->getResourceFactory(), m_graphicsContext);
+	m_guiConsoleWidget = new GUIConsoleWidget(m_console, 
+		m_resMgr->getResource<Font>("fonts_tuffy").getRawPtr(), m_window->getWidth(), m_graphicsContext);
 	m_guiConsoleWidget->setPaddingTop(5);
 	m_guiConsoleWidget->setPaddingLeft(10);
 
@@ -163,13 +160,11 @@ void Game::addConsoleCommandHotkey(Key key, const std::string & command)
 void Game::loadScenes()
 {
 	try {
-		m_startScene = new LevelScene(m_graphicsContext, 
-			m_graphicsSystem->getResourceFactory(), 
-			m_resMgr, m_inputMgr, m_guiMgr, m_console);
+		m_startScene = new LevelScene(m_graphicsContext, m_resMgr, m_inputMgr, m_guiMgr, m_console);
 
 		m_sceneMgr->registerScene(m_startScene);
 
-		m_mainMenu = new MainMenu(m_window, m_graphicsSystem->getResourceFactory(), m_graphicsContext, m_resMgr, m_guiMgr->getMainLayout());
+		m_mainMenu = new MainMenu(m_window, m_graphicsContext, m_resMgr, m_guiMgr->getMainLayout());
 		m_sceneMgr->registerScene(m_mainMenu);
 	}
 	catch (const ResourceLoadingException& exception) {

@@ -11,10 +11,10 @@
 
 class InventoryViewer : public HUDWindow {
 public:
-	InventoryViewer(Inventory* inventory, GraphicsResourceFactory* graphicsResourceFactory, Font* textFont);
+	InventoryViewer(Inventory* inventory, GraphicsContext* graphicsContext, Font* textFont);
 	~InventoryViewer();
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 	virtual void onHover(const MousePosition& mousePosition) override;
 	
 	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
@@ -43,6 +43,6 @@ protected:
 
 	bool m_subWindowOpened;
 private:
-	GraphicsResourceFactory * m_graphicsResourceFactory;
+	GraphicsContext * m_graphicsContext;
 	Font* m_textFont;
 };

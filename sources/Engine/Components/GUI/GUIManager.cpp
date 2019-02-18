@@ -64,6 +64,7 @@ void GUIManager::render()
 
 	m_quad->bind();
 	m_gpuProgram->bind();
+
 	m_gpuProgram->setParameter("transform.projection", m_orthographicProjection);
 
 	if (m_mainLayout->isVisible())

@@ -43,22 +43,22 @@ public:
 	/*!
 	 * Clear render target data
 	 * 
-	 * /param mode Bitfield with clear flags
+	 * \param mode Bitfield with clear flags
 	 */
 	virtual void clear(RTClearMode mode) = 0 ;
 
 	/*!
 	 * Attach color component to render target 
 	 * 
-	 * /param index Index between 0 and MAX_RENDER_TARGET_COLOR_ATTACHMENTS
-	 * /param texture 2D texture
+	 * \param index Index between 0 and MAX_RENDER_TARGET_COLOR_ATTACHMENTS
+	 * \param texture 2D texture
 	 */
 	virtual void attachColorComponent(size_t index, Texture* texture) = 0;
 
 	/*!
 	 * Attach depth and stencil component to render target
 	 * 
-	 * /param texture Attachment, should be DepthStencil texture
+	 * \param texture Attachment, should be DepthStencil texture
 	 */
 	virtual void attachDepthStencilComponent(Texture* texture) = 0;
 	virtual void attachDepthComponent(Texture* texture) = 0;
@@ -71,12 +71,12 @@ public:
 	/*!
 	 * Copy one color component from current render target to another.
 	 * 
-	 * /param sourceComponent Index of the component in current render target
-	 * /param destination Destination render target
-	 * /param destinationComponentIndex Index of the component in destination render target
-	 * /param sourceArea The size of a region to get data from source render target
-	 * /param destinationArea The size of a region to insert data in destination render target
-	 * /param copyFilter Interpolation filter to be applied if the component is stretched
+	 * \param sourceComponent Index of the component in current render target
+	 * \param destination Destination render target
+	 * \param destinationComponentIndex Index of the component in destination render target
+	 * \param sourceArea The size of a region to get data from source render target
+	 * \param destinationArea The size of a region to insert data in destination render target
+	 * \param copyFilter Interpolation filter to be applied if the component is stretched
 	 */
 	virtual void copyColorComponentData(
 		size_t sourceComponentIndex,
@@ -96,10 +96,10 @@ public:
 	/*!
 	 * Copy depth component from current render target to another.
 	 * 
-	 * /param destination Destination render target
-	 * /param sourceArea The size of a region to get data from source render target
-	 * /param destinationArea The size of a region to insert data in destination render target
-	 * /param copyFilter Interpolation filter to be applied if the component is stretched
+	 * \param destination Destination render target
+	 * \param sourceArea The size of a region to get data from source render target
+	 * \param destinationArea The size of a region to insert data in destination render target
+	 * \param copyFilter Interpolation filter to be applied if the component is stretched
 	 */
 	virtual void copyDepthStencilComponentData(
 		RenderTarget* destination,

@@ -1,17 +1,15 @@
 #include "InventoryViewer.h"
 
-#include <Game\GameObject.h>
-#include <Game\Game\Dynamic\Book.h>
 
-InventoryViewer::InventoryViewer(Inventory* inventory, GraphicsResourceFactory* graphicsResourceFactory, Font* textFont)
+InventoryViewer::InventoryViewer(Inventory* inventory, GraphicsContext* graphicsContext, Font* textFont)
 	: m_inventory(inventory), 
-	m_graphicsResourceFactory(graphicsResourceFactory),
+	m_graphicsContext(graphicsContext),
 	m_textFont(textFont),
 	m_itemBlockMargin(10, 10),
 	m_hoverTextVisible(false),
 	m_subWindowOpened(false)
 {
-	m_hoverText = new GUIText(m_graphicsResourceFactory);
+	m_hoverText = new GUIText(m_graphicsContext);
 	m_hoverText->setFont(m_textFont);
 	m_hoverText->setFontSize(10);
 	m_hoverText->setColor(1.0, 1.0, 1.0);
@@ -31,14 +29,14 @@ InventoryViewer::InventoryViewer(Inventory* inventory, GraphicsResourceFactory* 
 
 	this->addWidget(m_subWindow);
 
-	m_subWindowTitle = new GUIText(m_graphicsResourceFactory);
+	m_subWindowTitle = new GUIText(m_graphicsContext);
 	m_subWindowTitle->setFont(m_textFont);
 	m_subWindowTitle->setFontSize(12);
 	m_subWindowTitle->setColor(0.0f, 0.0f, 0.0f);
 
 	m_subWindow->addWidget(m_subWindowTitle);
 
-	m_subWindowText = new GUIText(m_graphicsResourceFactory);
+	m_subWindowText = new GUIText(m_graphicsContext);
 	m_subWindowText->setFont(m_textFont);
 	m_subWindowText->setFontSize(10);
 	m_subWindowText->setColor(0.0f, 0.0f, 0.0f);
@@ -57,7 +55,7 @@ InventoryViewer::~InventoryViewer()
 	delete m_hoverText;
 }
 
-void InventoryViewer::render(GeometryStore * quad, GpuProgram * program)
+void InventoryViewer::render(GeometryInstance * quad, GpuProgram * program)
 {
 	GUIWindow::renderBackground(quad, program);
 
@@ -120,16 +118,8 @@ void InventoryViewer::onClick(const MousePosition & mousePosition, MouseButton b
 			if (hoveredObject == nullptr)
 				return;
 
-			dynamic_cast<GameObject*>(hoveredObject)->triggerUse();
+			//dynamic_cast<GameObject*>(hoveredObject)->triggerUse();
 
-			if (hoveredObject->getInventoryUsage() == InventoryObject::InventoryUsage::Book) {
-
-				Book* book = static_cast<Book*>(hoveredObject);
-
-				openSubWindow(book->getInventoryTitle());
-
-				m_subWindowText->setText(book->getText());
-			}
 		}
 	}
 }

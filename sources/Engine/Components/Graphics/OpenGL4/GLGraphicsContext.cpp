@@ -169,6 +169,12 @@ void GLGraphicsContext::setScissorRectangle(const Rect & rectangle)
 		rectangle.getWidth(), rectangle.getHeight());
 }
 
+void GLGraphicsContext::drawFullScreenQuad()
+{
+	m_ndcQuadInstance->bind();
+	m_ndcQuadInstance->draw(GeometryInstance::DrawMode::TrianglesStrip);
+}
+
 void GLGraphicsContext::setFaceCullingMode(FaceCullingMode mode)
 {
 	GLenum glMode;

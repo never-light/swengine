@@ -8,7 +8,6 @@
 class GameHUD {
 public:
 	GameHUD(GraphicsContext* graphicsContext, 
-		GraphicsResourceFactory* graphicsResourceFactory, 
 		Font* defaultFont, GUIManager* guiManager, GUILayout* guiLayout);
 	~GameHUD();
 
@@ -61,6 +60,5 @@ private:
 	GUILayout * m_guiLayout;
 
 	GUIManager* m_guiManager;
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 	GraphicsContext* m_graphicsContext;
 };

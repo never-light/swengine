@@ -58,15 +58,13 @@ void PostProcessingSystem::render(GameWorld * gameWorld)
 	graphicsContext->getWindowRenderTarget()->bind();
 
 	m_graphicsPipeline->getHDRTexture()->bind(0);
-	m_graphicsPipeline->getBlurredBrightTexture1()->bind(1);
+	m_graphicsPipeline->getBlurredBrightTexture2()->bind(1);
 	m_postProcessingProgram->bind();
 
 	graphicsContext->getNDCQuadInstance()->draw(GeometryInstance::DrawMode::TrianglesStrip);
 
-	return;
-
 	m_graphicsPipeline->getBlurRenderTarget2()->copyColorComponentData(0, nullptr, 0,
-		Rect(0, 0, viewportWidth / 8, viewportHeight / 8), Rect(0, 0, viewportWidth / 2, viewportHeight / 2),
+		Rect(0, 0, viewportWidth / 4, viewportHeight / 4), Rect(0, 0, viewportWidth / 2, viewportHeight / 2),
 		RenderTarget::CopyFilter::Linear);
 
 }

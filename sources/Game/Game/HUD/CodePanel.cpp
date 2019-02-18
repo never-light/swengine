@@ -1,8 +1,7 @@
 #include "CodePanel.h"
 
-CodePanel::CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory * graphicsResourceFactory, Font * textFont)
+CodePanel::CodePanel(GraphicsContext* graphicsContext, Font * textFont)
 	: m_graphicsContext(graphicsContext),
-	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_textFont(textFont),
 	m_successulEnterCallback(nullptr),
 	m_buttonSize(64, 64),
@@ -16,7 +15,7 @@ CodePanel::CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory *
 	setSize(panelWidth, panelHeight);
 
 	for (size_t digitIndex = 0; digitIndex < 10; digitIndex++) {
-		GUIButton* button = new GUIButton(m_graphicsResourceFactory, m_textFont);
+		GUIButton* button = new GUIButton(m_graphicsContext, m_textFont);
 		
 		button->setBackgroundColor(vector4(0.148f, 0.122f, 0.15f, 1.0f));
 		button->setHoverBackgroundColor(vector4(0.108f, 0.082f, 0.11f, 1.0f));
@@ -35,7 +34,7 @@ CodePanel::CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory *
 		addWidget(m_digitButtons[digitIndex]);
 	}
 
-	m_enterButton = new GUIButton(m_graphicsResourceFactory, m_textFont);
+	m_enterButton = new GUIButton(m_graphicsContext, m_textFont);
 	m_enterButton->setSize(m_buttonSize);
 	m_enterButton->setBackgroundColor(vector4(0.148f, 0.122f, 0.15f, 1.0f));
 	m_enterButton->setHoverBackgroundColor(vector4(0.108f, 0.082f, 0.11f, 1.0f));
@@ -46,7 +45,7 @@ CodePanel::CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory *
 	m_enterButton->onClick(std::bind(&CodePanel::enterButtonClickCallback, this, std::placeholders::_1));
 	addWidget(m_enterButton);
 
-	m_clearButton = new GUIButton(m_graphicsResourceFactory, m_textFont);
+	m_clearButton = new GUIButton(m_graphicsContext, m_textFont);
 	m_clearButton->setSize(m_buttonSize);
 	m_clearButton->setBackgroundColor(vector4(0.148f, 0.122f, 0.15f, 1.0f));
 	m_clearButton->setHoverBackgroundColor(vector4(0.108f, 0.082f, 0.11f, 1.0f));
@@ -57,7 +56,7 @@ CodePanel::CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory *
 	m_clearButton->onClick(std::bind(&CodePanel::clearButtonClickCallback, this, std::placeholders::_1));
 	addWidget(m_clearButton);
 
-	m_codeTextBox = new GUITextBox(m_graphicsContext, m_graphicsResourceFactory, m_textFont);
+	m_codeTextBox = new GUITextBox(m_graphicsContext, m_textFont);
 	m_codeTextBox->setSize(panelWidth - m_panelPadding.x * 2, 36);
 	m_codeTextBox->setPaddingLeft(5);
 	m_codeTextBox->setPaddingTop(5);
@@ -80,7 +79,7 @@ CodePanel::~CodePanel()
 		delete button;
 }
 
-void CodePanel::render(GeometryStore * quad, GpuProgram * program)
+void CodePanel::render(GeometryInstance * quad, GpuProgram * program)
 {
 	HUDWindow::render(quad, program);
 }

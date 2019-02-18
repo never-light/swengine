@@ -68,6 +68,10 @@ public:
 
 	virtual RenderTarget* createRenderTarget() = 0;
 
+	//virtual RenderTarget* createRenderTarget(unsigned int width, unsigned int heigth) = 0;
+	//virtual Texture* createTexture(unsigned int width, unsigned int height, Texture::InternalFormat format) = 0;
+	
+	virtual void drawFullScreenQuad() = 0;
 
 	unsigned int getViewportWidth() const;
 	unsigned int getViewportHeight() const;

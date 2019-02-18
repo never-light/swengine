@@ -20,9 +20,9 @@ private:
 	};
 
 	struct BoneAnimationDescription {
-		size_t boneIndex;
-		size_t positionKeyFramesCount;
-		size_t orientationKeyFramesCount;
+		std::uint32_t boneIndex;
+		std::uint32_t positionKeyFramesCount;
+		std::uint32_t orientationKeyFramesCount;
 	};
 
 public:

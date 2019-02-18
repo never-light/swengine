@@ -1,36 +1,31 @@
 #pragma once
 
-#include <Engine\Components\SceneManager\Scene.h>
-#include <Engine\Components\InputManager\InputManager.h>
-#include <Engine\Components\GUI\GUIManager.h>
+#include <Engine/Components/SceneManager/Scene.h>
+#include <Engine/Components/InputManager/InputManager.h>
+#include <Engine/Components/GUI/GUIManager.h>
 
-#include <Game\Graphics\Primitives\BoxPrimitive.h>
-#include <Game\Graphics\Animation\Animation.h>
-#include <Game\Graphics\Animation\Animator.h>
-#include <Game\Console\Console.h>
+#include <Engine/Components/Graphics/Animation/Animation.h>
+#include <Engine/Components/Graphics/Animation/Animator.h>
+#include <Engine/Components/Graphics/RenderLayout/Layout/MeshRenderingSystem.h>
+#include <Engine/Components/Graphics/RenderLayout/Layout/PostProcessingSystem.h>
+#include <Engine/Components/Graphics/RenderLayout/Layout/MeshComponent.h>
 
-#include <Game\Graphics\LevelRenderer.h>
-#include <Game\Graphics\Materials\PhongLightingMaterial.h>
-#include <Game\Game\GameObjectsStore.h>
+#include <Engine/Components/ECS/ECS.h>
 
-#include <Game\Game\Inventory\InventoryViewer.h>
 
-#include <Game\Game\InfoportionsStore.h>
-#include <Game\Game\Tasks\TaskManager.h>
-#include <Game\Game\Time\TimeManager.h>
+#include <Game/Console/Console.h>
 
-#include <Game\Game\HUD\GameHUD.h>
+#include <Game/Game/Inventory/InventoryViewer.h>
 
-#include <Game\Game\Dynamic\LockedDoor.h>
+#include <Game/Game/InfoportionsStore.h>
+#include <Game/Game/Tasks/TaskManager.h>
+#include <Game/Game/Time/TimeManager.h>
 
-#include "SolidGameObject.h"
-#include "PlayerController.h"
-#include "FreeCameraController.h"
+#include <Game/Game/HUD/GameHUD.h>
 
 class LevelScene : public Scene, public InputEventsListener {
 public:
 	LevelScene(GraphicsContext* graphicsContext, 
-		GraphicsResourceFactory* graphicsResourceFactory,
 		ResourceManager* resourceManager, 
 		InputManager* inputManager,
 		GUIManager* guiManager,
@@ -61,10 +56,6 @@ protected:
 private:
 	void changeCurrentTaskCallback(const Task* newCurrentTask);
 
-	void removeGameObjectCallback(GameObject* object);
-	void registerGameObjectCallback(GameObject* object);
-	void relocateGameObjectCallback(GameObject* object, GameObject::Location oldLocation, GameObject::Location newLocation);
-
 	void changeCameraCommandHandler(Console* console, const std::vector<std::string>& args);
 	void changeGammaCorrectionCommandHandler(Console* console, const std::vector<std::string>& args);
 	void pickPositionCommandHandler(Console* console, const std::vector<std::string>& args);
@@ -74,6 +65,16 @@ protected:
 	GUILayout * m_levelGUILayout;
 
 protected:
+	SceneEnvironment* m_sceneEnvironment;
+
+	GameWorld* m_gameWorld;
+	GraphicsPipeline* m_graphicsPipeline;
+	MeshRenderingSystem* m_meshRenderingSystem;
+	PostProcessingSystem* m_postProcessingSystem;
+
+	PBRMaterial* m_testMaterial;
+
+protected:
 	InfoportionsStore * m_infoportionsStore;
 	TaskManager* m_taskManager;
 	TimeManager* m_timeManager;
@@ -81,40 +82,22 @@ protected:
 	GameHUD* m_hud;
 
 	GUIText* m_winText;
-protected:
-	GameObjectsStore * m_gameObjectsStore;
-	PhongLightingMaterial * m_phongLightingBaseMaterial;
-
-	LevelRenderer * m_levelRenderer;
 
 protected:
-	std::vector<Light*> m_lights;
-
-	PlayerController* m_playerController;
-	Player* m_player;
 	Camera* m_playerCamera;
-	SolidMesh* m_playerMesh;
-
-	FreeCameraController* m_freeCameraController;
 	Camera* m_freeCamera;
 
-	SolidGameObject* m_level;
-	LockedDoor* m_levelDoor;
-
-	SolidMesh* m_levelMesh;
-
-	InputController* m_activeInputController;
 protected:
-	GpuProgram* m_deferredLightingProgram;
-	GpuProgram* m_lightingGpuProgram;
+	GpuProgram* m_deferredGeometryPassProgram;
+	GpuProgram* m_deferredLigthingPassProgram;
+
 	GpuProgram* m_boundingVolumeGpuProgram;
 
-	bool m_isCollision = false;
-protected:
-	BoxPrimitive* m_boxPrimitive;
+	GpuProgram* m_brightFilterProgram;
+	GpuProgram* m_blurProgram;
+	GpuProgram* m_postProcessingProgram;
 
 protected:
 	InputManager* m_inputManager;
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 	GUIManager* m_guiManager;
 };

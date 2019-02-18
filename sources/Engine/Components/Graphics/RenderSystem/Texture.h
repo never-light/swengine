@@ -42,6 +42,8 @@ public:
 	Texture();
 	virtual ~Texture();
 
+	virtual void allocateMemory(unsigned int width, unsigned int height, Texture::InternalFormat format) = 0;
+
 	virtual void create() = 0;
 	virtual void destroy() = 0;
 

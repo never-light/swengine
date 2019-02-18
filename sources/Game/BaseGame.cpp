@@ -13,7 +13,9 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 	m_inputMgr(nullptr),
 	m_sceneMgr(nullptr),
 	m_updateTime(0.0),
-	m_renderTime(0.0)
+	m_renderTime(0.0),
+	m_totalRenderTime(0.0),
+	m_totalFrames(0)
 {
 	using std::experimental::filesystem::path;
 	using std::experimental::filesystem::current_path;
@@ -78,6 +80,17 @@ void BaseGame::run() {
 		startTime = TimeUtils::getCurrentTime();
 		render();
 		m_renderTime = TimeUtils::getCurrentTime() - startTime;
+
+		m_totalRenderTime += m_renderTime;
+		m_totalFrames++;
+
+		glfwSetWindowTitle(m_window->getWindowPointer(), (std::to_string(m_renderTime) + " " + std::to_string(m_updateTime) + " [AVG " +
+			std::to_string(m_totalRenderTime / m_totalFrames) + "]").c_str());
+
+		if (m_totalFrames > 30) {
+			m_totalFrames = 0;
+			m_totalRenderTime = 0.0;
+		}
 
 		nextTick += SKIP_TICKS;
 		sleepTime = nextTick - GetTickCount();

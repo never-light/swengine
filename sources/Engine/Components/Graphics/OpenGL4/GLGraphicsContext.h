@@ -38,6 +38,8 @@ public:
 
 	virtual void setScissorRectangle(const Rect& rectangle) override;
 
+	virtual void drawFullScreenQuad();
+
 	virtual void swapBuffers() override;
 
 	virtual GeometryInstance* getNDCQuadInstance() const override;

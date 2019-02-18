@@ -1,5 +1,8 @@
 #pragma once
 
+/*!
+ * \brief Lightweight pointer to the game component data
+ */
 template<class T>
 class ComponentHandle {
 public:
@@ -19,6 +22,11 @@ public:
 		return *m_componentPtr;
 	}
 
+	/*!
+	 * \brief Checks validity of the component data
+	 * 
+	 * \return 
+	 */
 	bool isValid() const {
 		return m_componentPtr != nullptr;
 	}

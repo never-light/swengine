@@ -13,10 +13,10 @@ public:
 	using CodeEnterCallback = std::function<void()>;
 
 public:
-	CodePanel(GraphicsContext* graphicsContext, GraphicsResourceFactory* graphicsResourceFactory, Font* textFont);
+	CodePanel(GraphicsContext* graphicsContext, Font* textFont);
 	~CodePanel();
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 
 	void setCode(const std::string& code);
 	const std::string& getCode() const;
@@ -43,7 +43,6 @@ private:
 
 private:
 	GraphicsContext * m_graphicsContext;
-	GraphicsResourceFactory * m_graphicsResourceFactory;
 	Font* m_textFont;
 
 	GUIButton* m_digitButtons[10];

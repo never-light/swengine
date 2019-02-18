@@ -39,23 +39,21 @@ GraphicsPipeline::GraphicsPipeline(GraphicsContext* graphicsContext)
 	m_hrdTarget->unbind();
 
 	m_brightFilterTexture = createColorTexture(m_graphicsContext->getViewportWidth(), m_graphicsContext->getViewportHeight(),
-		Texture::InternalFormat::RGBA16F);
+		Texture::InternalFormat::RGBA8);
 	m_brightFilterTexture->setMinificationFilter(Texture::Filter::Linear);
 	m_brightFilterTexture->setMagnificationFilter(Texture::Filter::Linear);
 
 	m_blurredBrightTexture1 = createColorTexture(m_graphicsContext->getViewportWidth() / 4, m_graphicsContext->getViewportHeight() / 4,
-		Texture::InternalFormat::RGBA16F);
+		Texture::InternalFormat::RGBA8);
 	m_blurredBrightTexture1->setMinificationFilter(Texture::Filter::Linear);
 	m_blurredBrightTexture1->setMagnificationFilter(Texture::Filter::Linear);
 
-
 	m_blurredBrightTexture2 = createColorTexture(m_graphicsContext->getViewportWidth() / 4, m_graphicsContext->getViewportHeight() / 4,
-		Texture::InternalFormat::RGBA16F);
+		Texture::InternalFormat::RGBA8);
 	m_blurredBrightTexture2->generateMipMaps();
 
 	m_blurredBrightTexture2->setMinificationFilter(Texture::Filter::LinearMipmapLinear);
 	m_blurredBrightTexture2->setMagnificationFilter(Texture::Filter::Linear);
-
 
 	m_brightFilterTarget = m_graphicsContext->createRenderTarget();
 	m_brightFilterTarget->create();
