@@ -22,5 +22,8 @@ protected:
 	double m_updateTime;
 	double m_renderTime;
 
+	double m_totalRenderTime;
+	size_t m_totalFrames;
+
 	double m_fullFrameTime;
 };

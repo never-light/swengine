@@ -1,16 +1,17 @@
 #include "GUIConsoleWidget.h"
 
-GUIConsoleWidget::GUIConsoleWidget(Console* console, Font * font, unsigned int viewportWidth, GraphicsResourceFactory * graphicsResourceFactory, GraphicsContext * graphicsContext)
+GUIConsoleWidget::GUIConsoleWidget(Console* console, Font * font, 
+	unsigned int viewportWidth, 
+	GraphicsContext * graphicsContext)
 	: GUILayout(), 
 	m_console(console),
-	m_graphicsResourceFactory(graphicsResourceFactory), 
 	m_graphicsContext(graphicsContext), 
 	m_font(font),
 	m_viewportWidth(viewportWidth)
 {
 	m_console->setPrintCallback(std::bind(&GUIConsoleWidget::onConsolePrint, this, std::placeholders::_1));
 	
-	m_inputTextBox = new GUITextBox(m_graphicsContext, m_graphicsResourceFactory, m_font);
+	m_inputTextBox = new GUITextBox(m_graphicsContext, m_font);
 	m_inputTextBox->setPaddingTop(6);
 
 	m_inputTextBox->onKeyPress(std::bind(&GUIConsoleWidget::onConsoleInputKeyPress, this, std::placeholders::_1, std::placeholders::_2));
@@ -43,7 +44,7 @@ void GUIConsoleWidget::clear()
 	m_textLines.clear();
 }
 
-void GUIConsoleWidget::render(GeometryStore * quad, GpuProgram * program)
+void GUIConsoleWidget::render(GeometryInstance * quad, GpuProgram * program)
 { 
 	matrix4 textArea;
 	textArea = glm::translate(textArea, vector3(m_position, 0.0f));
@@ -53,7 +54,7 @@ void GUIConsoleWidget::render(GeometryStore * quad, GpuProgram * program)
 	program->setParameter("quad.color", m_backgroundColor);
 	program->setParameter("quad.useTexture", false);
 
-	quad->drawArrays(GeometryStore::DrawType::Triangles, 0, 6);
+	quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 
 	for (GUIWidget* widget : m_widgets)
 		widget->render(quad, program);
@@ -92,7 +93,7 @@ void GUIConsoleWidget::setMaxTextLines(size_t maxTextLines)
 	updateLayout();
 }
 
-unsigned int GUIConsoleWidget::getMaxLextLines() const
+size_t GUIConsoleWidget::getMaxLextLines() const
 {
 	return m_maxTextLines;
 }
@@ -247,7 +248,7 @@ void GUIConsoleWidget::onConsolePrint(const std::string & text) {
 			textLine->setPosition(textLine->getPosition() - uivector2(0, m_textLineHeight));
 	}
 
-	GUIText* textLine = new GUIText(m_graphicsResourceFactory);
+	GUIText* textLine = new GUIText(m_graphicsContext);
 	textLine->setFont(m_font);
 	textLine->setFontSize(m_fontSize);
 	textLine->setText(text);

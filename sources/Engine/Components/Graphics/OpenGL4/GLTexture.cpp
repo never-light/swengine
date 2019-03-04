@@ -189,3 +189,16 @@ void GLTexture::enableAnisotropicFiltering(float quality)
 
 	GL_CALL(glTextureParameterf(m_texture, GL_TEXTURE_MAX_ANISOTROPY_EXT, quality));
 }
+
+void GLTexture::allocateMemory(unsigned int width, unsigned int height, Texture::InternalFormat format)
+{
+	m_width = width;
+	m_height = height;
+
+	m_internalFormat = format;
+
+	//getTexImage2D(m_texture, GL_TEXTURE_2D, m_internalFormatMap[m_internalFormat],
+		//m_width, m_height, 0, GL_RGBA, GL_FLOAT, );
+
+	//GL_CALL();
+}

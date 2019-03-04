@@ -10,13 +10,13 @@
 
 class GUIConsoleWidget : public GUILayout {
 public:
-	GUIConsoleWidget(Console* console, Font* font, unsigned int viewportWidth, GraphicsResourceFactory* graphicsResourceFactory, GraphicsContext* graphicsContext);
+	GUIConsoleWidget(Console* console, Font* font, unsigned int viewportWidth, GraphicsContext* graphicsContext);
 	~GUIConsoleWidget();
 
 	void print(const std::string& message);
 	void clear();
 
-	virtual void render(GeometryStore* quad, GpuProgram* program) override;
+	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
 
 	virtual void show() override;
 	virtual void hide() override;
@@ -65,7 +65,6 @@ private:
 
 	Font* m_font;
 
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 	GraphicsContext* m_graphicsContext;
 
 	unsigned int m_viewportWidth;

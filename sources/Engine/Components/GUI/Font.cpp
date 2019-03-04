@@ -21,7 +21,6 @@ Font::~Font()
 {
 	if (m_bitmap != nullptr) {
 		delete m_bitmap;
-		m_bitmap = nullptr;
 	}
 }
 

@@ -5,44 +5,28 @@
 #include <Engine\Utils\string.h>
 #include <Engine\Utils\io.h>
 
-#include <Game\Game\Dynamic\Book.h>
+#include <Engine/Components/ResourceManager/TextureLoader.h>
+
 #include <Game\config.h>
 
 #include <iostream>
 
 LevelScene::LevelScene(GraphicsContext* graphicsContext, 
-	GraphicsResourceFactory* graphicsResourceFactory, 
 	ResourceManager* resourceManager, 
 	InputManager* inputManager,
 	GUIManager* guiManager,
 	Console* console)
 	: Scene(graphicsContext, resourceManager),
 	m_inputManager(inputManager),
-	m_graphicsResourceFactory(graphicsResourceFactory),
 	m_guiManager(guiManager),
-	m_level(nullptr),
-	m_activeInputController(nullptr),
-	m_levelRenderer(nullptr),
-	m_phongLightingBaseMaterial(nullptr),
-	m_gameObjectsStore(new GameObjectsStore()),
-	m_levelGUILayout(new GUILayout())
+	m_levelGUILayout(new GUILayout()),
+	m_gameWorld(new GameWorld())
 {
 	m_levelGUILayout->setPosition(0, 0);
 	m_levelGUILayout->setSize(m_graphicsContext->getViewportWidth(), m_graphicsContext->getViewportHeight());
 	m_levelGUILayout->disableBackgroundRendering();
 
 	loadResources();
-
-	m_levelRenderer = new LevelRenderer(graphicsContext, graphicsResourceFactory, m_deferredLightingProgram);
-
-	m_gameObjectsStore->setRemoveObjectCallback(
-		std::bind(&LevelScene::removeGameObjectCallback, this, std::placeholders::_1));
-
-	m_gameObjectsStore->setRegisterObjectCallback(
-		std::bind(&LevelScene::registerGameObjectCallback, this, std::placeholders::_1));
-
-	m_gameObjectsStore->setRelocateObjectCallback(
-		std::bind(&LevelScene::relocateGameObjectCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	console->registerCommandHandler("set_camera", 
 		std::bind(&LevelScene::changeCameraCommandHandler, this, std::placeholders::_1, std::placeholders::_2));
@@ -70,6 +54,17 @@ LevelScene::LevelScene(GraphicsContext* graphicsContext,
 
 LevelScene::~LevelScene()
 {
+	//if (m_testMaterial != nullptr)
+		//delete m_testMaterial;
+
+	delete m_sceneEnvironment;
+
+	delete m_graphicsPipeline;
+	delete m_gameWorld;
+
+	delete m_meshRenderingSystem;
+	delete m_postProcessingSystem;
+
 	delete m_winText;
 	delete m_hud;
 
@@ -78,95 +73,112 @@ LevelScene::~LevelScene()
 	delete m_timeManager;
 
 	delete m_levelGUILayout;
-
-	delete m_gameObjectsStore;
-
-	if (m_phongLightingBaseMaterial != nullptr)
-		delete m_phongLightingBaseMaterial;
-
-	delete m_levelRenderer;
-	delete m_playerController;
-	delete m_freeCameraController;
-
-	delete m_boxPrimitive;
 }
 
 void LevelScene::update() {
 	if (m_hud->isControlLocked())
 		return;
-	
-	if (m_player->getPosition().z < -5.5f && !m_infoportionsStore->hasInfoportion("task_intro_room_leaved")) {
-		m_infoportionsStore->addInfoportion("task_intro_room_leaved");
-	}
 
 	if (m_infoportionsStore->hasInfoportion("task_intro_room_leaved")) {
 		m_winText->show();
 		return;
 	}
 
+	const float m_movementSpeed = 0.15f;
+	const float m_mouseSensitivity = 0.2f;
+
+	MousePosition mousePosition = m_inputManager->getMousePosition();
+
+	vector3 position = m_freeCamera->getTransform()->getPosition();
+	float oldY = position.y;
+
+	if (m_inputManager->isKeyPressed(GLFW_KEY_W)) {
+		position += m_freeCamera->getTransform()->getFrontDirection() * m_movementSpeed;
+	}
+	else if (m_inputManager->isKeyPressed(GLFW_KEY_S)) {
+		position -= m_freeCamera->getTransform()->getFrontDirection() * m_movementSpeed;
+	}
+
+	if (m_inputManager->isKeyPressed(GLFW_KEY_A)) {
+		position -= m_freeCamera->getTransform()->getRightDirection() * m_movementSpeed;
+	}
+	else if (m_inputManager->isKeyPressed(GLFW_KEY_D)) {
+		position += m_freeCamera->getTransform()->getRightDirection() * m_movementSpeed;
+	}
+
+	real currentPitchAngle = glm::degrees(glm::angle(vector3(0, 1, 0), glm::normalize(m_freeCamera->getTransform()->getFrontDirection())));
+	real pitchOffset = m_mouseSensitivity * mousePosition.y * -1.0f;
+
+	if ((pitchOffset > 0 && currentPitchAngle - pitchOffset > 0.001) || (pitchOffset < 0 && currentPitchAngle - pitchOffset < 179.999))
+		m_freeCamera->getTransform()->pitch(pitchOffset);
+
+	m_freeCamera->getTransform()->yaw(m_mouseSensitivity * mousePosition.x * -1.0f);
+	m_freeCamera->getTransform()->setPosition(position);
+
+
 	m_timeManager->update();
-	m_activeInputController->update();
+	m_gameWorld->update(1.0f / 30);
 	m_hud->update();
-	m_gameObjectsStore->update();
 
-	OBB newPlayerObb = m_player->getWorldPlacedCollider();
 
-	Intersection intersection;
+	if (m_inputManager->isKeyPressed(GLFW_KEY_F)) {
+		Light* light2 = new Light(Light::Type::Point);
+		light2->setPosition(position);
+		light2->setColor(vector3(5.0f, 5.0f, 5.0f));
 
-	for (const OBB& obb : m_levelMesh->getColliders()) {
-		if (newPlayerObb.intersects(obb, intersection)) {
-			m_player->getTransform()->move(intersection.getDirection() * intersection.getDepth());
-		}
+		m_sceneEnvironment->addLightSource(light2);
 	}
 
-	if (m_levelDoor != nullptr) {
-		if (newPlayerObb.intersects(OBB(m_levelDoor->getColliders()[0], m_levelDoor->getTransform()->getTransformationMatrix()), intersection)) {
-			m_player->getTransform()->move(intersection.getDirection() * intersection.getDepth());
-		}
-	}
+	if (m_inputManager->isKeyPressed(GLFW_KEY_G)) {
+		Light* light2 = new Light(Light::Type::Point);
+		light2->setPosition(position);
+		light2->setColor(vector3(5.0f, 0.0f, 0.0f));
 
-	Ray downRay(m_player->getTransform()->getPosition(), vector3(0.0f, -1.0f, 0.0f));
-	float distance = 0.0f;
-
-	float minDistance = std::numeric_limits<float>::infinity();
-	for (const OBB& obb : m_levelMesh->getColliders()) {
-		bool isFloorIntersects = obb.intersects(downRay, distance);
-
-		if (isFloorIntersects) {
-			minDistance = std::min(minDistance, distance);
-		}
-	}
-
-	if (minDistance >= 1.4f) {
-		vector3 oldPosition = m_player->getTransform()->getPosition();
-
-		oldPosition.y -= 0.30f;
-		oldPosition.y = std::max(oldPosition.y, 1.4f);
-
-		m_player->getTransform()->setPosition(oldPosition);
+		m_sceneEnvironment->addLightSource(light2);
 	}
 
 
-	Bone* head = m_player->getSkeleton()->getBone("HumanHead");
+	if (m_inputManager->isKeyPressed(GLFW_KEY_H)) {
+		Light* light2 = new Light(Light::Type::Point);
+		light2->setPosition(position);
+		light2->setColor(vector3(0.0f, 5.0f, 0.0f));
 
-	const matrix4& headBoneLocal = head->getCurrentPoseTransform();
-	vector3 boneWorldPosition = m_player->getTransform()->getTransformationMatrix() * vector4(vector3(headBoneLocal[3]), 1.0f);
+		m_sceneEnvironment->addLightSource(light2);
+	}
 
-	m_playerCamera->getTransform()->setOrientation(m_player->getTransform()->getOrientation());
-	m_playerCamera->getTransform()->setPosition(boneWorldPosition);
+	if (m_inputManager->isKeyPressed(GLFW_KEY_J)) {
+		Light* light2 = new Light(Light::Type::Point);
+		light2->setPosition(position);
+		light2->setColor(vector3(0.0f, 0.0f, 5.0f));
 
+		m_sceneEnvironment->addLightSource(light2);
+	}
+
+	if (m_inputManager->isKeyPressed(GLFW_KEY_E))
+		m_graphicsPipeline->enableNormalMapping();
+	else if (m_inputManager->isKeyPressed(GLFW_KEY_T))
+		m_graphicsPipeline->enableNormalMapping(false);
+
+	if (m_inputManager->isKeyPressed(GLFW_KEY_U))
+		m_gameWorld->getGameObjectByIndex(0)->getComponent<Transform>()->yaw(5.0f);
+	else if (m_inputManager->isKeyPressed(GLFW_KEY_I))
+		m_gameWorld->getGameObjectByIndex(0)->getComponent<Transform>()->yaw(-5.0f);
+
+	if (m_inputManager->isKeyPressed(GLFW_KEY_K))
+		m_sceneEnvironment->getActiveCamera()->setFOVy(m_sceneEnvironment->getActiveCamera()->getFOVy() + 2.0f);
+	else if (m_inputManager->isKeyPressed(GLFW_KEY_L))
+		m_sceneEnvironment->getActiveCamera()->setFOVy(m_sceneEnvironment->getActiveCamera()->getFOVy() - 2.0f);
 
 }
 
 void LevelScene::render()
 {
-	m_levelRenderer->render();
+	m_gameWorld->render();
 }
 
 void LevelScene::setActiveCamera(Camera * camera)
 {
 	Scene::setActiveCamera(camera);
-	m_levelRenderer->setActiveCamera(camera);
 }
 
 void LevelScene::activate()
@@ -181,167 +193,133 @@ void LevelScene::deactivate()
 
 void LevelScene::loadResources()
 {
-	m_deferredLightingProgram = m_resourceManager->load<GpuProgram>("resources/shaders/deferred_lighting.fx");
-	m_lightingGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/phong.fx");
-	m_boundingVolumeGpuProgram = m_resourceManager->load<GpuProgram>("resources/shaders/bounding_volume.fx");
+	m_deferredGeometryPassProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/deferred_gpass.fx").getRawPtr();
+	m_deferredLigthingPassProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/deferred_lightpass.fx").getRawPtr();
+	m_boundingVolumeGpuProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/bounding_volume.fx").getRawPtr();
 
-	m_levelMesh = m_resourceManager->load<SolidMesh>("resources/models/level.mod", "meshes_level");
-	m_playerMesh = m_resourceManager->load<SolidMesh>("resources/models/player/arms.mod", "meshes_player_arms");
-	m_resourceManager->load<SolidMesh>("resources/models/book.mod", "meshes_dynamic_book");
-	m_resourceManager->load<SolidMesh>("resources/models/door.mod", "meshes_dynamic_door");
+	m_brightFilterProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/bright_filter.fx").getRawPtr();
+	m_blurProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/blur.fx").getRawPtr();
+	m_postProcessingProgram = m_resourceManager->loadResource<GpuProgram>("resources/shaders/post_processing.fx").getRawPtr();
 
 	// Textures
-	Texture* bookIcon = m_resourceManager->load<Texture>("resources/textures/icons/book.png", "textues_dynamic_book_icon");
+	Texture* bookIcon = m_resourceManager->loadResource<Texture>("resources/textures/icons/book.png", "textues_dynamic_book_icon").getRawPtr();
 	bookIcon->bind();
 	bookIcon->setMinificationFilter(Texture::Filter::Linear);
 	bookIcon->setMagnificationFilter(Texture::Filter::Linear);
 
 	// Player animations
-	m_resourceManager->load<Animation>("resources/animations/player/arms_idle.anim", "animations_player_arms_idle");
-	m_resourceManager->load<Animation>("resources/animations/player/arms_running.anim", "animations_player_arms_running");
-	m_resourceManager->load<Animation>("resources/animations/player/arms_taking.anim", "animations_player_arms_taking");
+	m_resourceManager->loadResource<Animation>("resources/animations/player/arms_idle.anim", "animations_player_arms_idle");
+	m_resourceManager->loadResource<Animation>("resources/animations/player/arms_running.anim", "animations_player_arms_running");
+	m_resourceManager->loadResource<Animation>("resources/animations/player/arms_taking.anim", "animations_player_arms_taking");
+
 }
 
 void LevelScene::initializeSceneObjects() {
-	m_phongLightingBaseMaterial = new PhongLightingMaterial("materials.phong_base", m_lightingGpuProgram);
-
 	// Initialize player
 	initializePlayer();
 	
-	setActiveCamera(m_playerCamera);
-	m_activeInputController = m_playerController;
-
 	// Initialize free camera
 	initializeFreeCamera();
 
-	// Initialize primitives for rendering
-	initializePrimitives();
+	m_sceneEnvironment = new SceneEnvironment();
+	m_sceneEnvironment->setActiveCamera(m_freeCamera);
 
-	// Initialize objects
-	std::string strangeDiaryTitle = "Странные записки";
-	std::string strangeDiaryText = "Ж чжунъ хшпеъ рнэб ьецчб фнцбсе,\nЕ ижйхб ъхетнч ънчхйоэно пуи,\nТу пргь цйпхйче фхуцч жйцбсе\nЧа жцфустн рнэб чйпшюно зуи!";
+	m_graphicsPipeline = new GraphicsPipeline(m_graphicsContext);
+	m_meshRenderingSystem = new MeshRenderingSystem(m_graphicsPipeline, m_sceneEnvironment,
+		m_deferredGeometryPassProgram, m_deferredLigthingPassProgram);
+	m_postProcessingSystem = new PostProcessingSystem(m_graphicsPipeline, m_sceneEnvironment,
+		m_brightFilterProgram, m_blurProgram, m_postProcessingProgram);
 
-	Book* strangeDiary = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
-		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), strangeDiaryTitle, strangeDiaryText);
-	strangeDiary->getTransform()->setPosition(-2.60989, 1.18929, -2.3509);
+	m_gameWorld->addGameSystem(m_meshRenderingSystem);
+	m_gameWorld->addGameSystem(m_postProcessingSystem);
 
-	strangeDiary->setGameObjectUsage(GameObject::Usage::DynamicObject);
-	strangeDiary->setGameObjectLocation(GameObject::Location::World);
-	strangeDiary->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
-	strangeDiary->setGameObjectInteractiveTitle(strangeDiaryTitle);
+	PBRMaterial* armorMtl = new PBRMaterial();
+	armorMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/albedo.png", "armor_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	armorMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/normal.png").getRawPtr());
+	armorMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/roughness.png").getRawPtr());
 
-	strangeDiary->setTakeCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
-		infoportionsStore->addInfoportion("task_intro_book_found");
-	});
+	PBRMaterial* brickMtl = new PBRMaterial();
+	brickMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/brick/albedo.tga", "brick_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	brickMtl->setMetallic(0.0f);
+	//armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	brickMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/brick/normal.tga").getRawPtr());
+	brickMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/brick/roughness.tga").getRawPtr());
 
-	strangeDiary->setUseCallback([&infoportionsStore = m_infoportionsStore](GameObject* object) {
-		infoportionsStore->addInfoportion("task_intro_book_read");
-	});
+	PBRMaterial* flannelMtl = new PBRMaterial();
+	flannelMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/flannel/albedo.tga", "flannel_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	flannelMtl->setMetallic(0.0f);
+	//armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	flannelMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/flannel/normal.tga").getRawPtr());
+	flannelMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/flannel/roughness.tga").getRawPtr());
 
-	std::string historyArticleTitle = "Заметки";
-	std::string historyArticleText = "Гай Юлий Цезарь - один из самых известных древнеримских\nполитических деятелей.\n"
-		"Пять - третье простое число.";
+	PBRMaterial* goldMtl = new PBRMaterial();
+	goldMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/gold/albedo.tga", "gold_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	goldMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/gold/metallic.tga").getRawPtr());
+	goldMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/gold/normal.tga").getRawPtr());
+	goldMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/gold/roughness.tga").getRawPtr());
 
-	Book* historyArticle = new Book(m_resourceManager->getResource<SolidMesh>("meshes_dynamic_book"),
-		m_phongLightingBaseMaterial, m_resourceManager->getResource<Texture>("textues_dynamic_book_icon"), historyArticleTitle, historyArticleText);
-	historyArticle->getTransform()->setPosition(-2.60989, 1.18929, -1.3509);
+	PBRMaterial* parketMtl = new PBRMaterial();
+	parketMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/parket/albedo.tga", "parket_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	parketMtl->setMetallic(0.0f);
+	//armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	parketMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/parket/normal.tga").getRawPtr());
+	parketMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/parket/roughness.tga").getRawPtr());
 
-	historyArticle->setGameObjectUsage(GameObject::Usage::DynamicObject);
-	historyArticle->setGameObjectLocation(GameObject::Location::World);
-	historyArticle->setGameObjectInteractiveMode(GameObject::InteractiveMode::Takeable);
-	historyArticle->setGameObjectInteractiveTitle(historyArticleTitle);
+	PBRMaterial* plasticMtl = new PBRMaterial();
+	plasticMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/plastic/albedo.tga", "plastic_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	plasticMtl->setMetallic(0.0f);
+	//armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	plasticMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/plastic/normal.tga").getRawPtr());
+	plasticMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/plastic/roughness.tga").getRawPtr());
 
-	// Initialize level
-	m_level = new SolidGameObject(m_levelMesh, m_phongLightingBaseMaterial);
-	m_level->setGameObjectUsage(GameObject::Usage::StaticEnvironmentObject);
+	PBRMaterial* rockMtl = new PBRMaterial();
+	rockMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/rock/albedo.tga", "rock_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	rockMtl->setMetallic(0.0f);
+	//armorMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/armor/metallic.png").getRawPtr());
+	rockMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/rock/normal.tga").getRawPtr());
+	rockMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/rock/roughness.tga").getRawPtr());
 
-	m_levelDoor = new LockedDoor(
-		m_resourceManager->getResource<SolidMesh>("meshes_dynamic_door"), 
-		m_phongLightingBaseMaterial, m_timeManager, m_hud);
+	PBRMaterial* steelMtl = new PBRMaterial();
+	steelMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/steel/albedo.tga", "steel_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	steelMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/steel/metallic.tga").getRawPtr());
+	steelMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/steel/normal.tga").getRawPtr());
+	steelMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/steel/roughness.tga").getRawPtr());
 
-	m_levelDoor->setGameObjectInteractiveTitle("Панель");
-	m_levelDoor->getTransform()->setPosition(-1.316f, 1.752f, -4.66f);
-
-	m_levelDoor->setSecretCode("2018");
-
-	m_levelDoor->setOpenCallback([
-			&infoportionsStore = m_infoportionsStore,
-			&gameObjectsStore = m_gameObjectsStore,
-			&m_door = m_levelDoor
-		] (LockedDoor* door) {
-			gameObjectsStore->removeGameObject(door);
-
-			infoportionsStore->addInfoportion("task_intro_door_opened");
-			m_door = nullptr;
-		}
-	);
-
-	// Initialize lights
-	Light* whileLight = new Light(Light::Type::Point);
-	whileLight->setColor(vector3(1.0f, 1.0f, 1.0f));
-	whileLight->setAmbientIntensity(0.002f);
-	whileLight->setDiffuseIntensity(0.96f);
-	whileLight->setPosition(vector3(-0.76580, 2.7, -1.0655));
-
-	whileLight->setAttenuation(1.0f, 0.8f, 0.8f);
-
-	m_lights.push_back(whileLight);
-
-	// Register objects in level renderer
-	m_levelRenderer->registerBaseMaterial(m_phongLightingBaseMaterial);
-
-	m_gameObjectsStore->registerGameObject(m_player);
-	m_gameObjectsStore->registerGameObject(m_level);
-	m_gameObjectsStore->registerGameObject(m_levelDoor);
+	PBRMaterial* tilesMtl = new PBRMaterial();
+	tilesMtl->setColor(m_resourceManager->loadResource<Texture>("resources/textures/pbr/tiles/albedo.tga", "tiles_albedo", TextureLoadingOptions(TextureLoadingOptions::Format::sRGB)).getRawPtr());
+	tilesMtl->setMetallic(0.0f);
+	//tilesMtl->setMetallic(m_resourceManager->loadResource<Texture>("resources/textures/pbr/steel/metallic.png").getRawPtr());
+	tilesMtl->setNormal(m_resourceManager->loadResource<Texture>("resources/textures/pbr/tiles/normal.tga").getRawPtr());
+	tilesMtl->setRoughness(m_resourceManager->loadResource<Texture>("resources/textures/pbr/tiles/roughness.tga").getRawPtr());
 
 
-	m_gameObjectsStore->registerGameObject(strangeDiary);
-	m_gameObjectsStore->registerGameObject(historyArticle);
+	Mesh* mesh = m_resourceManager->loadResource<Mesh>("resources/models/testpbr.mesh").getRawPtr();
+	mesh->getSubMeshes()[0]->setMaterial(brickMtl);
+	mesh->getSubMeshes()[1]->setMaterial(armorMtl);
+	mesh->getSubMeshes()[2]->setMaterial(rockMtl);
+	mesh->getSubMeshes()[3]->setMaterial(steelMtl);
+	mesh->getSubMeshes()[4]->setMaterial(tilesMtl);
+	mesh->getSubMeshes()[5]->setMaterial(flannelMtl);
+	mesh->getSubMeshes()[6]->setMaterial(plasticMtl);
+	mesh->getSubMeshes()[7]->setMaterial(goldMtl);
+	mesh->getSubMeshes()[8]->setMaterial(parketMtl);
 
-	for (Light* lightSource : m_lights) {
-		m_gameObjectsStore->registerGameObject(lightSource);
-	}
+	GameObject* testObject = m_gameWorld->createGameObject();
+	
+	testObject->addComponent<MeshComponent>(mesh);
+	auto transform = testObject->addComponent<Transform>();
+	transform->setPosition(0, 0, 0);
+	transform->setScale(1, 1, 1);
+	transform->yaw(0.0f);
 }
 
 void LevelScene::initializePrimitives()
 {
-	m_boxPrimitive = new BoxPrimitive(m_graphicsResourceFactory);
 }
 
 void LevelScene::initializePlayer()
 {
-	// Player initialization
-	m_player = new Player(m_playerMesh, m_phongLightingBaseMaterial);
-	m_player->getTransform()->setPosition(-0.25916, 1.40000, 0.4456);
-	m_player->getTransform()->setOrientation(quaternion(-0.6608, 0.22277, 0.67916, 0.22895));
-
-	m_playerCamera = createCamera("playerCamera");
-	m_playerCamera->setNearClipDistance(0.1f);
-	m_playerCamera->setFarClipDistance(300.0f);
-	m_playerCamera->setFOVy(45.0f);
-	m_playerCamera->setAspectRatio((float)m_graphicsContext->getViewportWidth() / m_graphicsContext->getViewportHeight());
-	m_playerCamera->getTransform()->fixYAxis();
-
-	Animation* playerArmsIdle = m_resourceManager->getResource<Animation>("animations_player_arms_idle");
-	playerArmsIdle->setEndBehaviour(Animation::EndBehaviour::Repeat);
-
-	Animation* playerArmsRunning = m_resourceManager->getResource<Animation>("animations_player_arms_running");
-	playerArmsRunning->setSpeedFactor(2.0f);
-	playerArmsRunning->setEndBehaviour(Animation::EndBehaviour::Repeat);
-
-	Animation* playerArmsTaking = m_resourceManager->getResource<Animation>("animations_player_arms_taking");
-	playerArmsTaking->setSpeedFactor(4.0f);
-	playerArmsTaking->setEndBehaviour(Animation::EndBehaviour::Stop);
-
-	std::vector<Animation*> playerAnimations(PlayerController::PLAYER_STATES_COUNT);
-	playerAnimations[(size_t)PlayerController::PlayerState::Idle] = playerArmsIdle;
-	playerAnimations[(size_t)PlayerController::PlayerState::Running] = playerArmsRunning;
-	playerAnimations[(size_t)PlayerController::PlayerState::Taking] = playerArmsTaking;
-
-	m_playerController = new PlayerController(m_player, m_playerCamera, 
-		m_inputManager, playerAnimations, m_gameObjectsStore, m_hud, m_graphicsResourceFactory);
-
-	m_playerController->setMovementSpeed(0.15f);
 }
 
 void LevelScene::initializeFreeCamera()
@@ -354,10 +332,8 @@ void LevelScene::initializeFreeCamera()
 	m_freeCamera->setAspectRatio((float)m_graphicsContext->getViewportWidth() / m_graphicsContext->getViewportHeight());
 
 	m_freeCamera->getTransform()->fixYAxis();
-	m_freeCamera->getTransform()->setPosition(0.0f, 0.0f, 0.0f);
-	m_freeCamera->getTransform()->lookAt(0.0f, 0.0f, 10.0f);
-
-	m_freeCameraController = new FreeCameraController(m_freeCamera, m_inputManager);
+	m_freeCamera->getTransform()->setPosition(0.0f, 0.0f, 5.0f);
+	m_freeCamera->getTransform()->lookAt(0.0f, 0.0f, 0.0f);
 }
 
 void LevelScene::initializeInfoportions()
@@ -400,15 +376,14 @@ void LevelScene::initializeGUI()
 {
 	m_hud = new GameHUD(
 		m_graphicsContext,
-		m_graphicsResourceFactory, 
-		m_resourceManager->getResource<Font>("fonts_tuffy"),
+		m_resourceManager->getResource<Font>("fonts_tuffy").getRawPtr(),
 		m_guiManager, 
 		m_levelGUILayout
 	);
 
-	m_winText = new GUIText(m_graphicsResourceFactory);
+	m_winText = new GUIText(m_graphicsContext);
 	m_winText->setPosition(535, 235);
-	m_winText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy"));
+	m_winText->setFont(m_resourceManager->getResource<Font>("fonts_tuffy").getRawPtr());
 	m_winText->setFontSize(32);
 	m_winText->setColor(1.0, 1.0, 1.0);
 	m_winText->setText("Игра завершена!");
@@ -434,55 +409,6 @@ void LevelScene::changeCurrentTaskCallback(const Task * newCurrentTask)
 	m_hud->showTaskInfo();
 }
 
-void LevelScene::removeGameObjectCallback(GameObject * object)
-{
-	switch (object->getGameObjectUsage()) {
-	case GameObject::Usage::LightSource:
-		m_levelRenderer->removeLightSource(dynamic_cast<Light*>(object));
-		break;
-
-	case GameObject::Usage::StaticEnvironmentObject:
-	case GameObject::Usage::Player:
-		m_levelRenderer->removeRenderableObject(dynamic_cast<Renderable*>(object));
-		break;
-
-	case GameObject::Usage::DynamicObject:
-		if (object->isLocatedInWorld())
-			m_levelRenderer->removeRenderableObject(dynamic_cast<Renderable*>(object));
-		break;
-	}
-}
-
-void LevelScene::registerGameObjectCallback(GameObject * object)
-{
-	switch (object->getGameObjectUsage()) {
-	case GameObject::Usage::LightSource:
-		m_levelRenderer->registerLightSource(dynamic_cast<Light*>(object));
-		break;
-
-	case GameObject::Usage::StaticEnvironmentObject:
-	case GameObject::Usage::Player:
-		m_levelRenderer->addRenderableObject(dynamic_cast<Renderable*>(object));
-		break;
-
-	case GameObject::Usage::DynamicObject:
-		if (object->isLocatedInWorld())
-			m_levelRenderer->addRenderableObject(dynamic_cast<Renderable*>(object));
-		break;
-	}
- }
-
-void LevelScene::relocateGameObjectCallback(GameObject * object, GameObject::Location oldLocation, GameObject::Location newLocation)
-{
-	if (object->getGameObjectUsage() == GameObject::Usage::DynamicObject) {
-		if (oldLocation == GameObject::Location::World && newLocation == GameObject::Location::Inventory)
-			m_levelRenderer->removeRenderableObject(dynamic_cast<Renderable*>(object));
-
-		if (oldLocation == GameObject::Location::Inventory && newLocation == GameObject::Location::World)
-			m_levelRenderer->addRenderableObject(dynamic_cast<Renderable*>(object));
-
-	}
-}
 
 void LevelScene::changeCameraCommandHandler(Console * console, const std::vector<std::string>& args)
 {
@@ -490,12 +416,11 @@ void LevelScene::changeCameraCommandHandler(Console * console, const std::vector
 		return;
 
 	if (args.front() == "free") {
-		m_activeInputController = m_freeCameraController;
 		setActiveCamera(m_freeCamera);
 	}
 	else if (args.front() == "fps") {
-		m_activeInputController = m_playerController;
-		setActiveCamera(m_playerCamera);
+		//m_activeInputController = m_playerController;
+		//setActiveCamera(m_playerCamera);
 	}
 	else
 		console->print("Unknown camera type");
@@ -503,38 +428,26 @@ void LevelScene::changeCameraCommandHandler(Console * console, const std::vector
 
 void LevelScene::changeGammaCorrectionCommandHandler(Console * console, const std::vector<std::string>& args)
 {
-	if (args.empty()) {
-		console->print(std::to_string(m_levelRenderer->getGamma()));
-
-		return;
-	}
-
-	if (args.front() == "on")
-		m_levelRenderer->enableGammaCorrection();
-	else if (args.front() == "off")
-		m_levelRenderer->disableGammaCorrection();
-	else
-		m_levelRenderer->setGamma(std::stof(args.front()));
 }
 
 void LevelScene::pickPositionCommandHandler(Console * console, const std::vector<std::string>& args)
 {
-	vector3 position = (m_activeInputController == m_playerController) ? 
-		m_player->getPosition() : m_freeCamera->getTransform()->getPosition();
+	//vector3 position = (m_activeInputController == m_playerController) ? 
+		//m_player->getPosition() : m_freeCamera->getTransform()->getPosition();
 
-	std::string result = StringUtils::format("%.5f, %.5f, %.5f", position.x, position.y, position.z);
+	//std::string result = StringUtils::format("%.5f, %.5f, %.5f", position.x, position.y, position.z);
 
-	console->print(result);
-	IOUtils::copyToClipboard(result);
+	//console->print(result);
+	//IOUtils::copyToClipboard(result);
 }
 
 void LevelScene::pickDirectionCommandHandler(Console * console, const std::vector<std::string>& args)
 {
-	quaternion orientation = (m_activeInputController == m_playerController) ?
-		m_player->getTransform()->getOrientation() : m_freeCamera->getTransform()->getOrientation();
+	//quaternion orientation = (m_activeInputController == m_playerController) ?
+		//m_player->getTransform()->getOrientation() : m_freeCamera->getTransform()->getOrientation();
 
-	std::string result = StringUtils::format("%.5f, %.5f, %.5f, %.5f", orientation.w, orientation.x, orientation.y, orientation.z);
+	//std::string result = StringUtils::format("%.5f, %.5f, %.5f, %.5f", orientation.w, orientation.x, orientation.y, orientation.z);
 
-	console->print(result);
-	IOUtils::copyToClipboard(result);
+	//console->print(result);
+	//IOUtils::copyToClipboard(result);
 }

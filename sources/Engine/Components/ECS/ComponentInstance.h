@@ -2,6 +2,9 @@
 
 #include "BaseComponentInstance.h"
 
+/*!
+ * \brief Component data storage
+ */
 template<class T>
 class ComponentInstance : public BaseComponentInstance {
 public:

@@ -13,7 +13,7 @@ public:
 	};
 
 public:
-	MainMenu(Window* window, GraphicsResourceFactory* graphicsResourceFactory, GraphicsContext* graphicsContext, ResourceManager* resourceManager, GUILayout* mainGUILayout);
+	MainMenu(Window* window, GraphicsContext* graphicsContext, ResourceManager* resourceManager, GUILayout* mainGUILayout);
 	virtual ~MainMenu();
 
 	virtual void update() override;
@@ -25,8 +25,6 @@ public:
 	void onButtonClick(ButtonType buttonType, const GUIButton::ClickCallback& callback);
 protected:
 	Window * m_window;
-
-	GraphicsResourceFactory* m_graphicsResourceFactory;
 
 	GUILayout* m_mainGUILayout;
 	GUILayout* m_mainMenuGUILayout;
