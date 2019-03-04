@@ -4,6 +4,7 @@
 #include <Engine/Components/Debugging/Logger.h>
 #include <Engine/Components/GUI/GUI.h>
 #include <Engine/Components/Graphics/GraphicsSystem.h>
+#include <Engine/Components/Sound/SoundSystem.h>
 #include <Engine/Components/ResourceManager/ResourceManager.h>
 #include <Engine/Components/InputManager/InputManager.h>
 #include <Engine/Components/SceneManager/SceneManager.h>

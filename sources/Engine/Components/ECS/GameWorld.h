@@ -189,7 +189,10 @@ template<class T, class ...Args>
 inline ComponentHandle<T> GameWorld::assignComponent(GameObject * gameObject, Args && ...args)
 {
 	TypeId typeId = getTypeId<T>();
-	ComponentInstance<T>* instance = new ComponentInstance<T>(gameObject, T(std::forward<Args>(args)...));
+
+	T component(std::forward<Args>(args)...);
+
+	ComponentInstance<T>* instance = new ComponentInstance<T>(gameObject, std::move(component));
 
 	gameObject->m_components[typeId] = instance;
 

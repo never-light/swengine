@@ -3,21 +3,19 @@
 
 Sound::~Sound()
 {
-	//alDeleteBuffers(1,&this->soundBufferID);
+	alDeleteBuffers(1, &m_soundBufferID);
 }
 
 Sound::Sound(std::byte * soundData, size_t channels, size_t dataSize, unsigned int sampleRate)
 {
-	alGenBuffers(1, &this->soundBufferID);
+	alGenBuffers(1, &m_soundBufferID);
 
 	ALenum format = (channels == 2) ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
 
-	alBufferData(this->soundBufferID, format, soundData, dataSize, sampleRate);
-	std::cout << "BufferData - " << alGetError() << std::endl;
-
+	alBufferData(m_soundBufferID, format, soundData, dataSize, sampleRate);
 }
 
 unsigned int  Sound::getSoundBufferID()
 {
-	return this->soundBufferID;
+	return m_soundBufferID;
 }

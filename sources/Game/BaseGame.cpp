@@ -12,6 +12,7 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 	: m_window(nullptr), 
 	m_inputMgr(nullptr),
 	m_sceneMgr(nullptr),
+	m_soundSystem(nullptr),
 	m_updateTime(0.0),
 	m_renderTime(0.0),
 	m_totalRenderTime(0.0),
@@ -36,9 +37,14 @@ BaseGame::BaseGame(const std::string& windowName, unsigned int width, unsigned i
 
 	// Scene Managaer
 	m_sceneMgr = new SceneManager();
+
+	// Sound system
+	m_soundSystem = new SoundSystem();
 }
 
 BaseGame::~BaseGame() {
+	delete m_soundSystem;
+
 	delete m_sceneMgr;
 	delete m_inputMgr;
 

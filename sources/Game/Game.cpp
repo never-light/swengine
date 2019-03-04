@@ -63,6 +63,7 @@ Game::~Game() {
 }
 
 void Game::update() {
+	m_soundSystem->update(1.0f/30);
 	m_inputMgr->update();
 
 	if (!m_guiConsoleWidget->isVisible())

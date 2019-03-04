@@ -1,13 +1,12 @@
 #pragma once
 
 #include <vector>
-#include <Engine/Components/AL/al.h>
+#include <OpenAL/al.h>
 #include <Engine/Components/Math/types.h>
 
-class SoundListener
-{
-
+class SoundListener {
 public:
+	SoundListener();
 	SoundListener(const vector3 & position, const vector3 & velocity,
 		const vector3 & lookTarget, const vector3 & worldUp = vector3(0, 1, 0));
 	~SoundListener();

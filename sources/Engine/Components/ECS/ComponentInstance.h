@@ -8,7 +8,7 @@
 template<class T>
 class ComponentInstance : public BaseComponentInstance {
 public:
-	ComponentInstance(GameObject* gameObject, const T& componentData);
+	ComponentInstance(GameObject* gameObject, T&& componentData);
 	virtual ~ComponentInstance();
 
 	T& getDataRef();
@@ -19,9 +19,9 @@ protected:
 };
 
 template<class T>
-inline ComponentInstance<T>::ComponentInstance(GameObject* gameObject, const T & componentData)
+inline ComponentInstance<T>::ComponentInstance(GameObject* gameObject, T&& componentData)
 	: BaseComponentInstance(gameObject),
-	m_componentData(componentData)
+	m_componentData(std::move(componentData))
 {
 }
 

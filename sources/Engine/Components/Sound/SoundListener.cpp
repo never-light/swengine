@@ -1,6 +1,17 @@
 #include "SoundListener.h"
 
 
+SoundListener::SoundListener()
+	: m_position(0.0f, 0.0f, 0.0f),
+	m_velocity(0.0f, 0.0f, 0.0f),
+	m_lookTarget(0.0f, 0.0f, 0.0f),
+	m_worldUp(0.0f, 1.0f, 0.0f)
+{
+	alListener3f(AL_POSITION, m_position.x, m_position.y, m_position.z);
+	alListener3f(AL_VELOCITY, m_velocity.x, m_velocity.y, m_velocity.z);
+	alListenerfv(AL_ORIENTATION, getOrientation(m_lookTarget, m_worldUp).data());
+}
+
 SoundListener::SoundListener(const vector3 & position, const vector3 & velocity,
 	const vector3 & lookTarget, const vector3 & worldUp) :
 	m_position(position), m_velocity(velocity), m_lookTarget(lookTarget), m_worldUp(worldUp)

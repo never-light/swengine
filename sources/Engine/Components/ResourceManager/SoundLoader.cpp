@@ -1,7 +1,10 @@
-#define DR_WAV_IMPLEMENTATION
-#include <Engine/Components/Sound/dr_wav.h>
-
 #include "SoundLoader.h"
+
+#include "ResourceLoadingException.h"
+
+#define DR_WAV_IMPLEMENTATION
+#include <dr_libs/dr_wav.h>
+
 SoundLoader::SoundLoader()
 {
 }
@@ -15,7 +18,12 @@ BaseResourceInstance * SoundLoader::load(const std::string & path, std::optional
 	drwav* pWav = drwav_open_file(path.c_str());
 
 	if (pWav == NULL) {
-		return nullptr;
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), "File loading error", __FILE__, __LINE__, __FUNCTION__);
+	}
+
+	if (pWav->channels > 2) {
+		drwav_close(pWav);
+		throw ResourceLoadingException(ResourceLoadingError::InvalidData, path.c_str(), "The sound file has more than 2 audio channels", __FILE__, __LINE__, __FUNCTION__);
 	}
 
 	unsigned long long audioFileSize = (unsigned long long)pWav->totalPCMFrameCount * pWav->channels * sizeof(int16_t);

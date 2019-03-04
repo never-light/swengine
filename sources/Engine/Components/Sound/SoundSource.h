@@ -1,16 +1,18 @@
 #pragma once
 
 #include <vector>
-#include <Windows.h>
+
 #include <Engine/Components/Sound/Sound.h>
 #include <Engine/Components/Math/types.h>
 
-class SoundSource
-{
+class SoundSource {
 public:
 	SoundSource();
 	SoundSource(const vector3 & position, const vector3 & velocity, bool relative,
 		float gain = 1.0, float pitch = 1.0,bool looped = false);
+
+	SoundSource(SoundSource&& source);
+
 	~SoundSource();
 
 	void setPosition(const vector3 & position);
@@ -18,13 +20,13 @@ public:
 	void setRelative(bool relative);
 	void setGain(float gain);
 	void setPitch(float pitch);
-	void isLooped(bool looped);
+	void setLooped(bool looped);
 
-	vector3 &  getPosition();
-	vector3 & getVelocity();
-	float getGain();
-	float getPitch();
-	bool getLooped();
+	vector3 getPosition() const;
+	vector3 getVelocity() const;
+	float getGain() const;
+	float getPitch() const;
+	bool isLooped() const;
 
 	void bindSound(Sound* sound);
 	void play();
@@ -32,15 +34,17 @@ public:
 	void pauseOn(ALuint pauseTime);
 	void stop();
 	void setSpeed(ALfloat speed);
-	bool isPaused();
-	bool isPlaying();
-	unsigned int getSourceID();
-
-
-	// getters and setters for every field this class;
+	bool isPaused() const;
+	bool isPlaying() const;
+	unsigned int getSourceID() const;
 
 private:
-	
+	void initializeALSoundSource();
+
+private:
+	SoundSource(const SoundSource& source) = delete;
+	SoundSource& operator=(const SoundSource&) = delete;
+private:
 	vector3 m_position;
 	vector3 m_velocity;
     bool m_relative;
@@ -48,6 +52,6 @@ private:
 	float m_pitch;
 	bool m_looped;
 
-	Sound* sound;
-	unsigned int sourceID;
+	Sound* m_sound;
+	unsigned int m_sourceID;
 };

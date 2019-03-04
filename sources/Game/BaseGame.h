@@ -18,6 +18,8 @@ protected:
 
 	InputManager* m_inputMgr;
 	SceneManager* m_sceneMgr;
+	SoundSystem* m_soundSystem;
+
 
 	double m_updateTime;
 	double m_renderTime;

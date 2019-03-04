@@ -7,6 +7,7 @@
 #include "FontLoader.h"
 #include "MeshLoader.h"
 #include "AnimationLoader.h"
+#include "SoundLoader.h"
 
 ResourceManager::ResourceManager(GraphicsContext* graphicsContext)
 	: m_graphicsContext(graphicsContext)
@@ -17,6 +18,7 @@ ResourceManager::ResourceManager(GraphicsContext* graphicsContext)
 	registerResourceLoader<Mesh>(new MeshLoader(graphicsContext));
 	registerResourceLoader<Animation>(new AnimationLoader());
 	registerResourceLoader<RawImage>(new RawImageLoader());
+	registerResourceLoader<Sound>(new SoundLoader());
 }
 
 ResourceManager::~ResourceManager() {
