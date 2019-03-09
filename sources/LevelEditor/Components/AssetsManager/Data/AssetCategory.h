@@ -1,16 +1,18 @@
 #pragma once
 
 #include <QString>
+#include <QDataStream>
+#include <LevelEditor/Core/XMLSerializable.h>
 
 #include "AssetBase.h"
 
 class AssetDataBase;
 
-class AssetCategory {
+class AssetCategory : public XMLSerializable {
 	friend class AssetsDataBase;
 
 public:
-	AssetCategory(int32_t id);
+	AssetCategory();
 	~AssetCategory();
 
 	int32_t getParentId() const;
@@ -26,33 +28,16 @@ public:
 	QVector<AssetCategory*> getChildCategories() const;
 	size_t getChildrenCount() const;
 
-	AssetCategory* addChildCategory(const QString& name);
-
-	void removeChildren();
-	void removeChildCategory(AssetCategory* category);
-
 	QString getPath() const;
 
 	QVector<AssetBase*> getAssets() const;
-	
-	void addAsset(AssetBase* asset);
-	void removeAsset(AssetBase* asset);
 
-	void clearAssets();
-
-
-	static int32_t getFreeId() { return s_freeId; }
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
 
 private:
 	AssetCategory(const AssetCategory& category);
-
-private:
-	static void increaseFreeId() { s_freeId++; }
-	static int32_t getFreeIdAndIncrease() { return s_freeId++; }
-
-private:
-	static int32_t s_freeId;
-
 
 private:
 	QVector<AssetCategory*> m_children;
@@ -61,5 +46,6 @@ private:
 	QVector<AssetBase*> m_assets;
 
 	int32_t m_id;
+	int32_t m_parentId;
 	QString m_name;
 };

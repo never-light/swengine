@@ -1,20 +1,43 @@
 #pragma once
 
+#include <QObject>
+#include <QVariant>
+
 #include "AssetBase.h"
 #include "MaterialsLayouts.h"
 
-class MaterialAsset final : public AssetBase {
+enum class MaterialProcessingStage {
+	Forward, Deferred, Transparency
+};
+
+class MaterialAsset final : public QObject, public AssetBase {
+	Q_OBJECT
 public:
 	MaterialAsset();
 	virtual ~MaterialAsset();
 
-	virtual QMap<QString, QVariant> getAttibutesRaw() const override;
 	virtual QVector<QtProperty*> getEditableProperties() const override;
 
-	void replaceMaterialLayout(MaterialLayout* layout);
+	void setMaterialType(MaterialLayoutType type);
+	MaterialLayoutType getMaterialType() const;
+
+	void setProcessingStage(MaterialProcessingStage stage);
+	MaterialProcessingStage getProcessingStage() const;
+	
+	void setMaterialLayout(MaterialLayout* layout);
 	MaterialLayout* getMaterialLayout() const;
+
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
+
+private slots:
+	void propertyValueChanged(QtProperty* property, const QVariant& value);
+
 private:
-	QtProperty* m_properties;
+	QtProperty* m_commonProperties;
+	QtVariantProperty* m_processingStage;
+	QtVariantProperty* m_materialType;
 
 	MaterialLayout* m_materialLayout;
 };

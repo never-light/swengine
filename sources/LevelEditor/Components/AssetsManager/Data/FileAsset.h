@@ -4,7 +4,7 @@
 
 class FileAsset : public AssetBase {
 public:
-	FileAsset(const QString& fileName);
+	FileAsset();
 	virtual ~FileAsset();
 
 	void setFileName(const QString& fileName);
@@ -12,8 +12,11 @@ public:
 
 	virtual void performDelete() override;
 
-	virtual QMap<QString, QVariant> getAttibutesRaw() const override;
 	virtual QVector<QtProperty*> getEditableProperties() const override;
+
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
 
 protected:
 	QtVariantProperty* m_fileNameProperty;

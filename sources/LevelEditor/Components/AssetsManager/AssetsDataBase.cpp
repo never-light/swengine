@@ -2,22 +2,12 @@
 
 #include <QTextStream>
 #include <QDebug>
-
-int AssetCategory::s_freeId = 0;
+#include <QDataStream>
 
 AssetsDataBase::AssetsDataBase(const QString& categoriesPath, const QString& assetsPath)
 	: m_categoriesPath(categoriesPath),
 	m_assetsPath(assetsPath)
 {
-	m_assetsLoaders.insert("mesh", 
-		std::bind(&AssetsDataBase::readMeshAssetData, this, std::placeholders::_1));
-
-	m_assetsLoaders.insert("texture",
-		std::bind(&AssetsDataBase::readTextureAssetData, this, std::placeholders::_1));
-
-	m_assetsLoaders.insert("gpuprogram",
-		std::bind(&AssetsDataBase::readGpuProgramAssetData, this, std::placeholders::_1));
-
 	pugi::xml_document categoriesDoc;
 
 	if (!categoriesDoc.load_file(m_categoriesPath.toStdString().c_str())) {
@@ -25,32 +15,33 @@ AssetsDataBase::AssetsDataBase(const QString& categoriesPath, const QString& ass
 	}
 
 	pugi::xml_node categoriesListNode = categoriesDoc.first_child();
-	AssetCategory::s_freeId = categoriesListNode.attribute("frid").as_int();
+	m_freeCategoryId = categoriesListNode.attribute("frid").as_int();
 
 	QHash<int32_t, AssetCategory*> categories;
 
 	for (pugi::xml_node categoryNode : categoriesListNode.children("category")) {
 		int categoryId = categoryNode.attribute("id").as_int();
 
-		AssetCategory* categoryDesc = new AssetCategory(categoryId);
+		AssetCategory* category = new AssetCategory();
+		category->deserialize(categoryNode);
 
-		categoryDesc->setName(categoryNode.attribute("name").as_string());
-		categories.insert(categoryDesc->getId(), categoryDesc);
+		categories.insert(category->getId(), category);
+		m_categories.push_back(category);
 	}
-
+	 
 	// Tree structure pass
-	for (pugi::xml_node categoryNode : categoriesListNode.children("category")) {
-		int32_t parentId = categoryNode.attribute("pid").as_int();
-		int32_t id = categoryNode.attribute("id").as_int();
+	for (AssetCategory* category : m_categories) {
+		int32_t parentId = category->getParentId();
+		int32_t id = category->getId();
 
 		if (parentId != -1) {
 			categories[parentId]->m_children.push_back(categories[id]);
 		}
 
-		categories[id]->m_parent = (parentId != -1) ? categories[parentId] : nullptr;
+		category->m_parent = (parentId != -1) ? categories[parentId] : nullptr;
 
 		if (parentId == -1)
-			m_rootCategory = categories[id];
+			m_rootCategory = category;
 	}
 
 	// Assets pass
@@ -73,7 +64,117 @@ void AssetsDataBase::save()
 {
 	saveCategories();
 	saveAssets();
-	//m_assetsDoc.save_file(m_assetsPath.toStdString().c_str());
+}
+
+void AssetsDataBase::addCategory(AssetCategory * parent, AssetCategory * category)
+{
+	assert(category->getParent() == nullptr);
+	category->m_parent = parent;
+	category->m_parentId = parent->getId();
+
+	if (category->m_id == -1) {
+		category->m_id = m_freeCategoryId++;
+	}
+
+	parent->m_children.push_back(category);
+	m_categories.push_back(category);
+}
+
+void AssetsDataBase::removeCategory(AssetCategory * category)
+{
+	AssetCategory* parent = category->getParent();
+	assert(parent != nullptr);
+
+	removeAssetsFromCategory(category);
+	removeCategoryChildren(category);
+
+	parent->m_children.removeOne(category);
+	m_categories.removeOne(category);
+	delete category;
+}
+
+void AssetsDataBase::addAsset(AssetCategory * category, AssetBase * asset)
+{
+	assert(asset != nullptr && asset->getCategory() == nullptr);
+
+	asset->m_category = category;
+	asset->m_categoryId = category->getId();
+
+	if (asset->m_id == -1) {
+		asset->setId(m_freeAssetId++);
+	}
+
+	category->m_assets.push_back(asset);
+	m_assets.push_back(asset);
+}
+
+void AssetsDataBase::removeAsset(AssetBase * asset)
+{
+	asset->getCategory()->m_assets.removeOne(asset);
+	asset->performDelete();
+
+	m_assets.removeOne(asset);
+	delete asset;
+}
+
+QVector<AssetBase*> AssetsDataBase::getAssets() const
+{
+	return m_assets;
+}
+
+QVector<AssetBase*> AssetsDataBase::getAssetsByCategory(AssetCategory * category) const
+{
+	return category->m_assets;
+}
+
+void AssetsDataBase::relocateAsset(AssetBase * asset, AssetCategory * destCategory)
+{
+	asset->m_category->m_assets.removeOne(asset);
+	asset->m_category = destCategory;
+	asset->m_categoryId = destCategory->getId();
+
+	destCategory->m_assets.push_back(asset);
+}
+
+void AssetsDataBase::relocateCategory(AssetCategory * category, AssetCategory * destCategory)
+{
+	category->m_parent = destCategory;
+	category->m_parentId = destCategory->getId();
+}
+
+size_t AssetsDataBase::getFreeCategoryId() const
+{
+	return m_freeCategoryId;
+}
+
+size_t AssetsDataBase::getFreeAssetId() const
+{
+	return m_freeAssetId;
+}
+
+void AssetsDataBase::removeAssetsFromCategory(AssetCategory * category)
+{
+	for (AssetBase* asset : category->m_assets) {
+		asset->performDelete();
+
+		m_assets.removeOne(asset);
+		delete asset;
+	}
+
+	category->m_assets.clear();
+}
+
+void AssetsDataBase::removeCategoryChildren(AssetCategory * category)
+{
+	for (AssetCategory* child : category->m_children) {
+		removeAssetsFromCategory(child);
+		removeCategoryChildren(child);
+
+		m_categories.removeOne(child);
+		delete child;
+	}
+
+	category->m_children.clear();
 }
 
 void AssetsDataBase::readAssetsData(const QHash<int32_t, AssetCategory*>& categories)
@@ -84,102 +185,55 @@ void AssetsDataBase::readAssetsData(const QHash<int32_t, AssetCategory*>& catego
 		return;
 	}
 
-	AssetBase::s_freeId = assetsDoc.first_child().attribute("frid").as_int();
+	m_freeAssetId = assetsDoc.first_child().attribute("frid").as_int();
 
 	for (pugi::xml_node assetNode : assetsDoc.first_child().children("asset")) {
 		QString assetType = assetNode.attribute("type").as_string();
 
-		if (!m_assetsLoaders.contains(assetType))
-			throw std::exception("Wrong asset type");
+		AssetBase* asset = nullptr;
 
-		AssetBase* assetDesc = m_assetsLoaders[assetType](assetNode);
+		if (assetType == "mesh")
+			asset = new MeshAsset();
+		else if (assetType == "material")
+			asset = new MaterialAsset();
+		else if (assetType == "gpuprogram")
+			asset = new GpuProgramAsset();
+		else if (assetType == "texture")
+			asset = new TextureAsset();		
+		else if (assetType == "sound")
+			asset = new SoundAsset();
+		else
+			throw std::exception();
 
-		assetDesc->m_id = assetNode.attribute("id").as_int();
-		assetDesc->m_name = assetNode.attribute("name").value();
+		asset->deserialize(assetNode);
 
-		AssetCategory* assetCategory = categories[assetNode.attribute("cid").as_int()];
-		assetCategory->addAsset(assetDesc);
+		asset->m_category = categories[asset->m_categoryId];
+		asset->m_category->m_assets.push_back(asset);
+		
+		m_assets.push_back(asset);
 	}
-}
-
-AssetBase * AssetsDataBase::readMeshAssetData(const pugi::xml_node & node)
-{
-	QString fileName = node.child("file").child_value();
-	MeshAsset* asset = new MeshAsset(fileName);
-
-	asset->setVerticesCount(QString(node.child("vertices").child_value()).toInt());
-	asset->setIndicesCount(QString(node.child("indices").child_value()).toInt());
-	asset->setSubMeshesCount(QString(node.child("submeshes").child_value()).toInt());
-	asset->setSize(QString(node.child("size").child_value()).toInt());
-
-	return asset;
-}
-
-AssetBase * AssetsDataBase::readTextureAssetData(const pugi::xml_node & node)
-{
-	QString fileName = node.child("file").child_value();
-	TextureAsset* asset = new TextureAsset(fileName);
-
-	int width = node.child("size").attribute("width").as_int();
-	int height = node.child("size").attribute("height").as_int();
-
-	asset->setSize(width, height);
-	asset->setFileSize(QString(node.child("filesize").child_value()).toInt());
-	asset->useAsSRGB(QString(node.child("srgb").child_value()).toInt());
-
-	return asset;
-}
-
-AssetBase * AssetsDataBase::readGpuProgramAssetData(const pugi::xml_node & node)
-{
-	QString fileName = node.child("file").child_value();
-	GpuProgramAsset* asset = new GpuProgramAsset(fileName);
-
-	return asset;
 }
 
 void AssetsDataBase::saveCategories()
 {
-	pugi::xml_document categoriesDoc;
+	pugi::xml_document categories;
+	pugi::xml_node categoriesList = categories.append_child("categories");
+	categoriesList.append_attribute("frid").set_value(m_freeCategoryId);
 
-	pugi::xml_node categoriesListNode = categoriesDoc.append_child("categories");
-	categoriesListNode.append_attribute("frid").set_value(AssetCategory::getFreeId());
+	for (AssetCategory* category : m_categories) {
+		category->serialize(categoriesList.append_child("category"));
+	}
 
-	buildCategoriesListNode(getRootCategory(), categoriesListNode);
-
-	categoriesDoc.save_file(m_categoriesPath.toStdString().c_str());
+	categories.save_file(m_categoriesPath.toStdString().c_str());
 }
 
 void AssetsDataBase::saveAssets()
 {
-	pugi::xml_document assetsDoc;
+	pugi::xml_document assets;
+	pugi::xml_node assetsList = assets.append_child("assets");
+	assetsList.append_attribute("frid").set_value(m_freeAssetId);
 
-	pugi::xml_node assetsListNode = assetsDoc.append_child("assets");
-	assetsListNode.append_attribute("frid").set_value(AssetBase::getFreeId());
-
-	buildAssetsListNode(getRootCategory(), assetsListNode);
-
-	assetsDoc.save_file(m_assetsPath.toStdString().c_str());
-
-}
-
-void AssetsDataBase::buildCategoriesListNode(AssetCategory * category, pugi::xml_node & categoriesListNode)
-{
-	pugi::xml_node categoryNode = categoriesListNode.append_child("category");
-
-	categoryNode.append_attribute("id").set_value(category->getId());
-	categoryNode.append_attribute("pid").set_value(category->getParentId());
-	categoryNode.append_attribute("name").set_value(category->getName().toStdString().c_str());
-
-	for (AssetCategory* childCategory : category->getChildCategories())
-		buildCategoriesListNode(childCategory, categoriesListNode);
-}
-
-void AssetsDataBase::buildAssetsListNode(AssetCategory * category, pugi::xml_node & assetsListNode)
-{
-	for (AssetBase* asset : category->getAssets()) {
-		pugi::xml_node assetNode = assetsListNode.append_child("asset");
-
+	for (AssetBase* asset : m_assets) {
 		QString assetType = "unknown";
 
 		if (dynamic_cast<MeshAsset*>(asset) != nullptr)
@@ -188,59 +242,18 @@ void AssetsDataBase::buildAssetsListNode(AssetCategory * category, pugi::xml_nod
 			assetType = "texture";
 		else if (dynamic_cast<GpuProgramAsset*>(asset) != nullptr)
 			assetType = "gpuprogram";
+		else if (dynamic_cast<MaterialAsset*>(asset) != nullptr)
+			assetType = "material";		
+		else if (dynamic_cast<SoundAsset*>(asset) != nullptr)
+			assetType = "sound";
+		else
+			throw std::exception();
 
-		assetNode.append_attribute("id").set_value(asset->getId());
-		assetNode.append_attribute("cid").set_value(asset->getCategory()->getId());
-		assetNode.append_attribute("name").set_value(asset->getName().toStdString().c_str());
+		pugi::xml_node assetNode = assetsList.append_child("asset");
 		assetNode.append_attribute("type").set_value(assetType.toStdString().c_str());
 
-		auto attributes = asset->getAttibutesRaw().toStdMap();
-
-		for (auto attributeIt : attributes) {
-			QVariant attributeValue = attributeIt.second;
-
-			pugi::xml_node attributeNode = assetNode.append_child(attributeIt.first.toStdString().c_str());
-
-			switch (attributeValue.type()) {
-			case QMetaType::QString:
-				attributeNode.append_child(pugi::node_pcdata).set_value(attributeValue.toString().toStdString().c_str());
-				break;
-
-			case QMetaType::Int:
-			case QMetaType::UInt:
-			case QMetaType::ULongLong:
-			case QMetaType::ULong:
-			case QMetaType::Long:
-			case QMetaType::LongLong:
-			case QMetaType::Short:
-			case QMetaType::UShort:
-				attributeNode.append_child(pugi::node_pcdata).set_value(std::to_string(attributeValue.toInt()).c_str());
-				break;
-
-			case QMetaType::Float:
-				attributeNode.append_child(pugi::node_pcdata).set_value(std::to_string(attributeValue.toFloat()).c_str());
-				break;
-
-			case QMetaType::Bool:
-				attributeNode.append_child(pugi::node_pcdata).set_value(std::to_string((int)attributeValue.toBool()).c_str());
-				break;
-
-			case QMetaType::QSize: {
-				QSize size = attributeValue.toSize();
-				attributeNode.append_attribute("width").set_value(std::to_string(size.width()).c_str());
-				attributeNode.append_attribute("height").set_value(std::to_string(size.height()).c_str());
-
-				break;
-			}
-
-			default:
-				qDebug() << attributeValue.type();
-				throw new std::exception("Wrong attribut type");
-			}
-		}
+		asset->serialize(assetNode);
 	}
 
-	for (AssetCategory* childCategory : category->getChildCategories())
-		buildAssetsListNode(childCategory, assetsListNode);
-
+	assets.save_file(m_assetsPath.toStdString().c_str());
 }

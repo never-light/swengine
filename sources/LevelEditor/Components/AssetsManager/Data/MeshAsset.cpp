@@ -1,7 +1,7 @@
 #include "MeshAsset.h"
 
-MeshAsset::MeshAsset(const QString & fileName)
-	: FileAsset(fileName)
+MeshAsset::MeshAsset()
+	: FileAsset()
 {
 	m_typeProperty->setValue("Mesh");
 
@@ -36,18 +36,6 @@ MeshAsset::MeshAsset(const QString & fileName)
 
 MeshAsset::~MeshAsset()
 {
-}
-
-QMap<QString, QVariant> MeshAsset::getAttibutesRaw() const
-{
-	auto attributes = FileAsset::getAttibutesRaw();
-
-	attributes.insert("vertices", getVerticesCount());
-	attributes.insert("indices", getIndicesCount());
-	attributes.insert("submeshes", getSubMeshesCount());
-	attributes.insert("size", getSize());
-
-	return attributes;
 }
 
 QVector<QtProperty*> MeshAsset::getEditableProperties() const
@@ -96,4 +84,28 @@ size_t MeshAsset::getSize() const
 void MeshAsset::setSize(size_t size)
 {
 	m_sizeProperty->setValue(size);
+}
+
+void MeshAsset::serialize(pugi::xml_node& storage) const
+{
+	FileAsset::serialize(storage);
+
+	pugi::xml_node meshInfoNode = storage.append_child("mesh");
+
+	meshInfoNode.append_attribute("vertices").set_value(getVerticesCount());
+	meshInfoNode.append_attribute("indices").set_value(getIndicesCount());
+	meshInfoNode.append_attribute("subMeshes").set_value(getSubMeshesCount());
+	meshInfoNode.append_attribute("size").set_value(getSize());
+}
+
+void MeshAsset::deserialize(const pugi::xml_node& storage)
+{
+	FileAsset::deserialize(storage);
+
+	pugi::xml_node meshInfoNode = storage.child("mesh");
+
+	setVerticesCount(meshInfoNode.attribute("vertices").as_int());
+	setIndicesCount(meshInfoNode.attribute("indices").as_int());
+	setSubMeshesCount(meshInfoNode.attribute("subMeshes").as_int());
+	setSize(meshInfoNode.attribute("size").as_int());
 }

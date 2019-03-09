@@ -1,7 +1,8 @@
 #include "AssetCategory.h"
 
-AssetCategory::AssetCategory(int32_t id)
-	: m_id(id),
+AssetCategory::AssetCategory()
+	: m_id(-1),
+	m_parentId(-1),
 	m_parent(nullptr)
 {
 
@@ -29,7 +30,7 @@ bool AssetCategory::isRoot() const
 
 int32_t AssetCategory::getParentId() const
 {
-	return (m_parent == nullptr) ? -1 : m_parent->getId();
+	return m_parentId;
 }
 
 QString AssetCategory::getName() const
@@ -52,41 +53,6 @@ size_t AssetCategory::getChildrenCount() const
 	return m_children.size();
 }
 
-AssetCategory * AssetCategory::addChildCategory(const QString & name)
-{
-	AssetCategory* childCategory = new AssetCategory(getFreeIdAndIncrease());
-
-	childCategory->setName(name);
-	childCategory->m_parent = this;
-
-	m_children.push_back(childCategory);
-
-	return childCategory;
-}
-
-void AssetCategory::removeChildren()
-{
-	for (AssetCategory* child : m_children) {
-		child->clearAssets();
-		child->removeChildren();
-
-		delete child;
-	}
-
-	m_children.clear();
-}
-
-void AssetCategory::removeChildCategory(AssetCategory * category)
-{
-	assert(category->m_parent == this);
-
-	category->clearAssets();
-	category->removeChildren();
-
-	m_children.removeOne(category);
-	delete category;
-}
-
 QString AssetCategory::getPath() const
 {
 	if (isRoot())
@@ -95,41 +61,26 @@ QString AssetCategory::getPath() const
 	return m_parent->getPath() + "/" + getName();
 }
 
-void AssetCategory::clearAssets()
-{
-	for (AssetBase* asset : m_assets) {
-		asset->performDelete();
-		delete asset;
-	}
-
-	m_assets.clear();
-}
-
 QVector<AssetBase*> AssetCategory::getAssets() const
 {
 	return m_assets;
 }
 
-void AssetCategory::addAsset(AssetBase * asset)
-{
-	assert(asset != nullptr && asset->getCategory() == nullptr);
-
-	asset->setCategory(this);
-	asset->m_id = AssetBase::getFreeIdAndIncrease();
-
-	m_assets.push_back(asset);
-}
-
-void AssetCategory::removeAsset(AssetBase* asset)
-{
-	assert(asset->getCategory() == this);
-
-	m_assets.removeOne(asset);
-
-	asset->setCategory(nullptr);
-}
-
 AssetCategory * AssetCategory::getParent() const
 {
 	return m_parent;
+}
+
+void AssetCategory::serialize(pugi::xml_node& storage) const
+{
+	storage.append_attribute("id").set_value(m_id);
+	storage.append_attribute("name").set_value(m_name.toStdString().c_str());
+	storage.append_attribute("pid").set_value(m_parentId);
+}
+
+void AssetCategory::deserialize(const pugi::xml_node& storage)
+{
+	m_id = storage.attribute("id").as_int();
+	m_parentId = storage.attribute("pid").as_int();
+	m_name = storage.attribute("name").as_string();
 }

@@ -54,7 +54,8 @@ AssetBase* MeshAssetImporter::importFromFile(const QString& fileName, const QStr
 
 	//qDebug() << QVector(importer.getLog());
 
-	MeshAsset* asset = new MeshAsset(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
+	MeshAsset* asset = new MeshAsset();
+	asset->setFileName(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
 	asset->setName(QFileInfo(fileName).baseName());
 	asset->setVerticesCount(importer.getVerticesCount());
 	asset->setIndicesCount(importer.getIndicesCount());

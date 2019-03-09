@@ -1,7 +1,7 @@
 #include "GpuProgramAsset.h"
 
-GpuProgramAsset::GpuProgramAsset(const QString & fileName)
-	: FileAsset(fileName)
+GpuProgramAsset::GpuProgramAsset()
+	: FileAsset()
 {
 	m_typeProperty->setValue("Gpu program");
 }

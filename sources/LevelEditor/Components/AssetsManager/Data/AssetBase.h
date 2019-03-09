@@ -6,11 +6,12 @@
 #include <variant>
 
 #include <qtvariantproperty.h>
+#include <LevelEditor/Core/XMLSerializable.h>
 
 class AssetCategory;
 class AssetsDataBase;
 
-class AssetBase {
+class AssetBase : public XMLSerializable {
 	friend class AssetCategory;
 	friend class AssetsDataBase;
 
@@ -23,25 +24,19 @@ public:
 	void setName(const QString& name);
 	QString getName() const;
 
-	void setCategory(AssetCategory* category);
 	AssetCategory* getCategory() const;
 
 	QtVariantPropertyManager* getAttributesStorage() const;
 	virtual QVector<QtProperty*> getEditableProperties() const;
 
-	virtual QMap<QString, QVariant> getAttibutesRaw() const;
-
 	virtual void performDelete();
 
-	static int32_t getFreeId() { return s_freeId; }
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
 
-private:
-	static void increaseFreeId() { s_freeId++; }
-	static int32_t getFreeIdAndIncrease() { return s_freeId++; }
-
-private:
-	static int32_t s_freeId;
-
+protected:
+	void setId(int32_t id);
 
 protected:
 	AssetCategory* m_category;
@@ -49,7 +44,9 @@ protected:
 	QtProperty* m_commonProperties;
 
 	QtVariantProperty* m_typeProperty;
+	QtVariantProperty* m_idProperty;
 
 	int32_t m_id;
+	int32_t m_categoryId;
 	QString m_name;
 };

@@ -34,6 +34,7 @@ AssetsManagerWindow::AssetsManagerWindow(QWidget *parent, AssetsDataBase* assets
 	connect(m_assetsTreeModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(renameCategory(QStandardItem*)));
 	connect(m_assetsManagerUI.MainMenu_Assets_Import, SIGNAL(triggered()), this, SLOT(importNewAsset()));
 	connect(m_assetsManagerUI.MainMenu_Assets_Create_GpuProgram, SIGNAL(triggered()), this, SLOT(createGpuProgramAsset()));
+	connect(m_assetsManagerUI.MainMenu_Assets_Create_Material, SIGNAL(triggered()), this, SLOT(createMaterialAsset()));
 	connect(m_assetsManagerUI.MainMenu_Assets_Exit, SIGNAL(triggered()), this, SLOT(close()));
 
 	m_assetsListContextMenu = new QMenu(this);
@@ -120,7 +121,11 @@ void AssetsManagerWindow::addCategory()
 	AssetsCategoriesTreeItem* currentCategoryItem =
 		static_cast<AssetsCategoriesTreeItem*>(m_assetsTreeModel->itemFromIndex(currentCategoryIndex));
 
-	AssetCategory* newCategory = currentCategoryItem->getAttachedCategory()->addChildCategory("New category");
+	AssetCategory* newCategory = new AssetCategory();
+	newCategory->setName("New category");
+
+	m_assetsDB->addCategory(currentCategoryItem->getAttachedCategory(), newCategory);
+
 	currentCategoryItem->appendRow(new AssetsCategoriesTreeItem(newCategory));
 }
 
@@ -134,7 +139,7 @@ void AssetsManagerWindow::deleteCategory()
 	if (currentCategoryItem->getAttachedCategory() == m_assetsDB->getRootCategory())
 		return;
 
-	currentCategoryItem->getAttachedCategory()->getParent()->removeChildCategory(currentCategoryItem->getAttachedCategory());
+	m_assetsDB->removeCategory(currentCategoryItem->getAttachedCategory());
 	m_assetsTreeModel->removeRow(currentCategoryIndex.row(), currentCategoryIndex.parent());
 }
 
@@ -152,7 +157,7 @@ void AssetsManagerWindow::importNewAsset()
 		return;
 
 	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Import asset"), "", tr("Meshes (*.obj *.fbx *.dae);;Textures (*.jpg *.png *.tga *.gif);;Shaders (*.fx)"));
+		tr("Import asset"), "", tr("Meshes (*.obj *.fbx *.dae);;Textures (*.jpg *.png *.tga *.gif);;Shaders (*.fx);;Sounds (*.wav)"));
 
 	if (fileName.isEmpty() || !QFile::exists(fileName))
 		return;
@@ -183,7 +188,7 @@ void AssetsManagerWindow::importNewAssetFromFile(const QString & fileName)
 		newExtension = extension;
 
 	QString targetPath = targetDirPath + QString("/")
-		+ assetFileInfo.baseName() + QString::number(AssetBase::getFreeId()) + QString(".") + newExtension;
+		+ assetFileInfo.baseName() + QString::number(m_assetsDB->getFreeAssetId()) + QString(".") + newExtension;
 
 	QDir targetDir(targetDirPath);
 
@@ -197,14 +202,21 @@ void AssetsManagerWindow::importNewAssetFromFile(const QString & fileName)
 		throw std::exception("Failed to load asset");
 	}
 
-	currentCategory->addAsset(asset);
-
+	m_assetsDB->addAsset(currentCategory, asset);
 	selectCategory(m_assetsManagerUI.categoriesTree->currentIndex());
 }
 
 void AssetsManagerWindow::createGpuProgramAsset()
 {
 	
+}
+
+void AssetsManagerWindow::createMaterialAsset()
+{
+	MaterialAsset* material = new MaterialAsset();
+	material->setName("New material");
+
+	m_assetsDB->addAsset(getSelectedCategory(), material);
 }
 
 void AssetsManagerWindow::deleteAsset()
@@ -219,11 +231,8 @@ void AssetsManagerWindow::deleteAsset()
 
 	assert(category == asset->getCategory());
 
-	category->removeAsset(asset);
 	m_assetsManagerUI.assetsList->takeItem(assetIndex.row());
-
-	asset->performDelete();
-	delete asset;
+	m_assetsDB->removeAsset(asset);
 }
 
 void AssetsManagerWindow::renameAsset(QListWidgetItem * item)
@@ -274,6 +283,9 @@ void AssetsManagerWindow::initializeAssetsImporters()
 
 	m_gpuProgramImporter = new GpuProgramImporter(this);
 	registerAssetsImporter({ "fx" }, m_gpuProgramImporter);
+
+	m_soundImporter = new SoundImporter(this);
+	registerAssetsImporter({ "wav" }, m_soundImporter);
 }
 
 void AssetsManagerWindow::registerAssetImporter(const QString & extensions, AssetImporter * importer)

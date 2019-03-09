@@ -4,10 +4,9 @@
 
 class TextureAsset final : public FileAsset {
 public:
-	TextureAsset(const QString& fileName);
+	TextureAsset();
 	virtual ~TextureAsset();
 
-	virtual QMap<QString, QVariant> getAttibutesRaw() const override;
 	virtual QVector<QtProperty*> getEditableProperties() const override;
 
 	int getWidth() const;
@@ -26,6 +25,11 @@ public:
 	bool isSRGB() const;
 
 	void useAsSRGB(bool use);
+
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
+
 private:
 	QtProperty* m_textureProperties;
 

@@ -112,7 +112,7 @@
      <property name="title">
       <string>Создать</string>
      </property>
-     <addaction name="MainMenu_Assets_Create_GpuProgram"/>
+     <addaction name="MainMenu_Assets_Create_Material"/>
     </widget>
     <addaction name="menu"/>
     <addaction name="separator"/>
@@ -179,6 +179,11 @@
   <action name="MainMenu_Assets_Create_GpuProgram">
    <property name="text">
     <string>Шейдерная программа</string>
+   </property>
+  </action>
+  <action name="MainMenu_Assets_Create_Material">
+   <property name="text">
+    <string>Материал</string>
    </property>
   </action>
  </widget>

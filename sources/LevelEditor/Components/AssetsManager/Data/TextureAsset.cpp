@@ -1,7 +1,7 @@
 #include "TextureAsset.h"
 
-TextureAsset::TextureAsset(const QString & fileName)
-	: FileAsset(fileName)
+TextureAsset::TextureAsset()
+	: FileAsset()
 {
 	m_typeProperty->setValue("Texture");
 
@@ -33,17 +33,6 @@ TextureAsset::TextureAsset(const QString & fileName)
 
 TextureAsset::~TextureAsset()
 {
-}
-
-QMap<QString, QVariant> TextureAsset::getAttibutesRaw() const
-{
-	auto attributes = FileAsset::getAttibutesRaw();
-
-	attributes.insert("filesize", getFileSize());
-	attributes.insert("size", getSize());
-	attributes.insert("srgb", isSRGB());
-
-	return attributes;
 }
 
 QVector<QtProperty*> TextureAsset::getEditableProperties() const
@@ -107,4 +96,24 @@ bool TextureAsset::isSRGB() const
 void TextureAsset::useAsSRGB(bool use)
 {
 	m_gammaCorrectionProperty->setValue(use);
+}
+
+void TextureAsset::serialize(pugi::xml_node& storage) const
+{
+	FileAsset::serialize(storage);
+
+	storage.append_attribute("width").set_value(getSize().width());
+	storage.append_attribute("height").set_value(getSize().height());
+
+	storage.append_attribute("size").set_value(getFileSize());
+	storage.append_attribute("srgb").set_value((int)isSRGB());
+}
+
+void TextureAsset::deserialize(const pugi::xml_node& storage)
+{
+	FileAsset::deserialize(storage);
+
+	setSize(QSize(storage.attribute("width").as_int(), storage.attribute("height").as_int()));
+	setFileSize(storage.attribute("size").as_int());
+	useAsSRGB(storage.attribute("srgb").as_int());
 }

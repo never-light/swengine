@@ -30,7 +30,8 @@ AssetBase* TextureImporter::importFromFile(const QString& fileName, const QStrin
 
 	QImage texture(targetFileName);
 
-	TextureAsset* asset = new TextureAsset(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
+	TextureAsset* asset = new TextureAsset();
+	asset->setFileName(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
 	asset->setName(QFileInfo(sourceFile).baseName());
 	asset->setFileSize(sourceFile.size());
 	asset->setSize(texture.size());

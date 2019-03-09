@@ -12,6 +12,7 @@
 #include "../Data/Import/MeshImporter.h"
 #include "../Data/Import/TextureImporter.h"
 #include "../Data/Import/GpuProgramImporter.h"
+#include "../Data/Import/SoundImporter.h"
 
 class AssetsManagerWindow : public QMainWindow
 {
@@ -40,6 +41,7 @@ public slots:
 	void importNewAssetFromFile(const QString& fileName);
 
 	void createGpuProgramAsset();
+	void createMaterialAsset();
 
 	void deleteAsset();
 	void renameAsset(QListWidgetItem * item);
@@ -77,4 +79,5 @@ private:
 	MeshAssetImporter* m_meshAssetImporter;
 	TextureImporter* m_textureImporter;
 	GpuProgramImporter* m_gpuProgramImporter;
+	SoundImporter* m_soundImporter;
 };

@@ -5,12 +5,11 @@
 
 #include <LevelEditor/Components/Utils/filesystem.h>
 
-FileAsset::FileAsset(const QString & fileName)
+FileAsset::FileAsset()
 	: AssetBase()
 {
-	m_fileNameProperty = m_attributesStorage->addProperty(QVariant::String,
-		"FileName");
-	m_fileNameProperty->setValue(fileName);
+	m_fileNameProperty = m_attributesStorage->addProperty(QVariant::String, "FileName");
+	m_fileNameProperty->setValue("");
 	m_fileNameProperty->setEnabled(false);
 
 	m_commonProperties->addSubProperty(m_fileNameProperty);
@@ -36,16 +35,21 @@ void FileAsset::performDelete()
 	QFile::remove(getEditorAssetsDir() + QString("/") + m_fileNameProperty->value().toString());
 }
 
-QMap<QString, QVariant> FileAsset::getAttibutesRaw() const
-{
-	auto attributes = AssetBase::getAttibutesRaw();
-
-	attributes.insert("file", getFileName());
-
-	return attributes;
-}
-
 QVector<QtProperty*> FileAsset::getEditableProperties() const
 {
 	return { m_commonProperties };
+}
+
+void FileAsset::serialize(pugi::xml_node& storage) const
+{
+	AssetBase::serialize(storage);
+
+	storage.append_attribute("file").set_value(getFileName().toStdString().c_str());
+}
+
+void FileAsset::deserialize(const pugi::xml_node& storage)
+{
+	AssetBase::deserialize(storage);
+
+	setFileName(storage.attribute("file").as_string());
 }

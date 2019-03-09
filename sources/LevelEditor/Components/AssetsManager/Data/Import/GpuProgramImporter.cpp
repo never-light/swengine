@@ -25,7 +25,8 @@ AssetBase* GpuProgramImporter::importFromFile(const QString& fileName, const QSt
 	if (!sourceFile.copy(targetFileName))
 		throw new std::exception();
 
-	GpuProgramAsset* asset = new GpuProgramAsset(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
+	GpuProgramAsset* asset = new GpuProgramAsset();
+	asset->setFileName(QDir(getEditorAssetsDir()).relativeFilePath(targetFileName));
 	asset->setName(QFileInfo(sourceFile).baseName());
 
 	QString message = "Gpu program is imported!";

@@ -4,10 +4,9 @@
 
 class MeshAsset final : public FileAsset {
 public:
-	MeshAsset(const QString& fileName);
+	MeshAsset();
 	virtual ~MeshAsset();
 
-	virtual QMap<QString, QVariant> getAttibutesRaw() const override;
 	virtual QVector<QtProperty*> getEditableProperties() const override;
 
 	size_t getVerticesCount() const;
@@ -21,6 +20,10 @@ public:
 
 	size_t getSize() const;
 	void setSize(size_t size);
+
+public:
+	virtual void serialize(pugi::xml_node& storage) const override;
+	virtual void deserialize(const pugi::xml_node& storage) override;
 
 private:
 	QtProperty* m_meshProperties;

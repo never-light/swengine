@@ -4,6 +4,6 @@
 
 class GpuProgramAsset final : public FileAsset {
 public:
-	GpuProgramAsset(const QString& fileName);
+	GpuProgramAsset();
 	virtual ~GpuProgramAsset();
 };
