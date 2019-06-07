@@ -136,21 +136,21 @@ void GUIButton::render(GeometryInstance * quad, GpuProgram * program)
 	}
 }
 
-void GUIButton::update(const MousePosition & mousePosition)
+void GUIButton::update(const CursorPosition& mousePosition)
 {
 }
 
-void GUIButton::onMouseEnter(const MousePosition & mousePosition)
+void GUIButton::onMouseEnter(const CursorPosition& mousePosition)
 {
 	m_hover = true;
 }
 
-void GUIButton::onMouseLeave(const MousePosition & mousePosition)
+void GUIButton::onMouseLeave(const CursorPosition& mousePosition)
 {
 	m_hover = false;
 }
 
-void GUIButton::onClick(const MousePosition & mousePosition, MouseButton button)
+void GUIButton::onClick(const CursorPosition& mousePosition, MouseButton button)
 {
 	if (m_clickCallback != nullptr) {
 		m_clickCallback(mousePosition);

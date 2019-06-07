@@ -1,7 +1,8 @@
 #pragma once
 
-#include "RawImage.h"
 #include <unordered_map>
+
+#include <Engine/Components/ResourceManager/RawImage.h>
 #include <Engine/Components/Graphics/RenderSystem/Texture.h>
 #include <Engine/Components/Math/Geometry/Rect.h>
 

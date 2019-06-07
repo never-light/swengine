@@ -7,6 +7,8 @@
 #include "GLGpuProgram.h"
 #include "GLRenderTarget.h"
 
+#include <Engine/config.h>
+
 const float NDC_QUAD_VERTICES_RAW_DATA[] = {
 	-1.0f,  1.0f, 0.0f, 1.0f,
 	-1.0f, -1.0f, 0.0f, 0.0f,
@@ -14,26 +16,25 @@ const float NDC_QUAD_VERTICES_RAW_DATA[] = {
 	1.0f, -1.0f, 1.0f, 0.0f
 };
 
-GLGraphicsContext::GLGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger)
-	: GraphicsContext(window, viewportWidth, viewportHeight, windowRenderTarget, logger)
+GLGraphicsContext::GLGraphicsContext(std::shared_ptr<sw::platform::base::Window> window, RenderTarget* windowRenderTarget, Logger* logger)
+	: GraphicsContext(window, windowRenderTarget, logger)
 {
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK)
+	if (gl3wInit())
 		throw EngineException("Failed to initialize OpenGL", __FILE__, __LINE__, __FUNCTION__);
 
-	glViewport(0, 0, m_viewportWidth, m_viewportHeight);
+	glViewport(0, 0, getViewportWidth(), getViewportHeight());
 
-#ifdef _DEBUG
-	if (GLEW_ARB_debug_output) {
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-		glDebugMessageCallbackARB((GLDEBUGPROCARB)&debugOutputCallback, this);
+	if constexpr (sw::DEBUG_LEVEL == sw::DebugLevel::FullDebugging) {
+		if (GL_ARB_debug_output) {
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+			glDebugMessageCallback(reinterpret_cast<GLDEBUGPROCARB>(&debugOutputCallback), this);
+		}
 	}
-#endif
 
 	m_ndcQuadInstance = new GLGeometryInstance();
 	m_ndcQuadInstance->setVerticesData(4, sizeof(NDC_QUAD_VERTICES_RAW_DATA), 
-		(const std::byte*)NDC_QUAD_VERTICES_RAW_DATA, GeometryInstance::DataUsage::StaticDraw);
+		reinterpret_cast<const std::byte*>(NDC_QUAD_VERTICES_RAW_DATA), GeometryInstance::DataUsage::StaticDraw);
 
 	m_ndcQuadInstance->setAttributeDesc(0, 
 		GeometryAttributeDesc(GeometryAttributeType::Float, 0, 4, 4 * sizeof(float)));
@@ -187,10 +188,6 @@ void GLGraphicsContext::setFaceCullingMode(FaceCullingMode mode)
 		glMode = GL_FRONT_AND_BACK;
 
 	glCullFace(glMode);
-}
-
-void GLGraphicsContext::swapBuffers() {
-	glfwSwapBuffers(m_window->getWindowPointer());
 }
 
 GeometryInstance * GLGraphicsContext::getNDCQuadInstance() const

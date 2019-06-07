@@ -5,19 +5,19 @@
 #include <Engine/types.h>
 #include <Engine/Components/Math/Math.h>
 
-#include <Engine/Components/GUI/Window.h>
-#include "InputEvents.h"
+#include <Engine/Components/Platform/Base/BaseWindow.h>
 #include "InputEventsListener.h"
 
 /*!
  * \brief Class for user input management
  * 
  */
-class InputManager {
+class InputManager : public sw::platform::base::EventsListener {
 public:
-	InputManager(Window* window);
+	InputManager(std::shared_ptr<sw::platform::base::Window> window);
 	~InputManager();
 
+	void initialize();
 	void update();
 
 	/*!
@@ -40,7 +40,7 @@ public:
 	 * \param key
 	 * \return The current state of the specified key
 	 */
-	KeyState getKeyState(Key key) const;
+	KeyboardKeyState getKeyState(KeyboardKey key) const;
 
 	/*!
 	 * \brief Checks whether the key is pressed
@@ -48,7 +48,7 @@ public:
 	 * \param key
 	 * \return 
 	 */
-	bool isKeyPressed(Key key) const;
+	bool isKeyPressed(KeyboardKey key) const;
 
 	/*!
 	 * \brief Checks whether the key is released
@@ -56,19 +56,18 @@ public:
 	 * \param key
 	 * \return
 	 */
-	bool isKeyReleased(Key key) const;
+	bool isKeyReleased(KeyboardKey key) const;
 
-	/*!
-	 * \brief Checks whether the key is repeated
-	 *
-	 * \param key
-	 * \return
-	 */
-	bool isKeyRepeated(Key key) const;
-
-	MousePosition getMousePosition() const;
+	CursorPosition getMousePosition() const;
 	MouseButtonState getMouseButtonState(MouseButton button) const;
 	MouseState getMouseState() const;
+
+	void onKeyPress(KeyboardKey key) override;
+	void onKeyRelease(KeyboardKey key) override;
+	void onMouseButtonPress(MouseButton button) override;
+	void onMouseButtonRelease(MouseButton button) override;
+	void onMouseMove(const CursorPosition& position) override;
+
 private:
 	void onKeyEvent(int key, int scancode, int action, int mods);
 	void onCharacterEnteredEvent(unsigned int character);
@@ -76,13 +75,8 @@ private:
 	void onMouseButtonEvent(int button, int action, int mods);
 	void onScrollEvent(double offsetX, double offsetY);
 
-	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void charCallback(GLFWwindow* window, unsigned int codepoint);
-	static void mouseMovedCallback(GLFWwindow* window, double x, double y);
-	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-	static void scrollCallback(GLFWwindow* window, double offsetX, double offsetY);
 private:
-	Window* m_window;
+	std::shared_ptr<sw::platform::base::Window> m_window;
 
 	std::vector<InputEventsListener*> m_eventListeners;
 };

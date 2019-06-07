@@ -1,6 +1,8 @@
 #include "time.h"
-#include <GLFW/glfw3.h>
+
+#include <chrono>
 
 double TimeUtils::getCurrentTime() {
-	return glfwGetTime();
+	return std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
 }

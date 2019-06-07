@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Engine/Components/GUI/GUI.h>
 #include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 #include <Engine/Components/InputManager/InputManager.h>
 
@@ -14,11 +13,14 @@
 #include <Engine/Components/GUI/Widgets/GUIWindow.h>
 #include <Engine/Components/GUI/Widgets/GUIBlock.h>
 #include <Engine/Components/GUI/Widgets/GUITextBox.h>
+#include "Engine/Components/Platform/Windows/W32Cursor.h"
 
+using Cursor = sw::platform::base::Cursor;
+using CursorBehaviour = sw::platform::base::Window::CursorBehaviour;
 
 class GUIManager : public InputEventsListener {
 public:
-	GUIManager(Window* window, 
+	GUIManager(std::shared_ptr<sw::platform::base::Window> window, 
 		InputManager* inputManager, 
 		GraphicsContext* graphicsContext,
 		GpuProgram* guiGpuProgram);
@@ -29,18 +31,18 @@ public:
 
 	GUILayout* getMainLayout() const;
 
-	void setCursorMode(CursorMode mode);
-	CursorMode getCursorMode() const;
+	void setCursorBehaviour(CursorBehaviour behaviour);
+	CursorBehaviour getCursorBehaviour() const;
 
 	void resetCurrentCursor();
-	void setCurrentCursor(Cursor* cursor);
+	void setCurrentCursor(std::shared_ptr<Cursor> cursor);
 	Cursor* getCurrentCursor() const; 
 
 protected:
-	virtual void onMouseButtonPress(MouseButton button, const MouseState&) override;
-	virtual void onKeyPress(Key key, KeyEvent::Modifier mod) override;
-	virtual void onCharacterEntered(unsigned char character) override;
-	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod) override;
+	void onMouseButtonPress(MouseButton button) override;
+	void onKeyPress(KeyboardKey key) override;
+	void onCharacterEntered(unsigned char character) override;
+	void onKeyRepeat(KeyboardKey key) override;
 
 
 	void onFocus(GUIWidget* widget);
@@ -56,10 +58,9 @@ protected:
 	GpuProgram* m_gpuProgram;
 
 protected:
-	Window * m_window;
+	std::shared_ptr<sw::platform::base::Window> m_window;
+	std::shared_ptr<sw::platform::base::Cursor> m_defaultCursor;
 
 	InputManager* m_inputManager;
 	GraphicsContext* m_graphicsContext;
-
-	Cursor* m_defaultCursor;
 };

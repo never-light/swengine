@@ -8,46 +8,44 @@
 
 class GLGraphicsContext : public GraphicsContext {
 public:
-	GLGraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger);
+	GLGraphicsContext(std::shared_ptr<sw::platform::base::Window> window, RenderTarget* windowRenderTarget, Logger* logger);
 	~GLGraphicsContext();
 
-	virtual void enableDepthTest() override;
-	virtual void disableDepthTest() override;
+	void enableDepthTest() override;
+	void disableDepthTest() override;
 
-	virtual void setDepthTestFunction(DepthFunction function) override;
+	void setDepthTestFunction(DepthFunction function) override;
 
-	virtual void enableWritingToDepthBuffer() override;
-	virtual void disableWritingToDepthBuffer() override;
+	void enableWritingToDepthBuffer() override;
+	void disableWritingToDepthBuffer() override;
 
-	virtual void enableFaceCulling() override;
-	virtual void disableFaceCulling() override;
+	void enableFaceCulling() override;
+	void disableFaceCulling() override;
 
-	virtual void setFaceCullingMode(FaceCullingMode mode) override;
+	void setFaceCullingMode(FaceCullingMode mode) override;
 
-	virtual void enableBlending() override;
-	virtual void disableBlending() override;
+	void enableBlending() override;
+	void disableBlending() override;
 
-	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) override;
-	virtual void setBlendingEquation(BlendingEquation equation);
+	void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) override;
+	void setBlendingEquation(BlendingEquation equation) override;
 
-	virtual void enableScissorTest() override;
-	virtual void disableScissorTest() override;
+	void enableScissorTest() override;
+	void disableScissorTest() override;
 
-	virtual void enableWireframeRendering() override;
-	virtual void disableWireframeRendering() override;
+	void enableWireframeRendering() override;
+	void disableWireframeRendering() override;
 
-	virtual void setScissorRectangle(const Rect& rectangle) override;
+	void setScissorRectangle(const Rect& rectangle) override;
 
-	virtual void drawFullScreenQuad();
+	void drawFullScreenQuad() override;
 
-	virtual void swapBuffers() override;
+	GeometryInstance* getNDCQuadInstance() const override;
 
-	virtual GeometryInstance* getNDCQuadInstance() const override;
-
-	virtual GeometryInstance* createGeometryInstance() override;
-	virtual Texture* createTexture() override;
-	virtual GpuProgram* createGpuProgram() override;
-	virtual RenderTarget* createRenderTarget() override;
+	GeometryInstance* createGeometryInstance() override;
+	Texture* createTexture() override;
+	GpuProgram* createGpuProgram() override;
+	RenderTarget* createRenderTarget() override;
 
 private:
 	GLGeometryInstance* m_ndcQuadInstance;

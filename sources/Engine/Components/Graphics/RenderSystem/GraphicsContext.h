@@ -2,9 +2,9 @@
 
 #include <Engine/Components/Debugging/Logger.h>
 
-#include <Engine/Components/GUI/Window.h>
 #include <Engine/Components/Math/types.h>
 #include <Engine/Components/Math/Geometry/Rect.h>
+#include <Engine/Components/Platform/Base/BaseWindow.h>
 
 #include "RenderTarget.h"
 #include "GpuProgram.h"
@@ -28,7 +28,7 @@ public:
 		Add, Subtract, ReverseSubtract, Min, Max
 	};
 public:
-	GraphicsContext(Window* window, unsigned int viewportWidth, unsigned int viewportHeight, RenderTarget* windowRenderTarget, Logger* logger);
+	GraphicsContext(std::shared_ptr<sw::platform::base::Window> window, RenderTarget* windowRenderTarget, Logger* logger);
 	virtual ~GraphicsContext();
 
 	virtual void enableDepthTest() = 0;
@@ -55,8 +55,6 @@ public:
 	virtual void setBlendingMode(BlendingMode sourceAffect, BlendingMode destinationAffect) = 0;
 	virtual void setBlendingEquation(BlendingEquation equation) = 0;
 
-	virtual void swapBuffers() = 0;
-
 	virtual void enableWireframeRendering() = 0;
 	virtual void disableWireframeRendering() = 0;
 
@@ -68,9 +66,6 @@ public:
 
 	virtual RenderTarget* createRenderTarget() = 0;
 
-	//virtual RenderTarget* createRenderTarget(unsigned int width, unsigned int heigth) = 0;
-	//virtual Texture* createTexture(unsigned int width, unsigned int height, Texture::InternalFormat format) = 0;
-	
 	virtual void drawFullScreenQuad() = 0;
 
 	unsigned int getViewportWidth() const;
@@ -88,10 +83,7 @@ public:
 	void clear(RTClearMode mode);
 
 protected:
-	Window* m_window;
-
-	unsigned int m_viewportWidth;
-	unsigned int m_viewportHeight;
+	std::shared_ptr<sw::platform::base::Window> m_window;
 
 	RenderTarget* m_windowRenderTarget;
 

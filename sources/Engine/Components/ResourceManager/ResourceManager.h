@@ -14,7 +14,7 @@
 #include <Engine/types.h>
 #include <Engine/Components/Graphics/RenderSystem/GraphicsContext.h>
 
-#include <Engine/Components/GUI/RawImage.h>
+#include <Engine/Components/ResourceManager/RawImage.h>
 #include <Engine/Components/GUI/Font.h>
 
 #include <Engine/Utils/files.h>

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-GUIManager::GUIManager(Window * window, 
+GUIManager::GUIManager(std::shared_ptr<sw::platform::base::Window> window,
 	InputManager* inputManager, 
 	GraphicsContext* graphicsContext, 
 	GpuProgram* guiGpuProgram)
@@ -73,9 +73,9 @@ void GUIManager::render()
 
 void GUIManager::update()
 {
-	bool needTriggerMouseEvents = getCursorMode() == CursorMode::Default;
+	bool needTriggerMouseEvents = getCursorBehaviour() == CursorBehaviour::Default;
 
-	MousePosition mousePosition = m_inputManager->getMousePosition();
+	CursorPosition mousePosition = m_inputManager->getMousePosition();
 
 	if (needTriggerMouseEvents) {
 		m_mainLayout->onHover(mousePosition);
@@ -89,46 +89,46 @@ GUILayout * GUIManager::getMainLayout() const
 	return m_mainLayout;
 }
 
-void GUIManager::setCursorMode(CursorMode mode)
+void GUIManager::setCursorBehaviour(CursorBehaviour behaviour)
 {
-	m_window->setCursorMode(mode);
+	m_window->setCursorBehaviour(behaviour);
 }
 
-CursorMode GUIManager::getCursorMode() const
+CursorBehaviour GUIManager::getCursorBehaviour() const
 {
-	return m_window->getCursorMode();
+	return m_window->getCursorBehaviour();
 }
 
 void GUIManager::resetCurrentCursor() {
 
 }
 
-void GUIManager::setCurrentCursor(Cursor * cursor)
+void GUIManager::setCurrentCursor(std::shared_ptr<Cursor> cursor)
 {
-	m_window->setCurrentCursor(cursor);
+	m_window->setCursor(cursor);
 }
 
 Cursor * GUIManager::getCurrentCursor() const
 {
-	return m_window->getCurrentCursor();
+	return m_window->getCursor();
 }
 
-void GUIManager::onMouseButtonPress(MouseButton button, const MouseState &)
+void GUIManager::onMouseButtonPress(MouseButton button)
 {
-	bool needTriggerMouseEvents = getCursorMode() == CursorMode::Default;
+	bool needTriggerMouseEvents = getCursorBehaviour() == CursorBehaviour::Default;
 
 	if (!needTriggerMouseEvents)
 		return;
 
-	MousePosition mousePosition = m_inputManager->getMousePosition();
+	CursorPosition mousePosition = m_inputManager->getMousePosition();
 
 	m_mainLayout->onClick(mousePosition, button);
 }
 
-void GUIManager::onKeyPress(Key key, KeyEvent::Modifier mod)
+void GUIManager::onKeyPress(KeyboardKey key)
 {
 	if (m_focusedWidget != nullptr)
-		m_focusedWidget->onKeyPress(key, mod);
+		m_focusedWidget->onKeyPress(key);
 }
 
 void GUIManager::onCharacterEntered(unsigned char character)
@@ -137,10 +137,10 @@ void GUIManager::onCharacterEntered(unsigned char character)
 		m_focusedWidget->onCharacterEntered(character);
 }
 
-void GUIManager::onKeyRepeat(Key key, KeyEvent::Modifier mod)
+void GUIManager::onKeyRepeat(KeyboardKey key)
 {
 	if (m_focusedWidget != nullptr)
-		m_focusedWidget->onKeyRepeat(key, mod);
+		m_focusedWidget->onKeyRepeat(key);
 }
 
 void GUIManager::onFocus(GUIWidget * widget)

@@ -11,7 +11,7 @@ public:
 	void setColor(const vector4& color);
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
 protected:
 	vector4 m_color;

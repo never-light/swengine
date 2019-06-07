@@ -86,27 +86,27 @@ matrix4 GUIWidget::getTransformationMatrix()
 	return transformation;
 }
 
-void GUIWidget::onClick(const MousePosition& mousePosition, MouseButton button)
+void GUIWidget::onClick(const CursorPosition& mousePosition, MouseButton button)
 {
 }
 
-void GUIWidget::onHover(const MousePosition& mousePosition)
+void GUIWidget::onHover(const CursorPosition& mousePosition)
 {
 }
 
-void GUIWidget::onMouseEnter(const MousePosition& mousePosition)
+void GUIWidget::onMouseEnter(const CursorPosition& mousePosition)
 {
 }
 
-void GUIWidget::onMouseLeave(const MousePosition& mousePosition)
+void GUIWidget::onMouseLeave(const CursorPosition& mousePosition)
 {
 }
 
-void GUIWidget::onKeyPress(Key key, KeyEvent::Modifier mod)
+void GUIWidget::onKeyPress(KeyboardKey key)
 {
 }
 
-void GUIWidget::onKeyRepeat(Key key, KeyEvent::Modifier mod)
+void GUIWidget::onKeyRepeat(KeyboardKey key)
 {
 }
 

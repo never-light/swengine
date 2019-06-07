@@ -130,7 +130,7 @@ void GUITextBox::render(GeometryInstance * quad, GpuProgram * program)
 	m_graphicsContext->disableScissorTest();
 }
 
-void GUITextBox::update(const MousePosition & mousePosition)
+void GUITextBox::update(const CursorPosition& mousePosition)
 {
 }
 
@@ -152,20 +152,20 @@ vector4 GUITextBox::getBackgroundColor() const
 	return m_backgroundColor;
 }
 
-void GUITextBox::onKeyPress(Key key, KeyEvent::Modifier mod)
+void GUITextBox::onKeyPress(KeyboardKey key)
 {
-	if (key == GLFW_KEY_BACKSPACE) {
+	if (key == KeyboardKey::Backspace) {
 		m_text->removeLastCharacter();
 	}
 
 	if (m_keyPressCallback != nullptr) {
-		m_keyPressCallback(key, mod);
+		m_keyPressCallback(key);
 	}
 }
 
-void GUITextBox::onKeyRepeat(Key key, KeyEvent::Modifier mod)
+void GUITextBox::onKeyRepeat(KeyboardKey key)
 {
-	if (key == GLFW_KEY_BACKSPACE) {
+	if (key == KeyboardKey::Backspace) {
 		m_text->removeLastCharacter();
 	}
 }

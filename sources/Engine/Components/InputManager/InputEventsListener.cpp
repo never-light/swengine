@@ -8,15 +8,15 @@ InputEventsListener::~InputEventsListener() {
 
 }
 
-void InputEventsListener::onKeyPress(Key key, KeyEvent::Modifier mod) {
+void InputEventsListener::onKeyPress(KeyboardKey key) {
 
 }
 
-void InputEventsListener::onKeyRelease(Key key, KeyEvent::Modifier mod) {
+void InputEventsListener::onKeyRelease(KeyboardKey key) {
 
 }
 
-void InputEventsListener::onKeyRepeat(Key key, KeyEvent::Modifier mod) {
+void InputEventsListener::onKeyRepeat(KeyboardKey key) {
 
 }
 
@@ -24,15 +24,15 @@ void InputEventsListener::onCharacterEntered(unsigned char character)
 {
 }
 
-void InputEventsListener::onMouseButtonPress(MouseButton button, const MouseState&) {
+void InputEventsListener::onMouseButtonPress(MouseButton button) {
 
 }
 
-void InputEventsListener::onMouseButtonRelease(MouseButton button, const MouseState&) {
+void InputEventsListener::onMouseButtonRelease(MouseButton button) {
 
 }
 
-void InputEventsListener::onMouseMove(const MouseState&) {
+void InputEventsListener::onMouseMove(const CursorPosition& position) {
 
 }
 

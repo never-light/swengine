@@ -1,22 +1,21 @@
 #pragma once
 
-#include <Engine/types.h>
-#include "InputEvents.h"
+#include "Events.h"
 
 class InputEventsListener {
 public:
 	InputEventsListener();
 	virtual ~InputEventsListener();
 
-	virtual void onKeyPress(Key key, KeyEvent::Modifier mod);
-	virtual void onKeyRelease(Key key, KeyEvent::Modifier mod);
-	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod);
+	virtual void onKeyPress(KeyboardKey key);
+	virtual void onKeyRelease(KeyboardKey key);
+	virtual void onKeyRepeat(KeyboardKey key);
 
 	virtual void onCharacterEntered(unsigned char character);
 
-	virtual void onMouseButtonPress(MouseButton button, const MouseState&);
-	virtual void onMouseButtonRelease(MouseButton button, const MouseState&);
-	virtual void onMouseMove(const MouseState&);
+	virtual void onMouseButtonPress(MouseButton button);
+	virtual void onMouseButtonRelease(MouseButton button);
+	virtual void onMouseMove(const CursorPosition& position);
 
 	virtual void onScroll(double offsetX, double offsetY);
 };

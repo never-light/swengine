@@ -30,7 +30,7 @@ public:
 	unsigned int getFontSize() const;
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
 protected:
 	void updateTextGeometry();

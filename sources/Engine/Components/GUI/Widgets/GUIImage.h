@@ -11,7 +11,7 @@ public:
 	void setImage(Texture* image);
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
 protected:
 	Texture* m_image;

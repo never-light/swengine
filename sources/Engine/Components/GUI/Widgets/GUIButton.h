@@ -6,7 +6,7 @@
 
 class GUIButton : public GUIWidget {
 public:
-	using ClickCallback = std::function<void(const MousePosition& mousePosition)>;
+	using ClickCallback = std::function<void(const CursorPosition& mousePosition)>;
 
 public:
 	GUIButton(GraphicsContext* graphicsContext, Font* font);
@@ -34,12 +34,12 @@ public:
 	uivector2 getPadding() const;
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
-	virtual void onMouseEnter(const MousePosition& mousePosition) override;
-	virtual void onMouseLeave(const MousePosition& mousePosition) override;
+	virtual void onMouseEnter(const CursorPosition& mousePosition) override;
+	virtual void onMouseLeave(const CursorPosition& mousePosition) override;
 
-	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
+	virtual void onClick(const CursorPosition& mousePosition, MouseButton button) override;
 	virtual void onClick(const ClickCallback& callback);
 
 	virtual void setPosition(const uivector2& position) override;

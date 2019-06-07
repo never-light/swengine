@@ -8,7 +8,7 @@
 
 class GUITextBox : public GUIWidget {
 public:
-	using KeyPressCallback = std::function<void(Key, KeyEvent::Modifier)>;
+	using KeyPressCallback = std::function<void(KeyboardKey)>;
 
 public:
 	GUITextBox(GraphicsContext* graphicsContext, Font* font);
@@ -43,15 +43,15 @@ public:
 	virtual void setPosition(uint32 x, uint32 y);
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
 	void setBackgroundColor(const vector4& color);
 	void setBackgroundColor(float r, float g, float b, float a);
 
 	vector4 getBackgroundColor() const;
 
-	virtual void onKeyPress(Key key, KeyEvent::Modifier mod) override;
-	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod) override;
+	virtual void onKeyPress(KeyboardKey key) override;
+	virtual void onKeyRepeat(KeyboardKey key) override;
 	virtual void onCharacterEntered(unsigned char character) override;
 
 	virtual void onKeyPress(const KeyPressCallback& callback);

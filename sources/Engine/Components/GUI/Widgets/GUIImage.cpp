@@ -36,6 +36,6 @@ void GUIImage::render(GeometryInstance* quad, GpuProgram* program)
 	quad->draw(GeometryInstance::DrawMode::Triangles, 0, 6);
 }
 
-void GUIImage::update(const MousePosition & mousePosition)
+void GUIImage::update(const CursorPosition& mousePosition)
 {
 }

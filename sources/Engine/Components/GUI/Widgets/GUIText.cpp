@@ -136,7 +136,7 @@ void GUIText::render(GeometryInstance* quad, GpuProgram * program)
 	quad->bind();
 }
 
-void GUIText::update(const MousePosition & mousePosition)
+void GUIText::update(const CursorPosition& mousePosition)
 {
 }
  
@@ -200,8 +200,9 @@ void GUIText::updateTextGeometry()
 		vertices.push_back(bottomLeftVertex);
 
 		cursorPosition += characterDescription.xAdvance;
-		
-		maxHeight = std::max(characterSize.y, maxHeight);
+
+		if (characterSize.y > maxHeight)
+			maxHeight = characterSize.y;
 	}
 
 	float scaleFactor = (float)m_fontSize / m_font->getBaseSize();

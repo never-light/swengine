@@ -186,8 +186,7 @@ void GLTexture::setTarget(Texture::Target target)
 void GLTexture::enableAnisotropicFiltering(float quality)
 {
 	Texture::enableAnisotropicFiltering(quality);
-
-	GL_CALL(glTextureParameterf(m_texture, GL_TEXTURE_MAX_ANISOTROPY_EXT, quality));
+	GL_CALL(glTextureParameterf(m_texture, GL_TEXTURE_MAX_ANISOTROPY, quality));
 }
 
 void GLTexture::allocateMemory(unsigned int width, unsigned int height, Texture::InternalFormat format)

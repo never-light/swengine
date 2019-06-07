@@ -1,7 +1,7 @@
 #include "RawImageLoader.h"
 
 #include "ResourceLoadingException.h"
-#include <Engine/Components/GUI/RawImage.h>
+#include <Engine/Components/ResourceManager/RawImage.h>
 
 #include <stb_image.h>
 

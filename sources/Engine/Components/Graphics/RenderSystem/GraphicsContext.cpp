@@ -1,13 +1,7 @@
 #include "GraphicsContext.h"
 
-GraphicsContext::GraphicsContext(Window* window,
-	unsigned int viewportWidth, 
-	unsigned int viewportHeight, 
-	RenderTarget* windowRenderTarget, 
-	Logger* logger)
+GraphicsContext::GraphicsContext(std::shared_ptr<sw::platform::base::Window> window, RenderTarget* windowRenderTarget,  Logger* logger)
 	: m_window(window), 
-	m_viewportWidth(viewportWidth), 
-	m_viewportHeight(viewportHeight), 
 	m_windowRenderTarget(windowRenderTarget),
 	m_logger(logger)
 {
@@ -22,12 +16,12 @@ GraphicsContext::~GraphicsContext() {
 
 unsigned int GraphicsContext::getViewportWidth() const
 {
-	return m_viewportWidth;
+	return m_window->getWidth();
 }
 
 unsigned int GraphicsContext::getViewportHeight() const
 {
-	return m_viewportHeight;
+	return m_window->getHeight();
 }
 
 RenderTarget * GraphicsContext::getWindowRenderTarget() const

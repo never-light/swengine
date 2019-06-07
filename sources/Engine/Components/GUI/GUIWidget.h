@@ -3,7 +3,7 @@
 #include <Engine/Components/Math/types.h>
 #include <Engine/Components/Graphics/RenderSystem/GeometryInstance.h>
 #include <Engine/Components/Graphics/RenderSystem/GpuProgram.h>
-#include <Engine/Components/InputManager/InputEvents.h>
+#include <Engine/Components/InputManager/Events.h>
 
 class GUIWidget {
 public:
@@ -11,15 +11,15 @@ public:
 	virtual ~GUIWidget();
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) = 0;
-	virtual void update(const MousePosition& mousePosition) = 0;
+	virtual void update(const CursorPosition& mousePosition) = 0;
 
-	virtual void onClick(const MousePosition& mousePosition, MouseButton button);
-	virtual void onHover(const MousePosition& mousePosition);
-	virtual void onMouseEnter(const MousePosition& mousePosition);
-	virtual void onMouseLeave(const MousePosition& mousePosition);
+	virtual void onClick(const CursorPosition& mousePosition, MouseButton button);
+	virtual void onHover(const CursorPosition& mousePosition);
+	virtual void onMouseEnter(const CursorPosition& mousePosition);
+	virtual void onMouseLeave(const CursorPosition& mousePosition);
 
-	virtual void onKeyPress(Key key, KeyEvent::Modifier mod);
-	virtual void onKeyRepeat(Key key, KeyEvent::Modifier mod);
+	virtual void onKeyPress(KeyboardKey key);
+	virtual void onKeyRepeat(KeyboardKey key);
 	virtual void onCharacterEntered(unsigned char character);
 
 	uivector2 getPosition() const;

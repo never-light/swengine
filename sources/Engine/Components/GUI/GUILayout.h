@@ -11,12 +11,12 @@ public:
 	virtual ~GUILayout();
 
 	virtual void render(GeometryInstance* quad, GpuProgram* program) override;
-	virtual void update(const MousePosition& mousePosition) override;
+	virtual void update(const CursorPosition& mousePosition) override;
 
-	virtual void onClick(const MousePosition& mousePosition, MouseButton button) override;
-	virtual void onHover(const MousePosition& mousePosition) override;
-	virtual void onMouseEnter(const MousePosition& mousePosition) override;
-	virtual void onMouseLeave(const MousePosition& mousePosition) override;
+	virtual void onClick(const CursorPosition& mousePosition, MouseButton button) override;
+	virtual void onHover(const CursorPosition& mousePosition) override;
+	virtual void onMouseEnter(const CursorPosition& mousePosition) override;
+	virtual void onMouseLeave(const CursorPosition& mousePosition) override;
 
 	virtual void addWidget(GUIWidget* widget);
 	virtual void removeWidget(GUIWidget* widget);
@@ -34,7 +34,7 @@ public:
 
 	void setOnFocusCallback(const std::function<void(GUIWidget*)>& callback);
 protected:
-	bool isMouseInWidgetArea(const MousePosition& mousePosition, const uivector2& widgetPosition, const uivector2& widgetSize) const;
+	bool isMouseInWidgetArea(const CursorPosition& mousePosition, const uivector2& widgetPosition, const uivector2& widgetSize) const;
 
 	void renderBackground(GeometryInstance* quad, GpuProgram* program);
 	void renderWidgets(GeometryInstance* quad, GpuProgram* program);

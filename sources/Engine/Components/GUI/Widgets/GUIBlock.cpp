@@ -30,6 +30,6 @@ void GUIBlock::render(GeometryInstance * quad, GpuProgram * program)
 
 }
 
-void GUIBlock::update(const MousePosition & mousePosition)
+void GUIBlock::update(const CursorPosition& mousePosition)
 {
 }

@@ -16,3 +16,5 @@ protected:
 	size_t m_line;
 	const char* m_function;
 };
+
+#define THROW_ENGINE_ERROR(message) throw EngineException((message), __FILE__, __LINE__, __FUNCTION__);

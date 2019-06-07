@@ -26,14 +26,14 @@ void GUILayout::render(GeometryInstance* quad, GpuProgram * program)
 	renderWidgets(quad, program);
 }
 
-void GUILayout::update(const MousePosition& mousePosition)
+void GUILayout::update(const CursorPosition& mousePosition)
 {
 	for (GUIWidget* widget : m_widgets)
 		if (widget->isVisible())
 			widget->update(mousePosition);
 }
 
-void GUILayout::onClick(const MousePosition & mousePosition, MouseButton button)
+void GUILayout::onClick(const CursorPosition & mousePosition, MouseButton button)
 {
 	for (GUIWidget* widget : m_widgets) {
 		if (isMouseInWidgetArea(mousePosition, widget->getPosition(), widget->getSize())) {
@@ -45,7 +45,7 @@ void GUILayout::onClick(const MousePosition & mousePosition, MouseButton button)
 	}
 }
 
-void GUILayout::onHover(const MousePosition & mousePosition)
+void GUILayout::onHover(const CursorPosition & mousePosition)
 {
 	if (m_lastMouseEnteringWidget != nullptr && !isMouseInWidgetArea(mousePosition,
 		m_lastMouseEnteringWidget->getPosition(), m_lastMouseEnteringWidget->getSize())) 
@@ -69,15 +69,15 @@ void GUILayout::onHover(const MousePosition & mousePosition)
 	}
 }
 
-void GUILayout::onMouseEnter(const MousePosition & mousePosition)
+void GUILayout::onMouseEnter(const CursorPosition & mousePosition)
 {
 }
 
-void GUILayout::onMouseLeave(const MousePosition & mousePosition)
+void GUILayout::onMouseLeave(const CursorPosition & mousePosition)
 {
 }
 
-bool GUILayout::isMouseInWidgetArea(const MousePosition & mousePosition, const uivector2 & widgetPosition, const uivector2 & widgetSize) const
+bool GUILayout::isMouseInWidgetArea(const CursorPosition & mousePosition, const uivector2 & widgetPosition, const uivector2 & widgetSize) const
 {
 	return widgetPosition.x <= mousePosition.x && mousePosition.x <= (widgetPosition.x + widgetSize.x) &&
 		widgetPosition.y <= mousePosition.y && mousePosition.y <= (widgetPosition.y + widgetSize.y);
