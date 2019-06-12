@@ -3,6 +3,7 @@
 namespace sw::platform::base
 {
 	enum class KeyboardKey {
+		Unknown,
 		Backspace,
 		Tab,
 		Clear,
@@ -113,6 +114,7 @@ namespace sw::platform::base
 		Comma,
 		Minus,
 		Period,
+		Tilde,
 	};
 
 	enum class KeyboardKeyState {

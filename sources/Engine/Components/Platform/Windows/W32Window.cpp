@@ -13,8 +13,6 @@ Window::Window(const std::string& title, int width, int height)
 	: m_title(title),
 	m_width(width),
 	m_height(height),
-	m_cursorBehaviour(CursorBehaviour::Default),
-	m_handle(nullptr),
 	m_mouseState({{0, 0}, base::MouseButtonState::Unknown, base::MouseButtonState::Unknown})
 {
 	assert(width > 0 && height > 0);
@@ -47,6 +45,10 @@ Window::Window(const std::string& title, int width, int height)
 		THROW_ENGINE_ERROR("Failed to get initial cursor position");
 
 	m_mouseState.position = {p.x, p.y};
+
+	for (size_t i = 0; i < 512; i++) {
+		m_keyboardKeysState[i] = base::KeyboardKeyState::Unknown;
+	}
 }
 
 Window::~Window()
@@ -63,10 +65,10 @@ Window::MessagesProcessingResult Window::processNewMessages()
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-	}
 
-	if (msg.message == WM_QUIT)
-		return MessagesProcessingResult::FoundExitMessage;
+		if (msg.message == WM_QUIT)
+			return MessagesProcessingResult::FoundExitMessage;
+	}
 
 	return MessagesProcessingResult::Processed;
 }
@@ -76,12 +78,34 @@ void Window::close()
 	PostQuitMessage(0);
 }
 
-int Window::getWidth() const
+int Window::getClientWidth() const
+{
+	RECT rectangle;
+
+	if (!GetClientRect(m_handle, &rectangle)) {
+		THROW_ENGINE_ERROR("Failed to get window client size");
+	}
+
+	return rectangle.right - rectangle.left;
+}
+
+int Window::getClientHeight() const
+{
+	RECT rectangle;
+
+	if (!GetClientRect(m_handle, &rectangle)) {
+		THROW_ENGINE_ERROR("Failed to get window client size");
+	}
+
+	return rectangle.bottom - rectangle.top;
+}
+
+int Window::getFullWidth() const
 {
 	return m_width;
 }
 
-int Window::getHeight() const
+int Window::getFullHeight() const
 {
 	return m_height;
 }
@@ -99,6 +123,13 @@ void Window::hide()
 void Window::setCursorBehaviour(CursorBehaviour behaviour)
 {
 	m_cursorBehaviour = behaviour;
+
+	if (m_cursorBehaviour == CursorBehaviour::Hidden) {
+		SetCursor(nullptr);
+	}
+	else if (m_cursorBehaviour == CursorBehaviour::Default) {
+		SetCursor(m_cursor->getNativeHandle());
+	}
 }
 
 Window::CursorBehaviour Window::getCursorBehaviour() const
@@ -248,6 +279,10 @@ void Window::onMouseButtonRelease(const base::MouseButton& button)
 
 void Window::initializeWindowsPlatform()
 {
+	for (int i = 0; i < 255; i++) {
+		s_virtualKeysLookupTable[i] = base::KeyboardKey::Unknown;
+	}
+
 	s_virtualKeysLookupTable[0x08] = base::KeyboardKey::Backspace;
 	s_virtualKeysLookupTable[0x09] = base::KeyboardKey::Tab;
 	s_virtualKeysLookupTable[0x0D] = base::KeyboardKey::Enter;
@@ -357,6 +392,7 @@ void Window::initializeWindowsPlatform()
 	s_virtualKeysLookupTable[0xBC] = base::KeyboardKey::Comma;
 	s_virtualKeysLookupTable[0xBD] = base::KeyboardKey::Minus;
 	s_virtualKeysLookupTable[0xBE] = base::KeyboardKey::Period;
+	s_virtualKeysLookupTable[0xC0] = base::KeyboardKey::Tilde;
 }
 
 ATOM Window::registerClass(HINSTANCE hInstance)
@@ -404,12 +440,12 @@ LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		{
-			base::KeyboardKey key = s_virtualKeysLookupTable[HIWORD(lParam) & 0x1FF];
+			base::KeyboardKey key = s_virtualKeysLookupTable[wParam];
 
 			if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN)
-				window->onKeyRelease(key);
-			else if (message == WM_KEYUP || message == WM_SYSKEYUP)
 				window->onKeyPress(key);
+			else if (message == WM_KEYUP || message == WM_SYSKEYUP)
+				window->onKeyRelease(key);
 
 			break;
 		}
@@ -444,9 +480,9 @@ LRESULT Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		break;
 	}
 
-	return 0;
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 }

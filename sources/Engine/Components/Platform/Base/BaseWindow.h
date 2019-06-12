@@ -26,8 +26,11 @@ public:
 	virtual MessagesProcessingResult processNewMessages() = 0;
 	virtual void close() = 0;
 
-	virtual int getWidth() const = 0;
-	virtual int getHeight() const = 0;
+	virtual int getClientWidth() const = 0;
+	virtual int getClientHeight() const = 0;
+
+	virtual int getFullWidth() const = 0;
+	virtual int getFullHeight() const = 0;
 
 	virtual void show() = 0;
 	virtual void hide() = 0;

@@ -166,11 +166,14 @@ void GLRenderTarget::createDefaultDepthComponent()
 {
 	_assert(m_width != 0 && m_height != 0);
 
-	unsigned int m_depthRenderBuffer;
-	glGenRenderbuffers(1, &m_depthRenderBuffer);
+	GL_CALL_BLOCK_BEGIN();
+
+	glCreateRenderbuffers(1, &m_depthRenderBuffer);
 
 	glNamedRenderbufferStorage(m_depthRenderBuffer, GL_DEPTH24_STENCIL8, m_width, m_height);
 	glNamedFramebufferRenderbuffer(m_frameBuffer, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthRenderBuffer);
+
+	GL_CALL_BLOCK_END();
 }
 
 void GLRenderTarget::copyColorComponentData(size_t sourceComponentIndex, 

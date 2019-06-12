@@ -39,12 +39,12 @@ GUIManager::GUIManager(std::shared_ptr<sw::platform::base::Window> window,
 	m_quad->create();
 
 	m_mainLayout->setPosition(0, 0);
-	m_mainLayout->setSize(m_window->getWidth(), m_window->getHeight());
+	m_mainLayout->setSize(m_window->getClientWidth(), m_window->getClientHeight());
 	m_mainLayout->setPosition(0, 0);
 
 	m_mainLayout->setOnFocusCallback(m_onFocusCallback);
 
-	m_orthographicProjection = glm::ortho(0.0f, (float)m_window->getWidth(), (float)m_window->getHeight(), 0.0f, -1.0f, 1.0f);
+	m_orthographicProjection = glm::ortho(0.0f, (float)m_window->getClientWidth(), (float)m_window->getClientHeight(), 0.0f, -1.0f, 1.0f);
 }
 
 GUIManager::~GUIManager()

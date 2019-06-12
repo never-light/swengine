@@ -166,7 +166,7 @@ void GLGraphicsContext::disableWireframeRendering()
 void GLGraphicsContext::setScissorRectangle(const Rect & rectangle)
 {
 	glScissor(rectangle.getX(), 
-		m_window->getHeight() - rectangle.getY() - rectangle.getHeight(),
+		m_window->getClientHeight() - rectangle.getY() - rectangle.getHeight(),
 		rectangle.getWidth(), rectangle.getHeight());
 }
 

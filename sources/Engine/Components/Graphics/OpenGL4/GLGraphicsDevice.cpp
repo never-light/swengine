@@ -90,8 +90,6 @@ GLGraphicsDevice::GLGraphicsDevice(std::shared_ptr<sw::platform::base::Window> w
 			WGL_ALPHA_BITS_ARB, 8,
 			WGL_DEPTH_BITS_ARB, 24,
 			WGL_STENCIL_BITS_ARB, 8,
-			WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
-			WGL_SAMPLES_ARB, 4,
 			0
 		};
 
@@ -107,9 +105,10 @@ GLGraphicsDevice::GLGraphicsDevice(std::shared_ptr<sw::platform::base::Window> w
 		DescribePixelFormat(m_deviceContext, pixelFormatId, sizeof(pixelFormatDescriptor), &pixelFormatDescriptor);
 		SetPixelFormat(m_deviceContext, pixelFormatId, &pixelFormatDescriptor);
 
-		int  contextAttribs[] = {
+		int contextAttribs[] = {
 			WGL_CONTEXT_MAJOR_VERSION_ARB, SW_GL_MAJOR,
 			WGL_CONTEXT_MINOR_VERSION_ARB, SW_GL_MINOR,
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
 			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 			0
 		};
@@ -135,7 +134,7 @@ GLGraphicsDevice::GLGraphicsDevice(std::shared_ptr<sw::platform::base::Window> w
 		RenderTarget* windowRenderTarget = new GLWindowRenderTarget();
 		windowRenderTarget->create();
 
-		windowRenderTarget->setSize(window->getWidth(), window->getHeight());
+		windowRenderTarget->setSize(window->getClientWidth(), window->getClientHeight());
 
 		m_immediateContext = std::make_shared<GLGraphicsContext>(window, windowRenderTarget, logger);
 	}

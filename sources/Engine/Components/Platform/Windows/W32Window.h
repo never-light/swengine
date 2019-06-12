@@ -16,8 +16,11 @@ public:
 	MessagesProcessingResult processNewMessages() override;
 	void close() override;
 
-	int getWidth() const override;
-	int getHeight() const override;
+	int getClientWidth() const override;
+	int getClientHeight() const override;
+
+	int getFullWidth() const override;
+	int getFullHeight() const override;
 
 	void show() override;
 	void hide() override;

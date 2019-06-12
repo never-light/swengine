@@ -16,12 +16,12 @@ GraphicsContext::~GraphicsContext() {
 
 unsigned int GraphicsContext::getViewportWidth() const
 {
-	return m_window->getWidth();
+	return m_window->getClientWidth();
 }
 
 unsigned int GraphicsContext::getViewportHeight() const
 {
-	return m_window->getHeight();
+	return m_window->getClientHeight();
 }
 
 RenderTarget * GraphicsContext::getWindowRenderTarget() const
