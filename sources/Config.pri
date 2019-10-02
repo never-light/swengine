@@ -1,0 +1,5 @@
+APP_DIR = $$PWD/..
+SOURCES_DIR = $$APP_DIR/sources
+THIRD_PARTY_DIR = $$SOURCES_DIR/../ThirdParty
+
+APP_BIN_DIR = $$APP_DIR/bin
