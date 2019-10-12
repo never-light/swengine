@@ -3,3 +3,4 @@ SOURCES_DIR = $$APP_DIR/sources
 THIRD_PARTY_DIR = $$SOURCES_DIR/../ThirdParty
 
 APP_BIN_DIR = $$APP_DIR/bin
+APP_BUILD_DIR = $$APP_DIR/build

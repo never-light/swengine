@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Engine/Exceptions/EngineRuntimeException.h"
+#include "Exceptions/EngineRuntimeException.h"
 #include "GL.h"
 
 void GLClearErrorStack()

@@ -1,9 +1,13 @@
 #include "GLGraphicsContext.h"
+
+#include <spdlog/spdlog.h>
 #include "Exceptions/EngineRuntimeException.h"
 
 GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
     : m_window(window)
 {
+    spdlog::info("Creating OpenGL context");
+
     m_glContext = SDL_GL_CreateContext(m_window);
 
     if (m_glContext == nullptr) {
@@ -21,6 +25,8 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
     glDebugMessageCallback(reinterpret_cast<GLDEBUGPROCARB>(&debugOutputCallback), this);
+
+    spdlog::info("OpenGL context is created");
 }
 
 GLGraphicsContext::~GLGraphicsContext()
@@ -136,6 +142,12 @@ int GLGraphicsContext::getBufferHeight() const
     return height;
 }
 
+void GLGraphicsContext::executeRenderTask(const RenderTask& task)
+{
+    glBindProgramPipeline(task.shadersPipeline->m_programPipeline);
+    task.geometryStore->draw();
+}
+
 void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 {
     ARG_UNUSED(source);
@@ -182,4 +194,19 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type,
     debugMessage += ") " + std::string(message);
 
     //GLGraphicsContext* context = static_cast<GLGraphicsContext*>(userParam);
+
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+    case GL_DEBUG_TYPE_PORTABILITY:
+        spdlog::error(debugMessage);
+        break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        spdlog::warn(debugMessage);
+        break;
+    case GL_DEBUG_TYPE_OTHER:
+        spdlog::debug(debugMessage);
+        break;
+    }
 }

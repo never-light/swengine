@@ -23,7 +23,10 @@ SOURCES += \
     Modules/ECS/GameObjectsSequentialIterator.cpp \
     Modules/ECS/GameObjectsSequentialView.cpp \
     Modules/ECS/GameSystem.cpp \
-    Modules/ECS/GameWorld.cpp
+    Modules/ECS/GameWorld.cpp \
+    Modules/ResourceManagement/Resource.cpp \
+    Modules/ResourceManagement/ResourceManagementModule.cpp \
+    Modules/ResourceManagement/ResourceManager.cpp
 
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
@@ -47,6 +50,9 @@ HEADERS += \
     Modules/ECS/GameObjectsSequentialView.h \
     Modules/ECS/GameSystem.h \
     Modules/ECS/GameWorld.h \
+    Modules/ResourceManagement/Resource.h \
+    Modules/ResourceManagement/ResourceManagementModule.h \
+    Modules/ResourceManagement/ResourceManager.h \
     Utility/helpers.h
 
 include($$PWD/Modules/Graphics/Graphics.pri)

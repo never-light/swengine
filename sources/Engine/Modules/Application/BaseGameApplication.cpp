@@ -1,14 +1,23 @@
 #include "BaseGameApplication.h"
 
 #include <Exceptions/EngineRuntimeException.h>
+#include <spdlog/spdlog.h>
 
 BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight)
     : m_mainWindow(nullptr)
 {
+    spdlog::info("Application start...");
+
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
 
-    SDL_Init(SDL_INIT_EVERYTHING);
+    int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
+
+    if (initStatus != 0) {
+        ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+    }
+
+    spdlog::info("SDL is initialized");
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
@@ -18,6 +27,8 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
+    spdlog::info("Create main window...");
+
     m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 
@@ -25,8 +36,14 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
         ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
     }
 
+    spdlog::info("Window is created");
+
+    spdlog::info("Initialize engine modules...");
+
     m_graphicsModule = std::make_unique<GraphicsModule>(m_mainWindow);
     m_gameWorld = std::make_unique<GameWorld>();
+
+    spdlog::info("Engine modules are initialized");
 }
 
 BaseGameApplication::~BaseGameApplication()
@@ -56,7 +73,9 @@ void BaseGameApplication::render()
 
 int BaseGameApplication::execute()
 {
+    spdlog::info("Perform game application loading...");
     performLoad();
+    spdlog::info("Game application is loaded and ready...");
 
     SDL_ShowWindow(m_mainWindow);
 
@@ -69,6 +88,8 @@ int BaseGameApplication::execute()
 
     SDL_Event event;
     bool isRun = true;
+
+    spdlog::info("Starting main loop...");
 
     while (isRun) {
         while (SDL_PollEvent(&event) != 0) {
@@ -92,7 +113,9 @@ int BaseGameApplication::execute()
         }
     }
 
+    spdlog::info("Perform game application unloading...");
     performUnload();
+    spdlog::info("Game application is unloaded...");
 
     return 0;
 }

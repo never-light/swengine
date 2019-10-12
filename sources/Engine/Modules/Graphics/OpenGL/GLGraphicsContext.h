@@ -3,6 +3,14 @@
 #include "GL.h"
 #include "Modules/Math/Rect.h"
 
+#include "GLGeometryStore.h"
+#include "GLShadersPipeline.h"
+
+struct RenderTask {
+    GLGeometryStore* geometryStore;
+    GLShadersPipeline* shadersPipeline;
+};
+
 class GLGraphicsContext {
 public:
     GLGraphicsContext(SDL_Window* window);
@@ -39,6 +47,8 @@ public:
 
     int getBufferWidth() const;
     int getBufferHeight() const;
+
+    void executeRenderTask(const RenderTask& task);
 private:
     SDL_Window* m_window;
     SDL_GLContext m_glContext;

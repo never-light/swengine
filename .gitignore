@@ -32,6 +32,7 @@
 *.app
 
 # Project environment
+*.pro.*
 build-*/
 bin/
 *.pro.user
