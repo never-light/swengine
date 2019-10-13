@@ -1,16 +1,17 @@
 #include "ResourceManagementModule.h"
 
 ResourceManagementModule::ResourceManagementModule()
+    : m_resourceManager(std::make_shared<ResourceManager>())
 {
 
 }
 
-ResourceManager* ResourceManagementModule::getResourceManager(ResourceType type) const
+ResourceManagementModule::~ResourceManagementModule()
 {
-    return m_resourceManagers.at(type).get();
+
 }
 
-void ResourceManagementModule::registerResourceManager(ResourceType type, ResourceManager* manager)
+std::shared_ptr<ResourceManager> ResourceManagementModule::getResourceManager() const
 {
-    m_resourceManagers.insert({ type, std::unique_ptr<ResourceManager>(manager) });
+    return m_resourceManager;
 }

@@ -9,11 +9,8 @@ public:
     ResourceManagementModule();
     ~ResourceManagementModule();
 
-    ResourceManager* getResourceManager(ResourceType type) const;
+    std::shared_ptr<ResourceManager> getResourceManager() const;
 
 private:
-    void registerResourceManager(ResourceType type, ResourceManager* manager);
-
-private:
-    std::unordered_map<ResourceType, std::unique_ptr<ResourceManager>> m_resourceManagers;
+    std::shared_ptr<ResourceManager> m_resourceManager;
 };

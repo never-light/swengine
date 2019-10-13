@@ -41,6 +41,8 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     spdlog::info("Initialize engine modules...");
 
     m_graphicsModule = std::make_unique<GraphicsModule>(m_mainWindow);
+    m_resourceManagementModule = std::make_unique<ResourceManagementModule>();
+
     m_gameWorld = std::make_unique<GameWorld>();
 
     spdlog::info("Engine modules are initialized");

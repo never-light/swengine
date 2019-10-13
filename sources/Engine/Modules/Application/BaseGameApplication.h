@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Modules/Graphics/GraphicsModule.h"
+#include "Modules/ResourceManagement/ResourceManagementModule.h"
 #include "Modules/ECS/ECS.h"
 
 class BaseGameApplication
@@ -32,6 +33,8 @@ protected:
     SDL_Window* m_mainWindow;
 
     std::unique_ptr<GraphicsModule> m_graphicsModule;
+    std::unique_ptr<ResourceManagementModule> m_resourceManagementModule;
+
     std::unique_ptr<GameWorld> m_gameWorld;
 };
 
