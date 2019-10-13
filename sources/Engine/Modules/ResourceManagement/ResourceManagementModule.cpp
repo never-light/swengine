@@ -1,9 +1,11 @@
 #include "ResourceManagementModule.h"
 
+#include <spdlog/spdlog.h>
+
 ResourceManagementModule::ResourceManagementModule()
     : m_resourceManager(std::make_shared<ResourceManager>())
 {
-
+    spdlog::info("Initialize resource management module...");
 }
 
 ResourceManagementModule::~ResourceManagementModule()
