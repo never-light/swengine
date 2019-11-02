@@ -36,8 +36,8 @@ INCLUDEPATH += $$SOURCES_DIR/Engine
 DEPENDPATH += $$THIRD_PARTY_DIR
 DEPENDPATH += $$SOURCES_DIR/Engine
 
-LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/SDL2main.lib
-LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/SDL2.lib
+LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2main.a
+LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2.dll.a
 #LIBS += $$APP_BUILD_DIR/libraries/libspdlog.a
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../Engine/release/libEngine.a
