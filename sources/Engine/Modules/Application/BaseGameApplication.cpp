@@ -40,10 +40,11 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
 
     spdlog::info("Initialize engine modules...");
 
-    m_graphicsModule = std::make_unique<GraphicsModule>(m_mainWindow);
-    m_resourceManagementModule = std::make_unique<ResourceManagementModule>();
+    m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
+    m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
+    m_inputModule = std::make_shared<InputModule>();
 
-    m_gameWorld = std::make_unique<GameWorld>();
+    m_gameWorld = std::make_shared<GameWorld>();
 
     spdlog::info("Engine modules are initialized");
 }
@@ -99,6 +100,8 @@ int BaseGameApplication::execute()
                 isRun = false;
                 break;
             }
+
+            m_inputModule->processRawSDLEvent(event);
         }
 
         if (!isRun)

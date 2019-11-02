@@ -6,6 +6,7 @@
 
 #include "Modules/Graphics/GraphicsModule.h"
 #include "Modules/ResourceManagement/ResourceManagementModule.h"
+#include "Modules/Input/InputModule.h"
 #include "Modules/ECS/ECS.h"
 
 class BaseGameApplication
@@ -32,9 +33,10 @@ private:
 protected:
     SDL_Window* m_mainWindow;
 
-    std::unique_ptr<GraphicsModule> m_graphicsModule;
-    std::unique_ptr<ResourceManagementModule> m_resourceManagementModule;
+    std::shared_ptr<GraphicsModule> m_graphicsModule;
+    std::shared_ptr<ResourceManagementModule> m_resourceManagementModule;
+    std::shared_ptr<InputModule> m_inputModule;
 
-    std::unique_ptr<GameWorld> m_gameWorld;
+    std::shared_ptr<GameWorld> m_gameWorld;
 };
 
