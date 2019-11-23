@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <functional>
 #include <typeindex>
+#include <memory>
 
 #include "GameSystem.h"
 #include "GameObject.h"
@@ -46,14 +47,14 @@ public:
 	 * 
 	 * \param system game system object pointer
 	 */
-	void addGameSystem(GameSystem* system);
+    void addGameSystem(std::shared_ptr<GameSystem> system);
 
 	/*!
 	 * \brief Removes the game system
 	 * 
 	 * \param system game system object pointer
 	 */
-	void removeGameSystem(GameSystem* system);
+    void removeGameSystem(std::shared_ptr<GameSystem> system);
 
 	/*!
 	 * \brief Creates and registers a new game object
@@ -178,7 +179,7 @@ protected:
 	GameObjectId m_lastGameObjectId = -1;
 
 protected:
-	std::vector<GameSystem*> m_gameSystems;
+    std::vector<std::shared_ptr<GameSystem>> m_gameSystems;
 	std::vector<GameObject*> m_gameObjects;
 
     std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;

@@ -7,8 +7,9 @@ GameWorld::GameWorld()
 
 GameWorld::~GameWorld()
 {
-	for (GameSystem* gameSystem : m_gameSystems)
-		gameSystem->unconfigure(this);
+    for (auto& system : m_gameSystems) {
+        system->unconfigure(this);
+    }
 
 	for (GameObject* object : m_gameObjects) {
         for (auto& it : object->m_components)
@@ -22,7 +23,7 @@ GameWorld::~GameWorld()
 
 void GameWorld::update(float delta)
 {
-	for (GameSystem* system : m_gameSystems)
+    for (auto& system : m_gameSystems)
 		system->update(this, delta);
 
 	removeDestroyedObjects();
@@ -30,17 +31,17 @@ void GameWorld::update(float delta)
 
 void GameWorld::render()
 {
-	for (GameSystem* system : m_gameSystems)
-		system->render(this);
+    for (auto& system : m_gameSystems)
+        system->render(this);
 }
 
-void GameWorld::addGameSystem(GameSystem * system)
+void GameWorld::addGameSystem(std::shared_ptr<GameSystem> system)
 {
 	m_gameSystems.push_back(system);
 	system->configure(this);
 }
 
-void GameWorld::removeGameSystem(GameSystem * system)
+void GameWorld::removeGameSystem(std::shared_ptr<GameSystem> system)
 {
 	m_gameSystems.erase(std::remove(m_gameSystems.begin(), m_gameSystems.end(), system), m_gameSystems.end());
 	system->unconfigure(this);

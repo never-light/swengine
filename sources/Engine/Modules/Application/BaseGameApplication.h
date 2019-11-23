@@ -9,6 +9,10 @@
 #include "Modules/Input/InputModule.h"
 #include "Modules/ECS/ECS.h"
 
+#include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
+#include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
+#include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
+
 class BaseGameApplication
 {
 public:
@@ -38,5 +42,7 @@ protected:
     std::shared_ptr<InputModule> m_inputModule;
 
     std::shared_ptr<GameWorld> m_gameWorld;
+
+    std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 };
 

@@ -6,7 +6,7 @@
 #include "ComponentInstance.h"
 #include "ComponentHandle.h"
 
-using GameObjectId = size_t;
+using GameObjectId = ssize_t;
 
 class GameWorld;
 

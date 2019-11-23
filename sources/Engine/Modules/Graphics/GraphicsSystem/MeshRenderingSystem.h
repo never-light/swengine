@@ -3,10 +3,10 @@
 #include "Modules/ECS/GameSystem.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
-class GraphicsSystem : public GameSystem {
+class MeshRenderingSystem : public GameSystem {
 public:
-    GraphicsSystem(std::shared_ptr<GLGraphicsContext> graphicsContext);
-    ~GraphicsSystem() override;
+    MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext);
+    ~MeshRenderingSystem() override;
 
     void configure(GameWorld *gameWorld) override;
     void unconfigure(GameWorld *gameWorld) override;
@@ -17,4 +17,3 @@ public:
 private:
     std::shared_ptr<GLGraphicsContext> m_graphicsContext;
 };
-

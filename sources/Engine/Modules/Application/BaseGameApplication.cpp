@@ -46,6 +46,9 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
 
     m_gameWorld = std::make_shared<GameWorld>();
 
+    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext());
+    m_gameWorld->addGameSystem(m_meshRenderingSystem);
+
     spdlog::info("Engine modules are initialized");
 }
 
@@ -138,10 +141,14 @@ void BaseGameApplication::performUnload()
 void BaseGameApplication::performUpdate(float delta)
 {
     update(delta);
+
+    m_gameWorld->update(delta);
 }
 
 void BaseGameApplication::performRender()
 {
     render();
+
+    m_gameWorld->render();
     m_graphicsModule->getGraphicsContext()->swapBuffers();
 }
