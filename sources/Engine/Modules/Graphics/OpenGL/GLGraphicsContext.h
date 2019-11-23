@@ -9,6 +9,9 @@
 struct RenderTask {
     GLGeometryStore* geometryStore;
     GLShadersPipeline* shadersPipeline;
+
+    size_t startOffset;
+    size_t partsCount;
 };
 
 class GLGraphicsContext {

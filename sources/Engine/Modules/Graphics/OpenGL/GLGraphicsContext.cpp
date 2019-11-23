@@ -145,7 +145,7 @@ int GLGraphicsContext::getBufferHeight() const
 void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
     glBindProgramPipeline(task.shadersPipeline->m_programPipeline);
-    task.geometryStore->draw();
+    task.geometryStore->drawRange(task.startOffset, task.partsCount);
 }
 
 void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)

@@ -51,11 +51,13 @@ HEADERS += \
     Modules/ECS/GameObjectsSequentialView.h \
     Modules/ECS/GameSystem.h \
     Modules/ECS/GameWorld.h \
+    Modules/ResourceManagement/RawDataStructures.h \
     Modules/ResourceManagement/Resource.h \
     Modules/ResourceManagement/ResourceInstance.h \
     Modules/ResourceManagement/ResourceManagementModule.h \
     Modules/ResourceManagement/ResourceManager.h \
-    Utility/helpers.h
+    Utility/helpers.h \
+    types.h
 
 include($$PWD/Modules/Graphics/Graphics.pri)
 

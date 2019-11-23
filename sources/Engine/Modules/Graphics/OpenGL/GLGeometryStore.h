@@ -29,6 +29,7 @@ public:
     bool isIndexed() const;
 
     void draw();
+    void drawRange(size_t start, size_t count);
 
 private:
     template <class T>

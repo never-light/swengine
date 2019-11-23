@@ -66,6 +66,16 @@ void GLGeometryStore::draw()
     else {
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_verticesCount));
     }
+}
 
-    glBindVertexArray(0);
+void GLGeometryStore::drawRange(size_t start, size_t count)
+{
+    glBindVertexArray(m_vertexArrayObject);
+
+    if (isIndexed()) {
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT, reinterpret_cast<GLvoid*>(start * sizeof(uint16_t)));
+    }
+    else {
+        glDrawArrays(GL_TRIANGLES, static_cast<GLint>(start), static_cast<GLsizei>(count));
+    }
 }

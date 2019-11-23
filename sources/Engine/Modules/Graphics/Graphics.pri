@@ -1,8 +1,14 @@
 
 SOURCES += \
+    $$PWD/GraphicsSystem/GraphicsSystem.cpp \
+    $$PWD/GraphicsSystem/Mesh.cpp \
+    $$PWD/GraphicsSystem/MeshComponent.cpp \
+    $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
+    $$PWD/GraphicsSystem/TransformComponent.cpp \
     $$PWD/OpenGL/GLGeometryStore.cpp \
     $$PWD/OpenGL/GLShader.cpp \
     $$PWD/OpenGL/GLShadersPipeline.cpp \
+    $$PWD/Resources/MeshResource.cpp \
     $$PWD/Resources/ShaderResource.cpp \
     Modules/Graphics/OpenGL/GLGraphicsContext.cpp \
     Modules/Graphics/OpenGL/gl3w.c \
@@ -10,10 +16,17 @@ SOURCES += \
     Modules/Graphics/OpenGL/GLDebug.cpp
 
 HEADERS += \
+    $$PWD/GraphicsSystem/GraphicsSystem.h \
+    $$PWD/GraphicsSystem/Mesh.h \
+    $$PWD/GraphicsSystem/MeshComponent.h \
+    $$PWD/GraphicsSystem/MeshRendererComponent.h \
+    $$PWD/GraphicsSystem/TransformComponent.h \
     $$PWD/OpenGL/GLGeometryStore.h \
     $$PWD/OpenGL/GLGeometryStoreImpl.h \
     $$PWD/OpenGL/GLShader.h \
     $$PWD/OpenGL/GLShadersPipeline.h \
+    $$PWD/Resources/MeshResource.h \
+    $$PWD/Resources/RawMesh.h \
     $$PWD/Resources/ShaderResource.h \
     Modules/Graphics/GraphicsModule.h \
     Modules/Graphics/OpenGL/GL.h \
