@@ -6,9 +6,15 @@
 #include "GLGeometryStore.h"
 #include "GLShadersPipeline.h"
 
+class SharedGraphicsState;
+class Transform;
+
 struct RenderTask {
+    SharedGraphicsState* sharedGraphicsState;
+    Transform* transform;
+
     const GLGeometryStore* geometryStore;
-    const GLShadersPipeline* shadersPipeline;
+    GLShadersPipeline* shadersPipeline;
 
     size_t startOffset;
     size_t partsCount;
@@ -52,6 +58,7 @@ public:
     int getBufferHeight() const;
 
     void executeRenderTask(const RenderTask& task);
+
 private:
     SDL_Window* m_window;
     SDL_GLContext m_glContext;

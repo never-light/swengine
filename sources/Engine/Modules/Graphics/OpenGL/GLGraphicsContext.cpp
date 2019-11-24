@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 #include "Exceptions/EngineRuntimeException.h"
+#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
 GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
     : m_window(window)
@@ -144,7 +145,22 @@ int GLGraphicsContext::getBufferHeight() const
 
 void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
-    glBindProgramPipeline(task.shadersPipeline->m_programPipeline);
+    GLShadersPipeline* shadersPipeline = task.shadersPipeline;
+
+    Transform* transform = task.transform;
+
+    if (transform != nullptr) {
+        shadersPipeline->getShader(GL_VERTEX_SHADER)->setParameter("transform.localToWorld", transform->getTransformationMatrix());
+    }
+
+    Camera* camera = task.sharedGraphicsState->getActiveCamera().get();
+
+    if (camera != nullptr) {
+        shadersPipeline->getShader(GL_VERTEX_SHADER)->setParameter("scene.worldToCamera", camera->getViewMatrix());
+        shadersPipeline->getShader(GL_VERTEX_SHADER)->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
+    }
+
+    glBindProgramPipeline(shadersPipeline->m_programPipeline);
     task.geometryStore->drawRange(task.startOffset, task.partsCount);
 }
 

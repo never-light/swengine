@@ -18,9 +18,13 @@ public:
 		return m_componentPtr;
 	}
 
-	T& get() {
+    T& getRef() {
 		return *m_componentPtr;
 	}
+
+    T* getPtr() {
+        return m_componentPtr;
+    }
 
 	/*!
 	 * \brief Checks validity of the component data

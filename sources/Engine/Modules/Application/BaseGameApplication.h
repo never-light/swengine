@@ -12,6 +12,7 @@
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
+#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
 class BaseGameApplication
 {
@@ -40,6 +41,8 @@ protected:
     std::shared_ptr<GraphicsModule> m_graphicsModule;
     std::shared_ptr<ResourceManagementModule> m_resourceManagementModule;
     std::shared_ptr<InputModule> m_inputModule;
+
+    std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 
     std::shared_ptr<GameWorld> m_gameWorld;
 

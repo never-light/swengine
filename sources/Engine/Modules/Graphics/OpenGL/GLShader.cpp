@@ -3,6 +3,7 @@
 #include "GLDebug.h"
 
 #include <memory>
+#include <vector>
 
 GLShader::GLShader(GLenum type, const std::string &source)
     : m_shaderProgram(0),
@@ -119,35 +120,40 @@ void GLShader::setParameter(const std::string &name, const glm::vec4 &value)
     glProgramUniform4fv(m_shaderProgram, m_uniformsCache[name].location, 1, &value[0]);
 }
 
+void GLShader::setParameter(const std::string& name, const glm::mat4x4& value)
+{
+    glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);
+}
+
 void GLShader::cacheUniformsLocations()
 {
     GL_CALL_BLOCK_BEGIN();
 
-    GLint uniform_count = 0;
-    glGetProgramiv(m_shaderProgram, GL_ACTIVE_UNIFORMS, &uniform_count);
+    GLint uniformsCount = 0;
+    glGetProgramiv(m_shaderProgram, GL_ACTIVE_UNIFORMS, &uniformsCount);
 
-    if (uniform_count != 0) {
-        GLint max_name_len = 0;
+    if (uniformsCount != 0) {
+        GLint maxNameLength = 0;
         GLsizei length = 0;
         GLsizei count = 0;
         GLenum type = GL_NONE;
 
-        glGetProgramiv(m_shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max_name_len);
+        glGetProgramiv(m_shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
 
-        auto uniformName = std::make_unique<char[]>(static_cast<size_t>(max_name_len));
+        std::vector<GLchar> uniformName(static_cast<size_t>(maxNameLength));
 
-        for (GLint i = 0; i < uniform_count; ++i) {
-            glGetActiveUniform(m_shaderProgram, static_cast<GLuint>(i),
-                               max_name_len, &length,
+        for (GLint uniformIndex = 0; uniformIndex < uniformsCount; uniformIndex++) {
+            glGetActiveUniform(m_shaderProgram, static_cast<GLuint>(uniformIndex),
+                               maxNameLength, &length,
                                &count, &type,
-                               uniformName.get());
+                               uniformName.data());
 
             UniformInfo uniformInfo = {
-                glGetUniformLocation(m_shaderProgram, uniformName.get()),
+                glGetUniformLocation(m_shaderProgram, uniformName.data()),
                 count
             };
 
-            m_uniformsCache.insert({ std::string(uniformName.get(),
+            m_uniformsCache.insert({ std::string(uniformName.data(),
                                      static_cast<std::string::size_type>(length)), uniformInfo });
         }
     }

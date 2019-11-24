@@ -5,8 +5,10 @@
 #include "TransformComponent.h"
 #include "MeshRendererComponent.h"
 
-MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext)
-    : m_graphicsContext(graphicsContext)
+MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
+                                         std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+    : m_graphicsContext(graphicsContext),
+      m_sharedGraphicsState(sharedGraphicsState)
 {
 
 }
@@ -40,6 +42,8 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
 
         SW_ASSERT(mesh != nullptr);
 
+        Transform* transform = obj->getComponent<TransformComponent>()->getTransform();
+
         const size_t subMeshesCount = mesh->getSubMeshesCount();
 
         SW_ASSERT(subMeshesCount != 0);
@@ -49,11 +53,13 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
 
             SW_ASSERT(material != nullptr);
 
-            const GLShadersPipeline* shadersPipeline = material->getShadersPipeline().get();
+            GLShadersPipeline* shadersPipeline = material->getShadersPipeline().get();
 
             SW_ASSERT(shadersPipeline != nullptr);
 
             m_graphicsContext->executeRenderTask({
+                m_sharedGraphicsState.get(),
+                transform,
                 mesh->getGeometryStore(),
                 shadersPipeline,
                 mesh->getSubMeshIndicesOffset(subMeshIndex),

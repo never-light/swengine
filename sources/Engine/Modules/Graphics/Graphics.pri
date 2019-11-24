@@ -1,9 +1,13 @@
 
 SOURCES += \
+    $$PWD/GraphicsSystem/Camera.cpp \
+    $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/Material.cpp \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
     $$PWD/GraphicsSystem/MeshRenderingSystem.cpp \
+    $$PWD/GraphicsSystem/SharedGraphicsState.cpp \
+    $$PWD/GraphicsSystem/Transform.cpp \
     $$PWD/GraphicsSystem/TransformComponent.cpp \
     $$PWD/OpenGL/GLGeometryStore.cpp \
     $$PWD/OpenGL/GLShader.cpp \
@@ -16,10 +20,14 @@ SOURCES += \
     Modules/Graphics/OpenGL/GLDebug.cpp
 
 HEADERS += \
+    $$PWD/GraphicsSystem/Camera.h \
+    $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/Material.h \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \
     $$PWD/GraphicsSystem/MeshRenderingSystem.h \
+    $$PWD/GraphicsSystem/SharedGraphicsState.h \
+    $$PWD/GraphicsSystem/Transform.h \
     $$PWD/GraphicsSystem/TransformComponent.h \
     $$PWD/OpenGL/GLGeometryStore.h \
     $$PWD/OpenGL/GLGeometryStoreImpl.h \

@@ -44,9 +44,12 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
     m_inputModule = std::make_shared<InputModule>();
 
+    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
+
     m_gameWorld = std::make_shared<GameWorld>();
 
-    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext());
+    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+                                                                  m_sharedGraphicsState);
     m_gameWorld->addGameSystem(m_meshRenderingSystem);
 
     spdlog::info("Engine modules are initialized");
