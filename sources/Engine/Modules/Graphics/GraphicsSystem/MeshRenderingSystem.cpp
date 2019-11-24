@@ -34,11 +34,31 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void MeshRenderingSystem::render(GameWorld* gameWorld)
 {
-    for (auto obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-        ARG_UNUSED(obj);
+    for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
+        const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+        Mesh* mesh = meshComponent->getMeshInstance().get();
 
-        int b = 2 + 2;
+        SW_ASSERT(mesh != nullptr);
 
-        ARG_UNUSED(b);
+        const size_t subMeshesCount = mesh->getSubMeshesCount();
+
+        SW_ASSERT(subMeshesCount != 0);
+
+        for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
+            const Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
+
+            SW_ASSERT(material != nullptr);
+
+            const GLShadersPipeline* shadersPipeline = material->getShadersPipeline().get();
+
+            SW_ASSERT(shadersPipeline != nullptr);
+
+            m_graphicsContext->executeRenderTask({
+                mesh->getGeometryStore(),
+                shadersPipeline,
+                mesh->getSubMeshIndicesOffset(subMeshIndex),
+                mesh->getSubMeshIndicesCount(subMeshIndex)
+            });
+        }
     }
 }

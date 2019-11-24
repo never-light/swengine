@@ -28,8 +28,8 @@ public:
 
     bool isIndexed() const;
 
-    void draw();
-    void drawRange(size_t start, size_t count);
+    void draw() const;
+    void drawRange(size_t start, size_t count) const;
 
 private:
     template <class T>

@@ -7,8 +7,8 @@
 #include "GLShadersPipeline.h"
 
 struct RenderTask {
-    GLGeometryStore* geometryStore;
-    GLShadersPipeline* shadersPipeline;
+    const GLGeometryStore* geometryStore;
+    const GLShadersPipeline* shadersPipeline;
 
     size_t startOffset;
     size_t partsCount;

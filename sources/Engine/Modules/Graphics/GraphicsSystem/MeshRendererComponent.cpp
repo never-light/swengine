@@ -5,17 +5,36 @@ MeshRendererComponent::MeshRendererComponent()
 
 }
 
-void MeshRendererComponent::setMeshInstance(std::shared_ptr<ResourceInstance> instance)
+void MeshRendererComponent::setMeshInstance(std::shared_ptr<Mesh> instance)
 {
     m_meshInstance = instance;
+
+    m_materialsInstances.resize(m_meshInstance->getSubMeshesCount());
+    std::fill(m_materialsInstances.begin(), m_materialsInstances.end(), nullptr);
 }
 
-std::shared_ptr<ResourceInstance> MeshRendererComponent::getMeshInstance() const
+std::shared_ptr<Mesh> MeshRendererComponent::getMeshInstance() const
 {
     return m_meshInstance;
 }
 
-const Mesh* MeshRendererComponent::getMeshRawPtr() const
+void MeshRendererComponent::setMaterialsInstances(const std::vector<std::shared_ptr<Material> >& instances)
 {
-    return m_meshInstance->getResource<MeshResource>()->getMesh().get();
+    SW_ASSERT(instances.size() == m_meshInstance->getSubMeshesCount());
+
+    m_materialsInstances = instances;
+}
+
+void MeshRendererComponent::setMaterialInstance(size_t subMeshIndex, std::shared_ptr<Material> instance)
+{
+    SW_ASSERT(subMeshIndex < m_materialsInstances.size());
+
+    m_materialsInstances[subMeshIndex] = instance;
+}
+
+std::shared_ptr<Material> MeshRendererComponent::getMaterialInstance(size_t subMeshIndex) const
+{
+    SW_ASSERT(subMeshIndex < m_materialsInstances.size());
+
+    return m_materialsInstances[subMeshIndex];
 }

@@ -90,6 +90,13 @@ size_t Mesh::getSubMeshIndicesCount(size_t subMeshIndex) const
     return m_indices[subMeshIndex].size();
 }
 
+const GLGeometryStore* Mesh::getGeometryStore()
+{
+    updateGeometryBuffer();
+
+    return m_geometryStore.get();
+}
+
 void Mesh::calculateSubMeshesOffsets()
 {
     m_subMeshesOffsets.clear();

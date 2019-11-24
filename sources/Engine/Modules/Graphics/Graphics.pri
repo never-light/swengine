@@ -1,5 +1,6 @@
 
 SOURCES += \
+    $$PWD/GraphicsSystem/Material.cpp \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
     $$PWD/GraphicsSystem/MeshRenderingSystem.cpp \
@@ -15,6 +16,7 @@ SOURCES += \
     Modules/Graphics/OpenGL/GLDebug.cpp
 
 HEADERS += \
+    $$PWD/GraphicsSystem/Material.h \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \
     $$PWD/GraphicsSystem/MeshRenderingSystem.h \

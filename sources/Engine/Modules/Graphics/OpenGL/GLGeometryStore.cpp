@@ -56,7 +56,7 @@ bool GLGeometryStore::isIndexed() const
     return m_indicesCount > 0;
 }
 
-void GLGeometryStore::draw()
+void GLGeometryStore::draw() const
 {
     glBindVertexArray(m_vertexArrayObject);
 
@@ -68,7 +68,7 @@ void GLGeometryStore::draw()
     }
 }
 
-void GLGeometryStore::drawRange(size_t start, size_t count)
+void GLGeometryStore::drawRange(size_t start, size_t count) const
 {
     glBindVertexArray(m_vertexArrayObject);
 

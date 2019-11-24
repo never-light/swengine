@@ -147,8 +147,11 @@ void BaseGameApplication::performUpdate(float delta)
 
 void BaseGameApplication::performRender()
 {
-    render();
+    glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
+    render();
     m_gameWorld->render();
+
     m_graphicsModule->getGraphicsContext()->swapBuffers();
 }
