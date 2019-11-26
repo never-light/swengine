@@ -7,11 +7,15 @@ CONFIG -= qt
 
 SOURCES += \
         Core/GameApplication.cpp \
+        Game/PlayerComponent.cpp \
+        Game/PlayerControlSystem.cpp \
         main.cpp
 
 
 HEADERS += \
-    Core/GameApplication.h
+    Core/GameApplication.h \
+    Game/PlayerComponent.h \
+    Game/PlayerControlSystem.h
 
 QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
 QMAKE_CXXFLAGS += -Wall

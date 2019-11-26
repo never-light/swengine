@@ -45,13 +45,13 @@ float Camera::getFarClipDistance() const {
 }
 
 void Camera::setFOVy(float fov) {
-    m_FOVy = glm::radians(fov);
+    m_FOVy = fov;
 
     resetProjectionCache();
 }
 
 float Camera::getFOVy() const {
-    return glm::degrees(m_FOVy);
+    return m_FOVy;
 }
 
 glm::mat4x4 Camera::getProjectionMatrix() {

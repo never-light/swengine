@@ -91,7 +91,7 @@ public:
 
     void registerAction(const std::string& actionName,
                         const InputAction& action,
-                        const std::function<void(const InputActionArgs* const)>& handler);
+                        const std::function<void(const InputActionArgs* const)>& handler = nullptr);
     bool isActionActive(const std::string& actionName) const;
 
     void registerMouseMoveHandler(const std::function<void(const MoveMoveArgs* const)>& handler);

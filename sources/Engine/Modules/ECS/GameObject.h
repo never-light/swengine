@@ -8,6 +8,8 @@
 
 using GameObjectId = ssize_t;
 
+constexpr GameObjectId GameObjectNone = -1;
+
 class GameWorld;
 
 /*!

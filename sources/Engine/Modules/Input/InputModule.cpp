@@ -6,18 +6,23 @@ InputModule::InputModule()
 
 InputModule::~InputModule()
 {
-
+    for (InputAction* action : m_inputActions)
+        delete action;
 }
 
 void InputModule::registerAction(const std::string& actionName,
                                  const InputAction& action,
                                  const std::function<void (const InputActionArgs* const)>& handler)
 {
-    m_inputActions.push_back(action.clone());
+    InputAction* actionClone = action.clone();
+    actionClone->m_name = actionName;
+
+    m_inputActions.push_back(actionClone);
+
     m_inputActionsState.insert({ actionName, InputActionState::Inactive });
 
     if (handler != nullptr) {
-        m_inputActions[m_inputActions.size() - 1]->m_handler = handler;
+        actionClone->m_handler = handler;
     }
 }
 
@@ -38,6 +43,8 @@ MousePosition InputModule::getMousePosition() const
 
     return position;
 }
+
+#include <spdlog/spdlog.h>
 
 void InputModule::processRawSDLEvent(const SDL_Event &ev)
 {
