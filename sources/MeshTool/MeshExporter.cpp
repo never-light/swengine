@@ -27,7 +27,7 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
 
     spdlog::info("Save mesh to file: {}", path);
 
-    std::ofstream out(path, std::ios::binary | std::ios::out);
+    std::ofstream out(path, std::ios::binary);
 
     const uint16_t verticesCount = mesh.header.verticesCount;
 

@@ -67,6 +67,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene, 
         }
 
         // Vertices
+        size_t verticesAddIndex = positions.size();
+
         for (size_t vertexIndex = 0; vertexIndex < rawMesh.mNumVertices; vertexIndex++) {
             positions.push_back({ rawMesh.mVertices[vertexIndex].x,
                                   rawMesh.mVertices[vertexIndex].y,
@@ -85,7 +87,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene, 
         // Indices
         bool nonTrianglePolygonFound = false;
 
-        size_t indicesOffset = positions.size();
+        size_t indicesOffset = verticesAddIndex;
 
         std::vector<uint16_t> indices;
 

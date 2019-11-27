@@ -51,7 +51,6 @@ void GameApplication::load()
         MeshResourceSourceParameters()
     });
 
-
     auto resInst = resourceMgr->getResourceInstance("simple_vertex_shader");
     auto res = resInst->getResource<ShaderResource>();
 
@@ -94,14 +93,18 @@ void GameApplication::load()
 
     transformHandle->getTransform()->move(0.0f, 0.3f, 0.0f);
 
+    std::shared_ptr<Mesh> cubeGeometry = resourceMgr->getResourceInstance("simple_mesh")->getResource<MeshResource>()->getMesh();
+
     auto componentHandle = obj->addComponent<MeshRendererComponent>();
-    componentHandle->setMeshInstance(m_triangleGeometry);
-    componentHandle->setMaterialsInstances({ m_material, m_material });
+    componentHandle->setMeshInstance(cubeGeometry);
+    componentHandle->setMaterialsInstances({ m_material });
 
     GameObject* player = m_gameWorld->createGameObject();
     player->addComponent<TransformComponent>();
     player->addComponent<CameraComponent>();
     player->addComponent<PlayerComponent>();
+
+    //player->getComponent<TransformComponent>()->getTransform()->scale(0.01f, 0.01f, 0.01f);
 
     std::shared_ptr<Camera> camera = std::make_shared<Camera>();
     camera->setNearClipDistance(0.1f);

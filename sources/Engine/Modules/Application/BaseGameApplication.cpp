@@ -151,10 +151,10 @@ void BaseGameApplication::performUpdate(float delta)
 void BaseGameApplication::performRender()
 {
     glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    render();
     m_gameWorld->render();
+    render();
 
     m_graphicsModule->getGraphicsContext()->swapBuffers();
 }

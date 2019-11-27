@@ -4,6 +4,8 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     Engine \
-    Game
+    Game \
+    MeshTool
 
 Game.depends = Engine
+MeshTool.depends = Engine

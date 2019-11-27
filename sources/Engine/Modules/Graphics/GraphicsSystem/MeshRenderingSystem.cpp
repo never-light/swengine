@@ -36,6 +36,9 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void MeshRenderingSystem::render(GameWorld* gameWorld)
 {
+    m_graphicsContext->enableDepthTest();
+    m_graphicsContext->enableFaceCulling();
+
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
         Mesh* mesh = meshComponent->getMeshInstance().get();
