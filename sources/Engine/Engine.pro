@@ -16,6 +16,7 @@ SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
     Modules/Application/BaseGameApplication.cpp \
     Modules/Input/InputModule.cpp \
+    Modules/Input/InputSystem.cpp \
     Modules/Math/Rect.cpp \
     Modules/Math/RectF.cpp \
     Modules/ECS/BaseComponentInstance.cpp \
@@ -32,7 +33,10 @@ SOURCES += \
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
     Modules/Application/BaseGameApplication.h \
+    Modules/Input/InputActions.h \
+    Modules/Input/InputEvents.h \
     Modules/Input/InputModule.h \
+    Modules/Input/InputSystem.h \
     Modules/Math/Rect.h \
     Modules/Math/RectF.h \
     Modules/ECS/BaseComponentInstance.h \

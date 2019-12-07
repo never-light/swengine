@@ -30,7 +30,7 @@ public:
 	 * 
 	 * \param gameWorld the game world pointer
 	 */
-	virtual void configure(GameWorld* gameWorld);
+    virtual void configure(GameWorld* gameWorld);
 
 	/*!
 	 * \brief Calls at the time of the game system removal

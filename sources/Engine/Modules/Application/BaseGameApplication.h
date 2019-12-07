@@ -6,7 +6,7 @@
 
 #include "Modules/Graphics/GraphicsModule.h"
 #include "Modules/ResourceManagement/ResourceManagementModule.h"
-#include "Modules/Input/InputModule.h"
+#include "Modules/Input/InputSystem.h"
 #include "Modules/ECS/ECS.h"
 
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
@@ -41,6 +41,7 @@ protected:
     std::shared_ptr<GraphicsModule> m_graphicsModule;
     std::shared_ptr<ResourceManagementModule> m_resourceManagementModule;
     std::shared_ptr<InputModule> m_inputModule;
+    std::shared_ptr<InputSystem> m_inputSystem;
 
     std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 

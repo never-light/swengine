@@ -1,7 +1,9 @@
 #include "InputModule.h"
 
-InputModule::InputModule()
+InputModule::InputModule(SDL_Window* window)
+    : m_window(window)
 {
+
 }
 
 InputModule::~InputModule()
@@ -11,8 +13,7 @@ InputModule::~InputModule()
 }
 
 void InputModule::registerAction(const std::string& actionName,
-                                 const InputAction& action,
-                                 const std::function<void (const InputActionArgs* const)>& handler)
+                                 const InputAction& action)
 {
     InputAction* actionClone = action.clone();
     actionClone->m_name = actionName;
@@ -20,10 +21,6 @@ void InputModule::registerAction(const std::string& actionName,
     m_inputActions.push_back(actionClone);
 
     m_inputActionsState.insert({ actionName, InputActionState::Inactive });
-
-    if (handler != nullptr) {
-        actionClone->m_handler = handler;
-    }
 }
 
 bool InputModule::isActionActive(const std::string &actionName) const
@@ -31,9 +28,26 @@ bool InputModule::isActionActive(const std::string &actionName) const
     return m_inputActionsState.at(actionName) == InputActionState::Active;
 }
 
-void InputModule::registerMouseMoveHandler(const std::function<void(const MoveMoveArgs * const)>& handler)
+void InputModule::setMouseMovementMode(MouseMovementMode mode)
 {
-    m_mouseMoveHandlers.push_back(handler);
+    if (mode == MouseMovementMode::Relative) {
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
+    else if (mode == MouseMovementMode::Absolute) {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+    }
+}
+
+MouseMovementMode InputModule::getMouseMovementMode() const
+{
+    SDL_bool relativeMode = SDL_GetRelativeMouseMode();
+
+    return (relativeMode == SDL_TRUE) ? MouseMovementMode::Relative : MouseMovementMode::Absolute;
+}
+
+void InputModule::setMousePosition(const MousePosition& position)
+{
+    SDL_WarpMouseInWindow(m_window, position.x, position.y);
 }
 
 MousePosition InputModule::getMousePosition() const
@@ -44,8 +58,6 @@ MousePosition InputModule::getMousePosition() const
     return position;
 }
 
-#include <spdlog/spdlog.h>
-
 void InputModule::processRawSDLEvent(const SDL_Event &ev)
 {
     if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
@@ -54,41 +66,58 @@ void InputModule::processRawSDLEvent(const SDL_Event &ev)
         args.repeated = ev.key.repeat;
 
         InputActionState newState = (ev.type == SDL_KEYDOWN) ? InputActionState::Active : InputActionState::Inactive;
-        toggleActionState(KeyboardInputAction(ev.key.keysym.sym), newState, &args);
+        toggleActionState(KeyboardInputAction(ev.key.keysym.sym), newState, args);
     }
     else if (ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP) {
         MouseButtonClickArgs args;
         args.button = ev.button.button;
 
         InputActionState newState = (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
-        toggleActionState(MouseButtonClickAction(ev.button.button), newState, &args);
+        toggleActionState(MouseButtonClickAction(ev.button.button), newState, args);
     }
     else if (ev.type == SDL_MOUSEMOTION) {
-        MoveMoveArgs args;
-        args.position.x = ev.motion.x;
-        args.position.y = ev.motion.y;
+        MouseMoveEvent event;
+        event.x = ev.motion.x;
+        event.y = ev.motion.y;
 
-        for (auto& handler : m_mouseMoveHandlers) {
-            handler(&args);
+        event.deltaX = ev.motion.xrel;
+        event.deltaY = ev.motion.yrel;
+
+        triggerInputEvent(InputEvent{ event });
+    }
+}
+
+void InputModule::registerEventsListener(std::shared_ptr<InputEventsListener> listener)
+{
+    m_eventsListeners.push_back(listener);
+}
+
+void InputModule::unregisterEventsListener(std::shared_ptr<InputEventsListener> listener)
+{
+    m_eventsListeners.erase(std::remove(m_eventsListeners.begin(), m_eventsListeners.end(), listener),
+                            m_eventsListeners.end());
+}
+
+void InputModule::toggleActionState(const InputAction& action, InputActionState state, const InputActionToggleEventArgs& args)
+{
+    for (InputAction* currentAction : m_inputActions) {
+        if (currentAction->equals(&action)) {
+            m_inputActionsState[currentAction->m_name] = state;
+
+            InputActionToggleEvent event;
+            event.actionName = action.m_name;
+            event.newState = state;
+            event.args = args;
+
+            triggerInputEvent(InputEvent{ event });
         }
     }
 }
 
-void InputModule::toggleActionState(const InputAction& action, InputActionState state, const InputActionArgs* const args)
+void InputModule::triggerInputEvent(const InputEvent& event)
 {
-    for (InputAction* currentAction : m_inputActions) {
-        if (currentAction->equals(&action)) {
-            if (currentAction->m_handler != nullptr) {
-                if ((currentAction->m_handleMode == InputActionHandleMode::OnActivation && state == InputActionState::Active) ||
-                        (currentAction->m_handleMode == InputActionHandleMode::OnDeactivation && state == InputActionState::Inactive) ||
-                        currentAction->m_handleMode == InputActionHandleMode::Always)
-                {
-                    currentAction->m_handler(args);
-                }
-            }
-
-            m_inputActionsState[currentAction->m_name] = state;
-        }
+    for (auto eventsListener : m_eventsListeners) {
+        eventsListener->processInputEvent(event);
     }
 }
 

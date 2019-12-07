@@ -41,13 +41,16 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     spdlog::info("Initialize engine modules...");
 
     m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
-    m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
-    m_inputModule = std::make_shared<InputModule>();
 
-    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
+    m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
+    m_inputModule = std::make_shared<InputModule>(m_mainWindow);
 
     m_gameWorld = std::make_shared<GameWorld>();
 
+    m_inputSystem = std::make_shared<InputSystem>(m_gameWorld, m_inputModule);
+    m_gameWorld->addGameSystem(m_inputSystem);
+
+    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
     m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
                                                                   m_sharedGraphicsState);
     m_gameWorld->addGameSystem(m_meshRenderingSystem);
