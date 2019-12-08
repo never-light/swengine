@@ -125,6 +125,12 @@ void GLShader::setParameter(const std::string& name, const glm::mat4x4& value)
     glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);
 }
 
+void GLShader::setParameter(const std::string& name, const GLTexture& texture, size_t unitIndex)
+{
+    glBindTextureUnit(static_cast<GLuint>(unitIndex), texture.m_texture);
+    setParameter(name, static_cast<int>(unitIndex));
+}
+
 bool GLShader::hasParameter(const std::string& name) const
 {
     return m_uniformsCache.find(name) != m_uniformsCache.end();

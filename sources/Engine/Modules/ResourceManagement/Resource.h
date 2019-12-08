@@ -4,11 +4,16 @@
 #include <variant>
 #include <any>
 #include <string>
+#include <vector>
 
 #include "Exceptions/EngineRuntimeException.h"
 
 struct ResourceSourceFile {
     std::string path;
+};
+
+struct ResourceSourceFilesList {
+    std::vector<std::string> paths;
 };
 
 struct ResourceSourceRawString {
