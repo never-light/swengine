@@ -58,6 +58,14 @@ MousePosition InputModule::getMousePosition() const
     return position;
 }
 
+MousePosition InputModule::getMouseDelta() const
+{
+    MousePosition position;
+    SDL_GetRelativeMouseState(&position.x, &position.y);
+
+    return position;
+}
+
 void InputModule::processRawSDLEvent(const SDL_Event &ev)
 {
     if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {

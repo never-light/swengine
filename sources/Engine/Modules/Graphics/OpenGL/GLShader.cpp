@@ -125,6 +125,11 @@ void GLShader::setParameter(const std::string& name, const glm::mat4x4& value)
     glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);
 }
 
+bool GLShader::hasParameter(const std::string& name) const
+{
+    return m_uniformsCache.find(name) != m_uniformsCache.end();
+}
+
 void GLShader::cacheUniformsLocations()
 {
     GL_CALL_BLOCK_BEGIN();

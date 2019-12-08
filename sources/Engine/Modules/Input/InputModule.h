@@ -36,6 +36,8 @@ public:
     void setMousePosition(const MousePosition& position);
     MousePosition getMousePosition() const;
 
+    MousePosition getMouseDelta() const;
+
     void processRawSDLEvent(const SDL_Event& ev);
 
     void registerEventsListener(std::shared_ptr<InputEventsListener> listener);
