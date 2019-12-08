@@ -14,6 +14,12 @@
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
+#include "Modules/Graphics/GUI/GUISystem.h"
+
+#include "Modules/Graphics/Resources/ShaderResource.h"
+#include "Modules/Graphics/Resources/MeshResource.h"
+#include "Modules/Graphics/Resources/TextureResource.h"
+
 class BaseGameApplication
 {
 public:
@@ -48,5 +54,5 @@ protected:
     std::shared_ptr<GameWorld> m_gameWorld;
 
     std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
+    std::shared_ptr<GUISystem> m_guiSystem;
 };
-

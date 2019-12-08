@@ -60,9 +60,25 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
 
             SW_ASSERT(shadersPipeline != nullptr);
 
+            GLShader* vertexShader = shadersPipeline->getShader(GL_VERTEX_SHADER);
+
+            if (transform != nullptr) {
+                if (vertexShader->hasParameter("transform.localToWorld")) {
+                    vertexShader->setParameter("transform.localToWorld", transform->getTransformationMatrix());
+                }
+            }
+
+            Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
+
+            if (camera != nullptr) {
+                if (vertexShader->hasParameter("scene.worldToCamera")) {
+                    vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
+                    vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
+                }
+            }
+
             m_graphicsContext->executeRenderTask({
                 m_sharedGraphicsState.get(),
-                transform,
                 mesh->getGeometryStore(),
                 shadersPipeline,
                 mesh->getSubMeshIndicesOffset(subMeshIndex),

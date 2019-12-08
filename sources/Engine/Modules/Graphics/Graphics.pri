@@ -1,7 +1,10 @@
 
 SOURCES += \
-    $$PWD/GUISystem/Button.cpp \
-    $$PWD/GUISystem/GUIComponent.cpp \
+    $$PWD/GUI/Button.cpp \
+    $$PWD/GUI/GUILayout.cpp \
+    $$PWD/GUI/GUISystem.cpp \
+    $$PWD/GUI/GUIWidget.cpp \
+    $$PWD/GUI/Image.cpp \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/Material.cpp \
@@ -24,8 +27,11 @@ SOURCES += \
     Modules/Graphics/OpenGL/GLDebug.cpp
 
 HEADERS += \
-    $$PWD/GUISystem/Button.h \
-    $$PWD/GUISystem/GUIComponent.h \
+    $$PWD/GUI/Button.h \
+    $$PWD/GUI/GUILayout.h \
+    $$PWD/GUI/GUISystem.h \
+    $$PWD/GUI/GUIWidget.h \
+    $$PWD/GUI/Image.h \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/Material.h \

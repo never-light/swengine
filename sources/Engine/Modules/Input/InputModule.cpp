@@ -69,19 +69,31 @@ MousePosition InputModule::getMouseDelta() const
 void InputModule::processRawSDLEvent(const SDL_Event &ev)
 {
     if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
-        KeyboardInputArgs args;
-        args.keyCode = ev.key.keysym.sym;
-        args.repeated = ev.key.repeat;
+        KeyboardEvent event;
+
+        event.type = (ev.type == SDL_KEYDOWN) ? KeyboardEventType::KeyDown : KeyboardEventType::KeyUp;
+        event.keyCode = ev.key.keysym.sym;
+        event.repeated = ev.key.repeat;
+
+        for (auto eventsListener : m_eventsListeners) {
+            eventsListener->processKeyboardEvent(event);
+        }
 
         InputActionState newState = (ev.type == SDL_KEYDOWN) ? InputActionState::Active : InputActionState::Inactive;
-        toggleActionState(KeyboardInputAction(ev.key.keysym.sym), newState, args);
+        toggleActionState(KeyboardInputAction(ev.key.keysym.sym), newState);
     }
     else if (ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP) {
-        MouseButtonClickArgs args;
-        args.button = ev.button.button;
+        MouseButtonEvent event;
+
+        event.type = (ev.type == SDL_MOUSEBUTTONDOWN) ? MouseButtonEventType::ButtonDown : MouseButtonEventType::ButtonUp;
+        event.button = ev.button.button;
+
+        for (auto eventsListener : m_eventsListeners) {
+            eventsListener->processMouseButtonEvent(event);
+        }
 
         InputActionState newState = (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
-        toggleActionState(MouseButtonClickAction(ev.button.button), newState, args);
+        toggleActionState(MouseButtonClickAction(ev.button.button), newState);
     }
     else if (ev.type == SDL_MOUSEMOTION) {
         MouseMoveEvent event;
@@ -91,7 +103,9 @@ void InputModule::processRawSDLEvent(const SDL_Event &ev)
         event.deltaX = ev.motion.xrel;
         event.deltaY = ev.motion.yrel;
 
-        triggerInputEvent(InputEvent{ event });
+        for (auto eventsListener : m_eventsListeners) {
+            eventsListener->processMouseMoveEvent(event);
+        }
     }
 }
 
@@ -106,7 +120,7 @@ void InputModule::unregisterEventsListener(std::shared_ptr<InputEventsListener> 
                             m_eventsListeners.end());
 }
 
-void InputModule::toggleActionState(const InputAction& action, InputActionState state, const InputActionToggleEventArgs& args)
+void InputModule::toggleActionState(const InputAction& action, InputActionState state)
 {
     for (InputAction* currentAction : m_inputActions) {
         if (currentAction->equals(&action)) {
@@ -115,17 +129,11 @@ void InputModule::toggleActionState(const InputAction& action, InputActionState 
             InputActionToggleEvent event;
             event.actionName = action.m_name;
             event.newState = state;
-            event.args = args;
 
-            triggerInputEvent(InputEvent{ event });
+            for (auto eventsListener : m_eventsListeners) {
+                eventsListener->processInputActionToggleEvent(event);
+            }
         }
-    }
-}
-
-void InputModule::triggerInputEvent(const InputEvent& event)
-{
-    for (auto eventsListener : m_eventsListeners) {
-        eventsListener->processInputEvent(event);
     }
 }
 
@@ -157,16 +165,6 @@ InputAction *KeyboardInputAction::clone() const {
 bool KeyboardInputAction::equals(const InputAction * const action) const {
     const KeyboardInputAction* const keyboardAction = dynamic_cast<const KeyboardInputAction* const>(action);
     return keyboardAction != nullptr && keyboardAction->getKeyCode() == m_keyCode;
-}
-
-InputActionArgs::InputActionArgs()
-{
-
-}
-
-InputActionArgs::~InputActionArgs()
-{
-
 }
 
 MouseButtonClickAction::MouseButtonClickAction(uint8_t button)

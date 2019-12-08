@@ -44,8 +44,7 @@ public:
     void unregisterEventsListener(std::shared_ptr<InputEventsListener> listener);
 
 private:
-    void toggleActionState(const InputAction& action, InputActionState state, const InputActionToggleEventArgs& args);
-    void triggerInputEvent(const InputEvent& event);
+    void toggleActionState(const InputAction& action, InputActionState state);
 
 private:
     std::vector<InputAction*> m_inputActions;

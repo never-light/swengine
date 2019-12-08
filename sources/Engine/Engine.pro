@@ -15,6 +15,7 @@ DEPENDPATH += $$THIRD_PARTY_DIR
 SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
     Modules/Application/BaseGameApplication.cpp \
+    Modules/Input/InputEvents.cpp \
     Modules/Input/InputModule.cpp \
     Modules/Input/InputSystem.cpp \
     Modules/Math/Rect.cpp \

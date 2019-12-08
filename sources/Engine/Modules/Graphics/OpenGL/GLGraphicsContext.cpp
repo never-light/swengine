@@ -147,25 +147,6 @@ void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
     GLShadersPipeline* shadersPipeline = task.shadersPipeline;
 
-    Transform* transform = task.transform;
-
-    GLShader* vertexShader = shadersPipeline->getShader(GL_VERTEX_SHADER);
-
-    if (transform != nullptr) {
-        if (vertexShader->hasParameter("transform.localToWorld")) {
-            vertexShader->setParameter("transform.localToWorld", transform->getTransformationMatrix());
-        }
-    }
-
-    Camera* camera = task.sharedGraphicsState->getActiveCamera().get();
-
-    if (camera != nullptr) {
-        if (vertexShader->hasParameter("scene.worldToCamera")) {
-            vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
-            vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
-        }
-    }
-
     glBindProgramPipeline(shadersPipeline->m_programPipeline);
     task.geometryStore->drawRange(task.startOffset, task.partsCount);
 }

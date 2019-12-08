@@ -11,8 +11,6 @@ class Transform;
 
 struct RenderTask {
     SharedGraphicsState* sharedGraphicsState;
-    Transform* transform;
-
     const GLGeometryStore* geometryStore;
     GLShadersPipeline* shadersPipeline;
 

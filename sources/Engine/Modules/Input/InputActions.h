@@ -9,11 +9,6 @@ enum class InputActionState {
     Active, Inactive
 };
 
-struct InputActionArgs {
-    InputActionArgs();
-    virtual ~InputActionArgs();
-};
-
 class InputAction {
 public:
     InputAction();
@@ -42,11 +37,6 @@ private:
     SDL_Keycode m_keyCode;
 };
 
-struct KeyboardInputArgs : public InputActionArgs {
-    SDL_Keycode keyCode;
-    bool repeated;
-};
-
 class MouseButtonClickAction : public InputAction {
 public:
     MouseButtonClickAction(uint8_t button);
@@ -58,8 +48,4 @@ public:
 
 private:
     uint8_t m_button;
-};
-
-struct MouseButtonClickArgs : public InputActionArgs {
-    uint8_t button;
 };
