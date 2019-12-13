@@ -68,6 +68,10 @@ int GUIText::getFontSize() const
 
 void GUIText::render(GUISystem& guiSystem)
 {
+    if (m_text.empty()) {
+        return;
+    }
+
     RenderTask task = guiSystem.getRenderTaskTemplate(this);
 
     task.geometryStore = updateAndGetGeometryStore();
@@ -79,6 +83,11 @@ void GUIText::render(GUISystem& guiSystem)
     fragmentShader->setParameter("widget.colorAlphaTexture", *m_font->getBitmap().get(), 1);
 
     guiSystem.getGraphicsContext()->executeRenderTask(task);
+}
+
+bool GUIText::isTextGeometryBufferOutdated() const
+{
+    return m_needTextGeometryUpdate;
 }
 
 const GLGeometryStore* GUIText::updateAndGetGeometryStore()

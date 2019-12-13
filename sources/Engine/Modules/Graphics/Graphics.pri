@@ -6,6 +6,7 @@ SOURCES += \
     $$PWD/GUI/GUILayout.cpp \
     $$PWD/GUI/GUISystem.cpp \
     $$PWD/GUI/GUIText.cpp \
+    $$PWD/GUI/GUITextBox.cpp \
     $$PWD/GUI/GUIWidget.cpp \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     $$PWD/GUI/GUILayout.h \
     $$PWD/GUI/GUISystem.h \
     $$PWD/GUI/GUIText.h \
+    $$PWD/GUI/GUITextBox.h \
     $$PWD/GUI/GUIWidget.h \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \

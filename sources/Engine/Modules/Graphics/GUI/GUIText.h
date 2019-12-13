@@ -4,6 +4,8 @@
 #include "GUIWidget.h"
 #include "BitmapFont.h"
 
+class GUITextBox;
+
 class GUIText : public GUIWidget
 {
 public:
@@ -26,6 +28,9 @@ public:
 
     void render(GUISystem &guiSystem) override;
 
+protected:
+    bool isTextGeometryBufferOutdated() const;
+
 private:
     void resetTextGeometryCache();
 
@@ -41,5 +46,8 @@ private:
 
     mutable std::unique_ptr<GLGeometryStore> m_textGeometryCache;
     mutable bool m_needTextGeometryUpdate = true;
+
+private:
+    friend class GUITextBox;
 };
 

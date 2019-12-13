@@ -6,7 +6,7 @@
 void GUIWidget::setOrigin(const glm::ivec2& origin)
 {
     m_origin = origin;
-    m_needTransformationMatrixCacheUpdate = true;
+    resetTransformationCache();
 }
 
 glm::ivec2 GUIWidget::getOrigin() const
@@ -14,10 +14,23 @@ glm::ivec2 GUIWidget::getOrigin() const
     return m_origin;
 }
 
+glm::ivec2 GUIWidget::getAbsoluteOrigin() const
+{
+    glm::ivec2 origin = m_origin;
+
+    std::shared_ptr<GUIWidget> parent = m_parent.lock();
+
+    if (parent != nullptr) {
+        origin = origin + parent->getOrigin();
+    }
+
+    return origin;
+}
+
 void GUIWidget::setSize(const glm::ivec2& size)
 {
     m_size = size;
-    m_needTransformationMatrixCacheUpdate = true;
+    resetTransformationCache();
 }
 
 glm::ivec2 GUIWidget::getSize() const
@@ -27,11 +40,13 @@ glm::ivec2 GUIWidget::getSize() const
 
 void GUIWidget::addChildWidget(std::shared_ptr<GUIWidget> widget)
 {
-    m_widgets.push_back(std::move(widget));
+    m_widgets.push_back(widget);
+    widget->setParent(weak_from_this());
 }
 
 void GUIWidget::removeChildWidget(const std::shared_ptr<GUIWidget>& widget)
 {
+    widget->setParent({});
     m_widgets.erase(std::remove(m_widgets.begin(), m_widgets.end(), widget), m_widgets.end());
 }
 
@@ -111,6 +126,16 @@ glm::vec4 GUIWidget::getHoverBackgroundColor() const
     return m_hoverBackgroundColor;
 }
 
+void GUIWidget::setFocusBackgroundColor(const glm::vec4& color)
+{
+    m_focusBackgroundColor = color;
+}
+
+glm::vec4 GUIWidget::getFocusBackgroundColor() const
+{
+    return m_focusBackgroundColor;
+}
+
 void GUIWidget::setHoverBackgroundImage(std::shared_ptr<GLTexture> image)
 {
     m_hoverBackgroundImage = image;
@@ -151,15 +176,27 @@ glm::vec4 GUIWidget::getHoverBorderColor() const
     return m_hoverBorderColor;
 }
 
+void GUIWidget::setFocusBorderColor(const glm::vec4& color)
+{
+    m_focusBorderColor = color;
+}
+
+glm::vec4 GUIWidget::getFocusBorderColor() const
+{
+    return m_focusBorderColor;
+}
+
 const glm::mat4x4& GUIWidget::getTransformationMatrix()
 {
     if (m_needTransformationMatrixCacheUpdate) {
         m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(),
-                                                     glm::vec3(m_origin, 0.0f));
+                                                     glm::vec3(getAbsoluteOrigin(), 0.0f));
 
         if (m_isScaleTransformEnabled) {
             m_transformationMatrixCache = glm::scale(m_transformationMatrixCache, glm::vec3(m_size, 1.0f));
         }
+
+        transformationCacheUpdate();
 
         m_needTransformationMatrixCacheUpdate = false;
     }
@@ -182,16 +219,40 @@ void GUIWidget::setMouseLeaveCallback(EventCallback<GUIMouseLeaveEvent> callback
     m_mouseLeaveCallback = callback;
 }
 
+void GUIWidget::setKeyboardEventCallback(EventCallback<GUIKeyboardEvent> callback)
+{
+    m_keyboardEventCallback = callback;
+}
+
 void GUIWidget::enableScaleTransform()
 {
     m_isScaleTransformEnabled = true;
-    m_needTransformationMatrixCacheUpdate = true;
+    resetTransformationCache();
 }
 
 void GUIWidget::disableScaleTransform()
 {
     m_isScaleTransformEnabled = false;
+    resetTransformationCache();
+}
+
+void GUIWidget::resetTransformationCache()
+{
     m_needTransformationMatrixCacheUpdate = true;
+
+    for (auto childWidget : m_widgets) {
+        childWidget->resetTransformationCache();
+    }
+}
+
+void GUIWidget::transformationCacheUpdate()
+{
+
+}
+
+void GUIWidget::processKeyboardEvent(const GUIKeyboardEvent& event)
+{
+    ARG_UNUSED(event);
 }
 
 void GUIWidget::triggerMouseButtonEvent(const GUIMouseButtonEvent& event)
@@ -213,4 +274,33 @@ void GUIWidget::triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event)
     if (m_mouseLeaveCallback) {
         m_mouseLeaveCallback(event);
     }
+}
+
+void GUIWidget::triggerKeyboardEvent(const GUIKeyboardEvent& event)
+{
+    processKeyboardEvent(event);
+
+    if (m_keyboardEventCallback) {
+        m_keyboardEventCallback(event);
+    }
+}
+
+void GUIWidget::setParent(std::weak_ptr<GUIWidget> parent)
+{
+    m_parent = parent;
+}
+
+void GUIWidget::setFocus()
+{
+    m_hasFocus = true;
+}
+
+void GUIWidget::resetFocus()
+{
+    m_hasFocus = false;
+}
+
+std::shared_ptr<GUIWidget> GUIWidget::getParent() const
+{
+    return m_parent.lock();
 }

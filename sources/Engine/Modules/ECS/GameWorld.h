@@ -170,7 +170,7 @@ public:
 	 * \param event event data
 	 */
 	template<class T>
-	void emitEvent(const T& event);
+    EventProcessStatus emitEvent(const T& event);
 
 protected:
 	void removeDestroyedObjects();
@@ -255,7 +255,7 @@ inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener)
 }
 
 template<class T>
-inline void GameWorld::emitEvent(const T & event)
+inline EventProcessStatus GameWorld::emitEvent(const T & event)
 {
     std::type_index typeId = std::type_index(typeid(T));
 
@@ -264,7 +264,13 @@ inline void GameWorld::emitEvent(const T & event)
 	if (eventListenersListIt != m_eventsListeners.end()) {
 		for (BaseEventsListener* baseListener : eventListenersListIt->second) {
 			EventsListener<T>* listener = reinterpret_cast<EventsListener<T>*>(baseListener);
-			listener->receiveEvent(this, event);
+            EventProcessStatus processStatus = listener->receiveEvent(this, event);
+
+            if (processStatus == EventProcessStatus::Prevented) {
+                return EventProcessStatus::Prevented;
+            }
 		}
 	}
+
+    return EventProcessStatus::Processed;
 }

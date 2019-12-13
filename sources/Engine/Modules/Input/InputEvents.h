@@ -25,6 +25,7 @@ struct KeyboardEvent {
     KeyboardEventType type;
     SDL_Keycode keyCode;
     bool repeated;
+    SDL_Keymod keyModifiers;
 };
 
 enum class MouseButtonEventType {

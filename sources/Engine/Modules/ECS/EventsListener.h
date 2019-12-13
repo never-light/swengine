@@ -4,6 +4,11 @@
 
 class GameWorld;
 
+enum class EventProcessStatus {
+    Processed,
+    Prevented
+};
+
 /*!
  * \brief Class for representing an event listener 
  */
@@ -17,6 +22,8 @@ public:
 	 * 
 	 * \param gameWorld game world pointer
 	 * \param event event data
+     *
+     * \return event process status
 	 */
-	virtual void receiveEvent(GameWorld* gameWorld, const T& event) = 0;
+    virtual EventProcessStatus receiveEvent(GameWorld* gameWorld, const T& event) = 0;
 };

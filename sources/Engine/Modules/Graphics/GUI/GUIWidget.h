@@ -36,9 +36,16 @@ struct GUIMouseMoveEvent : GUIEvent {
     int deltaY;
 };
 
+struct GUIKeyboardEvent : GUIEvent {
+    KeyboardEventType type;
+    SDL_Keycode keyCode;
+    bool repeated;
+    SDL_Keymod keyModifiers;
+};
+
 class GUISystem;
 
-class GUIWidget
+class GUIWidget : public std::enable_shared_from_this<GUIWidget>
 {
 public:
     template<class T>
@@ -50,6 +57,8 @@ public:
 
     void setOrigin(const glm::ivec2& origin);
     glm::ivec2 getOrigin() const;
+
+    glm::ivec2 getAbsoluteOrigin() const;
 
     void setSize(const glm::ivec2& size);
     glm::ivec2 getSize() const;
@@ -81,6 +90,9 @@ public:
     void setHoverBackgroundColor(const glm::vec4& color);
     glm::vec4 getHoverBackgroundColor() const;
 
+    void setFocusBackgroundColor(const glm::vec4& color);
+    glm::vec4 getFocusBackgroundColor() const;
+
     void setHoverBackgroundImage(std::shared_ptr<GLTexture> image);
     std::shared_ptr<GLTexture> getHoverBackgroundImage() const;
 
@@ -93,20 +105,38 @@ public:
     void setHoverBorderColor(const glm::vec4& color);
     glm::vec4 getHoverBorderColor() const;
 
+    void setFocusBorderColor(const glm::vec4& color);
+    glm::vec4 getFocusBorderColor() const;
+
     const glm::mat4x4& getTransformationMatrix();
 
     void setMouseButtonCallback(EventCallback<GUIMouseButtonEvent> callback);
     void setMouseEnterCallback(EventCallback<GUIMouseEnterEvent> callback);
     void setMouseLeaveCallback(EventCallback<GUIMouseLeaveEvent> callback);
+    void setKeyboardEventCallback(EventCallback<GUIKeyboardEvent> callback);
+
+    std::shared_ptr<GUIWidget> getParent() const;
 
 protected:
     void enableScaleTransform();
     void disableScaleTransform();
 
+    void resetTransformationCache();
+
+    virtual void transformationCacheUpdate();
+    virtual void processKeyboardEvent(const GUIKeyboardEvent& event);
+
 private:
     void triggerMouseButtonEvent(const GUIMouseButtonEvent& event);
     void triggerMouseEnterEvent(const GUIMouseEnterEvent& event);
     void triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event);
+
+    void triggerKeyboardEvent(const GUIKeyboardEvent& event);
+
+    void setParent(std::weak_ptr<GUIWidget> parent);
+
+    void setFocus();
+    void resetFocus();
 
 private:
     glm::ivec2 m_origin = glm::ivec2(0);
@@ -115,6 +145,8 @@ private:
     glm::vec4 m_backgroundColor = glm::vec4(0.0f);
     std::shared_ptr<GLTexture> m_backgroundImage;
 
+    glm::vec4 m_focusBackgroundColor = glm::vec4(0.0f);
+
     glm::vec4 m_hoverBackgroundColor = glm::vec4(0.0f);
     std::shared_ptr<GLTexture> m_hoverBackgroundImage;
 
@@ -122,6 +154,7 @@ private:
 
     glm::vec4 m_borderColor = glm::vec4(0.0f);
     glm::vec4 m_hoverBorderColor = glm::vec4(0.0f);
+    glm::vec4 m_focusBorderColor = glm::vec4(0.0f);
 
     bool m_isScaleTransformEnabled = true;
 
@@ -130,10 +163,12 @@ private:
     bool m_hasFocus = false;
 
     std::vector<std::shared_ptr<GUIWidget>> m_widgets;
+    std::weak_ptr<GUIWidget> m_parent;
 
     EventCallback<GUIMouseButtonEvent> m_mouseButtonCallback;
     EventCallback<GUIMouseEnterEvent> m_mouseEnterCallback;
     EventCallback<GUIMouseLeaveEvent> m_mouseLeaveCallback;
+    EventCallback<GUIKeyboardEvent> m_keyboardEventCallback;
 
     glm::mat4x4 m_transformationMatrixCache;
     bool m_needTransformationMatrixCacheUpdate = true;

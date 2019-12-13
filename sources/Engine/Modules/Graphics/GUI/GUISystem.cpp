@@ -39,6 +39,7 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
 void GUISystem::configure(GameWorld* gameWorld)
 {
     gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
+    gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
     m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getBufferWidth()),
                                        static_cast<float>(m_graphicsContext->getBufferHeight()), 0.0f, -1.0f, 1.0f);
@@ -46,6 +47,7 @@ void GUISystem::configure(GameWorld* gameWorld)
 
 void GUISystem::unconfigure(GameWorld* gameWorld)
 {
+    gameWorld->unsubscribeEventsListener<KeyboardEvent>(this);
     gameWorld->unsubscribeEventsListener<MouseButtonEvent>(this);
 }
 
@@ -111,6 +113,10 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
         }
     }
 
+    if (widget->hasFocus()) {
+        backgroundColor = widget->getFocusBackgroundColor();
+    }
+
     fragmentShader->setParameter("widget.backgroundColor", backgroundColor);
     fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture != nullptr);
 
@@ -143,13 +149,34 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     return task;
 }
 
-void GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
+EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
 {
     ARG_UNUSED(gameWorld);
 
     if (m_activeLayout != nullptr) {
         processGUIWidgetMouseButtonEvent(m_activeLayout.get(), event);
     }
+
+    return EventProcessStatus::Processed;
+}
+
+EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+{
+    ARG_UNUSED(gameWorld);
+
+    if (m_focusedWidget != nullptr) {
+        GUIKeyboardEvent guiEvent;
+        guiEvent.type = event.type;
+        guiEvent.keyCode = event.keyCode;
+        guiEvent.repeated = event.repeated;
+        guiEvent.keyModifiers = event.keyModifiers;
+
+        m_focusedWidget->triggerKeyboardEvent(guiEvent);
+
+        return EventProcessStatus::Prevented;
+    }
+
+    return EventProcessStatus::Processed;
 }
 
 void GUISystem::updateGUIWidget(GUIWidget* widget)
@@ -191,12 +218,28 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
     }
 
     if (isMouseInWidgetArea(widget)) {
+        if (widget->canHaveFocus()) {
+            if (m_focusedWidget != nullptr) {
+                m_focusedWidget->resetFocus();
+            }
+
+            widget->setFocus();
+
+            m_focusedWidget = widget->shared_from_this();
+        }
+
         GUIMouseButtonEvent mouseEvent;
         mouseEvent.type = event.type;
         mouseEvent.button = event.button;
         mouseEvent.isExclusive = isExclusive;
 
         widget->triggerMouseButtonEvent(mouseEvent);
+    }
+    else {
+        if (widget->hasFocus()) {
+            m_focusedWidget = nullptr;
+            widget->resetFocus();
+        }
     }
 }
 

@@ -15,9 +15,11 @@
 #include "GUIButton.h"
 #include "GUIImage.h"
 #include "GUIText.h"
+#include "GUITextBox.h"
 
 class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISystem>,
-        public EventsListener<MouseButtonEvent>
+        public EventsListener<MouseButtonEvent>,
+        public EventsListener<KeyboardEvent>
 {
 public:
     GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
@@ -36,7 +38,8 @@ public:
     std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
     RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
 
-    void receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
+    EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
+    EventProcessStatus receiveEvent(GameWorld *gameWorld, const KeyboardEvent &event) override;
 
 private:
     void updateGUIWidget(GUIWidget* widget);
@@ -55,6 +58,8 @@ private:
     std::shared_ptr<InputModule> m_inputModule;
     std::shared_ptr<GLGraphicsContext> m_graphicsContext;
     std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
+
+    std::shared_ptr<GUIWidget> m_focusedWidget;
 
     glm::mat4x4 m_guiProjectionMatrix;
 };

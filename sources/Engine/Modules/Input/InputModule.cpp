@@ -91,6 +91,7 @@ void InputModule::processRawSDLEvent(const SDL_Event &ev)
         event.type = (ev.type == SDL_KEYDOWN) ? KeyboardEventType::KeyDown : KeyboardEventType::KeyUp;
         event.keyCode = ev.key.keysym.sym;
         event.repeated = ev.key.repeat;
+        event.keyModifiers = SDL_GetModState();
 
         for (auto eventsListener : m_eventsListeners) {
             eventsListener->processKeyboardEvent(event);
