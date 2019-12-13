@@ -11,14 +11,20 @@ Rect::Rect(const Rect& rect)
     : m_origin(rect.m_origin),
       m_size(rect.m_size)
 {
-
 }
 
 Rect::Rect(const glm::ivec2& origin, const glm::ivec2& size)
     : m_origin(origin),
       m_size(size)
 {
+    SW_ASSERT(size.x >= 0 && size.y >= 0);
+}
 
+Rect::Rect(int originX, int originY, int width, int height)
+    : m_origin(originX, originY),
+      m_size(width, height)
+{
+    SW_ASSERT(width >= 0 && height >= 0);
 }
 
 int Rect::getWidth() const

@@ -48,6 +48,7 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     resourceManager->declareResourceType<ShaderResource>();
     resourceManager->declareResourceType<MeshResource>();
     resourceManager->declareResourceType<TextureResource>();
+    resourceManager->declareResourceType<BitmapFontResource>();
 
     resourceManager->declareResource<ShaderResource>("gui_vertex_shader", ResourceSource{
         ResourceSourceFile{ "../resources/shaders/gui_vertex_shader.glsl" },

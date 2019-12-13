@@ -1,5 +1,7 @@
- #include "GUIWidget.h"
+#include "GUIWidget.h"
 #include <algorithm>
+
+#include "GUISystem.h"
 
 void GUIWidget::setOrigin(const glm::ivec2& origin)
 {
@@ -75,15 +77,16 @@ void GUIWidget::update(float delta)
 
 void GUIWidget::render(GUISystem& guiSystem)
 {
-    ARG_UNUSED(guiSystem);
+    RenderTask task = guiSystem.getRenderTaskTemplate(this);
+    guiSystem.getGraphicsContext()->executeRenderTask(task);
 }
 
-void GUIWidget::setBackgroundColor(const glm::vec3& color)
+void GUIWidget::setBackgroundColor(const glm::vec4& color)
 {
     m_backgroundColor = color;
 }
 
-glm::vec3 GUIWidget::getBackgroundColor() const
+glm::vec4 GUIWidget::getBackgroundColor() const
 {
     return m_backgroundColor;
 }
@@ -98,12 +101,12 @@ std::shared_ptr<GLTexture> GUIWidget::getBackgroundImage() const
     return m_backgroundImage;
 }
 
-void GUIWidget::setHoverBackgroundColor(const glm::vec3& color)
+void GUIWidget::setHoverBackgroundColor(const glm::vec4& color)
 {
     m_hoverBackgroundColor = color;
 }
 
-glm::vec3 GUIWidget::getHoverBackgroundColor() const
+glm::vec4 GUIWidget::getHoverBackgroundColor() const
 {
     return m_hoverBackgroundColor;
 }
@@ -128,22 +131,22 @@ int GUIWidget::getBorderWidth() const
     return m_borderWidth;
 }
 
-void GUIWidget::setBorderColor(const glm::vec3& color)
+void GUIWidget::setBorderColor(const glm::vec4& color)
 {
     m_borderColor = color;
 }
 
-glm::vec3 GUIWidget::getBorderColor() const
+glm::vec4 GUIWidget::getBorderColor() const
 {
     return m_borderColor;
 }
 
-void GUIWidget::setHoverBorderColor(const glm::vec3& color)
+void GUIWidget::setHoverBorderColor(const glm::vec4& color)
 {
     m_hoverBorderColor = color;
 }
 
-glm::vec3 GUIWidget::getHoverBorderColor() const
+glm::vec4 GUIWidget::getHoverBorderColor() const
 {
     return m_hoverBorderColor;
 }
@@ -151,11 +154,63 @@ glm::vec3 GUIWidget::getHoverBorderColor() const
 const glm::mat4x4& GUIWidget::getTransformationMatrix()
 {
     if (m_needTransformationMatrixCacheUpdate) {
-        m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(), glm::vec3(m_origin, 0.0f));
-        m_transformationMatrixCache = glm::scale(m_transformationMatrixCache, glm::vec3(m_size, 1.0f));
+        m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(),
+                                                     glm::vec3(m_origin, 0.0f));
+
+        if (m_isScaleTransformEnabled) {
+            m_transformationMatrixCache = glm::scale(m_transformationMatrixCache, glm::vec3(m_size, 1.0f));
+        }
 
         m_needTransformationMatrixCacheUpdate = false;
     }
 
     return m_transformationMatrixCache;
+}
+
+void GUIWidget::setMouseButtonCallback(EventCallback<GUIMouseButtonEvent> callback)
+{
+    m_mouseButtonCallback = callback;
+}
+
+void GUIWidget::setMouseEnterCallback(EventCallback<GUIMouseEnterEvent> callback)
+{
+    m_mouseEnterCallback = callback;
+}
+
+void GUIWidget::setMouseLeaveCallback(EventCallback<GUIMouseLeaveEvent> callback)
+{
+    m_mouseLeaveCallback = callback;
+}
+
+void GUIWidget::enableScaleTransform()
+{
+    m_isScaleTransformEnabled = true;
+    m_needTransformationMatrixCacheUpdate = true;
+}
+
+void GUIWidget::disableScaleTransform()
+{
+    m_isScaleTransformEnabled = false;
+    m_needTransformationMatrixCacheUpdate = true;
+}
+
+void GUIWidget::triggerMouseButtonEvent(const GUIMouseButtonEvent& event)
+{
+    if (m_mouseButtonCallback) {
+        m_mouseButtonCallback(event);
+    }
+}
+
+void GUIWidget::triggerMouseEnterEvent(const GUIMouseEnterEvent& event)
+{
+    if (m_mouseEnterCallback) {
+        m_mouseEnterCallback(event);
+    }
+}
+
+void GUIWidget::triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event)
+{
+    if (m_mouseLeaveCallback) {
+        m_mouseLeaveCallback(event);
+    }
 }

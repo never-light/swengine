@@ -12,8 +12,9 @@
 #include "Modules/Graphics/GraphicsSystem/Mesh.h"
 
 #include "GUILayout.h"
-#include "Button.h"
-#include "Image.h"
+#include "GUIButton.h"
+#include "GUIImage.h"
+#include "GUIText.h"
 
 class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISystem>,
         public EventsListener<MouseButtonEvent>

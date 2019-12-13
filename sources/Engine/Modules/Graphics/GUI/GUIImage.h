@@ -5,10 +5,8 @@
 #include "GUIWidget.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
-class Image : public GUIWidget
+class GUIImage : public GUIWidget
 {
 public:
-    Image(std::shared_ptr<GLTexture> image);
-
-    void render(GUISystem& guiSystem);
+    GUIImage(std::shared_ptr<GLTexture> image);
 };

@@ -12,10 +12,7 @@
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
-class GUIWidget;
-
 struct GUIEvent {
-    GUIWidget* component = nullptr;
 };
 
 struct GUIMouseButtonEvent : GUIEvent {
@@ -31,10 +28,22 @@ struct GUIMouseEnterEvent : GUIEvent {
 struct GUIMouseLeaveEvent : GUIEvent {
 };
 
+struct GUIMouseMoveEvent : GUIEvent {
+    int x;
+    int y;
+
+    int deltaX;
+    int deltaY;
+};
+
 class GUISystem;
 
 class GUIWidget
 {
+public:
+    template<class T>
+    using EventCallback = std::function<void(const T&)>;
+
 public:
     GUIWidget() = default;
     virtual ~GUIWidget() = default;
@@ -63,14 +72,14 @@ public:
     virtual void update(float delta);
     virtual void render(GUISystem& guiSystem);
 
-    void setBackgroundColor(const glm::vec3& color);
-    glm::vec3 getBackgroundColor() const;
+    void setBackgroundColor(const glm::vec4& color);
+    glm::vec4 getBackgroundColor() const;
 
     void setBackgroundImage(std::shared_ptr<GLTexture> image);
     std::shared_ptr<GLTexture> getBackgroundImage() const;
 
-    void setHoverBackgroundColor(const glm::vec3& color);
-    glm::vec3 getHoverBackgroundColor() const;
+    void setHoverBackgroundColor(const glm::vec4& color);
+    glm::vec4 getHoverBackgroundColor() const;
 
     void setHoverBackgroundImage(std::shared_ptr<GLTexture> image);
     std::shared_ptr<GLTexture> getHoverBackgroundImage() const;
@@ -78,27 +87,43 @@ public:
     void setBorderWidth(int width);
     int getBorderWidth() const;
 
-    void setBorderColor(const glm::vec3& color);
-    glm::vec3 getBorderColor() const;
+    void setBorderColor(const glm::vec4& color);
+    glm::vec4 getBorderColor() const;
 
-    void setHoverBorderColor(const glm::vec3& color);
-    glm::vec3 getHoverBorderColor() const;
+    void setHoverBorderColor(const glm::vec4& color);
+    glm::vec4 getHoverBorderColor() const;
 
     const glm::mat4x4& getTransformationMatrix();
-private:
-    glm::ivec2 m_origin;
-    glm::ivec2 m_size;
 
-    glm::vec3 m_backgroundColor;
+    void setMouseButtonCallback(EventCallback<GUIMouseButtonEvent> callback);
+    void setMouseEnterCallback(EventCallback<GUIMouseEnterEvent> callback);
+    void setMouseLeaveCallback(EventCallback<GUIMouseLeaveEvent> callback);
+
+protected:
+    void enableScaleTransform();
+    void disableScaleTransform();
+
+private:
+    void triggerMouseButtonEvent(const GUIMouseButtonEvent& event);
+    void triggerMouseEnterEvent(const GUIMouseEnterEvent& event);
+    void triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event);
+
+private:
+    glm::ivec2 m_origin = glm::ivec2(0);
+    glm::ivec2 m_size = glm::ivec2(0);
+
+    glm::vec4 m_backgroundColor = glm::vec4(0.0f);
     std::shared_ptr<GLTexture> m_backgroundImage;
 
-    glm::vec3 m_hoverBackgroundColor;
+    glm::vec4 m_hoverBackgroundColor = glm::vec4(0.0f);
     std::shared_ptr<GLTexture> m_hoverBackgroundImage;
 
     int m_borderWidth = 0;
 
-    glm::vec3 m_borderColor;
-    glm::vec3 m_hoverBorderColor;
+    glm::vec4 m_borderColor = glm::vec4(0.0f);
+    glm::vec4 m_hoverBorderColor = glm::vec4(0.0f);
+
+    bool m_isScaleTransformEnabled = true;
 
     bool m_isShown = true;
     bool m_isHovered = false;
@@ -106,8 +131,13 @@ private:
 
     std::vector<std::shared_ptr<GUIWidget>> m_widgets;
 
+    EventCallback<GUIMouseButtonEvent> m_mouseButtonCallback;
+    EventCallback<GUIMouseEnterEvent> m_mouseEnterCallback;
+    EventCallback<GUIMouseLeaveEvent> m_mouseLeaveCallback;
+
     glm::mat4x4 m_transformationMatrixCache;
     bool m_needTransformationMatrixCacheUpdate = true;
+
 private:
     friend class GUISystem;
 };

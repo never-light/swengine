@@ -39,10 +39,17 @@ public:
 
     void enableAnisotropicFiltering(float quality);
 
+    int getWidth() const;
+    int getHeight() const;
+
+    GLTextureInternalFormat getInternalFormat() const;
+
 private:
     GLTextureType m_type;
     int m_width;
     int m_height;
+
+    GLTextureInternalFormat m_internalFormat;
 
     GLuint m_texture;
 

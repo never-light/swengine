@@ -1,10 +1,12 @@
 
 SOURCES += \
-    $$PWD/GUI/Button.cpp \
+    $$PWD/GUI/BitmapFont.cpp \
+    $$PWD/GUI/GUIButton.cpp \
+    $$PWD/GUI/GUIImage.cpp \
     $$PWD/GUI/GUILayout.cpp \
     $$PWD/GUI/GUISystem.cpp \
+    $$PWD/GUI/GUIText.cpp \
     $$PWD/GUI/GUIWidget.cpp \
-    $$PWD/GUI/Image.cpp \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/Material.cpp \
@@ -18,6 +20,7 @@ SOURCES += \
     $$PWD/OpenGL/GLShader.cpp \
     $$PWD/OpenGL/GLShadersPipeline.cpp \
     $$PWD/OpenGL/GLTexture.cpp \
+    $$PWD/Resources/BitmapFontResource.cpp \
     $$PWD/Resources/MeshResource.cpp \
     $$PWD/Resources/ShaderResource.cpp \
     $$PWD/Resources/TextureResource.cpp \
@@ -27,11 +30,13 @@ SOURCES += \
     Modules/Graphics/OpenGL/GLDebug.cpp
 
 HEADERS += \
-    $$PWD/GUI/Button.h \
+    $$PWD/GUI/BitmapFont.h \
+    $$PWD/GUI/GUIButton.h \
+    $$PWD/GUI/GUIImage.h \
     $$PWD/GUI/GUILayout.h \
     $$PWD/GUI/GUISystem.h \
+    $$PWD/GUI/GUIText.h \
     $$PWD/GUI/GUIWidget.h \
-    $$PWD/GUI/Image.h \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/Material.h \
@@ -46,6 +51,7 @@ HEADERS += \
     $$PWD/OpenGL/GLShader.h \
     $$PWD/OpenGL/GLShadersPipeline.h \
     $$PWD/OpenGL/GLTexture.h \
+    $$PWD/Resources/BitmapFontResource.h \
     $$PWD/Resources/MeshResource.h \
     $$PWD/Resources/RawMesh.h \
     $$PWD/Resources/ShaderResource.h \

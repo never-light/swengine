@@ -19,6 +19,7 @@
 #include "Modules/Graphics/Resources/ShaderResource.h"
 #include "Modules/Graphics/Resources/MeshResource.h"
 #include "Modules/Graphics/Resources/TextureResource.h"
+#include "Modules/Graphics/Resources/BitmapFontResource.h"
 
 class BaseGameApplication
 {

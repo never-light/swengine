@@ -4,7 +4,8 @@
 GLTexture::GLTexture(GLTextureType type, int width, int height, GLTextureInternalFormat internalFormat)
     : m_type(type),
       m_width(width),
-      m_height(height)
+      m_height(height),
+      m_internalFormat(internalFormat)
 {
     GL_CALL_BLOCK_BEGIN();
 
@@ -68,4 +69,19 @@ void GLTexture::setWrapModeW(GLint mode)
 void GLTexture::enableAnisotropicFiltering(float quality)
 {
     GL_CALL(glTextureParameterf(m_texture, GL_TEXTURE_MAX_ANISOTROPY, quality));
+}
+
+int GLTexture::getWidth() const
+{
+    return m_width;
+}
+
+int GLTexture::getHeight() const
+{
+    return m_height;
+}
+
+GLTextureInternalFormat GLTexture::getInternalFormat() const
+{
+    return m_internalFormat;
 }

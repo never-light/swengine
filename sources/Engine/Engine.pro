@@ -7,6 +7,7 @@ CONFIG -= qt
 
 INCLUDEPATH += $$THIRD_PARTY_DIR
 INCLUDEPATH += $$THIRD_PARTY_DIR/SDL2/include
+INCLUDEPATH += $$THIRD_PARTY_DIR/pugixml/include
 INCLUDEPATH += $$THIRD_PARTY_DIR/OpenGL
 #INCLUDEPATH += $$SOURCES_DIR/ThirdParty
 
@@ -29,7 +30,8 @@ SOURCES += \
     Modules/ResourceManagement/Resource.cpp \
     Modules/ResourceManagement/ResourceInstance.cpp \
     Modules/ResourceManagement/ResourceManagementModule.cpp \
-    Modules/ResourceManagement/ResourceManager.cpp
+    Modules/ResourceManagement/ResourceManager.cpp \
+    Utility/strings.cpp
 
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
@@ -62,6 +64,7 @@ HEADERS += \
     Modules/ResourceManagement/ResourceManagementModule.h \
     Modules/ResourceManagement/ResourceManager.h \
     Utility/helpers.h \
+    Utility/strings.h \
     types.h
 
 include($$PWD/Modules/Graphics/Graphics.pri)

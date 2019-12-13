@@ -30,6 +30,11 @@ public:
 
     bool isActionActive(const std::string& actionName) const;
 
+    void enableGlobalTracking();
+    void disableGlobalTracking();
+
+    bool isGlobalTrackingEnabled() const;
+
     void setMouseMovementMode(MouseMovementMode mode);
     MouseMovementMode getMouseMovementMode() const;
 

@@ -28,6 +28,23 @@ bool InputModule::isActionActive(const std::string &actionName) const
     return m_inputActionsState.at(actionName) == InputActionState::Active;
 }
 
+void InputModule::enableGlobalTracking()
+{
+    SDL_CaptureMouse(SDL_TRUE);
+}
+
+void InputModule::disableGlobalTracking()
+{
+    SDL_CaptureMouse(SDL_FALSE);
+}
+
+bool InputModule::isGlobalTrackingEnabled() const
+{
+    uint32_t windowFlags = SDL_GetWindowFlags(m_window);
+
+    return windowFlags & SDL_WINDOW_MOUSE_CAPTURE;
+}
+
 void InputModule::setMouseMovementMode(MouseMovementMode mode)
 {
     if (mode == MouseMovementMode::Relative) {

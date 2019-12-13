@@ -13,10 +13,10 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
     m_guiNDCQuad = std::make_unique<Mesh>();
 
     m_guiNDCQuad->setVertices({
-        { -1.0f,  1.0f, 0.0f },
-        { -1.0f, -1.0f, 0.0f },
+        { 0.0f,  1.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f },
         { 1.0f,  1.0f, 0.0f },
-        { 1.0f, -1.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
     });
 
     m_guiNDCQuad->setUV({
@@ -24,6 +24,13 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
         { 0.0f, 0.0f },
         { 1.0f, 1.0f },
         { 1.0f, 0.0f },
+    });
+
+    m_guiNDCQuad->setNormals({
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f },
     });
 
     m_guiNDCQuad->addSubMesh({ 0, 2, 1, 1, 2, 3 });
@@ -55,6 +62,10 @@ void GUISystem::update(GameWorld* gameWorld, float delta)
 void GUISystem::render(GameWorld* gameWorld)
 {
     ARG_UNUSED(gameWorld);
+
+    m_graphicsContext->disableDepthTest();
+    m_graphicsContext->enableBlending();
+    m_graphicsContext->setBlendingMode(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
     vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
@@ -89,7 +100,7 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     GLShader* fragmentShader = m_guiShadersPipeline->getShader(GL_FRAGMENT_SHADER);
 
     // Background
-    glm::vec3 backgroundColor = widget->getBackgroundColor();
+    glm::vec4 backgroundColor = widget->getBackgroundColor();
     GLTexture* backgroundTexture = widget->getBackgroundImage().get();
 
     if (widget->isHovered()) {
@@ -103,15 +114,17 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     fragmentShader->setParameter("widget.backgroundColor", backgroundColor);
     fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture != nullptr);
 
-    if (widget->getBackgroundImage() != nullptr) {
+    if (backgroundTexture != nullptr) {
         fragmentShader->setParameter("widget.backgroundTexture", *backgroundTexture, 0);
     }
+
+    fragmentShader->setParameter("widget.useColorAlphaTexture", false);
 
     // Border
     // TODO: implement border filling
     //fragmentShader->setParameter("widget.borderWidth", widget->getBorderWidth());
 
-    //glm::vec3 borderColor = widget->getBorderColor();
+    //glm::vec4 borderColor = widget->getBorderColor();
 
     //if (widget->isHovered()) {
         //borderColor = widget->getHoverBorderColor();
@@ -133,7 +146,10 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 void GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
 {
     ARG_UNUSED(gameWorld);
-    ARG_UNUSED(event);
+
+    if (m_activeLayout != nullptr) {
+        processGUIWidgetMouseButtonEvent(m_activeLayout.get(), event);
+    }
 }
 
 void GUISystem::updateGUIWidget(GUIWidget* widget)
@@ -144,9 +160,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
                 widget->m_isHovered = true;
 
                 GUIMouseEnterEvent event;
-                event.component = widget;
-
-                m_gameWorld->emitEvent<GUIMouseEnterEvent>(event);
+                widget->triggerMouseEnterEvent(event);
             }
         }
         else {
@@ -154,9 +168,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
                 widget->m_isHovered = false;
 
                 GUIMouseLeaveEvent event;
-                event.component = widget;
-
-                m_gameWorld->emitEvent<GUIMouseLeaveEvent>(event);
+                widget->triggerMouseLeaveEvent(event);
             }
         }
     }
@@ -174,18 +186,17 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
         if (isMouseInWidgetArea(widget)) {
             isExclusive = false;
 
-            processGUIWidgetMouseButtonEvent(widget, event);
+            processGUIWidgetMouseButtonEvent(childWidget.get(), event);
         }
     }
 
     if (isMouseInWidgetArea(widget)) {
         GUIMouseButtonEvent mouseEvent;
-        mouseEvent.component = widget;
         mouseEvent.type = event.type;
         mouseEvent.button = event.button;
         mouseEvent.isExclusive = isExclusive;
 
-        m_gameWorld->emitEvent<GUIMouseButtonEvent>(mouseEvent);
+        widget->triggerMouseButtonEvent(mouseEvent);
     }
 }
 

@@ -10,9 +10,9 @@
 #include "GLDebug.h"
 
 struct VertexPos3Norm3UV {
-    glm::vec3 pos;
-    glm::vec3 norm;
-    glm::vec2 uv;
+    glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 norm = { 0.0f, 0.0f, 0.0f };
+    glm::vec2 uv = { 0.0f, 0.0f };
 };
 
 class GLGeometryStore
