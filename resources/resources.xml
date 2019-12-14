@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<resource type="texture" id="simple_texture" source="../resources/textures/pbr/brick/albedo.tga">
+		<type>2d</type>
+		<format>rgb8</format>
+		<generate_mipmaps>true</generate_mipmaps>
+		<min_filter>linear_mipmap_linear</min_filter>
+		<mag_filter>linear</mag_filter>
+		<wrap u="repeat" v="repeat"></wrap>
+	</resource>
+	
+	<resource type="shader" id="simple_vertex_shader" source="../resources/shaders/test.glsl">
+		<type>vertex</type>
+	</resource>
+
+	<resource type="mesh" id="simple_mesh" source="test.mesh">
+	</resource>
+
+
+</resources>
