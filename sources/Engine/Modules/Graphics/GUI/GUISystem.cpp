@@ -87,6 +87,16 @@ std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
     return m_activeLayout;
 }
 
+void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font)
+{
+    m_defaultFont = font;
+}
+
+std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const
+{
+    return m_defaultFont;
+}
+
 std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
 {
     return m_graphicsContext;

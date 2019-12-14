@@ -45,26 +45,18 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
     std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
-    resourceManager->declareResourceType<ShaderResource>();
-    resourceManager->declareResourceType<MeshResource>();
-    resourceManager->declareResourceType<TextureResource>();
-    resourceManager->declareResourceType<BitmapFontResource>();
+    resourceManager->declareResourceType<ShaderResource>("shader");
+    resourceManager->declareResourceType<MeshResource>("mesh");
+    resourceManager->declareResourceType<TextureResource>("texture");
+    resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
 
-    resourceManager->declareResource<ShaderResource>("gui_vertex_shader", ResourceSource{
-        ResourceSourceFile{ "../resources/shaders/gui_vertex_shader.glsl" },
-        ShaderResourceParameters{ GL_VERTEX_SHADER }
-    });
+    resourceManager->addResourcesMap("../resources/engine_resources.xml");
 
-    resourceManager->declareResource<ShaderResource>("gui_fragment_shader", ResourceSource{
-        ResourceSourceFile{ "../resources/shaders/gui_fragment_shader.glsl" },
-        ShaderResourceParameters{ GL_FRAGMENT_SHADER }
-    });
+    std::shared_ptr<GLShader> guiVertexShader = resourceManager->
+            getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
 
-    std::shared_ptr<GLShader> guiVertexShader = resourceManager->getResourceInstance("gui_vertex_shader")->
-            getResource<ShaderResource>()->getShader();
-
-    std::shared_ptr<GLShader> guiFragmentShader = resourceManager->getResourceInstance("gui_fragment_shader")->
-            getResource<ShaderResource>()->getShader();
+    std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
+            getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
 
     std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
                 guiVertexShader, guiFragmentShader, nullptr);
@@ -81,8 +73,13 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
                                                                   m_sharedGraphicsState);
     m_gameWorld->addGameSystem(m_meshRenderingSystem);
 
-    m_guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule, m_graphicsModule->getGraphicsContext(),
-                                              guiShadersPipeline);
+    m_guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
+        m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
+
+    std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
+            getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+    m_guiSystem->setDefaultFont(guiDefaultFont);
+
     m_gameWorld->addGameSystem(m_guiSystem);
 
     spdlog::info("Engine modules are initialized");

@@ -25,6 +25,9 @@ private:
     std::unique_ptr<Resource> m_resource;
 
     std::shared_ptr<ResourceManager> m_resourceManager;
+
+private:
+    friend class ResourceManager;
 };
 
 template<class T>

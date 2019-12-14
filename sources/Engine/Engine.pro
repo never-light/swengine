@@ -31,7 +31,8 @@ SOURCES += \
     Modules/ResourceManagement/ResourceInstance.cpp \
     Modules/ResourceManagement/ResourceManagementModule.cpp \
     Modules/ResourceManagement/ResourceManager.cpp \
-    Utility/strings.cpp
+    Utility/strings.cpp \
+    Utility/xml.cpp
 
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
@@ -65,6 +66,7 @@ HEADERS += \
     Modules/ResourceManagement/ResourceManager.h \
     Utility/helpers.h \
     Utility/strings.h \
+    Utility/xml.h \
     types.h
 
 include($$PWD/Modules/Graphics/Graphics.pri)

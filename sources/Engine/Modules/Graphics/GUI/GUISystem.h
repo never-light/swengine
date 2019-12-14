@@ -35,6 +35,9 @@ public:
     void setActiveLayout(std::shared_ptr<GUILayout> layout);
     std::shared_ptr<GUILayout> getActiveLayout();
 
+    void setDefaultFont(std::shared_ptr<BitmapFont> font);
+    std::shared_ptr<BitmapFont> getDefaultFont() const;
+
     std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
     RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
 
@@ -58,6 +61,7 @@ private:
     std::shared_ptr<InputModule> m_inputModule;
     std::shared_ptr<GLGraphicsContext> m_graphicsContext;
     std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
+    std::shared_ptr<BitmapFont> m_defaultFont;
 
     std::shared_ptr<GUIWidget> m_focusedWidget;
 

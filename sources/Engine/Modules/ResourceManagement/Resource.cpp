@@ -25,11 +25,11 @@ void Resource::setPersistent(bool persistent)
     m_persistent = persistent;
 }
 
-void Resource::performLoad(const ResourceSource &source)
+void Resource::performLoad(const ResourceDeclaration& declaration)
 {
     SW_ASSERT(!isLoaded());
 
-    load(source);
+    load(declaration);
     m_loaded = true;
 }
 
@@ -41,9 +41,9 @@ void Resource::performUnload()
     m_loaded = false;
 }
 
-void Resource::load(const ResourceSource &source)
+void Resource::load(const ResourceDeclaration& declaration)
 {
-    ARG_UNUSED(source);
+    ARG_UNUSED(declaration);
 }
 
 void Resource::unload()
