@@ -5,8 +5,6 @@
 #include <Engine/Modules/Graphics/OpenGL/GLShadersPipeline.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
 
-#include "Game/Screens/GameScreen.h"
-
 class GameApplication : public BaseGameApplication
 {
 public:

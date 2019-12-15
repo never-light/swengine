@@ -3,6 +3,8 @@
 #include <Exceptions/EngineRuntimeException.h>
 #include <spdlog/spdlog.h>
 
+#include "Modules/Graphics/GUI/GUIConsole.h"
+
 BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight)
     : m_mainWindow(nullptr)
 {
@@ -85,7 +87,43 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
                                                       m_sharedGraphicsState, resourceManager);
 
-    m_guiSystem->setActiveLayout(m_screenManager->getCommontGUILayout());
+    m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
+
+    m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
+
+    std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, m_guiSystem->getDefaultFont());
+    m_gameConsole->setGUIConsole(guiConsole);
+
+    glm::vec4 guiConsoleBackgroundColor = { 0.168f, 0.172f, 0.25f, 0.8f };
+
+    guiConsole->setBackgroundColor(guiConsoleBackgroundColor);
+    guiConsole->setHoverBackgroundColor(guiConsoleBackgroundColor);
+    guiConsole->setWidth(m_guiSystem->getScreenWidth());
+
+    glm::vec4 guiConsoleTextBoxBackgroundColor = { 0.118f, 0.112f, 0.15f, 1.0f };
+
+    guiConsole->getTextBox()->setBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setHoverBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setFocusBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->getTextBox()->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->getTextBox()->setTextFontSize(9);
+
+    guiConsole->setTextFontSize(9);
+    guiConsole->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+    guiConsole->setZIndex(10);
+    guiConsole->hide();
+
+    m_screenManager->getCommonGUILayout()->addChildWidget(guiConsole);
+
+    m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
+    m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+
+    m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
+
+    m_gameConsole->print("Engine is initialized...");
 
     spdlog::info("Engine modules are initialized");
 }
@@ -131,24 +169,31 @@ int BaseGameApplication::execute()
     long sleepTime = 0;
 
     SDL_Event event;
-    bool isRun = true;
 
     spdlog::info("Starting main loop...");
 
-    while (isRun) {
+    m_isMainLoopActive = true;
+
+    while (m_isMainLoopActive) {
         while (SDL_PollEvent(&event) != 0) {
-            if (event.type == SDL_QUIT) {
-                isRun = false;
+            if (event.type == SDL_QUIT || (event.type == SDL_WINDOWEVENT &&
+                event.window.event == SDL_WINDOWEVENT_CLOSE))
+            {
+                m_isMainLoopActive = false;
                 break;
             }
 
             m_inputModule->processRawSDLEvent(event);
         }
 
-        if (!isRun)
+        if (!m_isMainLoopActive)
             break;
 
         performUpdate(1.0f / FRAMES_PER_SECOND);
+
+        if (!m_isMainLoopActive)
+            break;
+
         performRender();
 
         nextTick += SKIP_TICKS;
@@ -166,6 +211,40 @@ int BaseGameApplication::execute()
     return 0;
 }
 
+EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
+{
+    ARG_UNUSED(gameWorld);
+
+    if (event.command == "exit") {
+        shutdown();
+
+        return EventProcessStatus::Prevented;
+    }
+
+    return EventProcessStatus::Processed;
+}
+
+EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+{
+    ARG_UNUSED(gameWorld);
+
+    if (event.actionName == "console" && event.newState == InputActionState::Active) {
+        if (m_gameConsole->getGUIConsole()->isShown()) {
+            m_gameConsole->getGUIConsole()->hide();
+        }
+        else {
+            m_gameConsole->getGUIConsole()->show();
+        }
+    }
+
+    return EventProcessStatus::Processed;
+}
+
+void BaseGameApplication::shutdown()
+{
+    m_isMainLoopActive = false;
+}
+
 void BaseGameApplication::performLoad()
 {
     load();
@@ -174,6 +253,8 @@ void BaseGameApplication::performLoad()
 void BaseGameApplication::performUnload()
 {
     unload();
+
+    SDL_Quit();
 }
 
 void BaseGameApplication::performUpdate(float delta)

@@ -175,6 +175,13 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
 
     if (m_activeLayout != nullptr) {
         processGUIWidgetMouseButtonEvent(m_activeLayout.get(), event);
+
+        if (m_focusedWidget != nullptr) {
+            if (!isMouseInWidgetArea(m_focusedWidget.get())) {
+                m_focusedWidget->resetFocus();
+                m_focusedWidget = nullptr;
+            }
+        }
     }
 
     return EventProcessStatus::Processed;
@@ -184,7 +191,7 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
 {
     ARG_UNUSED(gameWorld);
 
-    if (m_focusedWidget != nullptr) {
+    if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {
         GUIKeyboardEvent guiEvent;
         guiEvent.type = event.type;
         guiEvent.keyCode = event.keyCode;
@@ -201,22 +208,24 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
 
 void GUISystem::updateGUIWidget(GUIWidget* widget)
 {
-    if (widget->isShown()) {
-        if (isMouseInWidgetArea(widget)) {
-            if (!widget->m_isHovered) {
-                widget->m_isHovered = true;
+    if (!widget->isShown()) {
+        return;
+    }
 
-                GUIMouseEnterEvent event;
-                widget->triggerMouseEnterEvent(event);
-            }
+    if (isMouseInWidgetArea(widget)) {
+        if (!widget->m_isHovered) {
+            widget->m_isHovered = true;
+
+            GUIMouseEnterEvent event;
+            widget->triggerMouseEnterEvent(event);
         }
-        else {
-            if (widget->m_isHovered) {
-                widget->m_isHovered = false;
+    }
+    else {
+        if (widget->m_isHovered) {
+            widget->m_isHovered = false;
 
-                GUIMouseLeaveEvent event;
-                widget->triggerMouseLeaveEvent(event);
-            }
+            GUIMouseLeaveEvent event;
+            widget->triggerMouseLeaveEvent(event);
         }
     }
 
@@ -227,6 +236,10 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
 
 void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event)
 {
+    if (!widget->isShown()) {
+        return;
+    }
+
     bool isExclusive = true;
 
     for (auto childWidget : widget->getChildrenWidgets()) {
@@ -255,20 +268,21 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
 
         widget->triggerMouseButtonEvent(mouseEvent);
     }
-    else {
-        if (widget->hasFocus()) {
-            m_focusedWidget = nullptr;
-            widget->resetFocus();
-        }
-    }
 }
 
 bool GUISystem::isMouseInWidgetArea(const GUIWidget* widget) const
 {
     MousePosition mousePosition = m_inputModule->getMousePosition();
+    return isPointInWidgetArea({ mousePosition.x, mousePosition.y }, widget);
+}
 
-    return widget->m_origin.x <= mousePosition.x && mousePosition.x <= (widget->m_origin.x + widget->m_size.x) &&
-            widget->m_origin.y <= mousePosition.y && mousePosition.y <= (widget->m_origin.y + widget->m_size.y);
+bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const
+{
+    glm::vec2 widgetOrigin = widget->getAbsoluteOrigin();
+
+    return widgetOrigin.x <= point.x && point.x <= (widgetOrigin.x + widget->m_size.x) &&
+            widgetOrigin.y <= point.y && point.y <= (widgetOrigin.y + widget->m_size.y);
+
 }
 
 void GUISystem::renderGUIWidget(GUIWidget* widget)

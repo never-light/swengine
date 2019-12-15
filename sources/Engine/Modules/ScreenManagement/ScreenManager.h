@@ -24,7 +24,7 @@ public:
     void update(float delta);
     void render();
 
-    std::shared_ptr<GUILayout> getCommontGUILayout() const;
+    std::shared_ptr<GUILayout> getCommonGUILayout() const;
 
 private:
     std::shared_ptr<Screen> m_activeScreen;

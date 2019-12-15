@@ -103,9 +103,11 @@ void GUITextBox::transformationCacheUpdate()
         addChildWidget(m_text);
     }
 
-    if (m_text->m_needTextGeometryUpdate) {
-        m_text->updateAndGetGeometryStore();
-    }
+    if (!m_text->getText().empty()) {
+        if (m_text->m_needTextGeometryUpdate) {
+            m_text->updateAndGetGeometryStore();
+        }
 
-    m_text->setOrigin({ 10, getSize().y / 2 - m_text->getSize().y / 2 });
+        m_text->setOrigin({ 10, getSize().y / 2 - m_text->getSize().y / 2 });
+    }
 }

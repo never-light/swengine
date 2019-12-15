@@ -1,13 +1,13 @@
 #include "GameApplication.h"
 
+#include <spdlog/spdlog.h>
 #include <Engine/Exceptions/EngineRuntimeException.h>
 
-#include <spdlog/spdlog.h>
-
-#include "Game/Game/PlayerComponent.h"
+#include "Game/Screens/GameScreen.h"
+#include "Game/Screens/MainMenuScreen.h"
 
 GameApplication::GameApplication(int argc, char* argv[])
-    : BaseGameApplication(argc, argv, "Game", 640, 480)
+    : BaseGameApplication(argc, argv, "Game", 1280, 720)
 {
 
 }
@@ -27,5 +27,7 @@ void GameApplication::load()
     resourceMgr->addResourcesMap("../resources/resources.xml");
 
     m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule));
-    m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::Game));
+    m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));
+
+    m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
 }

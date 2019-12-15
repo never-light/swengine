@@ -154,7 +154,7 @@ void InputModule::toggleActionState(const InputAction& action, InputActionState 
             m_inputActionsState[currentAction->m_name] = state;
 
             InputActionToggleEvent event;
-            event.actionName = action.m_name;
+            event.actionName = currentAction->m_name;
             event.newState = state;
 
             for (auto eventsListener : m_eventsListeners) {

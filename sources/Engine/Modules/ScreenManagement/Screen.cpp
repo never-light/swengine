@@ -72,5 +72,5 @@ void Screen::performInternalInitialization(std::shared_ptr<ScreenManager> screen
     m_sharedGraphicsState = sharedGraphicsState;
     m_resourceManager = resourceManager;
 
-    m_guiLayout->setSize(screenManager->getCommontGUILayout()->getSize());
+    m_guiLayout->setSize(screenManager->getCommonGUILayout()->getSize());
 }

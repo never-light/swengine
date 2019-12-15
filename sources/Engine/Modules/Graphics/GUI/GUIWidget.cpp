@@ -38,10 +38,22 @@ glm::ivec2 GUIWidget::getSize() const
     return m_size;
 }
 
+void GUIWidget::setWidth(int width)
+{
+    m_size.x = width;
+}
+
+void GUIWidget::setHeight(int height)
+{
+    m_size.y = height;
+}
+
 void GUIWidget::addChildWidget(std::shared_ptr<GUIWidget> widget)
 {
     m_widgets.push_back(widget);
     widget->setParent(weak_from_this());
+
+    orderChildrenByZIndex();
 }
 
 void GUIWidget::removeChildWidget(const std::shared_ptr<GUIWidget>& widget)
@@ -191,6 +203,20 @@ glm::vec4 GUIWidget::getFocusBorderColor() const
     return m_focusBorderColor;
 }
 
+void GUIWidget::setZIndex(int zIndex)
+{
+    m_zIndex = zIndex;
+
+    if (m_parent.lock() != nullptr) {
+        m_parent.lock()->orderChildrenByZIndex();
+    }
+}
+
+int GUIWidget::getZIndex() const
+{
+    return m_zIndex;
+}
+
 const glm::mat4x4& GUIWidget::getTransformationMatrix()
 {
     if (m_needTransformationMatrixCacheUpdate) {
@@ -303,6 +329,13 @@ void GUIWidget::setFocus()
 void GUIWidget::resetFocus()
 {
     m_hasFocus = false;
+}
+
+void GUIWidget::orderChildrenByZIndex()
+{
+    std::sort(m_widgets.begin(), m_widgets.end(), [] (std::shared_ptr<GUIWidget> widget1, std::shared_ptr<GUIWidget> widget2) {
+        return widget1->getZIndex() < widget2->getZIndex();
+    });
 }
 
 std::shared_ptr<GUIWidget> GUIWidget::getParent() const

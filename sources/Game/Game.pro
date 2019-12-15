@@ -11,6 +11,7 @@ SOURCES += \
         Game/PlayerControlSystem.cpp \
         Game/Screens/BaseGameScreen.cpp \
         Game/Screens/GameScreen.cpp \
+        Game/Screens/MainMenuScreen.cpp \
         main.cpp
 
 
@@ -19,7 +20,8 @@ HEADERS += \
     Game/PlayerComponent.h \
     Game/PlayerControlSystem.h \
     Game/Screens/BaseGameScreen.h \
-    Game/Screens/GameScreen.h
+    Game/Screens/GameScreen.h \
+    Game/Screens/MainMenuScreen.h
 
 QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
 QMAKE_CXXFLAGS += -Wall

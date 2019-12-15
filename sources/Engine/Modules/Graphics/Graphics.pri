@@ -2,6 +2,7 @@
 SOURCES += \
     $$PWD/GUI/BitmapFont.cpp \
     $$PWD/GUI/GUIButton.cpp \
+    $$PWD/GUI/GUIConsole.cpp \
     $$PWD/GUI/GUIImage.cpp \
     $$PWD/GUI/GUILayout.cpp \
     $$PWD/GUI/GUISystem.cpp \
@@ -33,6 +34,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/GUI/BitmapFont.h \
     $$PWD/GUI/GUIButton.h \
+    $$PWD/GUI/GUIConsole.h \
     $$PWD/GUI/GUIImage.h \
     $$PWD/GUI/GUILayout.h \
     $$PWD/GUI/GUISystem.h \

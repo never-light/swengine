@@ -63,6 +63,9 @@ public:
     void setSize(const glm::ivec2& size);
     glm::ivec2 getSize() const;
 
+    void setWidth(int width);
+    void setHeight(int height);
+
     void addChildWidget(std::shared_ptr<GUIWidget> widget);
     void removeChildWidget(const std::shared_ptr<GUIWidget>& widget);
 
@@ -110,6 +113,9 @@ public:
     void setFocusBorderColor(const glm::vec4& color);
     glm::vec4 getFocusBorderColor() const;
 
+    void setZIndex(int zIndex);
+    int getZIndex() const;
+
     const glm::mat4x4& getTransformationMatrix();
 
     void setMouseButtonCallback(EventCallback<GUIMouseButtonEvent> callback);
@@ -140,6 +146,7 @@ private:
     void setFocus();
     void resetFocus();
 
+    void orderChildrenByZIndex();
 private:
     glm::ivec2 m_origin = glm::ivec2(0);
     glm::ivec2 m_size = glm::ivec2(0);
@@ -163,6 +170,8 @@ private:
     bool m_isShown = true;
     bool m_isHovered = false;
     bool m_hasFocus = false;
+
+    int m_zIndex = 0;
 
     std::vector<std::shared_ptr<GUIWidget>> m_widgets;
     std::weak_ptr<GUIWidget> m_parent;

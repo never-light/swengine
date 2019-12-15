@@ -52,6 +52,8 @@ private:
     void processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event);
 
     bool isMouseInWidgetArea(const GUIWidget* widget) const;
+    bool isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const;
+
 
     void renderGUIWidget(GUIWidget* widget);
 

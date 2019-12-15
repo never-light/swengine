@@ -22,11 +22,14 @@
 #include "Modules/Graphics/Resources/TextureResource.h"
 #include "Modules/Graphics/Resources/BitmapFontResource.h"
 
-class BaseGameApplication
+#include "GameConsole.h"
+
+class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
+        public EventsListener<InputActionToggleEvent>
 {
 public:
     BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
-    virtual ~BaseGameApplication();
+    ~BaseGameApplication() override;
 
     virtual void load();
     virtual void unload();
@@ -35,6 +38,11 @@ public:
     virtual void render();
 
     virtual int execute();
+
+    EventProcessStatus receiveEvent(GameWorld *gameWorld, const GameConsoleCommandEvent &event) override;
+    EventProcessStatus receiveEvent(GameWorld *gameWorld, const InputActionToggleEvent &event) override;
+
+    void shutdown();
 
 private:
     void performLoad();
@@ -59,4 +67,8 @@ protected:
     std::shared_ptr<GUISystem> m_guiSystem;
 
     std::shared_ptr<ScreenManager> m_screenManager;
+
+    std::shared_ptr<GameConsole> m_gameConsole;
+
+    bool m_isMainLoopActive = false;
 };

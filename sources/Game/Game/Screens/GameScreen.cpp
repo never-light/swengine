@@ -24,12 +24,22 @@ GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule)
 
 void GameScreen::activate()
 {
+    m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
+    m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
+    m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
+    m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+
     m_gameWorld->addGameSystem(m_playerControlSystem);
 }
 
 void GameScreen::deactivate()
 {
     m_gameWorld->removeGameSystem(m_playerControlSystem);
+
+    m_inputModule->unregisterAction("forward");
+    m_inputModule->unregisterAction("backward");
+    m_inputModule->unregisterAction("left");
+    m_inputModule->unregisterAction("right");
 }
 
 void GameScreen::load()
@@ -75,11 +85,6 @@ void GameScreen::initializeGame()
     player->getComponent<CameraComponent>()->setCamera(camera);
     m_sharedGraphicsState->setActiveCamera(camera);
 
-    m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
-    m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
-    m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
-    m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
-
     // Game objects
 
     std::shared_ptr<GLShadersPipeline> phongPipeline = std::make_shared<GLShadersPipeline>(
@@ -107,10 +112,6 @@ void GameScreen::initializeGame()
 
 void GameScreen::deinitializeGame()
 {
-    m_inputModule->unregisterAction("forward");
-    m_inputModule->unregisterAction("backward");
-    m_inputModule->unregisterAction("left");
-    m_inputModule->unregisterAction("right");
 }
 
 void GameScreen::initializeGUI()

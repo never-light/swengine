@@ -68,7 +68,7 @@ void ScreenManager::render()
     }
 }
 
-std::shared_ptr<GUILayout> ScreenManager::getCommontGUILayout() const
+std::shared_ptr<GUILayout> ScreenManager::getCommonGUILayout() const
 {
     return m_commonGUILayout;
 }
