@@ -8,9 +8,12 @@ class PlayerControlSystem : public GameSystem
 {
 public:
     PlayerControlSystem(std::shared_ptr<InputModule> inputModule);
-    ~PlayerControlSystem();
+    ~PlayerControlSystem() override;
 
-    void update(GameWorld* gameWorld, float delta);
+    void configure(GameWorld *gameWorld) override;
+    void unconfigure(GameWorld *gameWorld) override;
+
+    void update(GameWorld* gameWorld, float delta) override;
 
 private:
     Camera* getPlayerCamera() const;
@@ -22,5 +25,6 @@ private:
     GameObject* m_playerObject = nullptr;
 
     std::shared_ptr<InputModule> m_inputModule;
+
 };
 

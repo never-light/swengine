@@ -31,6 +31,8 @@ SOURCES += \
     Modules/ResourceManagement/ResourceInstance.cpp \
     Modules/ResourceManagement/ResourceManagementModule.cpp \
     Modules/ResourceManagement/ResourceManager.cpp \
+    Modules/ScreenManagement/Screen.cpp \
+    Modules/ScreenManagement/ScreenManager.cpp \
     Utility/strings.cpp \
     Utility/xml.cpp
 
@@ -64,6 +66,8 @@ HEADERS += \
     Modules/ResourceManagement/ResourceInstance.h \
     Modules/ResourceManagement/ResourceManagementModule.h \
     Modules/ResourceManagement/ResourceManager.h \
+    Modules/ScreenManagement/Screen.h \
+    Modules/ScreenManagement/ScreenManager.h \
     Utility/helpers.h \
     Utility/strings.h \
     Utility/xml.h \

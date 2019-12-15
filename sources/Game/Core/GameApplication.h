@@ -5,7 +5,7 @@
 #include <Engine/Modules/Graphics/OpenGL/GLShadersPipeline.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
 
-#include "Game/Game/PlayerControlSystem.h"
+#include "Game/Screens/GameScreen.h"
 
 class GameApplication : public BaseGameApplication
 {
@@ -15,12 +15,5 @@ public:
 
     void render() override;
     void load() override;
-
-private:
-    std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
-
-    std::shared_ptr<Mesh> m_triangleGeometry;
-    std::shared_ptr<GLShadersPipeline> m_triangleShadersPipeline;
-    std::shared_ptr<Material> m_material;
 };
 

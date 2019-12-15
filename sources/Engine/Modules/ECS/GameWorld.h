@@ -56,6 +56,17 @@ public:
 	 */
     void removeGameSystem(std::shared_ptr<GameSystem> system);
 
+    /*!
+     * \brief Removes the game system
+     *
+     * \param system game system object pointer
+     *
+     * \return Game system
+     */
+
+    template<class T>
+    std::shared_ptr<T> getGameSystem() const;
+
 	/*!
 	 * \brief Creates and registers a new game object
 	 * 
@@ -184,6 +195,22 @@ protected:
 
     std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
 };
+
+template<class T>
+std::shared_ptr<T> GameWorld::getGameSystem() const
+{
+    static_assert (std::is_base_of_v<GameSystem, T>);
+
+    for (std::shared_ptr<GameSystem> gameSystem : m_gameSystems) {
+        std::shared_ptr<T> foundGameSystem = std::dynamic_pointer_cast<T>(gameSystem);
+
+        if (foundGameSystem != nullptr) {
+            return foundGameSystem;
+        }
+    }
+
+    return nullptr;
+}
 
 template<class T, class ...Args>
 inline ComponentHandle<T> GameWorld::assignComponent(GameObject * gameObject, Args && ...args)

@@ -9,12 +9,15 @@
 		<wrap u="repeat" v="repeat"></wrap>
 	</resource>
 	
-	<resource type="shader" id="simple_vertex_shader" source="../resources/shaders/test.glsl">
-		<type>vertex</type>
-	</resource>
-
 	<resource type="mesh" id="simple_mesh" source="test.mesh">
 	</resource>
 
+	<resource type="shader" id="phong_vertex_shader" source="../resources/shaders/phong_vertex_shader.glsl" persistent="true" preload="true">
+		<type>vertex</type>
+	</resource>
+
+	<resource type="shader" id="phong_fragment_shader" source="../resources/shaders/phong_fragment_shader.glsl" preload="true" persistent="true">
+		<type>fragment</type>
+	</resource>
 
 </resources>

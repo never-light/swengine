@@ -159,6 +159,16 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     return task;
 }
 
+int GUISystem::getScreenWidth() const
+{
+    return m_graphicsContext->getBufferWidth();
+}
+
+int GUISystem::getScreenHeight() const
+{
+    return m_graphicsContext->getBufferHeight();
+}
+
 EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
 {
     ARG_UNUSED(gameWorld);

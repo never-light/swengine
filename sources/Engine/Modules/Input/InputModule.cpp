@@ -23,6 +23,15 @@ void InputModule::registerAction(const std::string& actionName,
     m_inputActionsState.insert({ actionName, InputActionState::Inactive });
 }
 
+void InputModule::unregisterAction(const std::string& actionName)
+{
+    m_inputActions.erase(std::remove_if(m_inputActions.begin(), m_inputActions.end(), [actionName] (InputAction* action) {
+        return action->m_name == actionName;
+    }), m_inputActions.end());
+
+    m_inputActionsState.erase(m_inputActionsState.find(actionName));
+}
+
 bool InputModule::isActionActive(const std::string &actionName) const
 {
     return m_inputActionsState.at(actionName) == InputActionState::Active;

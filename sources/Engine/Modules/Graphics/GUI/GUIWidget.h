@@ -68,6 +68,8 @@ public:
 
     const std::vector<std::shared_ptr<GUIWidget>>& getChildrenWidgets() const;
 
+    void removeChildren();
+
     void show();
     void hide();
 

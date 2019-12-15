@@ -28,6 +28,8 @@ public:
     void registerAction(const std::string& actionName,
                         const InputAction& action);
 
+    void unregisterAction(const std::string& actionName);
+
     bool isActionActive(const std::string& actionName) const;
 
     void enableGlobalTracking();

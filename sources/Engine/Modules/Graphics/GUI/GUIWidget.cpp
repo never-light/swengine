@@ -55,6 +55,11 @@ const std::vector<std::shared_ptr<GUIWidget>>& GUIWidget::getChildrenWidgets() c
     return m_widgets;
 }
 
+void GUIWidget::removeChildren()
+{
+    m_widgets.clear();
+}
+
 void GUIWidget::show()
 {
     m_isShown = true;

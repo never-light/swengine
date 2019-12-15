@@ -19,6 +19,22 @@ PlayerControlSystem::~PlayerControlSystem()
 
 }
 
+void PlayerControlSystem::configure(GameWorld* gameWorld)
+{
+    ARG_UNUSED(gameWorld);
+
+    m_inputModule->enableGlobalTracking();
+
+   // m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
+}
+
+void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
+{
+    ARG_UNUSED(gameWorld);
+
+    //m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
+}
+
 void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 {
     ARG_UNUSED(delta);
@@ -33,6 +49,14 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
     float movementSpeed = playerComponent->getMovementSpeed();
 
     Camera* playerCamera = getPlayerCamera();
+
+    auto mouseDeltaTemp = m_inputModule->getMouseDelta();
+    glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
+
+    mouseDelta *= -0.25;
+
+    playerCamera->getTransform()->pitch(mouseDelta.y);
+    playerCamera->getTransform()->yaw(mouseDelta.x);
 
     if (m_inputModule->isActionActive("forward")) {
         move(playerCamera->getTransform()->getFrontDirection() * movementSpeed);
@@ -49,8 +73,6 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
     if (m_inputModule->isActionActive("left")) {
         move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f));
     }
-
-    //playerCamera->getTransform()->setPosition(getPlayerTransform()->getPosition());
 }
 
 Camera* PlayerControlSystem::getPlayerCamera() const

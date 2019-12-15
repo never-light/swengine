@@ -15,6 +15,7 @@
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
 #include "Modules/Graphics/GUI/GUISystem.h"
+#include "Modules/ScreenManagement/ScreenManager.h"
 
 #include "Modules/Graphics/Resources/ShaderResource.h"
 #include "Modules/Graphics/Resources/MeshResource.h"
@@ -56,4 +57,6 @@ protected:
 
     std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
     std::shared_ptr<GUISystem> m_guiSystem;
+
+    std::shared_ptr<ScreenManager> m_screenManager;
 };

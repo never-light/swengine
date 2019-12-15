@@ -41,6 +41,9 @@ public:
     std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
     RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
 
+    int getScreenWidth() const;
+    int getScreenHeight() const;
+
     EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
     EventProcessStatus receiveEvent(GameWorld *gameWorld, const KeyboardEvent &event) override;
 

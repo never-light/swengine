@@ -82,6 +82,11 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
 
     m_gameWorld->addGameSystem(m_guiSystem);
 
+    m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
+                                                      m_sharedGraphicsState, resourceManager);
+
+    m_guiSystem->setActiveLayout(m_screenManager->getCommontGUILayout());
+
     spdlog::info("Engine modules are initialized");
 }
 
@@ -173,9 +178,10 @@ void BaseGameApplication::performUnload()
 
 void BaseGameApplication::performUpdate(float delta)
 {
-    update(delta);
-
     m_gameWorld->update(delta);
+    m_screenManager->update(delta);
+
+    update(delta);
 }
 
 void BaseGameApplication::performRender()
@@ -184,6 +190,8 @@ void BaseGameApplication::performRender()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_gameWorld->render();
+    m_screenManager->render();
+
     render();
 
     m_graphicsModule->getGraphicsContext()->swapBuffers();

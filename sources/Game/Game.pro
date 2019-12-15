@@ -9,13 +9,17 @@ SOURCES += \
         Core/GameApplication.cpp \
         Game/PlayerComponent.cpp \
         Game/PlayerControlSystem.cpp \
+        Game/Screens/BaseGameScreen.cpp \
+        Game/Screens/GameScreen.cpp \
         main.cpp
 
 
 HEADERS += \
     Core/GameApplication.h \
     Game/PlayerComponent.h \
-    Game/PlayerControlSystem.h
+    Game/PlayerControlSystem.h \
+    Game/Screens/BaseGameScreen.h \
+    Game/Screens/GameScreen.h
 
 QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
 QMAKE_CXXFLAGS += -Wall
@@ -33,6 +37,7 @@ else:unix: LIBS += -L$$OUT_PWD/../Engine/ -lEngine
 INCLUDEPATH += $$SOURCES_DIR
 INCLUDEPATH += $$THIRD_PARTY_DIR
 INCLUDEPATH += $$THIRD_PARTY_DIR/SDL2/include
+INCLUDEPATH += $$THIRD_PARTY_DIR/pugixml/include
 INCLUDEPATH += $$THIRD_PARTY_DIR/OpenGL
 INCLUDEPATH += $$SOURCES_DIR/Engine
 #INCLUDEPATH += $$SOURCES_DIR/ThirdParty
@@ -42,6 +47,7 @@ DEPENDPATH += $$SOURCES_DIR/Engine
 
 LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2main.a
 LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2.dll.a
+LIBS += $$THIRD_PARTY_DIR/pugixml/lib/x64/libpugixml.a
 #LIBS += $$APP_BUILD_DIR/libraries/libspdlog.a
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../Engine/release/libEngine.a
