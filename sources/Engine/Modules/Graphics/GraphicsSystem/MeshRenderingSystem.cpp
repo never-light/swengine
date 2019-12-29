@@ -78,7 +78,6 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
             }
 
             m_graphicsContext->executeRenderTask({
-                m_sharedGraphicsState.get(),
                 mesh->getGeometryStore(),
                 shadersPipeline,
                 mesh->getSubMeshIndicesOffset(subMeshIndex),

@@ -23,16 +23,26 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
 {
     ARG_UNUSED(gameWorld);
 
+    m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
+    m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
+    m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
+    m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+
     m_inputModule->enableGlobalTracking();
 
-   // m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
+    m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 {
     ARG_UNUSED(gameWorld);
 
-    //m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
+    m_inputModule->unregisterAction("forward");
+    m_inputModule->unregisterAction("backward");
+    m_inputModule->unregisterAction("left");
+    m_inputModule->unregisterAction("right");
+
+    m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
 
 void PlayerControlSystem::update(GameWorld* gameWorld, float delta)

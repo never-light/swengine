@@ -14,6 +14,13 @@ ScreenManager::ScreenManager(std::shared_ptr<GameWorld> gameWorld,
     m_commonGUILayout->setSize({ guiSystem->getScreenWidth(), guiSystem->getScreenHeight() });
 }
 
+ScreenManager::~ScreenManager()
+{
+    for (auto screenIt : m_screens) {
+        screenIt.second->unload();
+    }
+}
+
 void ScreenManager::registerScreen(std::shared_ptr<Screen> screen)
 {
     screen->performInternalInitialization(shared_from_this(), m_gameWorld,

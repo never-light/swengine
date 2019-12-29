@@ -68,7 +68,12 @@ GameObject * GameWorld::findGameObject(const std::function<bool(GameObject*)> pr
 
 GameObject * GameWorld::getGameObjectByIndex(size_t index) const
 {
-	return m_gameObjects[index];
+    return m_gameObjects[index];
+}
+
+bool GameWorld::hasGameObjectWithIndex(size_t index) const
+{
+    return index < m_gameObjects.size();
 }
 
 size_t GameWorld::getGameObjectsCount() const

@@ -64,6 +64,13 @@ void MainMenuScreen::initializeGUI()
     newGameButton->setSize({ 256, 64 });
     newGameButton->setOrigin({ getGUILayout()->getSize().x / 2 - 256 / 2, getGUILayout()->getSize().y / 2 - 100 });
 
+    newGameButton->setMouseButtonCallback([=] (const GUIMouseButtonEvent& event) {
+        if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
+            this->activateNextScreen(GameScreenType::Game);
+        }
+    });
+
+
     getGUILayout()->addChildWidget(newGameButton);
 
     // Exit

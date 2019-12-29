@@ -27,7 +27,7 @@ public:
     size_t getSubMeshIndicesOffset(size_t subMeshIndex) const;
     size_t getSubMeshIndicesCount(size_t subMeshIndex) const;
 
-    const GLGeometryStore* getGeometryStore();
+    GLGeometryStore* getGeometryStore();
 
 private:
     void calculateSubMeshesOffsets();

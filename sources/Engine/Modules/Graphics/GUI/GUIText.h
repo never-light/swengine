@@ -34,7 +34,7 @@ protected:
 private:
     void resetTextGeometryCache();
 
-    const GLGeometryStore* updateAndGetGeometryStore();
+    GLGeometryStore* updateAndGetGeometryStore();
     GLGeometryStore* createStringGeometryBuffer(const std::string& str);
 
 private:

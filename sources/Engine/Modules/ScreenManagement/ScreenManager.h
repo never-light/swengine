@@ -13,6 +13,8 @@ public:
                   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
                   std::shared_ptr<ResourceManager> resourceManager);
 
+    ~ScreenManager();
+
     void registerScreen(std::shared_ptr<Screen> screen);
     void unregisterScreen(const std::string& name);
 

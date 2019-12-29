@@ -254,6 +254,8 @@ void BaseGameApplication::performUnload()
 {
     unload();
 
+    m_screenManager.reset();
+
     SDL_Quit();
 }
 

@@ -49,7 +49,7 @@ protected:
 private:
     std::string m_name;
 
-    std::shared_ptr<ScreenManager> m_screenManager;
+    std::weak_ptr<ScreenManager> m_screenManager;
 
     std::shared_ptr<GUILayout> m_guiLayout;
 

@@ -32,8 +32,9 @@ inline GameWorld * GameObjectsComponentsIterator<ComponentsTypes...>::getGameWor
 template<class ...ComponentsTypes>
 inline GameObject * GameObjectsComponentsIterator<ComponentsTypes...>::getGameObject() const
 {
-	if (m_isEnd)
+    if (m_isEnd || !m_gameWorld->hasGameObjectWithIndex(m_gameObjectIndex)) {
 		return nullptr;
+    }
 
 	return m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
 }

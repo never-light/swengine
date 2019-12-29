@@ -98,6 +98,14 @@ public:
 	 */
 	GameObject* getGameObjectByIndex(size_t index) const;
 
+    /*!
+     * \brief Checks whether the game object exists by it's index
+     *
+     * \param index index of the game object
+     * \return the existing status
+     */
+    bool hasGameObjectWithIndex(size_t index) const;
+
 	/*!
 	 * \brief Gets the number of game objects
 	 * 

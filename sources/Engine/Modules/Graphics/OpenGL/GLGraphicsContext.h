@@ -10,8 +10,7 @@ class SharedGraphicsState;
 class Transform;
 
 struct RenderTask {
-    SharedGraphicsState* sharedGraphicsState;
-    const GLGeometryStore* geometryStore;
+    GLGeometryStore* geometryStore;
     GLShadersPipeline* shadersPipeline;
 
     size_t startOffset;

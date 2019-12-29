@@ -7,6 +7,8 @@ CONFIG -= qt
 
 SOURCES += \
         Core/GameApplication.cpp \
+        Game/Game.cpp \
+        Game/GameLevel.cpp \
         Game/PlayerComponent.cpp \
         Game/PlayerControlSystem.cpp \
         Game/Screens/BaseGameScreen.cpp \
@@ -17,6 +19,8 @@ SOURCES += \
 
 HEADERS += \
     Core/GameApplication.h \
+    Game/Game.h \
+    Game/GameLevel.h \
     Game/PlayerComponent.h \
     Game/PlayerControlSystem.h \
     Game/Screens/BaseGameScreen.h \

@@ -90,7 +90,7 @@ bool GUIText::isTextGeometryBufferOutdated() const
     return m_needTextGeometryUpdate;
 }
 
-const GLGeometryStore* GUIText::updateAndGetGeometryStore()
+GLGeometryStore* GUIText::updateAndGetGeometryStore()
 {
     if (m_needTextGeometryUpdate) {
         m_textGeometryCache = std::unique_ptr<GLGeometryStore>(createStringGeometryBuffer(m_text));

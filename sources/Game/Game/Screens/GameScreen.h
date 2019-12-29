@@ -2,8 +2,9 @@
 
 #include "BaseGameScreen.h"
 #include "Game/PlayerControlSystem.h"
+#include "Game/Game.h"
 
-class GameScreen : public BaseGameScreen
+class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggleEvent>
 {
 public:
     GameScreen(std::shared_ptr<InputModule> inputModule);
@@ -17,15 +18,14 @@ public:
     void update(float delta) override;
     void render() override;
 
+    EventProcessStatus receiveEvent(GameWorld *gameWorld, const InputActionToggleEvent &event) override;
+
 private:
     void initializeGame();
     void deinitializeGame();
 
-    void initializeGUI();
-    void deinitializeGUI();
-
 private:
     std::shared_ptr<InputModule> m_inputModule;
-    std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
+    std::unique_ptr<Game> m_game;
 };
 

@@ -55,9 +55,9 @@ void Screen::deactivate()
 
 void Screen::activateNextScreen(const std::string& name)
 {
-    SW_ASSERT(m_screenManager != nullptr);
+    SW_ASSERT(m_screenManager.lock() != nullptr);
 
-    m_screenManager->changeScreen(name);
+    m_screenManager.lock()->changeScreen(name);
 }
 
 void Screen::performInternalInitialization(std::shared_ptr<ScreenManager> screenManager,

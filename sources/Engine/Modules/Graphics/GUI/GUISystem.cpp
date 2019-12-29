@@ -154,7 +154,6 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     task.startOffset = m_guiNDCQuad->getSubMeshIndicesOffset(0);
     task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
     task.shadersPipeline = m_guiShadersPipeline.get();
-    task.sharedGraphicsState = nullptr;
 
     return task;
 }
