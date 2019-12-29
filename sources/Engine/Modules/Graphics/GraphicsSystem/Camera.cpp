@@ -14,6 +14,15 @@ Transform* Camera::getTransform() const {
     return m_transform.get();
 }
 
+const Frustum& Camera::getFrustum() const
+{
+    if (m_needFrustumUpdate) {
+        m_needFrustumUpdate = false;
+    }
+
+    return m_frustum;
+}
+
 void Camera::setAspectRatio(float ratio) {
     m_aspectRatio = ratio;
 

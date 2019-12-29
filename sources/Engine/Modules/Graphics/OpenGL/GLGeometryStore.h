@@ -28,8 +28,8 @@ public:
 
     bool isIndexed() const;
 
-    void draw() const;
-    void drawRange(size_t start, size_t count) const;
+    void draw(GLenum primitivesType = GL_TRIANGLES) const;
+    void drawRange(size_t start, size_t count, GLenum primitivesType = GL_TRIANGLES) const;
 
 private:
     template <class T>

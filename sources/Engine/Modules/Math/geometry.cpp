@@ -2,6 +2,11 @@
 
 #include <glm/geometric.hpp>
 
+Plane::Plane()
+{
+
+}
+
 Plane::Plane(const glm::vec3& normal, float distance)
     : m_normal(glm::normalize(normal)), m_distance(distance)
 {
@@ -28,6 +33,11 @@ float Plane::getDistance() const
     return m_distance;
 }
 
+Frustum::Frustum()
+{
+
+}
+
 Frustum::Frustum(const std::array<Plane, 6>& planes)
     : m_planes(planes)
 {
@@ -47,6 +57,17 @@ const Plane& Frustum::operator[](size_t index) const
 Plane& Frustum::operator[](size_t index)
 {
     return m_planes[index];
+}
+
+Sphere::Sphere()
+{
+
+}
+
+Sphere::Sphere(const glm::vec3& origin, float radius)
+    : m_origin(origin), m_radius(radius)
+{
+
 }
 
 void Sphere::setOrigin(const glm::vec3& origin)
@@ -95,4 +116,12 @@ bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum)
     }
 
     return true;
+}
+
+Frustum extractFrustumFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection)
+{
+    ARG_UNUSED(view);
+    ARG_UNUSED(projection);
+
+    return {};
 }

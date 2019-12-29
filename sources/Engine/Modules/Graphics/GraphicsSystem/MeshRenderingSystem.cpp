@@ -36,6 +36,7 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void MeshRenderingSystem::render(GameWorld* gameWorld)
 {
+    m_graphicsContext->disableWireframeRendering();
     m_graphicsContext->enableDepthTest();
     m_graphicsContext->enableFaceCulling();
 

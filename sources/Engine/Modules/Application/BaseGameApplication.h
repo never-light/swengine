@@ -13,6 +13,7 @@
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/ScreenManagement/ScreenManager.h"

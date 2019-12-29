@@ -56,26 +56,26 @@ bool GLGeometryStore::isIndexed() const
     return m_indicesCount > 0;
 }
 
-void GLGeometryStore::draw() const
+void GLGeometryStore::draw(GLenum primitivesType) const
 {
     glBindVertexArray(m_vertexArrayObject);
 
     if (isIndexed()) {
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indicesCount), GL_UNSIGNED_SHORT, nullptr);
+        glDrawElements(primitivesType, static_cast<GLsizei>(m_indicesCount), GL_UNSIGNED_SHORT, nullptr);
     }
     else {
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_verticesCount));
+        glDrawArrays(primitivesType, 0, static_cast<GLsizei>(m_verticesCount));
     }
 }
 
-void GLGeometryStore::drawRange(size_t start, size_t count) const
+void GLGeometryStore::drawRange(size_t start, size_t count, GLenum primitivesType) const
 {
     glBindVertexArray(m_vertexArrayObject);
 
     if (isIndexed()) {
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT, reinterpret_cast<GLvoid*>(start * sizeof(uint16_t)));
+        glDrawElements(primitivesType, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT, reinterpret_cast<GLvoid*>(start * sizeof(uint16_t)));
     }
     else {
-        glDrawArrays(GL_TRIANGLES, static_cast<GLint>(start), static_cast<GLsizei>(count));
+        glDrawArrays(primitivesType, static_cast<GLint>(start), static_cast<GLsizei>(count));
     }
 }

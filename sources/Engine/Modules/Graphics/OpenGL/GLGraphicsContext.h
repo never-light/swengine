@@ -15,6 +15,8 @@ struct RenderTask {
 
     size_t startOffset;
     size_t partsCount;
+
+    GLenum primitivesType = GL_TRIANGLES;
 };
 
 class GLGraphicsContext {

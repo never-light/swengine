@@ -148,7 +148,7 @@ void GLGraphicsContext::executeRenderTask(const RenderTask& task)
     GLShadersPipeline* shadersPipeline = task.shadersPipeline;
 
     glBindProgramPipeline(shadersPipeline->m_programPipeline);
-    task.geometryStore->drawRange(task.startOffset, task.partsCount);
+    task.geometryStore->drawRange(task.startOffset, task.partsCount, task.primitivesType);
 }
 
 void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)

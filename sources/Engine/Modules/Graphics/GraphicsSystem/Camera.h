@@ -1,6 +1,9 @@
 #pragma once
 
 #include <memory>
+
+#include "Modules/Math/geometry.h"
+
 #include "Transform.h"
 
 class Camera {
@@ -9,6 +12,8 @@ public:
     ~Camera();
 
     Transform* getTransform() const;
+
+    const Frustum& getFrustum() const;
 
     void setAspectRatio(float ratio);
     float getAspectRatio() const;
@@ -25,6 +30,8 @@ public:
     glm::mat4x4 getProjectionMatrix();
     glm::mat4x4 getViewMatrix();
 
+
+
 private:
     void resetViewCache();
     void resetProjectionCache();
@@ -32,6 +39,9 @@ private:
 private:
     // View space transform
     std::unique_ptr<Transform> m_transform;
+
+    mutable Frustum m_frustum;
+    mutable bool m_needFrustumUpdate = true;
 
     // Projection parameters
     float m_FOVy;

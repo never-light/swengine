@@ -12,7 +12,7 @@ void GLGeometryStore::createBuffersAndVAO(const std::vector<T> &vertices, const 
     glCreateBuffers(1, &m_vertexBuffer);
     glNamedBufferStorage(m_vertexBuffer,
         static_cast<GLsizeiptr>(vertices.size() * sizeof(T)),
-        vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+        vertices.data(), 0);
 
     m_verticesCount = vertices.size();
 
@@ -24,7 +24,7 @@ void GLGeometryStore::createBuffersAndVAO(const std::vector<T> &vertices, const 
 
         GL_CALL_BLOCK_BEGIN();
         glCreateBuffers(1, &m_indexBuffer);
-        glNamedBufferStorage(m_indexBuffer, indicesMemorySize, indices.data(), GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(m_indexBuffer, indicesMemorySize, indices.data(), 0);
 
         m_indicesCount = indices.size();
 

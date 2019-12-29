@@ -123,6 +123,8 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
 
     m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
 
+    DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_sharedGraphicsState);
+
     m_gameConsole->print("Engine is initialized...");
 
     spdlog::info("Engine modules are initialized");
@@ -269,7 +271,7 @@ void BaseGameApplication::performUpdate(float delta)
 
 void BaseGameApplication::performRender()
 {
-    glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_gameWorld->render();
@@ -277,5 +279,6 @@ void BaseGameApplication::performRender()
 
     render();
 
+    DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
     m_graphicsModule->getGraphicsContext()->swapBuffers();
 }
