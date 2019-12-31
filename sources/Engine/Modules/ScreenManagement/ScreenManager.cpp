@@ -10,13 +10,17 @@ ScreenManager::ScreenManager(std::shared_ptr<GameWorld> gameWorld,
       m_resourceManager(resourceManager),
       m_commonGUILayout(std::make_shared<GUILayout>())
 {
-    std::shared_ptr<GUISystem> guiSystem = m_gameWorld->getGameSystem<GUISystem>();
-    m_commonGUILayout->setSize({ guiSystem->getScreenWidth(), guiSystem->getScreenHeight() });
+    std::shared_ptr<GLGraphicsContext> graphicsContext = graphicsModule->getGraphicsContext();
+    m_commonGUILayout->setSize({ graphicsContext->getBufferWidth(), graphicsContext->getBufferHeight() });
 }
 
 ScreenManager::~ScreenManager()
 {
     for (auto screenIt : m_screens) {
+        if (screenIt.second->isActive()) {
+            screenIt.second->deactivate();
+        }
+
         screenIt.second->unload();
     }
 }
@@ -48,11 +52,11 @@ void ScreenManager::changeScreen(const std::string& newScreenName)
 {
     if (m_activeScreen != nullptr) {
         m_commonGUILayout->removeChildWidget(m_activeScreen->getGUILayout());
-        m_activeScreen->deactivate();
+        m_activeScreen->performDeactivate();
     }
 
     m_activeScreen = m_screens.at(newScreenName);
-    m_activeScreen->activate();
+    m_activeScreen->performActivate();
     m_commonGUILayout->addChildWidget(m_activeScreen->getGUILayout());
 }
 

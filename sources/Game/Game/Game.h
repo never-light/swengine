@@ -5,6 +5,7 @@
 #include <Engine/Modules/Graphics/OpenGL/GLGraphicsContext.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
 #include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ECS/GameSystemsGroup.h>
 
 #include "GameLevel.h"
 #include "PlayerControlSystem.h"
@@ -31,7 +32,8 @@ private:
     std::shared_ptr<ResourceManager> m_resourceManager;
 
     std::shared_ptr<GameLevel> m_level;
-    std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
 
+    std::shared_ptr<GameSystemsGroup> m_gameSystems;
+    std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
 };
 

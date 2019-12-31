@@ -1,5 +1,7 @@
 #include "InputModule.h"
 
+#include <spdlog/spdlog.h>
+
 InputModule::InputModule(SDL_Window* window)
     : m_window(window)
 {
@@ -25,11 +27,19 @@ void InputModule::registerAction(const std::string& actionName,
 
 void InputModule::unregisterAction(const std::string& actionName)
 {
+    auto inputActionStateIt = m_inputActionsState.find(actionName);
+
+    if (inputActionStateIt == m_inputActionsState.end()) {
+        spdlog::warn("Input: Failed to remove nonexistent action");
+
+        return;
+    }
+
     m_inputActions.erase(std::remove_if(m_inputActions.begin(), m_inputActions.end(), [actionName] (InputAction* action) {
         return action->m_name == actionName;
     }), m_inputActions.end());
 
-    m_inputActionsState.erase(m_inputActionsState.find(actionName));
+    m_inputActionsState.erase(inputActionStateIt);
 }
 
 bool InputModule::isActionActive(const std::string &actionName) const

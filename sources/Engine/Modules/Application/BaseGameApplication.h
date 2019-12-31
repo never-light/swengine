@@ -46,6 +46,10 @@ public:
     void shutdown();
 
 private:
+    void initializePlatform(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
+    void initializeEngine();
+    void initializeEngineSystems();
+
     void performLoad();
     void performUnload();
 

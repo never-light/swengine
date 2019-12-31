@@ -47,7 +47,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     material->setShadersPipeline(phongPipeline);
 
     std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
-    material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER)->setParameter("tex", *texture.get(), 0);
+    material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER)->setParameter("tex", *texture.get(), 1);
 
     GameObject* obj = m_gameWorld->createGameObject();
     auto transformHandle = obj->addComponent<TransformComponent>();

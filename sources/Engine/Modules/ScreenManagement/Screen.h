@@ -30,6 +30,8 @@ public:
 
     std::shared_ptr<GUILayout> getGUILayout() const;
 
+    bool isActive() const;
+
 protected:
     void activateNextScreen(const std::string& name);
 
@@ -40,18 +42,21 @@ private:
                                   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
                                   std::shared_ptr<ResourceManager> resourceManager);
 
+    void performActivate();
+    void performDeactivate();
+
 protected:
     std::shared_ptr<GameWorld> m_gameWorld;
     std::shared_ptr<GraphicsModule> m_graphicsModule;
     std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
     std::shared_ptr<ResourceManager> m_resourceManager;
-
 private:
     std::string m_name;
 
     std::weak_ptr<ScreenManager> m_screenManager;
-
     std::shared_ptr<GUILayout> m_guiLayout;
+
+    bool m_isActive = false;
 
 private:
     friend class ScreenManager;

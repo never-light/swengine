@@ -43,6 +43,11 @@ std::shared_ptr<GUILayout> Screen::getGUILayout() const
     return m_guiLayout;
 }
 
+bool Screen::isActive() const
+{
+    return m_isActive;
+}
+
 void Screen::activate()
 {
 
@@ -73,4 +78,18 @@ void Screen::performInternalInitialization(std::shared_ptr<ScreenManager> screen
     m_resourceManager = resourceManager;
 
     m_guiLayout->setSize(screenManager->getCommonGUILayout()->getSize());
+}
+
+void Screen::performActivate()
+{
+    activate();
+
+    m_isActive = true;
+}
+
+void Screen::performDeactivate()
+{
+    deactivate();
+
+    m_isActive = false;
 }

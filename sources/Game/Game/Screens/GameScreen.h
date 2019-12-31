@@ -8,6 +8,7 @@ class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggl
 {
 public:
     GameScreen(std::shared_ptr<InputModule> inputModule);
+    ~GameScreen() override;
 
     void activate() override;
     void deactivate() override;

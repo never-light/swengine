@@ -17,6 +17,7 @@ SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
     Modules/Application/BaseGameApplication.cpp \
     Modules/Application/GameConsole.cpp \
+    Modules/ECS/GameSystemsGroup.cpp \
     Modules/Input/InputEvents.cpp \
     Modules/Input/InputModule.cpp \
     Modules/Input/InputSystem.cpp \
@@ -42,6 +43,7 @@ HEADERS += \
     Exceptions/EngineRuntimeException.h \
     Modules/Application/BaseGameApplication.h \
     Modules/Application/GameConsole.h \
+    Modules/ECS/GameSystemsGroup.h \
     Modules/Input/InputActions.h \
     Modules/Input/InputEvents.h \
     Modules/Input/InputModule.h \

@@ -14,12 +14,19 @@
 #include <Engine/Modules/Graphics/Resources/TextureResource.h>
 #include <Engine/Modules/Graphics/Resources/MeshResource.h>
 
+#include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
+
 #include "Game/PlayerComponent.h"
 
 GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule)
     : BaseGameScreen(GameScreenType::Game),
       m_inputModule(inputModule)
 {
+}
+
+GameScreen::~GameScreen()
+{
+
 }
 
 void GameScreen::activate()
@@ -57,7 +64,13 @@ void GameScreen::update(float delta)
 
 void GameScreen::render()
 {
+    DebugPainter::renderSphere({ 0.0f, 0.0f, 0.0f }, 1.0f, { 1.0f, 0.0f, 0.0f, 1.0f }, true);
 
+    DebugPainter::renderSegment({ 0.0f, 0.0f, 0.0f }, { 100.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+
+    DebugPainter::renderVector({ 0.0f, 0.0f, 0.0f }, { 0.0f, 2.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+
+    DebugPainter::renderBasis({ 0.0f, 2.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f });
 }
 
 EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)

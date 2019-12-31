@@ -9,125 +9,16 @@ BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::stri
     : m_mainWindow(nullptr)
 {
     spdlog::info("Application start...");
-
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-
-    int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
-
-    if (initStatus != 0) {
-        ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
-    }
-
-    spdlog::info("SDL is initialized");
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-    spdlog::info("Create main window...");
-
-    m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        windowWidth, windowHeight, SDL_WINDOW_OPENGL);
-
-    if (m_mainWindow == nullptr) {
-        ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
-    }
-
-    spdlog::info("Window is created");
+    initializePlatform(argc, argv, windowTitle, windowWidth, windowHeight);
+    spdlog::info("Application is started");
 
     spdlog::info("Initialize engine modules...");
-
-    m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
-
-    m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
-
-    std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
-    resourceManager->declareResourceType<ShaderResource>("shader");
-    resourceManager->declareResourceType<MeshResource>("mesh");
-    resourceManager->declareResourceType<TextureResource>("texture");
-    resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
-
-    resourceManager->addResourcesMap("../resources/engine_resources.xml");
-
-    std::shared_ptr<GLShader> guiVertexShader = resourceManager->
-            getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
-
-    std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
-            getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
-
-    std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
-                guiVertexShader, guiFragmentShader, nullptr);
-
-    m_inputModule = std::make_shared<InputModule>(m_mainWindow);
-
-    m_gameWorld = std::make_shared<GameWorld>();
-
-    m_inputSystem = std::make_shared<InputSystem>(m_gameWorld, m_inputModule);
-    m_gameWorld->addGameSystem(m_inputSystem);
-
-    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
-    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                  m_sharedGraphicsState);
-    m_gameWorld->addGameSystem(m_meshRenderingSystem);
-
-    m_guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
-        m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
-
-    std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
-            getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
-    m_guiSystem->setDefaultFont(guiDefaultFont);
-
-    m_gameWorld->addGameSystem(m_guiSystem);
-
-    m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
-                                                      m_sharedGraphicsState, resourceManager);
-
-    m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
-
-    m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
-
-    std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, m_guiSystem->getDefaultFont());
-    m_gameConsole->setGUIConsole(guiConsole);
-
-    glm::vec4 guiConsoleBackgroundColor = { 0.168f, 0.172f, 0.25f, 0.8f };
-
-    guiConsole->setBackgroundColor(guiConsoleBackgroundColor);
-    guiConsole->setHoverBackgroundColor(guiConsoleBackgroundColor);
-    guiConsole->setWidth(m_guiSystem->getScreenWidth());
-
-    glm::vec4 guiConsoleTextBoxBackgroundColor = { 0.118f, 0.112f, 0.15f, 1.0f };
-
-    guiConsole->getTextBox()->setBackgroundColor(guiConsoleTextBoxBackgroundColor);
-    guiConsole->getTextBox()->setHoverBackgroundColor(guiConsoleTextBoxBackgroundColor);
-    guiConsole->getTextBox()->setFocusBackgroundColor(guiConsoleTextBoxBackgroundColor);
-    guiConsole->getTextBox()->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-    guiConsole->getTextBox()->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-    guiConsole->getTextBox()->setTextFontSize(9);
-
-    guiConsole->setTextFontSize(9);
-    guiConsole->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-    guiConsole->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-
-    guiConsole->setZIndex(10);
-    guiConsole->hide();
-
-    m_screenManager->getCommonGUILayout()->addChildWidget(guiConsole);
-
-    m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
-    m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
-
-    m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
-
-    DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_sharedGraphicsState);
-
-    m_gameConsole->print("Engine is initialized...");
-
+    initializeEngine();
     spdlog::info("Engine modules are initialized");
+
+    spdlog::info("Initialize game systems...");
+    initializeEngineSystems();
+    spdlog::info("Game systems are initialized");
 }
 
 BaseGameApplication::~BaseGameApplication()
@@ -247,6 +138,137 @@ void BaseGameApplication::shutdown()
     m_isMainLoopActive = false;
 }
 
+void BaseGameApplication::initializePlatform(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight)
+{
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
+    int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
+
+    if (initStatus != 0) {
+        ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+    }
+
+    spdlog::info("SDL is initialized");
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    spdlog::info("Create main window...");
+
+    m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+
+    if (m_mainWindow == nullptr) {
+        ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+    }
+
+    spdlog::info("Window is created");
+}
+
+void BaseGameApplication::initializeEngine()
+{
+    m_inputModule = std::make_shared<InputModule>(m_mainWindow);
+
+    m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
+    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
+
+    m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
+
+    std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+    resourceManager->declareResourceType<ShaderResource>("shader");
+    resourceManager->declareResourceType<MeshResource>("mesh");
+    resourceManager->declareResourceType<TextureResource>("texture");
+    resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
+
+    resourceManager->addResourcesMap("../resources/engine_resources.xml");
+
+    m_gameWorld = std::make_shared<GameWorld>();
+    m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
+                                                      m_sharedGraphicsState, resourceManager);
+
+    DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_sharedGraphicsState);
+}
+
+void BaseGameApplication::initializeEngineSystems()
+{
+    m_gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(m_gameWorld));
+    std::shared_ptr<GameSystemsGroup> engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+    m_gameWorld->getGameSystemsGroup()->addGameSystem(engineGameSystems);
+
+    // Input system
+    m_inputSystem = std::make_shared<InputSystem>(m_gameWorld, m_inputModule);
+    engineGameSystems->addGameSystem(m_inputSystem);
+
+    m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
+    m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+
+    // Mesh rendering system
+    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+                                                                  m_sharedGraphicsState);
+    engineGameSystems->addGameSystem(m_meshRenderingSystem);
+
+    // GUI system
+    std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+
+    std::shared_ptr<GLShader> guiVertexShader = resourceManager->
+            getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
+
+    std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
+            getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
+
+    std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
+                guiVertexShader, guiFragmentShader, nullptr);
+
+    m_guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
+        m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
+
+    std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
+            getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+    m_guiSystem->setDefaultFont(guiDefaultFont);
+    m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
+
+    engineGameSystems->addGameSystem(m_guiSystem);
+
+    // Game console
+    m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
+
+    std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, m_guiSystem->getDefaultFont());
+    m_gameConsole->setGUIConsole(guiConsole);
+
+    glm::vec4 guiConsoleBackgroundColor = { 0.168f, 0.172f, 0.25f, 0.8f };
+
+    guiConsole->setBackgroundColor(guiConsoleBackgroundColor);
+    guiConsole->setHoverBackgroundColor(guiConsoleBackgroundColor);
+    guiConsole->setWidth(m_guiSystem->getScreenWidth());
+
+    glm::vec4 guiConsoleTextBoxBackgroundColor = { 0.118f, 0.112f, 0.15f, 1.0f };
+
+    guiConsole->getTextBox()->setBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setHoverBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setFocusBackgroundColor(guiConsoleTextBoxBackgroundColor);
+    guiConsole->getTextBox()->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->getTextBox()->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->getTextBox()->setTextFontSize(9);
+
+    guiConsole->setTextFontSize(9);
+    guiConsole->setTextColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+    guiConsole->setTextHoverColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+    guiConsole->setZIndex(10);
+    guiConsole->hide();
+
+    m_screenManager->getCommonGUILayout()->addChildWidget(guiConsole);
+    m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
+
+    m_gameConsole->print("Engine is initialized...");
+}
+
 void BaseGameApplication::performLoad()
 {
     load();
@@ -270,7 +292,7 @@ void BaseGameApplication::performUpdate(float delta)
 }
 
 void BaseGameApplication::performRender()
-{
+{    
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
