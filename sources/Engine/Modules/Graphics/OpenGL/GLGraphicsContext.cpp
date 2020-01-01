@@ -143,6 +143,11 @@ int GLGraphicsContext::getBufferHeight() const
     return height;
 }
 
+float GLGraphicsContext::getBufferAspectRatio() const
+{
+    return static_cast<float>(getBufferWidth()) / getBufferHeight();
+}
+
 void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
     GLShadersPipeline* shadersPipeline = task.shadersPipeline;

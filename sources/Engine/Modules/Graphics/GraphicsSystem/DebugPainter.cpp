@@ -60,6 +60,11 @@ void DebugPainter::renderSphere(const glm::vec3& centerPosition, float radius, c
     s_debugRenderQueue.push_back({ s_sphere->getGeometryStore(), transformation, color, wireframe });
 }
 
+void DebugPainter::renderSphere(const Sphere& sphere, const glm::vec4& color, bool wireframe)
+{
+    renderSphere(sphere.getOrigin(), sphere.getRadius(), color, wireframe);
+}
+
 void DebugPainter::renderBox(const glm::vec3& centerPosition, const glm::vec3& halfSize, const glm::quat& orientation, const glm::vec4& color, bool wireframe)
 {
     glm::mat4 transformation = glm::identity<glm::mat4>();
@@ -68,6 +73,33 @@ void DebugPainter::renderBox(const glm::vec3& centerPosition, const glm::vec3& h
     transformation = glm::scale(transformation, halfSize * 2.0f);
 
     s_debugRenderQueue.push_back({ s_box->getGeometryStore(), transformation, color, wireframe });
+}
+
+void DebugPainter::renderFrustum(const glm::mat4x4& view, const glm::mat4x4& projection,
+                                 const glm::vec4& color, bool wireframe)
+{
+    glm::mat4 inversedViewProjection = glm::inverse(projection * view) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(2.0f));
+    s_debugRenderQueue.push_back({ s_box->getGeometryStore(), inversedViewProjection, color, wireframe });
+}
+
+void DebugPainter::renderFrustum(const Frustum& frustum, const glm::vec4& color)
+{
+    std::array<glm::vec3, 8> frustumCorners = frustum.getCorners();
+
+    s_primitivesGeomery.push_back(std::unique_ptr<GLGeometryStore>(createGeometryStore({
+        frustumCorners[0], frustumCorners[1], frustumCorners[1], frustumCorners[2],
+        frustumCorners[2], frustumCorners[3], frustumCorners[3], frustumCorners[0],
+
+        frustumCorners[4], frustumCorners[5], frustumCorners[5], frustumCorners[6],
+        frustumCorners[6], frustumCorners[7], frustumCorners[7], frustumCorners[4],
+
+        frustumCorners[0], frustumCorners[4], frustumCorners[1], frustumCorners[5],
+        frustumCorners[2], frustumCorners[6], frustumCorners[3], frustumCorners[7]
+    })));
+
+    s_debugRenderQueue.push_back({ (*s_primitivesGeomery.rbegin()).get(), glm::identity<glm::mat4>(),
+                                   color, false, GL_LINES });
+
 }
 
 void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)

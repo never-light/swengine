@@ -14,9 +14,11 @@ Transform* Camera::getTransform() const {
     return m_transform.get();
 }
 
-const Frustum& Camera::getFrustum() const
+const Frustum& Camera::getFrustum()
 {
-    if (m_needFrustumUpdate) {
+    if (m_needFrustumUpdate || m_transform->isCacheOutdated()) {
+        m_frustum = Frustum::extractFromViewProjection(getViewMatrix(), getProjectionMatrix());
+
         m_needFrustumUpdate = false;
     }
 
@@ -67,6 +69,7 @@ glm::mat4x4 Camera::getProjectionMatrix() {
     if (m_needProjectionMatrixCacheUpdate) {
         m_projectionMatrixCache = glm::perspective(m_FOVy, m_aspectRatio, m_nearClipDistance, m_farClipDistance);
 
+        m_needFrustumUpdate = true;
         m_needProjectionMatrixCacheUpdate = false;
     }
 
@@ -82,6 +85,8 @@ glm::mat4x4 Camera::getViewMatrix()
 
         // Trigger transformation cache update
         (void)m_transform->getTransformationMatrix();
+
+        m_needFrustumUpdate = true;
     }
 
     return m_viewMatrixCache;
@@ -90,5 +95,5 @@ glm::mat4x4 Camera::getViewMatrix()
 void Camera::resetProjectionCache()
 {
     m_needProjectionMatrixCacheUpdate = true;
-
+    m_needFrustumUpdate = true;
 }

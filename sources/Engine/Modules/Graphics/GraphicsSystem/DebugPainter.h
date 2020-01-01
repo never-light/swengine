@@ -14,6 +14,8 @@
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "Modules/Graphics/OpenGL/GLShadersPipeline.h"
 
+#include "Modules/Math/geometry.h"
+
 struct DebugRenderQueueItem {
     GLGeometryStore* geometry;
     glm::mat4x4 transformationMatrix;
@@ -33,8 +35,16 @@ public:
     static void renderBasis(const glm::vec3& origin, const glm::vec3& x, const glm::vec3& y, const glm::vec3& z);
 
     static void renderSphere(const glm::vec3& centerPosition, float radius, const glm::vec4& color = {}, bool wireframe = true);
+    static void renderSphere(const Sphere& sphere, const glm::vec4& color = {}, bool wireframe = true);
+
     static void renderBox(const glm::vec3& centerPosition, const glm::vec3& halfSize,
                           const glm::quat& orientation, const glm::vec4& color = {}, bool wireframe = true);
+
+    static void renderFrustum(const glm::mat4x4& view, const glm::mat4x4& projection,
+                              const glm::vec4& color = {}, bool wireframe = true);
+
+    static void renderFrustum(const Frustum& frustum,
+                              const glm::vec4& color = {});
 
     static void flushRenderQueue(GLGraphicsContext* graphicsContext);
 

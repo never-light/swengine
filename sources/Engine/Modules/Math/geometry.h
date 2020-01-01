@@ -17,9 +17,20 @@ public:
     void setDistance(float distance);
     float getDistance() const;
 
+    void normalize();
+
 private:
     glm::vec3 m_normal = glm::vec3(0.0f, 0.0f, 0.0f);
     float m_distance = 0.0f;
+};
+
+enum class FrustumPlane {
+    Left,
+    Right,
+    Top,
+    Bottom,
+    Near,
+    Far
 };
 
 struct Frustum {
@@ -28,11 +39,21 @@ public:
     Frustum(const std::array<Plane, 6>& planes);
 
     const Plane& getPlane(size_t index) const;
+    Plane& getPlane(size_t index);
 
-    const Plane& operator[](size_t index) const;
-    Plane& operator[](size_t index);
+    const Plane& getPlane(FrustumPlane plane) const;
+    Plane& getPlane(FrustumPlane plane);
+
+    void setPlane(size_t index, const Plane& plane);
+    void setPlane(FrustumPlane planeType, const Plane& plane);
+
+    std::array<glm::vec3, 8> getCorners() const;
+
+public:
+    static Frustum extractFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection);
 
 private:
+    // Left, right, top, bottom, near, far
     std::array<Plane, 6> m_planes;
 };
 
@@ -56,6 +77,6 @@ float calculateDistance(const glm::vec3& v1, const glm::vec3& v2);
 float calculateDistance(const glm::vec3& point, const Plane& plane);
 float calculateSignedDistance(const glm::vec3& point, const Plane& plane);
 
-bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
+glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3);
 
-Frustum extractFrustumFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection);
+bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);

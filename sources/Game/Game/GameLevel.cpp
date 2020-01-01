@@ -39,26 +39,26 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
     // Game objects
 
-    std::shared_ptr<GLShadersPipeline> phongPipeline = std::make_shared<GLShadersPipeline>(
-                m_resourceManager->getResourceFromInstance<ShaderResource>("phong_vertex_shader")->getShader(),
-                m_resourceManager->getResourceFromInstance<ShaderResource>("phong_fragment_shader")->getShader(), nullptr);
+//    std::shared_ptr<GLShadersPipeline> phongPipeline = std::make_shared<GLShadersPipeline>(
+//                m_resourceManager->getResourceFromInstance<ShaderResource>("phong_vertex_shader")->getShader(),
+//                m_resourceManager->getResourceFromInstance<ShaderResource>("phong_fragment_shader")->getShader(), nullptr);
 
-    std::shared_ptr<Material> material = std::make_shared<Material>();
-    material->setShadersPipeline(phongPipeline);
+//    std::shared_ptr<Material> material = std::make_shared<Material>();
+//    material->setShadersPipeline(phongPipeline);
 
-    std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
-    material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER)->setParameter("tex", *texture.get(), 1);
+//    std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
+//    material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER)->setParameter("tex", *texture.get(), 1);
 
-    GameObject* obj = m_gameWorld->createGameObject();
-    auto transformHandle = obj->addComponent<TransformComponent>();
+//    GameObject* obj = m_gameWorld->createGameObject();
+//    auto transformHandle = obj->addComponent<TransformComponent>();
 
-    transformHandle->getTransform()->move(0.0f, 0.3f, 0.0f);
+//    transformHandle->getTransform()->move(0.0f, 0.3f, 0.0f);
 
-    std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+//    std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
 
-    auto componentHandle = obj->addComponent<MeshRendererComponent>();
-    componentHandle->setMeshInstance(cubeGeometry);
-    componentHandle->setMaterialsInstances({ material });
+//    auto componentHandle = obj->addComponent<MeshRendererComponent>();
+//    componentHandle->setMeshInstance(cubeGeometry);
+//    componentHandle->setMaterialsInstances({ material });
 
 }
 

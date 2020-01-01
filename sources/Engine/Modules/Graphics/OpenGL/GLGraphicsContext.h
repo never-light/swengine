@@ -56,6 +56,8 @@ public:
     int getBufferWidth() const;
     int getBufferHeight() const;
 
+    float getBufferAspectRatio() const;
+
     void executeRenderTask(const RenderTask& task);
 
 private:

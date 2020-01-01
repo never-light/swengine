@@ -8,14 +8,14 @@ Plane::Plane()
 }
 
 Plane::Plane(const glm::vec3& normal, float distance)
-    : m_normal(glm::normalize(normal)), m_distance(distance)
+    : m_normal(normal), m_distance(distance)
 {
 
 }
 
 void Plane::setNormal(const glm::vec3& normal)
 {
-    m_normal = glm::normalize(normal);
+    m_normal = normal;
 }
 
 glm::vec3 Plane::getNormal() const
@@ -31,6 +31,14 @@ void Plane::setDistance(float distance)
 float Plane::getDistance() const
 {
     return m_distance;
+}
+
+void Plane::normalize()
+{
+    float inv_length = 1.0f / glm::length(m_normal);
+
+    m_normal *= inv_length;
+    m_distance *= inv_length;
 }
 
 Frustum::Frustum()
@@ -49,14 +57,92 @@ const Plane& Frustum::getPlane(size_t index) const
     return m_planes[index];
 }
 
-const Plane& Frustum::operator[](size_t index) const
+Plane& Frustum::getPlane(size_t index)
 {
     return m_planes[index];
 }
 
-Plane& Frustum::operator[](size_t index)
+const Plane& Frustum::getPlane(FrustumPlane plane) const
 {
-    return m_planes[index];
+    return m_planes[static_cast<size_t>(plane)];
+}
+
+Plane& Frustum::getPlane(FrustumPlane plane)
+{
+    return m_planes[static_cast<size_t>(plane)];
+}
+
+void Frustum::setPlane(size_t index, const Plane& plane)
+{
+    m_planes[index] = plane;
+}
+
+void Frustum::setPlane(FrustumPlane planeType, const Plane& plane)
+{
+    m_planes[static_cast<size_t>(planeType)] = plane;
+}
+
+std::array<glm::vec3, 8> Frustum::getCorners() const
+{
+    return {
+        getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
+        getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
+        getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
+        getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
+        getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
+        getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
+        getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
+        getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
+    };
+}
+
+Frustum Frustum::extractFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection)
+{
+    glm::mat4x4 viewProjection = projection * view;
+
+    Frustum frustum;
+
+    frustum.setPlane(FrustumPlane::Left, Plane(glm::vec3(
+        viewProjection[0][3] + viewProjection[0][0],
+        viewProjection[1][3] + viewProjection[1][0],
+        viewProjection[2][3] + viewProjection[2][0]),
+        viewProjection[3][3] + viewProjection[3][0]));
+
+    frustum.setPlane(FrustumPlane::Right, Plane(glm::vec3(
+        viewProjection[0][3] - viewProjection[0][0],
+        viewProjection[1][3] - viewProjection[1][0],
+        viewProjection[2][3] - viewProjection[2][0]),
+        viewProjection[3][3] - viewProjection[3][0]));
+
+    frustum.setPlane(FrustumPlane::Top, Plane(glm::vec3(
+        viewProjection[0][3] - viewProjection[0][1],
+        viewProjection[1][3] - viewProjection[1][1],
+        viewProjection[2][3] - viewProjection[2][1]),
+        viewProjection[3][3] - viewProjection[3][1]));
+
+    frustum.setPlane(FrustumPlane::Bottom, Plane(glm::vec3(
+        viewProjection[0][3] + viewProjection[0][1],
+        viewProjection[1][3] + viewProjection[1][1],
+        viewProjection[2][3] + viewProjection[2][1]),
+        viewProjection[3][3] + viewProjection[3][1]));
+
+    frustum.setPlane(FrustumPlane::Near, Plane(glm::vec3(
+        viewProjection[0][3] + viewProjection[0][2],
+        viewProjection[1][3] + viewProjection[1][2],
+        viewProjection[2][3] + viewProjection[2][2]),
+        viewProjection[3][3] + viewProjection[3][2]));
+
+    frustum.setPlane(FrustumPlane::Far, Plane(glm::vec3(
+        viewProjection[0][3] - viewProjection[0][2],
+        viewProjection[1][3] - viewProjection[1][2],
+        viewProjection[2][3] - viewProjection[2][2]),
+        viewProjection[3][3] - viewProjection[3][2]));
+
+    for (size_t planeIndex = 0; planeIndex < 6; planeIndex++) {
+        frustum.getPlane(planeIndex).normalize();
+    }
+
+    return frustum;
 }
 
 Sphere::Sphere()
@@ -118,10 +204,10 @@ bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum)
     return true;
 }
 
-Frustum extractFrustumFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection)
+glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3)
 {
-    ARG_UNUSED(view);
-    ARG_UNUSED(projection);
+    glm::mat3 normalMatrix(p1.getNormal(), p2.getNormal(), p3.getNormal());
+    glm::mat3 inversedNormalMatrix(glm::inverse(normalMatrix));
 
-    return {};
+    return glm::vec3(-p1.getDistance(), -p2.getDistance(), -p3.getDistance()) * inversedNormalMatrix;
 }
