@@ -3,9 +3,12 @@
 #include <vector>
 #include <utility>
 #include <memory>
+
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
+#include "Modules/Math/geometry.h"
 
 class Mesh
 {
@@ -29,6 +32,9 @@ public:
 
     GLGeometryStore* getGeometryStore();
 
+    void setAABB(const AABB& aabb);
+    const AABB& getAABB() const;
+
 private:
     void calculateSubMeshesOffsets();
 
@@ -49,5 +55,7 @@ private:
     std::vector<glm::vec2> m_uv;
 
     bool m_needGeometryBufferUpdate = false;
+
+    AABB m_aabb;
 };
 

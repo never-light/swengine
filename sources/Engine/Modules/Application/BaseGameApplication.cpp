@@ -266,6 +266,11 @@ void BaseGameApplication::initializeEngineSystems()
     m_screenManager->getCommonGUILayout()->addChildWidget(guiConsole);
     m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
 
+    m_geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
+                                                                      m_sharedGraphicsState);
+
+    engineGameSystems->addGameSystem(m_geometryCullingSystem);
+
     m_gameConsole->print("Engine is initialized...");
 }
 
@@ -296,10 +301,14 @@ void BaseGameApplication::performRender()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    m_gameWorld->beforeRender();
+
     m_gameWorld->render();
     m_screenManager->render();
 
     render();
+
+    m_gameWorld->afterRender();
 
     DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
     m_graphicsModule->getGraphicsContext()->swapBuffers();

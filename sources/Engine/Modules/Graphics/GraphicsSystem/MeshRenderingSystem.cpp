@@ -39,9 +39,15 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
     m_graphicsContext->disableWireframeRendering();
     m_graphicsContext->enableDepthTest();
     m_graphicsContext->enableFaceCulling();
+    m_graphicsContext->enableBlending();
 
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+
+        if (meshComponent->isCulled()) {
+            continue;
+        }
+
         Mesh* mesh = meshComponent->getMeshInstance().get();
 
         SW_ASSERT(mesh != nullptr);

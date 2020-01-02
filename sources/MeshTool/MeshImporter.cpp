@@ -53,6 +53,9 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene, 
     std::vector<RawVector2> uv;
     std::vector<std::vector<std::uint16_t>> subMeshesIndices;
 
+    glm::vec3 aabbMin(std::numeric_limits<float>::max());
+    glm::vec3 aabbMax(std::numeric_limits<float>::min());
+
     for (size_t meshIndex = 0; meshIndex < scene.mNumMeshes; meshIndex++) {
         const aiMesh& rawMesh = *scene.mMeshes[meshIndex];
 
@@ -73,6 +76,13 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene, 
             positions.push_back({ rawMesh.mVertices[vertexIndex].x,
                                   rawMesh.mVertices[vertexIndex].y,
                                   rawMesh.mVertices[vertexIndex].z });
+            aabbMin.x = std::fminf(aabbMin.x, rawMesh.mVertices[vertexIndex].x);
+            aabbMin.y = std::fminf(aabbMin.y, rawMesh.mVertices[vertexIndex].y);
+            aabbMin.z = std::fminf(aabbMin.z, rawMesh.mVertices[vertexIndex].z);
+
+            aabbMax.x = std::fmaxf(aabbMax.x, rawMesh.mVertices[vertexIndex].x);
+            aabbMax.y = std::fmaxf(aabbMax.y, rawMesh.mVertices[vertexIndex].y);
+            aabbMax.z = std::fmaxf(aabbMax.z, rawMesh.mVertices[vertexIndex].z);
 
             normals.push_back({ rawMesh.mNormals[vertexIndex].x,
                                 rawMesh.mNormals[vertexIndex].y,
@@ -127,6 +137,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene, 
         mesh->subMeshesIndicesOffsets.push_back(static_cast<uint16_t>(mesh->indices.size()));
         mesh->indices.insert(mesh->indices.end(), subMeshIndices.begin(), subMeshIndices.end());
     }
+
+    mesh->aabb = AABB(aabbMin, aabbMax);
 
     const uint16_t verticesCount = static_cast<uint16_t>(mesh->positions.size());
     const uint16_t indicesCount = static_cast<uint16_t>(mesh->indices.size());

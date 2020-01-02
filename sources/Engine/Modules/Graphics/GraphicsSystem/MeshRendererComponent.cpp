@@ -38,3 +38,13 @@ std::shared_ptr<Material> MeshRendererComponent::getMaterialInstance(size_t subM
 
     return m_materialsInstances[subMeshIndex];
 }
+
+bool MeshRendererComponent::isCulled() const
+{
+    return m_isCulled;
+}
+
+void MeshRendererComponent::cull(bool culled)
+{
+    m_isCulled = culled;
+}

@@ -64,6 +64,10 @@ void GameScreen::update(float delta)
 
 void GameScreen::render()
 {
+    //DebugPainter::renderFrustum(m_sharedGraphicsState->getActiveCamera()->getFrustum(), { 1.0f, 0.0f, 0.0f, 1.0f });
+    DebugPainter::renderSphere(m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh()->getAABB().toSphere(),
+    { 1.0f, 0.0f, 0.0f, 1.0f }, true);
+
     DebugPainter::renderBasis({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f });
 }
 

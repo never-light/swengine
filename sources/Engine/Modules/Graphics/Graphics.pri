@@ -12,6 +12,7 @@ SOURCES += \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/DebugPainter.cpp \
+    $$PWD/GraphicsSystem/GeometryCullingSystem.cpp \
     $$PWD/GraphicsSystem/Material.cpp \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
@@ -45,6 +46,7 @@ HEADERS += \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/DebugPainter.h \
+    $$PWD/GraphicsSystem/GeometryCullingSystem.h \
     $$PWD/GraphicsSystem/Material.h \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \

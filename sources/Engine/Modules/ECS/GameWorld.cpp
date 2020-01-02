@@ -31,6 +31,16 @@ void GameWorld::render()
     m_gameSystemsGroup->render(this);
 }
 
+void GameWorld::beforeRender()
+{
+    m_gameSystemsGroup->beforeRender(this);
+}
+
+void GameWorld::afterRender()
+{
+    m_gameSystemsGroup->afterRender(this);
+}
+
 void GameWorld::setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group)
 {
     m_gameSystemsGroup = std::move(group);

@@ -52,5 +52,7 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
     out.write(reinterpret_cast<const char*>(mesh.subMeshesIndicesOffsets.data()),
               sizeof(*mesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
 
+    out.write(reinterpret_cast<const char*>(&mesh.aabb), sizeof(mesh.aabb));
+
     out.close();
 }

@@ -73,6 +73,26 @@ private:
     float m_radius = 0.0f;
 };
 
+struct AABB {
+public:
+    AABB();
+    AABB(const glm::vec3& min, const glm::vec3& max);
+
+    void setMin(const glm::vec3& min);
+    const glm::vec3& getMin() const;
+
+    void setMax(const glm::vec3& max);
+    const glm::vec3& getMax() const;
+
+    glm::vec3 getSize() const;
+
+    Sphere toSphere() const;
+
+private:
+    glm::vec3 m_min;
+    glm::vec3 m_max;
+};
+
 float calculateDistance(const glm::vec3& v1, const glm::vec3& v2);
 float calculateDistance(const glm::vec3& point, const Plane& plane);
 float calculateSignedDistance(const glm::vec3& point, const Plane& plane);

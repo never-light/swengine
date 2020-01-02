@@ -211,3 +211,50 @@ glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p
 
     return glm::vec3(-p1.getDistance(), -p2.getDistance(), -p3.getDistance()) * inversedNormalMatrix;
 }
+
+AABB::AABB()
+    : m_min(glm::vec3(0.0f, 0.0f, 0.0f)),
+      m_max(glm::vec3(0.0f, 0.0f, 0.0f))
+{
+
+}
+
+AABB::AABB(const glm::vec3& min, const glm::vec3& max)
+    : m_min(min), m_max(max)
+{
+
+}
+
+void AABB::setMin(const glm::vec3& min)
+{
+    m_min = min;
+}
+
+const glm::vec3& AABB::getMin() const
+{
+    return m_min;
+}
+
+void AABB::setMax(const glm::vec3& max)
+{
+    m_max = max;
+}
+
+const glm::vec3& AABB::getMax() const
+{
+    return m_max;
+}
+
+glm::vec3 AABB::getSize() const
+{
+    return m_max - m_min;
+}
+
+Sphere AABB::toSphere() const
+{
+    glm::vec3 size = getSize();
+    float radius = glm::length(size) * 0.5f;
+    glm::vec3 origin = (m_max + m_min) * 0.5f;
+
+    return Sphere(origin, radius);
+}

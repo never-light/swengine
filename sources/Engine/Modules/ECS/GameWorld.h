@@ -43,6 +43,16 @@ public:
 	void render();
 
     /*!
+     * \brief It is called before rendering of the game world
+     */
+    void beforeRender();
+
+    /*!
+     * \brief It is called after rendering of the game world
+     */
+    void afterRender();
+
+    /*!
      * \brief setGameSystemsGroup Sets main game systems group
      * \param group group to set
      */

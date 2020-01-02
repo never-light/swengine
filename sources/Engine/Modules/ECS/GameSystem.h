@@ -25,6 +25,16 @@ public:
 	 */
 	virtual void render(GameWorld* gameWorld);
 
+    /*!
+     * \brief It is called before rendering of the game world
+     */
+    virtual void beforeRender(GameWorld* gameWorld);
+
+    /*!
+     * \brief It is called after rendering of the game world
+     */
+    virtual void afterRender(GameWorld* gameWorld);
+
 	/*!
 	 * \brief Calls at the time of the game system registration
 	 * 

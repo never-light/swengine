@@ -16,7 +16,10 @@ public:
     void configure(GameWorld* gameWorld) override;
     void unconfigure(GameWorld* gameWorld) override;
 
+    void beforeRender(GameWorld *gameWorld) override;
     void render(GameWorld *gameWorld) override;
+    void afterRender(GameWorld *gameWorld) override;
+
     void update(GameWorld *gameWorld, float delta) override;
 
     void addGameSystem(std::shared_ptr<GameSystem> system);

@@ -97,6 +97,16 @@ GLGeometryStore* Mesh::getGeometryStore()
     return m_geometryStore.get();
 }
 
+void Mesh::setAABB(const AABB& aabb)
+{
+    m_aabb = aabb;
+}
+
+const AABB& Mesh::getAABB() const
+{
+    return m_aabb;
+}
+
 void Mesh::calculateSubMeshesOffsets()
 {
     m_subMeshesOffsets.clear();

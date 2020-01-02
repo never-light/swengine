@@ -36,10 +36,22 @@ void GameSystemsGroup::unconfigure(GameWorld* gameWorld)
     m_isConfigured = false;
 }
 
+void GameSystemsGroup::beforeRender(GameWorld* gameWorld)
+{
+    for (auto& system : m_gameSystems)
+        system->beforeRender(gameWorld);
+}
+
 void GameSystemsGroup::render(GameWorld* gameWorld)
 {
     for (auto& system : m_gameSystems)
         system->render(gameWorld);
+}
+
+void GameSystemsGroup::afterRender(GameWorld* gameWorld)
+{
+    for (auto& system : m_gameSystems)
+        system->afterRender(gameWorld);
 }
 
 void GameSystemsGroup::update(GameWorld* gameWorld, float delta)

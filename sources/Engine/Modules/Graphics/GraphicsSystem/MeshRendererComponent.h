@@ -17,8 +17,13 @@ public:
 
     std::shared_ptr<Material> getMaterialInstance(size_t subMeshIndex) const;
 
+    bool isCulled() const;
+    void cull(bool culled=true);
+
 private:
     std::shared_ptr<Mesh> m_meshInstance;
     std::vector<std::shared_ptr<Material>> m_materialsInstances;
+
+    bool m_isCulled = false;
 };
 

@@ -10,6 +10,7 @@
 #include "Modules/ECS/ECS.h"
 
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
+#include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
@@ -70,6 +71,7 @@ protected:
 
     std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
     std::shared_ptr<GUISystem> m_guiSystem;
+    std::shared_ptr<GeometryCullingSystem> m_geometryCullingSystem;
 
     std::shared_ptr<ScreenManager> m_screenManager;
 

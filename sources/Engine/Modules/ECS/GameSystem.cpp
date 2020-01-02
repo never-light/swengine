@@ -19,6 +19,16 @@ void GameSystem::render(GameWorld* gameWorld)
     ARG_UNUSED(gameWorld);
 }
 
+void GameSystem::beforeRender(GameWorld* gameWorld)
+{
+    ARG_UNUSED(gameWorld);
+}
+
+void GameSystem::afterRender(GameWorld* gameWorld)
+{
+    ARG_UNUSED(gameWorld);
+}
+
 void GameSystem::configure(GameWorld* gameWorld)
 {
     ARG_UNUSED(gameWorld);
