@@ -35,84 +35,28 @@ GLGraphicsContext::~GLGraphicsContext()
     SDL_GL_DeleteContext(m_glContext);
 }
 
-void GLGraphicsContext::enableDepthTest()
-{
-    glEnable(GL_DEPTH_TEST);
-}
-
-void GLGraphicsContext::disableDepthTest()
-{
-    glDisable(GL_DEPTH_TEST);
-}
-
-void GLGraphicsContext::setDepthTestFunction(GLenum function)
-{
-    glDepthFunc(function);
-}
-
 void GLGraphicsContext::enableWritingToDepthBuffer()
 {
     glDepthMask(GL_TRUE);
+    applyContextChange();
 }
 
 void GLGraphicsContext::disableWritingToDepthBuffer()
 {
     glDepthMask(GL_FALSE);
-}
-
-void GLGraphicsContext::enableFaceCulling()
-{
-    glEnable(GL_CULL_FACE);
-}
-
-void GLGraphicsContext::disableFaceCulling()
-{
-    glDisable(GL_CULL_FACE);
-}
-
-void GLGraphicsContext::setFaceCullingMode(GLenum mode)
-{
-    glCullFace(mode);
-}
-
-void GLGraphicsContext::enableBlending()
-{
-    glEnable(GL_BLEND);
-}
-
-void GLGraphicsContext::disableBlending()
-{
-    glDisable(GL_BLEND);
-}
-
-void GLGraphicsContext::setBlendingMode(GLenum sourceAffect, GLenum destinationAffect)
-{
-    glBlendFunc(sourceAffect, destinationAffect);
-}
-
-void GLGraphicsContext::setBlendingEquation(GLenum equation)
-{
-    glBlendEquation(equation);
+    applyContextChange();
 }
 
 void GLGraphicsContext::enableScissorTest()
 {
     glEnable(GL_SCISSOR_TEST);
+    applyContextChange();
 }
 
 void GLGraphicsContext::disableScissorTest()
 {
     glDisable(GL_SCISSOR_TEST);
-}
-
-void GLGraphicsContext::enableWireframeRendering()
-{
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
-void GLGraphicsContext::disableWireframeRendering()
-{
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    applyContextChange();
 }
 
 void GLGraphicsContext::setScissorRectangle(const Rect& rectangle)
@@ -120,6 +64,8 @@ void GLGraphicsContext::setScissorRectangle(const Rect& rectangle)
     glScissor(rectangle.getOriginX(),
         getBufferWidth() - rectangle.getOriginY() - rectangle.getHeight(),
         rectangle.getWidth(), rectangle.getHeight());
+
+    applyContextChange();
 }
 
 void GLGraphicsContext::swapBuffers()
@@ -148,12 +94,157 @@ float GLGraphicsContext::getBufferAspectRatio() const
     return static_cast<float>(getBufferWidth()) / getBufferHeight();
 }
 
+void GLGraphicsContext::setDepthTestMode(DepthTestMode mode)
+{
+    switch (mode) {
+    case DepthTestMode::Disabled:
+        glDisable(GL_DEPTH_TEST);
+        break;
+
+    case DepthTestMode::Enabled:
+        glEnable(GL_DEPTH_TEST);
+        break;
+
+    default:
+        break;
+    }
+
+    applyContextChange();
+}
+
+void GLGraphicsContext::setFaceCullingMode(FaceCullingMode mode)
+{
+    switch (mode) {
+    case FaceCullingMode::Disabled:
+        glDisable(GL_CULL_FACE);
+        break;
+
+    case FaceCullingMode::Back:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        break;
+
+    case FaceCullingMode::Front:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        break;
+
+    default:
+        break;
+    }
+
+    applyContextChange();
+}
+
+void GLGraphicsContext::setPolygonFillingMode(PolygonFillingMode mode)
+{
+    switch (mode) {
+    case PolygonFillingMode::Fill:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        break;
+
+    case PolygonFillingMode::Wireframe:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        break;
+
+    default:
+        break;
+    }
+
+    applyContextChange();
+}
+
+void GLGraphicsContext::setBlendingMode(BlendingMode mode)
+{
+    switch (mode) {
+    case BlendingMode::Disabled:
+        glDisable(GL_BLEND);
+        break;
+
+    case BlendingMode::Alpha_OneMinusAlpha:
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        break;
+
+    default:
+        break;
+    }
+
+    applyContextChange();
+}
+
+void GLGraphicsContext::applyMaterial(const GLMaterial& material)
+{
+    // Blending mode
+    setBlendingMode(material.getBlendingMode());
+
+    // Depth test
+    setDepthTestMode(material.getDepthTestMode());
+
+    // Face culling mode
+    setFaceCullingMode(material.getFaceCullingMode());
+
+    // Polygon filling mode
+    setPolygonFillingMode(material.getPolygonFillingMode());
+
+    // Parameters
+    GLShadersPipeline* shadersPipeline = material.getShadersPipeline().get();
+
+    for (auto& [ parameterName, genericValue ] : material.m_parameters) {
+        GLShader* shader = shadersPipeline->getShader(genericValue.shaderType);
+
+        const auto& rawValue = genericValue.value;
+
+        if (auto pval = std::get_if<int>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<float>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<glm::vec3>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<glm::vec4>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<glm::mat3>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<glm::mat4>(&rawValue)) {
+            shader->setParameter(parameterName, *pval);
+        }
+        else if (auto pval = std::get_if<GLMaterial::TextureParameter>(&rawValue)) {
+            shader->setParameter(parameterName, *(*pval).texture.get(), (*pval).slotIndex);
+        }
+        else {
+            ENGINE_RUNTIME_ERROR("Failed to set generic material parameter");
+        }
+    }
+}
+
 void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
-    GLShadersPipeline* shadersPipeline = task.shadersPipeline;
-
+    GLShadersPipeline* shadersPipeline = task.material->getShadersPipeline().get();
     glBindProgramPipeline(shadersPipeline->m_programPipeline);
+
+    /* Compare only memory addresses */
+    if (m_currentMaterial != task.material) {
+        applyMaterial(*task.material);
+
+        m_currentMaterial = task.material;
+    }
+
     task.geometryStore->drawRange(task.startOffset, task.partsCount, task.primitivesType);
+}
+
+void GLGraphicsContext::applyContextChange()
+{
+    resetMaterial();
+}
+
+void GLGraphicsContext::resetMaterial()
+{
+    m_currentMaterial = nullptr;
 }
 
 void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)

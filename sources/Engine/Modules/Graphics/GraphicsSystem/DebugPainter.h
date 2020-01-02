@@ -57,7 +57,9 @@ private:
     static std::shared_ptr<Mesh> s_sphere;
     static std::shared_ptr<Mesh> s_box;
 
-    static std::unique_ptr<GLShadersPipeline> s_debugShaderPipeline;
+    static std::shared_ptr<GLShadersPipeline> s_debugShaderPipeline;
+    static std::unique_ptr<GLMaterial> s_debugMaterial;
+
     static std::shared_ptr<SharedGraphicsState> s_sharedGraphicsState;
 
     static std::vector<std::unique_ptr<GLGeometryStore>> s_primitivesGeomery;

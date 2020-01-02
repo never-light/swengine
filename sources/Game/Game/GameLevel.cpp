@@ -1,6 +1,5 @@
 #include "GameLevel.h"
 
-#include <Engine/Modules/Graphics/GraphicsSystem/Material.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
@@ -43,11 +42,15 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
                 m_resourceManager->getResourceFromInstance<ShaderResource>("phong_vertex_shader")->getShader(),
                 m_resourceManager->getResourceFromInstance<ShaderResource>("phong_fragment_shader")->getShader(), nullptr);
 
-    std::shared_ptr<Material> material = std::make_shared<Material>();
+    std::shared_ptr<GLMaterial> material = std::make_shared<GLMaterial>();
     material->setShadersPipeline(phongPipeline);
+    material->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
+    material->setDepthTestMode(DepthTestMode::Enabled);
+    material->setFaceCullingMode(FaceCullingMode::Back);
+    material->setPolygonFillingMode(PolygonFillingMode::Fill);
 
     std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
-    material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER)->setParameter("tex", *texture.get(), 1);
+    material->setShaderParameter(GL_FRAGMENT_SHADER, "tex", GLMaterial::TextureParameter(texture, 0));
 
     GameObject* obj = m_gameWorld->createGameObject();
     auto transformHandle = obj->addComponent<TransformComponent>();

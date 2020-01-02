@@ -34,6 +34,12 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
     });
 
     m_guiNDCQuad->addSubMesh({ 0, 2, 1, 1, 2, 3 });
+
+    m_guiMaterial = std::make_unique<GLMaterial>();
+
+    m_guiMaterial->setShadersPipeline(m_guiShadersPipeline);
+    m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
+    m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
 }
 
 void GUISystem::configure(GameWorld* gameWorld)
@@ -64,10 +70,6 @@ void GUISystem::update(GameWorld* gameWorld, float delta)
 void GUISystem::render(GameWorld* gameWorld)
 {
     ARG_UNUSED(gameWorld);
-
-    m_graphicsContext->disableDepthTest();
-    m_graphicsContext->enableBlending();
-    m_graphicsContext->setBlendingMode(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
     vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
@@ -153,7 +155,7 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     task.geometryStore = m_guiNDCQuad->getGeometryStore();
     task.startOffset = m_guiNDCQuad->getSubMeshIndicesOffset(0);
     task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
-    task.shadersPipeline = m_guiShadersPipeline.get();
+    task.material = m_guiMaterial.get();
 
     return task;
 }

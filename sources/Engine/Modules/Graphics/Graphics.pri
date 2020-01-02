@@ -13,7 +13,6 @@ SOURCES += \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/DebugPainter.cpp \
     $$PWD/GraphicsSystem/GeometryCullingSystem.cpp \
-    $$PWD/GraphicsSystem/Material.cpp \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
     $$PWD/GraphicsSystem/MeshRenderingSystem.cpp \
@@ -21,6 +20,7 @@ SOURCES += \
     $$PWD/GraphicsSystem/Transform.cpp \
     $$PWD/GraphicsSystem/TransformComponent.cpp \
     $$PWD/OpenGL/GLGeometryStore.cpp \
+    $$PWD/OpenGL/GLMaterial.cpp \
     $$PWD/OpenGL/GLShader.cpp \
     $$PWD/OpenGL/GLShadersPipeline.cpp \
     $$PWD/OpenGL/GLTexture.cpp \
@@ -47,7 +47,6 @@ HEADERS += \
     $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/DebugPainter.h \
     $$PWD/GraphicsSystem/GeometryCullingSystem.h \
-    $$PWD/GraphicsSystem/Material.h \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \
     $$PWD/GraphicsSystem/MeshRenderingSystem.h \
@@ -56,6 +55,7 @@ HEADERS += \
     $$PWD/GraphicsSystem/TransformComponent.h \
     $$PWD/OpenGL/GLGeometryStore.h \
     $$PWD/OpenGL/GLGeometryStoreImpl.h \
+    $$PWD/OpenGL/GLMaterial.h \
     $$PWD/OpenGL/GLShader.h \
     $$PWD/OpenGL/GLShadersPipeline.h \
     $$PWD/OpenGL/GLTexture.h \

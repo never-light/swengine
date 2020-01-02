@@ -8,7 +8,6 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/Material.h>
 
 #include <Engine/Modules/Graphics/Resources/ShaderResource.h>
 #include <Engine/Modules/Graphics/Resources/TextureResource.h>

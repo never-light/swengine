@@ -71,5 +71,7 @@ private:
     std::shared_ptr<GUIWidget> m_focusedWidget;
 
     glm::mat4x4 m_guiProjectionMatrix;
+
+    std::unique_ptr<GLMaterial> m_guiMaterial;
 };
 

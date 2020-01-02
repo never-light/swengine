@@ -36,11 +36,6 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void MeshRenderingSystem::render(GameWorld* gameWorld)
 {
-    m_graphicsContext->disableWireframeRendering();
-    m_graphicsContext->enableDepthTest();
-    m_graphicsContext->enableFaceCulling();
-    m_graphicsContext->enableBlending();
-
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
 
@@ -59,7 +54,7 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
         SW_ASSERT(subMeshesCount != 0);
 
         for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-            const Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
+            GLMaterial* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
             SW_ASSERT(material != nullptr);
 
@@ -85,8 +80,8 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
             }
 
             m_graphicsContext->executeRenderTask({
+                material,
                 mesh->getGeometryStore(),
-                shadersPipeline,
                 mesh->getSubMeshIndicesOffset(subMeshIndex),
                 mesh->getSubMeshIndicesCount(subMeshIndex)
             });

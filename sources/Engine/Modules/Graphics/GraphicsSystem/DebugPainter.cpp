@@ -5,7 +5,10 @@
 std::shared_ptr<Mesh> DebugPainter::s_sphere = nullptr;
 std::shared_ptr<Mesh> DebugPainter::s_box = nullptr;
 
-std::unique_ptr<GLShadersPipeline> DebugPainter::s_debugShaderPipeline = nullptr;
+std::shared_ptr<GLShadersPipeline> DebugPainter::s_debugShaderPipeline = nullptr;
+std::unique_ptr<GLMaterial> DebugPainter::s_debugMaterial = nullptr;
+
+
 std::shared_ptr<SharedGraphicsState> DebugPainter::s_sharedGraphicsState = nullptr;
 
 std::vector<std::unique_ptr<GLGeometryStore>> DebugPainter::s_primitivesGeomery;
@@ -25,7 +28,13 @@ void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<GLShader> fragmentShader = resourceManager
             ->getResourceFromInstance<ShaderResource>("debug_fragment_shader")->getShader();
 
-    s_debugShaderPipeline = std::make_unique<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
+    s_debugShaderPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
+
+    s_debugMaterial = std::make_unique<GLMaterial>();
+    s_debugMaterial->setShadersPipeline(s_debugShaderPipeline);
+    s_debugMaterial->setDepthTestMode(DepthTestMode::Enabled);
+    s_debugMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
+    s_debugMaterial->setFaceCullingMode(FaceCullingMode::Disabled);
 }
 
 void DebugPainter::renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
@@ -104,16 +113,12 @@ void DebugPainter::renderFrustum(const Frustum& frustum, const glm::vec4& color)
 
 void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
 {
-    graphicsContext->enableBlending();
-    graphicsContext->enableDepthTest();
-    graphicsContext->disableFaceCulling();
-
     for (const auto& queueItem : s_debugRenderQueue) {
         if (queueItem.isWireframe) {
-            graphicsContext->enableWireframeRendering();
+            graphicsContext->setPolygonFillingMode(PolygonFillingMode::Wireframe);
         }
         else {
-            graphicsContext->disableWireframeRendering();
+            graphicsContext->setPolygonFillingMode(PolygonFillingMode::Fill);
         }
 
         GLShader* vertexShader = s_debugShaderPipeline->getShader(GL_VERTEX_SHADER);
@@ -126,8 +131,9 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
         GLShader* fragmentShader = s_debugShaderPipeline->getShader(GL_FRAGMENT_SHADER);
         fragmentShader->setParameter("color", queueItem.color);
 
-        graphicsContext->executeRenderTask({ queueItem.geometry, s_debugShaderPipeline.get(),
-                                             0, queueItem.geometry->getIndicesCount(), queueItem.primitivesType });
+        graphicsContext->executeRenderTask({ s_debugMaterial.get(), queueItem.geometry,
+                                             0, queueItem.geometry->getIndicesCount(),
+                                             queueItem.primitivesType });
     }
 
     s_debugRenderQueue.clear();
