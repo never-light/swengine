@@ -20,4 +20,44 @@
 		<type>fragment</type>
 	</resource>
 
+	<resource type="texture" id="tex_main_menu_background" source="../resources/textures/gui/main_menu_bg.jpg">
+		<type>2d</type>
+		<format>rgb8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
+	<resource type="texture" id="tex_main_menu_new_game" source="../resources/textures/gui/newgame_btn.png">
+		<type>2d</type>
+		<format>rgba8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
+	<resource type="texture" id="tex_main_menu_new_game_hover" source="../resources/textures/gui/newgame_btn_hover.png">
+		<type>2d</type>
+		<format>rgba8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
+	<resource type="texture" id="tex_main_menu_exit" source="../resources/textures/gui/exit_btn.png">
+		<type>2d</type>
+		<format>rgba8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
+	<resource type="texture" id="tex_main_menu_exit_hover" source="../resources/textures/gui/exit_btn_hover.png">
+		<type>2d</type>
+		<format>rgba8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
 </resources>

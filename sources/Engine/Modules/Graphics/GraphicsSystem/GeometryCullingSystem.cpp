@@ -39,13 +39,10 @@ void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
 {    
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
-        DebugPainter::renderSphere(meshComponent->getAABB().toSphere(), glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f }, true);
+        //DebugPainter::renderSphere(meshComponent->getAABB().toSphere(), glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f }, true);
 
-        DebugPainter::renderAABB(meshComponent->getAABB().getMin(), meshComponent->getAABB().getMax(),
-                                 glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f }, true);
-
-        //bool isMeshFrustumIntersecting = isSphereFrustumIntersecting(meshComponent->getAABB().toSphere(),
-        //                                                             m_sharedGraphicsState->getActiveCamera()->getFrustum());
+        /*DebugPainter::renderAABB(meshComponent->getAABB().getMin(), meshComponent->getAABB().getMax(),
+                                 glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f }, true);*/
 
         bool isMeshFrustumIntersecting = isAABBFrustumIntersecting(meshComponent->getAABB(),
                                                                     m_sharedGraphicsState->getActiveCamera()->getFrustum());
