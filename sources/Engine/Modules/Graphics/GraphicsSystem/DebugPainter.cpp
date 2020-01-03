@@ -62,9 +62,8 @@ void DebugPainter::renderBasis(const glm::vec3& origin, const glm::vec3& x, cons
 
 void DebugPainter::renderSphere(const glm::vec3& centerPosition, float radius, const glm::vec4& color, bool wireframe)
 {
-    glm::mat4 transformation = glm::identity<glm::mat4>();
-    transformation = glm::translate(transformation, centerPosition);
-    transformation = glm::scale(transformation, glm::vec3(radius));
+    glm::mat4 transformation = glm::translate(glm::identity<glm::mat4>(), centerPosition) *
+            glm::scale(glm::identity<glm::mat4>(), glm::vec3(radius));
 
     s_debugRenderQueue.push_back({ s_sphere->getGeometryStore(), transformation, color, wireframe });
 }
@@ -76,10 +75,9 @@ void DebugPainter::renderSphere(const Sphere& sphere, const glm::vec4& color, bo
 
 void DebugPainter::renderBox(const glm::vec3& centerPosition, const glm::vec3& halfSize, const glm::quat& orientation, const glm::vec4& color, bool wireframe)
 {
-    glm::mat4 transformation = glm::identity<glm::mat4>();
-    transformation = glm::translate(transformation, centerPosition);
-    transformation = glm::toMat4(orientation) * transformation;
-    transformation = glm::scale(transformation, halfSize * 2.0f);
+    glm::mat4 transformation = glm::translate(glm::identity<glm::mat4>(), centerPosition) *
+            glm::toMat4(orientation) *
+            glm::scale(glm::identity<glm::mat4>(), halfSize * 2.0f);
 
     s_debugRenderQueue.push_back({ s_box->getGeometryStore(), transformation, color, wireframe });
 }
@@ -111,6 +109,22 @@ void DebugPainter::renderFrustum(const Frustum& frustum, const glm::vec4& color)
 
 }
 
+void DebugPainter::renderAABB(const glm::vec3& min, const glm::vec3& max, const glm::vec4& color, bool wireframe)
+{
+    glm::vec3 origin = (max + min) * 0.5f;
+    glm::vec3 scale = (max - min);
+
+    glm::mat4 transformation = glm::translate(glm::identity<glm::mat4>(), origin) *
+            glm::scale(glm::identity<glm::mat4>(), scale);
+
+    s_debugRenderQueue.push_back({ s_box->getGeometryStore(), transformation, color, wireframe });
+}
+
+void DebugPainter::renderAABB(const AABB& aabb, const glm::vec4& color, bool wireframe)
+{
+    renderAABB(aabb.getMin(), aabb.getMax(), color, wireframe);
+}
+
 void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
 {
     for (const auto& queueItem : s_debugRenderQueue) {
@@ -130,6 +144,19 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
 
         GLShader* fragmentShader = s_debugShaderPipeline->getShader(GL_FRAGMENT_SHADER);
         fragmentShader->setParameter("color", queueItem.color);
+
+        s_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(1);
+
+        size_t primitivesCount = 0;
+
+        if (queueItem.primitivesType == GL_TRIANGLES) {
+            primitivesCount = queueItem.geometry->getIndicesCount() / 3;
+        }
+        else if (queueItem.primitivesType == GL_LINES) {
+            primitivesCount = queueItem.geometry->getIndicesCount() / 2;
+        }
+
+        s_sharedGraphicsState->getFrameStats().increasePrimitivesCount(primitivesCount);
 
         graphicsContext->executeRenderTask({ s_debugMaterial.get(), queueItem.geometry,
                                              0, queueItem.geometry->getIndicesCount(),

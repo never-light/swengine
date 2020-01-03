@@ -25,8 +25,17 @@ private:
     void initializeGame();
     void deinitializeGame();
 
+    void initializeDebugGUI();
+    void deinitialzieDebugGUI();
+
 private:
     std::shared_ptr<InputModule> m_inputModule;
     std::unique_ptr<Game> m_game;
+
+    std::shared_ptr<GUILayout> m_debugGUILayout;
+
+    std::shared_ptr<GUIText> m_primivitesCountText;
+    std::shared_ptr<GUIText> m_subMeshesCountText;
+    std::shared_ptr<GUIText> m_culledSubMeshesCountText;
 };
 

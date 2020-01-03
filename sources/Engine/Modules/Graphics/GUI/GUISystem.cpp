@@ -13,10 +13,10 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
     m_guiNDCQuad = std::make_unique<Mesh>();
 
     m_guiNDCQuad->setVertices({
-        { 0.0f,  1.0f, 0.0f },
-        { 0.0f, 0.0f, 0.0f },
-        { 1.0f,  1.0f, 0.0f },
-        { 1.0f, 0.0f, 0.0f },
+        { 0.0f,  1.0f, 1.0f },
+        { 0.0f, 0.0f, 1.0f },
+        { 1.0f,  1.0f, 1.0f },
+        { 1.0f, 0.0f, 1.0f },
     });
 
     m_guiNDCQuad->setUV({
@@ -40,6 +40,7 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
     m_guiMaterial->setShadersPipeline(m_guiShadersPipeline);
     m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
     m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
+    m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
 }
 
 void GUISystem::configure(GameWorld* gameWorld)

@@ -46,6 +46,9 @@ public:
     static void renderFrustum(const Frustum& frustum,
                               const glm::vec4& color = {});
 
+    static void renderAABB(const glm::vec3& min, const glm::vec3& max, const glm::vec4& color = {}, bool wireframe = true);
+    static void renderAABB(const AABB& aabb, const glm::vec4& color = {}, bool wireframe = true);
+
     static void flushRenderQueue(GLGraphicsContext* graphicsContext);
 
 private:

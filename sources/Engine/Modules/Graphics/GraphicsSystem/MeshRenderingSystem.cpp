@@ -53,6 +53,8 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
 
         SW_ASSERT(subMeshesCount != 0);
 
+        m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(subMeshesCount);
+
         for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
             GLMaterial* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
@@ -78,6 +80,8 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
                     vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
                 }
             }
+
+            m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
             m_graphicsContext->executeRenderTask({
                 material,

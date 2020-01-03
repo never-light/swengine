@@ -42,27 +42,61 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
                 m_resourceManager->getResourceFromInstance<ShaderResource>("phong_vertex_shader")->getShader(),
                 m_resourceManager->getResourceFromInstance<ShaderResource>("phong_fragment_shader")->getShader(), nullptr);
 
+    std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
+
+
     std::shared_ptr<GLMaterial> material = std::make_shared<GLMaterial>();
     material->setShadersPipeline(phongPipeline);
     material->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
     material->setDepthTestMode(DepthTestMode::Enabled);
     material->setFaceCullingMode(FaceCullingMode::Back);
     material->setPolygonFillingMode(PolygonFillingMode::Fill);
-
-    std::shared_ptr<GLTexture> texture = m_resourceManager->getResourceFromInstance<TextureResource>("simple_texture")->getTexture();
     material->setShaderParameter(GL_FRAGMENT_SHADER, "tex", GLMaterial::TextureParameter(texture, 0));
 
-    GameObject* obj = m_gameWorld->createGameObject();
-    auto transformHandle = obj->addComponent<TransformComponent>();
+    {
+        GameObject* obj = m_gameWorld->createGameObject();
+        auto transformHandle = obj->addComponent<TransformComponent>();
 
-    transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
+        transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
 
-    std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
 
-    auto componentHandle = obj->addComponent<MeshRendererComponent>();
-    componentHandle->setMeshInstance(cubeGeometry);
-    componentHandle->setMaterialsInstances({ material });
+        auto componentHandle = obj->addComponent<MeshRendererComponent>();
+        componentHandle->setMeshInstance(cubeGeometry);
+        componentHandle->setMaterialsInstances({ material });
 
+        componentHandle->updateBounds(*transformHandle->getTransform());
+    }
+
+    {
+        GameObject* obj = m_gameWorld->createGameObject();
+        auto transformHandle = obj->addComponent<TransformComponent>();
+
+        transformHandle->getTransform()->move(2.0f, 0.0f, 0.0f);
+
+        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+
+        auto componentHandle = obj->addComponent<MeshRendererComponent>();
+        componentHandle->setMeshInstance(cubeGeometry);
+        componentHandle->setMaterialsInstances({ material });
+
+        componentHandle->updateBounds(*transformHandle->getTransform());
+    }
+
+    {
+        GameObject* obj = m_gameWorld->createGameObject();
+        auto transformHandle = obj->addComponent<TransformComponent>();
+
+        transformHandle->getTransform()->move(0.0f, 0.0f, 2.0f);
+
+        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+
+        auto componentHandle = obj->addComponent<MeshRendererComponent>();
+        componentHandle->setMeshInstance(cubeGeometry);
+        componentHandle->setMaterialsInstances({ material });
+
+        componentHandle->updateBounds(*transformHandle->getTransform());
+    }
 }
 
 GameObject* GameLevel::getPlayer() const

@@ -4,6 +4,7 @@
 
 #include "TransformComponent.h"
 #include "MeshRendererComponent.h"
+#include "DebugPainter.h"
 
 GeometryCullingSystem::GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                                          std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
@@ -35,16 +36,24 @@ void GeometryCullingSystem::update(GameWorld* gameWorld, float delta)
 }
 
 void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
-{
+{    
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
-        Mesh* mesh = meshComponent->getMeshInstance().get();
+        DebugPainter::renderSphere(meshComponent->getAABB().toSphere(), glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f }, true);
 
-        bool isMeshFrustumIntersecting = isSphereFrustumIntersecting(mesh->getAABB().toSphere(),
-                                                                     m_sharedGraphicsState->getActiveCamera()->getFrustum());
+        DebugPainter::renderAABB(meshComponent->getAABB().getMin(), meshComponent->getAABB().getMax(),
+                                 glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f }, true);
+
+        //bool isMeshFrustumIntersecting = isSphereFrustumIntersecting(meshComponent->getAABB().toSphere(),
+        //                                                             m_sharedGraphicsState->getActiveCamera()->getFrustum());
+
+        bool isMeshFrustumIntersecting = isAABBFrustumIntersecting(meshComponent->getAABB(),
+                                                                    m_sharedGraphicsState->getActiveCamera()->getFrustum());
 
         if (!isMeshFrustumIntersecting) {
             meshComponent->cull();
+
+            m_sharedGraphicsState->getFrameStats().increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
         }
     }
 }

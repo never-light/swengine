@@ -88,6 +88,8 @@ public:
 
     Sphere toSphere() const;
 
+    std::array<glm::vec3, 8> getCorners() const;
+
 private:
     glm::vec3 m_min;
     glm::vec3 m_max;
@@ -100,3 +102,4 @@ float calculateSignedDistance(const glm::vec3& point, const Plane& plane);
 glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3);
 
 bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
+bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum);

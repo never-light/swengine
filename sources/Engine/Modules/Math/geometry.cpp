@@ -258,3 +258,38 @@ Sphere AABB::toSphere() const
 
     return Sphere(origin, radius);
 }
+
+std::array<glm::vec3, 8> AABB::getCorners() const
+{
+    return {
+        glm::vec3{ m_min.x, m_min.y, m_min.z },
+        glm::vec3{ m_max.x, m_min.y, m_min.z },
+        glm::vec3{ m_min.x, m_max.y, m_min.z },
+        glm::vec3{ m_min.x, m_min.y, m_max.z },
+
+        glm::vec3{ m_max.x, m_max.y, m_max.z },
+        glm::vec3{ m_min.x, m_max.y, m_max.z },
+        glm::vec3{ m_max.x, m_min.y, m_max.z },
+        glm::vec3{ m_max.x, m_max.y, m_min.z },
+    };
+}
+
+bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
+{
+    const auto& corners = aabb.getCorners();
+
+    for (size_t sideIndex = 0; sideIndex < 6; sideIndex++) {
+        const Plane& plane = frustum.getPlane(sideIndex);
+
+        size_t pointsOutsideFrustum = 0;
+
+        for (const glm::vec3& corner : corners) {
+            pointsOutsideFrustum += calculateSignedDistance(corner, plane) < 0.0f;
+        }
+
+        if (pointsOutsideFrustum == 8)
+            return false;
+    }
+
+    return true;
+}

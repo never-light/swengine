@@ -89,11 +89,15 @@ int BaseGameApplication::execute()
 
         performRender();
 
-        nextTick += SKIP_TICKS;
-        sleepTime = static_cast<long>(nextTick) - static_cast<long>(GetTickCount());
+        bool isFrameRateUnlimited = m_inputModule->isActionActive("unlimited_framerate");
 
-        if (sleepTime >= 0) {
-            SDL_Delay(static_cast<unsigned long>(sleepTime));
+        if (!isFrameRateUnlimited) {
+            nextTick += SKIP_TICKS;
+            sleepTime = static_cast<long>(nextTick) - static_cast<long>(GetTickCount());
+
+            if (sleepTime >= 0) {
+                SDL_Delay(static_cast<unsigned long>(sleepTime));
+            }
         }
     }
 
@@ -271,6 +275,8 @@ void BaseGameApplication::initializeEngineSystems()
 
     engineGameSystems->addGameSystem(m_geometryCullingSystem);
 
+    m_inputModule->registerAction("unlimited_framerate", KeyboardInputAction(SDLK_RALT));
+
     m_gameConsole->print("Engine is initialized...");
 }
 
@@ -300,6 +306,8 @@ void BaseGameApplication::performRender()
 {    
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_sharedGraphicsState->getFrameStats().reset();
 
     m_gameWorld->beforeRender();
 
