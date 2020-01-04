@@ -18,7 +18,7 @@ ResourceInstance::~ResourceInstance()
 void ResourceInstance::loadResource()
 {
     const ResourceDeclaration& declaration = m_resourceManager->getResourceDeclaration(m_resourceId);
-    m_resource->performLoad(declaration);
+    m_resource->performLoad(declaration, *m_resourceManager.get());
 }
 
 void ResourceInstance::unloadResource()

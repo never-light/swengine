@@ -10,6 +10,10 @@
 #include "Utility/strings.h"
 #include "Utility/xml.h"
 
+struct ResourceSourceDeclaration {
+
+};
+
 struct ResourceSourceFile {
     std::string path;
 };
@@ -26,7 +30,7 @@ struct ResourceSourceParameters {
 
 };
 
-using ResourceSource = std::variant<ResourceSourceFile, ResourceSourceRawString>;
+using ResourceSource = std::variant<ResourceSourceFile, ResourceSourceRawString, ResourceSourceDeclaration>;
 
 struct ResourceDeclaration {
     ResourceSource source;
@@ -50,6 +54,7 @@ T ResourceDeclaration::getParameters() const
 }
 
 class ResourceInstance;
+class ResourceManager;
 
 class Resource
 {
@@ -57,7 +62,7 @@ public:
     Resource();
     virtual ~Resource();
 
-    virtual void load(const ResourceDeclaration& declaration) = 0;
+    virtual void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) = 0;
     virtual void unload() = 0;
 
     virtual bool isBusy() const = 0;
@@ -68,7 +73,7 @@ public:
     void setPersistent(bool persistent);
 
 private:
-    void performLoad(const ResourceDeclaration& declaration);
+    void performLoad(const ResourceDeclaration& declaration, ResourceManager& resourceManager);
     void performUnload();
 
 private:

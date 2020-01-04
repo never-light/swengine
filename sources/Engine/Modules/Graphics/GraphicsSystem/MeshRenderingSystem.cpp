@@ -56,11 +56,11 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
         m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(subMeshesCount);
 
         for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-            GLMaterial* material = meshComponent->getMaterialInstance(subMeshIndex).get();
+            Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
             SW_ASSERT(material != nullptr);
 
-            GLShadersPipeline* shadersPipeline = material->getShadersPipeline().get();
+            GLShadersPipeline* shadersPipeline = material->getGpuMaterial().getShadersPipeline().get();
 
             SW_ASSERT(shadersPipeline != nullptr);
 
@@ -84,7 +84,7 @@ void MeshRenderingSystem::render(GameWorld* gameWorld)
             m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
             m_graphicsContext->executeRenderTask({
-                material,
+                &material->getGpuMaterial(),
                 mesh->getGeometryStore(),
                 mesh->getSubMeshIndicesOffset(subMeshIndex),
                 mesh->getSubMeshIndicesCount(subMeshIndex)

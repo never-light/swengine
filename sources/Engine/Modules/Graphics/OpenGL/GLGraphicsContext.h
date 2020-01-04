@@ -44,6 +44,7 @@ public:
     void setFaceCullingMode(FaceCullingMode mode);
     void setPolygonFillingMode(PolygonFillingMode mode);
     void setBlendingMode(BlendingMode mode);
+    void setDepthWritingMode(DepthWritingMode mode);
 
     void applyMaterial(const GLMaterial& material);
     void executeRenderTask(const RenderTask& task);

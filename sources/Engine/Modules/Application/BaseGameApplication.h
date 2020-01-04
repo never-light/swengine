@@ -23,6 +23,7 @@
 #include "Modules/Graphics/Resources/MeshResource.h"
 #include "Modules/Graphics/Resources/TextureResource.h"
 #include "Modules/Graphics/Resources/BitmapFontResource.h"
+#include "Modules/Graphics/Resources/MaterialResource.h"
 
 #include "GameConsole.h"
 

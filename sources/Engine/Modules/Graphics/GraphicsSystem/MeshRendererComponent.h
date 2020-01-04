@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Modules/Graphics/OpenGL/GLMaterial.h"
 #include "Modules/Graphics/Resources/MeshResource.h"
 #include "Modules/ResourceManagement/ResourceInstance.h"
 
 #include "Transform.h"
+#include "Material.h"
 
 class MeshRendererComponent
 {
@@ -14,10 +14,10 @@ public:
     void setMeshInstance(std::shared_ptr<Mesh> instance);
     std::shared_ptr<Mesh> getMeshInstance() const;
 
-    void setMaterialsInstances(const std::vector<std::shared_ptr<GLMaterial>>& instances);
-    void setMaterialInstance(size_t subMeshIndex, std::shared_ptr<GLMaterial> instance);
+    void setMaterialsInstances(const std::vector<std::shared_ptr<Material>>& instances);
+    void setMaterialInstance(size_t subMeshIndex, std::shared_ptr<Material> instance);
 
-    std::shared_ptr<GLMaterial> getMaterialInstance(size_t subMeshIndex) const;
+    std::shared_ptr<Material> getMaterialInstance(size_t subMeshIndex) const;
 
     bool isCulled() const;
     void cull(bool culled=true);
@@ -27,7 +27,7 @@ public:
 
 private:
     std::shared_ptr<Mesh> m_meshInstance;
-    std::vector<std::shared_ptr<GLMaterial>> m_materialsInstances;
+    std::vector<std::shared_ptr<Material>> m_materialsInstances;
 
     bool m_isCulled = false;
 

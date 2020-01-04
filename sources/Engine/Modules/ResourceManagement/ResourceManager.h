@@ -14,6 +14,8 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager>
 {
 public:
     ResourceManager();
+    ResourceManager(const ResourceManager& resourceManager) = delete;
+    ResourceManager(ResourceManager&& resourceManager) = delete;
     ~ResourceManager();
 
     template <class T>

@@ -189,6 +189,7 @@ void BaseGameApplication::initializeEngine()
     resourceManager->declareResourceType<MeshResource>("mesh");
     resourceManager->declareResourceType<TextureResource>("texture");
     resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
+    resourceManager->declareResourceType<MaterialResource>("material");
 
     resourceManager->addResourcesMap("../resources/engine_resources.xml");
 

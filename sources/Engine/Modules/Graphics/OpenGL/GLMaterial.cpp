@@ -60,6 +60,16 @@ BlendingMode GLMaterial::getBlendingMode() const
     return m_materialBlendingMode;
 }
 
+void GLMaterial::setDepthWritingMode(DepthWritingMode mode)
+{
+    m_depthWritingMode = mode;
+}
+
+DepthWritingMode GLMaterial::getDepthWritingMode() const
+{
+    return m_depthWritingMode;
+}
+
 void GLMaterial::setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value)
 {
     m_parameters.insert({name, GenericParameter(shaderType, value)});

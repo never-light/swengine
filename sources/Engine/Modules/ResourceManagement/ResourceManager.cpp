@@ -39,14 +39,14 @@ std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std
 
 void ResourceManager::addResourcesMap(const std::string& path)
 {
-    pugi::xml_document fontDescription;
-    pugi::xml_parse_result result = fontDescription.load_file(path.c_str());
+    pugi::xml_document resourcesMap;
+    pugi::xml_parse_result result = resourcesMap.load_file(path.c_str());
 
     if (!result) {
         ENGINE_RUNTIME_ERROR("Trying to load resources map from invalid source");
     }
 
-    pugi::xml_node declarationsList = fontDescription.child("resources");
+    pugi::xml_node declarationsList = resourcesMap.child("resources");
 
     for (pugi::xml_node declarationNode : declarationsList.children("resource")) {
         std::string resourceName = declarationNode.attribute("id").as_string();
@@ -54,9 +54,6 @@ void ResourceManager::addResourcesMap(const std::string& path)
         if (resourceName.empty()) {
             ENGINE_RUNTIME_ERROR("Resource declaration has invalid id");
         }
-
-        std::string sourcePath = declarationNode.attribute("source").as_string();
-        ResourceSourceFile source = { sourcePath };
 
         std::string resourceType = declarationNode.attribute("type").as_string();
         auto declarerIt = m_resourcesDeclarers.find(resourceType);
@@ -66,7 +63,18 @@ void ResourceManager::addResourcesMap(const std::string& path)
         }
 
         std::function resourceDeclarer = declarerIt->second;
-        resourceDeclarer(resourceName, source, declarationNode);
+
+        pugi::xml_attribute sourceAttribute = declarationNode.attribute("source");
+
+        if (sourceAttribute) {
+            std::string sourcePath = declarationNode.attribute("source").as_string();
+            ResourceSourceFile source = { sourcePath };
+
+            resourceDeclarer(resourceName, source, declarationNode);
+        }
+        else {
+            resourceDeclarer(resourceName, ResourceSourceDeclaration{}, declarationNode);
+        }
 
         bool isPreloadRequired = declarationNode.attribute("preload").as_bool();
 

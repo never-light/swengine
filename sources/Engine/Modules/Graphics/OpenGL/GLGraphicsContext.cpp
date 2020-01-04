@@ -101,8 +101,14 @@ void GLGraphicsContext::setDepthTestMode(DepthTestMode mode)
         glDisable(GL_DEPTH_TEST);
         break;
 
-    case DepthTestMode::Enabled:
+    case DepthTestMode::LessOrEqual:
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        break;
+
+    case DepthTestMode::Less:
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
         break;
 
     default:
@@ -164,6 +170,24 @@ void GLGraphicsContext::setBlendingMode(BlendingMode mode)
     case BlendingMode::Alpha_OneMinusAlpha:
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        break;
+
+    default:
+        break;
+    }
+
+    applyContextChange();
+}
+
+void GLGraphicsContext::setDepthWritingMode(DepthWritingMode mode)
+{
+    switch (mode) {
+    case DepthWritingMode::Disabled:
+        glDepthMask(GL_FALSE);
+        break;
+
+    case DepthWritingMode::Enabled:
+        glDepthMask(GL_TRUE);
         break;
 
     default:

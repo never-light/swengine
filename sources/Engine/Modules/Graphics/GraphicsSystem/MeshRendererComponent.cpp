@@ -21,21 +21,21 @@ std::shared_ptr<Mesh> MeshRendererComponent::getMeshInstance() const
     return m_meshInstance;
 }
 
-void MeshRendererComponent::setMaterialsInstances(const std::vector<std::shared_ptr<GLMaterial>>& instances)
+void MeshRendererComponent::setMaterialsInstances(const std::vector<std::shared_ptr<Material>>& instances)
 {
     SW_ASSERT(instances.size() == m_meshInstance->getSubMeshesCount());
 
     m_materialsInstances = instances;
 }
 
-void MeshRendererComponent::setMaterialInstance(size_t subMeshIndex, std::shared_ptr<GLMaterial> instance)
+void MeshRendererComponent::setMaterialInstance(size_t subMeshIndex, std::shared_ptr<Material> instance)
 {
     SW_ASSERT(subMeshIndex < m_materialsInstances.size());
 
     m_materialsInstances[subMeshIndex] = instance;
 }
 
-std::shared_ptr<GLMaterial> MeshRendererComponent::getMaterialInstance(size_t subMeshIndex) const
+std::shared_ptr<Material> MeshRendererComponent::getMaterialInstance(size_t subMeshIndex) const
 {
     SW_ASSERT(subMeshIndex < m_materialsInstances.size());
 

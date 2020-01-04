@@ -11,8 +11,8 @@
 	<resource type="bitmap_font" id="gui_default_font" source="../resources/fonts/tuffy.font" preload="true" persistent="true">
 	</resource>
 
-	<resource type="mesh" id="debug_mesh_sphere" source="../resources/models/debug/sphere.mesh" preload="true" persistent="true" />
-	<resource type="mesh" id="debug_mesh_box" source="../resources/models/debug/box.mesh" preload="true" persistent="true" />
+	<resource type="mesh" id="mesh_identity_sphere" source="../resources/models/primivites/sphere.mesh" preload="true" persistent="true" />
+	<resource type="mesh" id="mesh_identity_box" source="../resources/models/primivites/box.mesh" preload="true" persistent="true" />
 
 	<resource type="shader" id="debug_vertex_shader" source="../resources/shaders/debug_vertex_shader.glsl" persistent="true" preload="true">
 		<type>vertex</type>
@@ -21,6 +21,5 @@
 	<resource type="shader" id="debug_fragment_shader" source="../resources/shaders/debug_fragment_shader.glsl" preload="true" persistent="true">
 		<type>fragment</type>
 	</resource>
-
 
 </resources>

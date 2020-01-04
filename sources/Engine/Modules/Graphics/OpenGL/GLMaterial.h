@@ -15,7 +15,7 @@
 #include "Modules/ResourceManagement/ResourceInstance.h"
 
 enum class DepthTestMode {
-    Disabled, Unspecified, Enabled
+    Disabled, Unspecified, Less, LessOrEqual
 };
 
 enum class FaceCullingMode {
@@ -28,6 +28,10 @@ enum class PolygonFillingMode {
 
 enum class BlendingMode {
     Disabled, Unspecified, Alpha_OneMinusAlpha
+};
+
+enum class DepthWritingMode {
+    Disabled, Unspecified, Enabled
 };
 
 class GLGraphicsContext;
@@ -78,6 +82,9 @@ public:
     void setBlendingMode(BlendingMode mode);
     BlendingMode getBlendingMode() const;
 
+    void setDepthWritingMode(DepthWritingMode mode);
+    DepthWritingMode getDepthWritingMode() const;
+
     void setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value);
     const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
 
@@ -90,6 +97,7 @@ private:
     FaceCullingMode m_faceCullingMode = FaceCullingMode::Unspecified;
     PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Unspecified;
     BlendingMode m_materialBlendingMode = BlendingMode::Unspecified;
+    DepthWritingMode m_depthWritingMode = DepthWritingMode::Unspecified;
 
 private:
     friend class GLGraphicsContext;

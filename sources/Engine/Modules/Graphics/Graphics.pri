@@ -12,7 +12,9 @@ SOURCES += \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
     $$PWD/GraphicsSystem/DebugPainter.cpp \
+    $$PWD/GraphicsSystem/EnvironmentRenderingSystem.cpp \
     $$PWD/GraphicsSystem/GeometryCullingSystem.cpp \
+    $$PWD/GraphicsSystem/Material.cpp \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
     $$PWD/GraphicsSystem/MeshRenderingSystem.cpp \
@@ -25,6 +27,7 @@ SOURCES += \
     $$PWD/OpenGL/GLShadersPipeline.cpp \
     $$PWD/OpenGL/GLTexture.cpp \
     $$PWD/Resources/BitmapFontResource.cpp \
+    $$PWD/Resources/MaterialResource.cpp \
     $$PWD/Resources/MeshResource.cpp \
     $$PWD/Resources/ShaderResource.cpp \
     $$PWD/Resources/TextureResource.cpp \
@@ -46,7 +49,9 @@ HEADERS += \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \
     $$PWD/GraphicsSystem/DebugPainter.h \
+    $$PWD/GraphicsSystem/EnvironmentRenderingSystem.h \
     $$PWD/GraphicsSystem/GeometryCullingSystem.h \
+    $$PWD/GraphicsSystem/Material.h \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \
     $$PWD/GraphicsSystem/MeshRenderingSystem.h \
@@ -60,6 +65,7 @@ HEADERS += \
     $$PWD/OpenGL/GLShadersPipeline.h \
     $$PWD/OpenGL/GLTexture.h \
     $$PWD/Resources/BitmapFontResource.h \
+    $$PWD/Resources/MaterialResource.h \
     $$PWD/Resources/MeshResource.h \
     $$PWD/Resources/RawMesh.h \
     $$PWD/Resources/ShaderResource.h \

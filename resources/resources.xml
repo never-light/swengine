@@ -60,4 +60,22 @@
 		<mag_filter>linear</mag_filter>
 	</resource>
 
+	<resource type="material" id="phong_material">
+		<shaders_pipeline>
+			<vertex id="phong_vertex_shader" />
+			<fragment id="phong_fragment_shader" />
+		</shaders_pipeline>
+		
+		<gpu_state>
+			<blending mode="alpha_one_minus_alpha" />
+			<depth write="enabled" testMode="less" />
+			<face_culling mode="back" />
+			<polygon_filling mode="fill" />
+		</gpu_state>
+		
+		<params>
+			<param shader="fragment" name="tex" type="texture" id="simple_texture" slot="0" />
+		</params>
+	</resource>
+
 </resources>

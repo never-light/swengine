@@ -19,8 +19,8 @@ void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
 {
     s_sharedGraphicsState = sharedGraphicsState;
 
-    s_sphere = resourceManager->getResourceFromInstance<MeshResource>("debug_mesh_sphere")->getMesh();
-    s_box = resourceManager->getResourceFromInstance<MeshResource>("debug_mesh_box")->getMesh();
+    s_sphere = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh();
+    s_box = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_box")->getMesh();
 
     std::shared_ptr<GLShader> vertexShader = resourceManager->
             getResourceFromInstance<ShaderResource>("debug_vertex_shader")->getShader();
@@ -32,7 +32,7 @@ void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
 
     s_debugMaterial = std::make_unique<GLMaterial>();
     s_debugMaterial->setShadersPipeline(s_debugShaderPipeline);
-    s_debugMaterial->setDepthTestMode(DepthTestMode::Enabled);
+    s_debugMaterial->setDepthTestMode(DepthTestMode::Less);
     s_debugMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
     s_debugMaterial->setFaceCullingMode(FaceCullingMode::Disabled);
 }
