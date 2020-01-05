@@ -60,7 +60,7 @@
 		<mag_filter>linear</mag_filter>
 	</resource>
 
-	<resource type="material" id="phong_material">
+	<resource type="material" id="forward_opaque_mat_base">
 		<shaders_pipeline>
 			<vertex id="phong_vertex_shader" />
 			<fragment id="phong_fragment_shader" />
@@ -73,6 +73,12 @@
 			<polygon_filling mode="fill" />
 		</gpu_state>
 		
+		<params>
+		</params>
+	</resource>
+
+
+	<resource type="material" id="phong_material" extends="forward_opaque_mat_base">		
 		<params>
 			<param shader="fragment" name="tex" type="texture" id="simple_texture" slot="0" />
 		</params>

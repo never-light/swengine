@@ -66,15 +66,35 @@ void ResourceManager::addResourcesMap(const std::string& path)
 
         pugi::xml_attribute sourceAttribute = declarationNode.attribute("source");
 
+        const ResourceDeclaration* parentDeclaration = nullptr;
+        pugi::xml_attribute extendsAttribute = declarationNode.attribute("extends");
+
+        if (extendsAttribute) {
+            auto parentDeclarationIt = m_resourcesSources.find(extendsAttribute.as_string());
+
+            if (parentDeclarationIt == m_resourcesSources.end()) {
+                ENGINE_RUNTIME_ERROR(std::string("Resource declaration has invalid parent id: ") + extendsAttribute.as_string());
+            }
+
+            parentDeclaration = &parentDeclarationIt->second;
+        }
+
+        ResourceSource source;
+
         if (sourceAttribute) {
             std::string sourcePath = declarationNode.attribute("source").as_string();
-            ResourceSourceFile source = { sourcePath };
-
-            resourceDeclarer(resourceName, source, declarationNode);
+            source = ResourceSourceFile{ sourcePath };
         }
         else {
-            resourceDeclarer(resourceName, ResourceSourceDeclaration{}, declarationNode);
+            if (parentDeclaration != nullptr) {
+                source = parentDeclaration->source;
+            }
+            else {
+                source = ResourceSourceDeclaration{};
+            }
         }
+
+        resourceDeclarer(resourceName, source, declarationNode, parentDeclaration);
 
         bool isPreloadRequired = declarationNode.attribute("preload").as_bool();
 

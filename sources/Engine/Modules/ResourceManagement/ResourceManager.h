@@ -46,7 +46,10 @@ private:
     std::unordered_map<std::string, std::type_index> m_resourcesTypesIds;
 
     std::unordered_map<std::string,
-    std::function<void(const std::string&, const ResourceSource&, const pugi::xml_node&)>> m_resourcesDeclarers;
+    std::function<void(const std::string&,
+                       const ResourceSource&,
+                       const pugi::xml_node&,
+                       const ResourceDeclaration*)>> m_resourcesDeclarers;
 };
 
 template<class T>
@@ -70,10 +73,18 @@ void ResourceManager::declareResouceMapAlias(const std::string& alias)
     static_assert (std::is_base_of_v<Resource, T>);
 
     std::function declarer = [=] (const std::string& resourceId, const ResourceSource& source,
-            const pugi::xml_node& declarationNode)
+            const pugi::xml_node& declarationNode, const ResourceDeclaration* parentDeclaration)
     {
-        std::any parameters = T::buildDeclarationParameters(declarationNode);
-        declareResource<T>(resourceId, ResourceDeclaration{ source, parameters });
+        using ParametersType = typename T::ParametersType;
+
+        ParametersType defaultParametersInstance;
+
+        if (parentDeclaration != nullptr) {
+            defaultParametersInstance = std::any_cast<ParametersType>(parentDeclaration->parameters);
+        }
+
+        auto resourceParameters = T::buildDeclarationParameters(declarationNode, defaultParametersInstance);
+        declareResource<T>(resourceId, ResourceDeclaration{ source, resourceParameters });
     };
 
     m_resourcesDeclarers.insert({ alias, declarer });
