@@ -5,6 +5,7 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h>
 
 #include <Engine/Modules/Graphics/Resources/ShaderResource.h>
 #include <Engine/Modules/Graphics/Resources/TextureResource.h>
@@ -56,6 +57,13 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
         componentHandle->updateBounds(*transformHandle->getTransform());
     }
 
+    // Environment
+    {
+        GameObject* environmentObj = m_gameWorld->createGameObject();
+        auto environment = environmentObj->addComponent<EnvironmentComponent>();
+
+        environment->setEnvironmentMaterial(m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")->getMaterial());
+    }
 }
 
 GameObject* GameLevel::getPlayer() const

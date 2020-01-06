@@ -77,11 +77,48 @@
 		</params>
 	</resource>
 
-
 	<resource type="material" id="phong_material" extends="forward_opaque_mat_base">		
+		<gpu_state>
+			<face_culling mode="disabled" />
+		</gpu_state>
+	
 		<params>
 			<param shader="fragment" name="tex" type="texture" id="simple_texture" slot="0" />
 		</params>
 	</resource>
+	
+	<resource type="shader" id="environment_vertex_shader" source="../resources/shaders/environment_vertex_shader.glsl" persistent="true" preload="true">
+		<type>vertex</type>
+	</resource>
 
+	<resource type="shader" id="environment_fragment_shader" source="../resources/shaders/environment_fragment_shader.glsl" preload="true" persistent="true">
+		<type>fragment</type>
+	</resource>
+
+	<resource type="texture" id="tex_environment_clouds" source="../resources/textures/sky/clouds.png">
+		<type>2d</type>
+		<format>rgba8</format>
+		<generate_mipmaps>false</generate_mipmaps>
+		<min_filter>linear</min_filter>
+		<mag_filter>linear</mag_filter>
+	</resource>
+
+	<resource type="material" id="test_scene_environment">		
+		<shaders_pipeline>
+			<vertex id="environment_vertex_shader" />
+			<fragment id="environment_fragment_shader" />
+		</shaders_pipeline>
+		
+		<gpu_state>
+			<blending mode="disabled" />
+			<depth write="disabled" testMode="less_or_equal" />
+			<face_culling mode="disabled" />
+		</gpu_state>
+		
+		<params>
+			<param shader="fragment" name="environmentMap" type="texture" id="tex_environment_clouds" slot="0" />
+		</params>
+
+	</resource>
+	
 </resources>

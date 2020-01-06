@@ -18,10 +18,15 @@ Material* EnvironmentComponent::getEnvironmentMaterial() const
 
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                                                        std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-                                                       std::shared_ptr<Mesh> indentityBox)
+                                                       std::shared_ptr<Mesh> environmentMesh)
     : m_graphicsContext(graphicsContext),
       m_sharedGraphicsState(sharedGraphicsState),
-      m_identityBox(indentityBox)
+      m_environmentMesh(environmentMesh)
+{
+
+}
+
+EnvironmentRenderingSystem::~EnvironmentRenderingSystem()
 {
 
 }
@@ -52,7 +57,24 @@ void EnvironmentRenderingSystem::render(GameWorld* gameWorld)
 
     Material* material = environmentObject->getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
 
+    Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
+
+    if (camera != nullptr) {
+        GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(GL_VERTEX_SHADER);
+
+        if (vertexShader->hasParameter("scene.worldToCamera")) {
+            glm::mat4 untranslatedViewMatrix = camera->getViewMatrix();
+            untranslatedViewMatrix[3] = glm::vec4(0, 0, 0, 1);
+
+            vertexShader->setParameter("scene.worldToCamera", untranslatedViewMatrix);
+            vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
+        }
+    }
+
+    m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(1);
+    m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
+
     m_graphicsContext->executeRenderTask(RenderTask{ &material->getGpuMaterial(),
-                                                     m_identityBox->getGeometryStore(),
-                                                     0, m_identityBox->getSubMeshIndicesCount(0) });
+                                                     m_environmentMesh->getGeometryStore(),
+                                                     0, m_environmentMesh->getSubMeshIndicesCount(0) });
 }

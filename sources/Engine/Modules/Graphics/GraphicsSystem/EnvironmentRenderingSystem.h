@@ -24,7 +24,7 @@ class EnvironmentRenderingSystem : public GameSystem {
 public:
     EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                         std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-                        std::shared_ptr<Mesh> identityBox);
+                        std::shared_ptr<Mesh> environmentMesh);
 
     ~EnvironmentRenderingSystem() override;
 
@@ -38,7 +38,7 @@ private:
     std::shared_ptr<GLGraphicsContext> m_graphicsContext;
     std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 
-    std::shared_ptr<Mesh> m_identityBox;
+    std::shared_ptr<Mesh> m_environmentMesh;
 };
 
 

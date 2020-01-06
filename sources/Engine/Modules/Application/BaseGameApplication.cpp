@@ -202,6 +202,8 @@ void BaseGameApplication::initializeEngine()
 
 void BaseGameApplication::initializeEngineSystems()
 {
+    std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+
     m_gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(m_gameWorld));
     std::shared_ptr<GameSystemsGroup> engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
     m_gameWorld->getGameSystemsGroup()->addGameSystem(engineGameSystems);
@@ -218,9 +220,20 @@ void BaseGameApplication::initializeEngineSystems()
                                                                   m_sharedGraphicsState);
     engineGameSystems->addGameSystem(m_meshRenderingSystem);
 
-    // GUI system
-    std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+    // Geometry culling
+    m_geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
+                                                                      m_sharedGraphicsState);
 
+    engineGameSystems->addGameSystem(m_geometryCullingSystem);
+
+    // Environment rendering
+    m_environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+        m_sharedGraphicsState,
+        resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh());
+
+    engineGameSystems->addGameSystem(m_environmentRenderingSystem);
+
+    // GUI system
     std::shared_ptr<GLShader> guiVertexShader = resourceManager->
             getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
 
@@ -270,11 +283,6 @@ void BaseGameApplication::initializeEngineSystems()
 
     m_screenManager->getCommonGUILayout()->addChildWidget(guiConsole);
     m_inputModule->registerAction("console", KeyboardInputAction(SDLK_BACKQUOTE));
-
-    m_geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                      m_sharedGraphicsState);
-
-    engineGameSystems->addGameSystem(m_geometryCullingSystem);
 
     m_inputModule->registerAction("unlimited_framerate", KeyboardInputAction(SDLK_RALT));
 
