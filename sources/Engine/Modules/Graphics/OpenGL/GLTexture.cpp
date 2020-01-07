@@ -85,3 +85,8 @@ GLTextureInternalFormat GLTexture::getInternalFormat() const
 {
     return m_internalFormat;
 }
+
+GLuint GLTexture::getGLHandle() const
+{
+    return m_texture;
+}

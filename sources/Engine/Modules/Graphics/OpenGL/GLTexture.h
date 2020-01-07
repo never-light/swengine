@@ -18,7 +18,9 @@ enum class GLTextureInternalFormat {
     RGBA8 = GL_RGBA8,
     RGBA16 = GL_RGBA16,
     SRGB8 = GL_SRGB8,
-    SRGBA8 = GL_SRGB8_ALPHA8
+    SRGBA8 = GL_SRGB8_ALPHA8,
+    Depth24 = GL_DEPTH_COMPONENT24,
+    Depth24Stencil8 = GL_DEPTH24_STENCIL8
 };
 
 class GLTexture {
@@ -43,6 +45,7 @@ public:
     int getHeight() const;
 
     GLTextureInternalFormat getInternalFormat() const;
+    GLuint getGLHandle() const;
 
 private:
     GLTextureType m_type;
