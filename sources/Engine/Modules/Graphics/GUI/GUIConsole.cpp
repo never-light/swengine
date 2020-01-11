@@ -110,7 +110,7 @@ void GUIConsole::recalculateLayout()
     m_commandsTextBox->setOrigin({ 0, textVerticalOffset });
     m_commandsTextBox->setSize({ getSize().x, 25 });
 
-    setHeight(textVerticalOffset + 25);
+    setHeight(textVerticalOffset + 75);
 }
 
 void GUIConsole::transformationCacheUpdate()

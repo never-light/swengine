@@ -119,4 +119,3 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>()
     glVertexArrayAttribBinding(m_vertexArrayObject, 5, 0);
 
 }
-
