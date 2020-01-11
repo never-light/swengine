@@ -59,7 +59,6 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UV>()
     glVertexArrayAttribBinding(m_vertexArrayObject, 2, 0);
 }
 
-
 template<>
 void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>()
 {
@@ -73,7 +72,6 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>()
 
     glEnableVertexArrayAttrib(m_vertexArrayObject, 0);
     glEnableVertexArrayAttrib(m_vertexArrayObject, 1);
-    glEnableVertexArrayAttrib(m_vertexArrayObject, 2);
 
     glVertexArrayAttribFormat(m_vertexArrayObject, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Color4, pos));
     glVertexArrayAttribFormat(m_vertexArrayObject, 1, 4, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Color4, color));
