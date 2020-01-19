@@ -28,8 +28,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<Camera> camera = std::make_shared<Camera>();
     camera->setNearClipDistance(0.1f);
     camera->setFarClipDistance(100.0f);
-    camera->setAspectRatio(static_cast<float>(m_graphicsContext->getBufferWidth())
-                           / m_graphicsContext->getBufferHeight());
+    camera->setAspectRatio(m_graphicsContext->getDefaultFramebuffer().getAspectRatio());
     camera->setFOVy(glm::pi<float>() / 4);
 
     camera->getTransform()->setPosition(0, 0, 0);

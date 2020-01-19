@@ -6,6 +6,7 @@
 #include "GLGeometryStore.h"
 #include "GLShadersPipeline.h"
 #include "GLMaterial.h"
+#include "GLFramebuffer.h"
 
 class SharedGraphicsState;
 class Transform;
@@ -35,11 +36,6 @@ public:
 
     void swapBuffers();
 
-    int getBufferWidth() const;
-    int getBufferHeight() const;
-
-    float getBufferAspectRatio() const;
-
     void setDepthTestMode(DepthTestMode mode);
     void setFaceCullingMode(FaceCullingMode mode);
     void setPolygonFillingMode(PolygonFillingMode mode);
@@ -48,6 +44,8 @@ public:
 
     void applyMaterial(const GLMaterial& material);
     void executeRenderTask(const RenderTask& task);
+
+    GLFramebuffer& getDefaultFramebuffer() const;
 
 private:
     void applyContextChange();
@@ -58,6 +56,8 @@ private:
     SDL_GLContext m_glContext;
 
     GLMaterial* m_currentMaterial = nullptr;
+
+    std::unique_ptr<GLFramebuffer> m_defaultFramebuffer;
 
 private:
 	static void APIENTRY debugOutputCallback(GLenum source,

@@ -48,8 +48,9 @@ void GUISystem::configure(GameWorld* gameWorld)
     gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
     gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
-    m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getBufferWidth()),
-                                       static_cast<float>(m_graphicsContext->getBufferHeight()), 0.0f, -1.0f, 1.0f);
+    m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getWidth()),
+                                       static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
+                                       0.0f, -1.0f, 1.0f);
 }
 
 void GUISystem::unconfigure(GameWorld* gameWorld)
@@ -163,12 +164,12 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 
 int GUISystem::getScreenWidth() const
 {
-    return m_graphicsContext->getBufferWidth();
+    return m_graphicsContext->getDefaultFramebuffer().getWidth();
 }
 
 int GUISystem::getScreenHeight() const
 {
-    return m_graphicsContext->getBufferHeight();
+    return m_graphicsContext->getDefaultFramebuffer().getHeight();
 }
 
 EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)

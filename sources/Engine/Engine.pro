@@ -1,7 +1,7 @@
 include(../Config.pri)
 
 TEMPLATE = lib
-CONFIG += staticlib c++17
+CONFIG += staticlib c++1z
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -74,6 +74,7 @@ HEADERS += \
     Modules/ResourceManagement/ResourceManager.h \
     Modules/ScreenManagement/Screen.h \
     Modules/ScreenManagement/ScreenManager.h \
+    Utility/Bitmask.h \
     Utility/helpers.h \
     Utility/strings.h \
     Utility/xml.h \

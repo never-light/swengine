@@ -21,6 +21,7 @@ SOURCES += \
     $$PWD/GraphicsSystem/SharedGraphicsState.cpp \
     $$PWD/GraphicsSystem/Transform.cpp \
     $$PWD/GraphicsSystem/TransformComponent.cpp \
+    $$PWD/OpenGL/GLFramebuffer.cpp \
     $$PWD/OpenGL/GLGeometryStore.cpp \
     $$PWD/OpenGL/GLMaterial.cpp \
     $$PWD/OpenGL/GLShader.cpp \
@@ -58,6 +59,7 @@ HEADERS += \
     $$PWD/GraphicsSystem/SharedGraphicsState.h \
     $$PWD/GraphicsSystem/Transform.h \
     $$PWD/GraphicsSystem/TransformComponent.h \
+    $$PWD/OpenGL/GLFramebuffer.h \
     $$PWD/OpenGL/GLGeometryStore.h \
     $$PWD/OpenGL/GLGeometryStoreImpl.h \
     $$PWD/OpenGL/GLMaterial.h \

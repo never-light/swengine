@@ -313,8 +313,11 @@ void BaseGameApplication::performUpdate(float delta)
 
 void BaseGameApplication::performRender()
 {    
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GLGraphicsContext* graphicsContext = m_graphicsModule->getGraphicsContext().get();
+
+    GLFramebuffer& defaultFramebuffer = graphicsContext->getDefaultFramebuffer();
+    defaultFramebuffer.clearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    defaultFramebuffer.clearDepthStencil(1.0f, 0);
 
     m_sharedGraphicsState->getFrameStats().reset();
 
@@ -327,6 +330,6 @@ void BaseGameApplication::performRender()
 
     m_gameWorld->afterRender();
 
-    DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
-    m_graphicsModule->getGraphicsContext()->swapBuffers();
+    DebugPainter::flushRenderQueue(graphicsContext);
+    graphicsContext->swapBuffers();
 }

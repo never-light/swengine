@@ -27,6 +27,11 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
     glDebugMessageCallback(reinterpret_cast<GLDEBUGPROCARB>(&debugOutputCallback), this);
 
+    int bufferWidth, bufferHeight;
+    SDL_GetWindowSize(m_window, &bufferWidth, &bufferHeight);
+
+    m_defaultFramebuffer = std::unique_ptr<GLFramebuffer>(new GLFramebuffer(bufferWidth, bufferHeight));
+
     spdlog::info("OpenGL context is created");
 }
 
@@ -62,7 +67,7 @@ void GLGraphicsContext::disableScissorTest()
 void GLGraphicsContext::setScissorRectangle(const Rect& rectangle)
 {
     glScissor(rectangle.getOriginX(),
-        getBufferWidth() - rectangle.getOriginY() - rectangle.getHeight(),
+        m_defaultFramebuffer->getWidth() - rectangle.getOriginY() - rectangle.getHeight(),
         rectangle.getWidth(), rectangle.getHeight());
 
     applyContextChange();
@@ -71,27 +76,6 @@ void GLGraphicsContext::setScissorRectangle(const Rect& rectangle)
 void GLGraphicsContext::swapBuffers()
 {
     SDL_GL_SwapWindow(m_window);
-}
-
-int GLGraphicsContext::getBufferWidth() const
-{
-    int width, height;
-    SDL_GetWindowSize(m_window, &width, &height);
-
-    return width;
-}
-
-int GLGraphicsContext::getBufferHeight() const
-{
-    int width, height;
-    SDL_GetWindowSize(m_window, &width, &height);
-
-    return height;
-}
-
-float GLGraphicsContext::getBufferAspectRatio() const
-{
-    return static_cast<float>(getBufferWidth()) / getBufferHeight();
 }
 
 void GLGraphicsContext::setDepthTestMode(DepthTestMode mode)
@@ -259,6 +243,11 @@ void GLGraphicsContext::executeRenderTask(const RenderTask& task)
     }
 
     task.geometryStore->drawRange(task.startOffset, task.partsCount, task.primitivesType);
+}
+
+GLFramebuffer& GLGraphicsContext::getDefaultFramebuffer() const
+{
+    return *m_defaultFramebuffer.get();
 }
 
 void GLGraphicsContext::applyContextChange()

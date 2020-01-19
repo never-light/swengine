@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include <cstddef>
 #include <vector>
@@ -14,6 +14,12 @@ struct VertexPos3Norm3UV {
     glm::vec3 norm = { 0.0f, 0.0f, 0.0f };
     glm::vec2 uv = { 0.0f, 0.0f };
 };
+
+struct VertexPos3Color4 {
+    glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
+    glm::vec4 color = { 0.0f, 0.0f, 0.0f, 0.0f };
+};
+
 
 class GLGeometryStore
 {
