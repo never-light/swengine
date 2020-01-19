@@ -8,8 +8,7 @@
 
 GeometryCullingSystem::GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                                          std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-    : m_graphicsContext(graphicsContext),
-      m_sharedGraphicsState(sharedGraphicsState)
+    : RenderingSystem(graphicsContext, sharedGraphicsState)
 {
 
 }

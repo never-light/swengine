@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Modules/ECS/GameSystem.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "SharedGraphicsState.h"
+#include "RenderingSystem.h"
 
-class GeometryCullingSystem : public GameSystem {
+class GeometryCullingSystem : public RenderingSystem {
 public:
     GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                         std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
@@ -18,8 +18,4 @@ public:
 
     void beforeRender(GameWorld *gameWorld) override;
     void afterRender(GameWorld *gameWorld) override;
-
-private:
-    std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-    std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 };

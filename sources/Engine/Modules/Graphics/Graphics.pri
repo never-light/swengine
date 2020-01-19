@@ -18,6 +18,8 @@ SOURCES += \
     $$PWD/GraphicsSystem/Mesh.cpp \
     $$PWD/GraphicsSystem/MeshRendererComponent.cpp \
     $$PWD/GraphicsSystem/MeshRenderingSystem.cpp \
+    $$PWD/GraphicsSystem/RenderingSystem.cpp \
+    $$PWD/GraphicsSystem/RenderingSystemsPipeline.cpp \
     $$PWD/GraphicsSystem/SharedGraphicsState.cpp \
     $$PWD/GraphicsSystem/Transform.cpp \
     $$PWD/GraphicsSystem/TransformComponent.cpp \
@@ -56,6 +58,8 @@ HEADERS += \
     $$PWD/GraphicsSystem/Mesh.h \
     $$PWD/GraphicsSystem/MeshRendererComponent.h \
     $$PWD/GraphicsSystem/MeshRenderingSystem.h \
+    $$PWD/GraphicsSystem/RenderingSystem.h \
+    $$PWD/GraphicsSystem/RenderingSystemsPipeline.h \
     $$PWD/GraphicsSystem/SharedGraphicsState.h \
     $$PWD/GraphicsSystem/Transform.h \
     $$PWD/GraphicsSystem/TransformComponent.h \

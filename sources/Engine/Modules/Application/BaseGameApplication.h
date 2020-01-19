@@ -14,6 +14,7 @@
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 #include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 
+#include "Modules/Graphics/GraphicsSystem/RenderingSystemsPipeline.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h"
@@ -71,11 +72,7 @@ protected:
     std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 
     std::shared_ptr<GameWorld> m_gameWorld;
-
-    std::shared_ptr<GUISystem> m_guiSystem;
-    std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
-    std::shared_ptr<GeometryCullingSystem> m_geometryCullingSystem;
-    std::shared_ptr<EnvironmentRenderingSystem> m_environmentRenderingSystem;
+    std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
 
     std::shared_ptr<ScreenManager> m_screenManager;
 

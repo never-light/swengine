@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Modules/Graphics/OpenGL/GLFramebuffer.h"
 #include "Camera.h"
 
 struct FrameStats {
@@ -38,5 +39,8 @@ private:
     std::shared_ptr<Camera> m_activeCamera;
 
     FrameStats m_frameStats;
+
+    std::unique_ptr<GLFramebuffer> m_deferredFramebuffer;
+    std::unique_ptr<GLFramebuffer> m_forwardFramebuffer;
 };
 

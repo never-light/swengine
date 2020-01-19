@@ -205,6 +205,7 @@ void BaseGameApplication::initializeEngineSystems()
     std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
     m_gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(m_gameWorld));
+
     std::shared_ptr<GameSystemsGroup> engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
     m_gameWorld->getGameSystemsGroup()->addGameSystem(engineGameSystems);
 
@@ -215,23 +216,29 @@ void BaseGameApplication::initializeEngineSystems()
     m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
     m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 
-    // Mesh rendering system
-    m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                  m_sharedGraphicsState);
-    engineGameSystems->addGameSystem(m_meshRenderingSystem);
+    // Rendering pipeline
+    m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_gameWorld,
+        m_graphicsModule->getGraphicsContext(), m_sharedGraphicsState);
+
+    engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
     // Geometry culling
-    m_geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                      m_sharedGraphicsState);
+    auto geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
+        m_sharedGraphicsState);
 
-    engineGameSystems->addGameSystem(m_geometryCullingSystem);
+    m_renderingSystemsPipeline->addGameSystem(geometryCullingSystem);
+
+    // Mesh rendering system
+    auto meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+                                                                  m_sharedGraphicsState);
+    m_renderingSystemsPipeline->addGameSystem(meshRenderingSystem);
 
     // Environment rendering
-    m_environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+    auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
         m_sharedGraphicsState,
         resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh());
 
-    engineGameSystems->addGameSystem(m_environmentRenderingSystem);
+    m_renderingSystemsPipeline->addGameSystem(environmentRenderingSystem);
 
     // GUI system
     std::shared_ptr<GLShader> guiVertexShader = resourceManager->
@@ -243,27 +250,27 @@ void BaseGameApplication::initializeEngineSystems()
     std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
                 guiVertexShader, guiFragmentShader, nullptr);
 
-    m_guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
+    auto guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
         m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
 
     std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
             getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
-    m_guiSystem->setDefaultFont(guiDefaultFont);
-    m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
+    guiSystem->setDefaultFont(guiDefaultFont);
+    guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
-    engineGameSystems->addGameSystem(m_guiSystem);
+    engineGameSystems->addGameSystem(guiSystem);
 
     // Game console
     m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
 
-    std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, m_guiSystem->getDefaultFont());
+    std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, guiSystem->getDefaultFont());
     m_gameConsole->setGUIConsole(guiConsole);
 
     glm::vec4 guiConsoleBackgroundColor = { 0.168f, 0.172f, 0.25f, 0.8f };
 
     guiConsole->setBackgroundColor(guiConsoleBackgroundColor);
     guiConsole->setHoverBackgroundColor(guiConsoleBackgroundColor);
-    guiConsole->setWidth(m_guiSystem->getScreenWidth());
+    guiConsole->setWidth(guiSystem->getScreenWidth());
 
     glm::vec4 guiConsoleTextBoxBackgroundColor = { 0.118f, 0.112f, 0.15f, 1.0f };
 

@@ -19,8 +19,7 @@ Material* EnvironmentComponent::getEnvironmentMaterial() const
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                                                        std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
                                                        std::shared_ptr<Mesh> environmentMesh)
-    : m_graphicsContext(graphicsContext),
-      m_sharedGraphicsState(sharedGraphicsState),
+    : RenderingSystem(graphicsContext, sharedGraphicsState),
       m_environmentMesh(environmentMesh)
 {
 
@@ -47,7 +46,7 @@ void EnvironmentRenderingSystem::update(GameWorld* gameWorld, float delta)
     ARG_UNUSED(delta);
 }
 
-void EnvironmentRenderingSystem::render(GameWorld* gameWorld)
+void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
 {
     GameObject* environmentObject = gameWorld->findGameObject([] (GameObject* obj) {
         return obj->hasComponent<EnvironmentComponent>();

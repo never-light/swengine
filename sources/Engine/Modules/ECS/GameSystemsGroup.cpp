@@ -77,3 +77,8 @@ void GameSystemsGroup::removeGameSystem(std::shared_ptr<GameSystem> system)
 
     m_gameSystems.erase(std::remove(m_gameSystems.begin(), m_gameSystems.end(), system), m_gameSystems.end());
 }
+
+const std::vector<std::shared_ptr<GameSystem> >& GameSystemsGroup::getGameSystems() const
+{
+    return m_gameSystems;
+}

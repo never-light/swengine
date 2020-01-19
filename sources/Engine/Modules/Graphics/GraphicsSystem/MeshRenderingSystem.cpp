@@ -7,8 +7,7 @@
 
 MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                                          std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-    : m_graphicsContext(graphicsContext),
-      m_sharedGraphicsState(sharedGraphicsState)
+    : RenderingSystem(graphicsContext, sharedGraphicsState)
 {
 
 }
@@ -34,7 +33,7 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
     ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::render(GameWorld* gameWorld)
+void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
 {
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();

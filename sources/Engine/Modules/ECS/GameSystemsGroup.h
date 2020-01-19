@@ -22,11 +22,14 @@ public:
 
     void update(GameWorld *gameWorld, float delta) override;
 
-    void addGameSystem(std::shared_ptr<GameSystem> system);
-    void removeGameSystem(std::shared_ptr<GameSystem> system);
+    virtual void addGameSystem(std::shared_ptr<GameSystem> system);
+    virtual void removeGameSystem(std::shared_ptr<GameSystem> system);
 
     template<class T>
     std::shared_ptr<T> getGameSystem() const;
+
+protected:
+    const std::vector<std::shared_ptr<GameSystem>>& getGameSystems() const;
 
 private:
     std::vector<std::shared_ptr<GameSystem>> m_gameSystems;

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Modules/ECS/GameSystem.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
 #include "Material.h"
 #include "Mesh.h"
 #include "SharedGraphicsState.h"
+#include "RenderingSystem.h"
 
 class EnvironmentComponent
 {
@@ -20,7 +20,7 @@ private:
 };
 
 
-class EnvironmentRenderingSystem : public GameSystem {
+class EnvironmentRenderingSystem : public RenderingSystem {
 public:
     EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
                         std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
@@ -32,12 +32,9 @@ public:
     void unconfigure(GameWorld *gameWorld) override;
 
     void update(GameWorld *gameWorld, float delta) override;
-    void render(GameWorld *gameWorld) override;
+    void renderForward(GameWorld *gameWorld) override;
 
 private:
-    std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-    std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-
     std::shared_ptr<Mesh> m_environmentMesh;
 };
 
