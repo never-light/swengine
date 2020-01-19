@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Modules/Graphics/OpenGL/GLFramebuffer.h"
+#include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "Camera.h"
 
 struct FrameStats {
@@ -27,13 +28,16 @@ private:
 class SharedGraphicsState
 {
 public:
-    SharedGraphicsState();
+    SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
 
     void setActiveCamera(std::shared_ptr<Camera> camera);
     std::shared_ptr<Camera> getActiveCamera() const;
 
     const FrameStats& getFrameStats() const;
     FrameStats& getFrameStats();
+
+    GLFramebuffer& getDeferredFramebuffer() const;
+    GLFramebuffer& getForwardFramebuffer() const;
 
 private:
     std::shared_ptr<Camera> m_activeCamera;

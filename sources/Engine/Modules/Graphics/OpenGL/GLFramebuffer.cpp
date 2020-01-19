@@ -3,6 +3,8 @@
 
 #include "Exceptions/EngineRuntimeException.h"
 
+#include <memory>
+#include <algorithm>
 #include <spdlog/spdlog.h>
 
 GLFramebuffer::GLFramebuffer(int width, int height,
@@ -10,47 +12,34 @@ GLFramebuffer::GLFramebuffer(int width, int height,
                              GLTextureInternalFormat colorComponentsFormat,
                              bool createDepthStencilComponent)
     : m_width(width), m_height(height),
-      m_colorComponentsCount(colorComponentsCount),
-      m_colorComponentsFormat(colorComponentsFormat)
+      m_colorComponentsCount(colorComponentsCount)
 {
     SW_ASSERT(colorComponentsCount <= 4);
 
-    GL_CALL(glCreateFramebuffers(1, &m_framebuffer));
+    std::vector<std::shared_ptr<GLTexture>> colorComponents;
+    std::shared_ptr<GLTexture> depthStencilComponent;
 
     for (size_t colorComponentIndex = 0; colorComponentIndex < m_colorComponentsCount; colorComponentIndex++) {
-        m_colorComponents[colorComponentIndex] = std::make_unique<GLTexture>(GLTextureType::Texture2D,
-                                                                             m_width, m_height, m_colorComponentsFormat);
-
-        GLenum colorAttachmentIndex = GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(colorComponentIndex);
-
-        GL_CALL(glNamedFramebufferTexture(m_framebuffer, colorAttachmentIndex,
-                                  m_colorComponents[colorComponentIndex]->getGLHandle(), 0));
+        colorComponents[colorComponentIndex] = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+            m_width, m_height, colorComponentsFormat);
     }
 
     if (createDepthStencilComponent) {
         GLTextureInternalFormat depthInternalFormat = GLTextureInternalFormat::Depth24Stencil8;
-        m_depthComponent = std::make_unique<GLTexture>(GLTextureType::Texture2D, m_width, m_height, depthInternalFormat);
-
-        GLenum attachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
-
-        GL_CALL(glNamedFramebufferTexture(m_framebuffer, attachmentType, m_depthComponent->getGLHandle(), 0));
+        depthStencilComponent = std::make_shared<GLTexture>(GLTextureType::Texture2D, m_width, m_height, depthInternalFormat);
     }
 
-    GL_CALL_BLOCK_BEGIN();
+    performInternalInitialization(colorComponents, depthStencilComponent);
+}
 
-    GLenum readFramebufferStatus = glCheckNamedFramebufferStatus(m_framebuffer, GL_READ_FRAMEBUFFER);
-    GLenum drawFramebufferStatus = glCheckNamedFramebufferStatus(m_framebuffer, GL_DRAW_FRAMEBUFFER);
+GLFramebuffer::GLFramebuffer(int width, int height,
+                             const std::vector<std::shared_ptr<GLTexture>>& colorComponents,
+                             std::shared_ptr<GLTexture> depthStencilComponent)
+    : m_width(width), m_height(height)
+{
+    SW_ASSERT(colorComponents.size() <= 4);
 
-    GL_CALL_BLOCK_END();
-
-    if (readFramebufferStatus != GL_FRAMEBUFFER_COMPLETE ||
-        drawFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
-    {
-        ENGINE_RUNTIME_ERROR("Failed to create framebuffer, statuses are " + std::to_string(readFramebufferStatus) +
-                             " " + std::to_string(drawFramebufferStatus));
-    }
-
-    enableWritingToAllBuffers();
+    performInternalInitialization(colorComponents, depthStencilComponent);
 }
 
 GLFramebuffer::GLFramebuffer(int width, int height)
@@ -181,6 +170,44 @@ void GLFramebuffer::copyTo(GLFramebuffer& target,
     GL_CALL_BLOCK_END();
 }
 
+void GLFramebuffer::performInternalInitialization(const std::vector<std::shared_ptr<GLTexture>>& colorAttachments,
+                                                  std::shared_ptr<GLTexture> depthAttachment)
+{
+    m_colorComponentsCount = colorAttachments.size();
+
+    GL_CALL(glCreateFramebuffers(1, &m_framebuffer));
+
+    for (size_t colorComponentIndex = 0; colorComponentIndex < colorAttachments.size(); colorComponentIndex++) {
+        m_colorComponents[colorComponentIndex] = colorAttachments[colorComponentIndex];
+
+        GLenum colorAttachmentIndex = GL_COLOR_ATTACHMENT0 + static_cast<GLenum>(colorComponentIndex);
+
+        GL_CALL(glNamedFramebufferTexture(m_framebuffer, colorAttachmentIndex,
+                                  m_colorComponents[colorComponentIndex]->getGLHandle(), 0));
+    }
+
+    if (depthAttachment != nullptr) {
+        m_depthComponent = depthAttachment;
+        GL_CALL(glNamedFramebufferTexture(m_framebuffer, GL_DEPTH_STENCIL_ATTACHMENT, m_depthComponent->getGLHandle(), 0));
+    }
+
+    GL_CALL_BLOCK_BEGIN();
+
+    GLenum readFramebufferStatus = glCheckNamedFramebufferStatus(m_framebuffer, GL_READ_FRAMEBUFFER);
+    GLenum drawFramebufferStatus = glCheckNamedFramebufferStatus(m_framebuffer, GL_DRAW_FRAMEBUFFER);
+
+    GL_CALL_BLOCK_END();
+
+    if (readFramebufferStatus != GL_FRAMEBUFFER_COMPLETE ||
+        drawFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
+    {
+        ENGINE_RUNTIME_ERROR("Failed to create framebuffer, statuses are " + std::to_string(readFramebufferStatus) +
+                             " " + std::to_string(drawFramebufferStatus));
+    }
+
+    enableWritingToAllBuffers();
+}
+
 void GLFramebuffer::enableWritingToAllBuffers()
 {
     std::vector<GLuint> drawBuffers(m_colorComponentsCount);
@@ -198,15 +225,15 @@ GLuint GLFramebuffer::getGLHandle() const
     return m_framebuffer;
 }
 
-GLTexture* GLFramebuffer::getDepthComponent() const
+std::shared_ptr<GLTexture> GLFramebuffer::getDepthComponent() const
 {
-    return m_depthComponent.get();
+    return m_depthComponent;
 }
 
-GLTexture* GLFramebuffer::getColorComponent(size_t index) const
+std::shared_ptr<GLTexture> GLFramebuffer::getColorComponent(size_t index) const
 {
     SW_ASSERT(index <= 4);
 
-    return m_colorComponents[index].get();
+    return m_colorComponents[index];
 }
 

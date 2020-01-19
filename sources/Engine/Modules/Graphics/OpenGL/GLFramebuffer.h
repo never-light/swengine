@@ -23,6 +23,9 @@ public:
                   GLTextureInternalFormat colorComponentsFormat,
                   bool createDepthStencilComponent);
 
+    GLFramebuffer(int width, int height, const std::vector<std::shared_ptr<GLTexture>>& colorComponents,
+                  std::shared_ptr<GLTexture> depthStencilComponent);
+
     GLFramebuffer(const GLFramebuffer& framebuffer) = delete;
 
     ~GLFramebuffer();
@@ -46,10 +49,12 @@ public:
 
     GLuint getGLHandle() const;
 
-    GLTexture* getDepthComponent() const;
-    GLTexture* getColorComponent(size_t index) const;
+    std::shared_ptr<GLTexture> getDepthComponent() const;
+    std::shared_ptr<GLTexture> getColorComponent(size_t index) const;
 
 private:
+
+
     /*!
      * \brief GLFramebuffer Handles GL default framebuffer
      * \param width
@@ -57,12 +62,14 @@ private:
      */
     GLFramebuffer(int width, int height);
 
-private:
     void copyTo(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
                 GLbitfield copyMask, FramebufferCopyFilter filter,
                 GLenum sourceAttachment, GLenum targetAttachment);
 
+    void performInternalInitialization(const std::vector<std::shared_ptr<GLTexture>>& colorAttachments,
+                                       std::shared_ptr<GLTexture> depthAttachment);
     void enableWritingToAllBuffers();
+
 
 private:
     GLuint m_framebuffer;
@@ -72,10 +79,8 @@ private:
 
     size_t m_colorComponentsCount;
 
-    std::array<std::unique_ptr<GLTexture>, 4> m_colorComponents;
-    GLTextureInternalFormat m_colorComponentsFormat;
-
-    std::unique_ptr<GLTexture> m_depthComponent;
+    std::array<std::shared_ptr<GLTexture>, 4> m_colorComponents;
+    std::shared_ptr<GLTexture> m_depthComponent;
 
 private:
     friend class GLGraphicsContext;

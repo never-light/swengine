@@ -101,6 +101,7 @@
 		<generate_mipmaps>false</generate_mipmaps>
 		<min_filter>linear</min_filter>
 		<mag_filter>linear</mag_filter>
+		<wrap u="repeat" v="repeat" />
 	</resource>
 
 	<resource type="material" id="test_scene_environment">		
@@ -120,5 +121,34 @@
 		</params>
 
 	</resource>
+	
+	<resource type="shader" id="deferred_gpass_vertex_shader" source="../resources/shaders/deferred_gpass_vertex_shader.glsl" persistent="true" preload="true">
+		<type>vertex</type>
+	</resource>
+
+	<resource type="shader" id="deferred_gpass_fragment_shader" source="../resources/shaders/deferred_gpass_fragment_shader.glsl" preload="true" persistent="true">
+		<type>fragment</type>
+	</resource>
+
+	
+	<resource type="material" id="deferred_gpass_base">		
+		<shaders_pipeline>
+			<vertex id="deferred_gpass_vertex_shader" />
+			<fragment id="deferred_gpass_fragment_shader" />
+		</shaders_pipeline>
+		
+		<gpu_state>
+			<blending mode="disabled" />
+			<depth write="enabled" testMode="less" />
+			<face_culling mode="back" />
+		</gpu_state>
+	</resource>
+	
+	<resource type="material" id="deferred_gpass_brick" extends="deferred_gpass_base">		
+		<params>
+			<param shader="fragment" name="albedo" type="texture" id="simple_texture" slot="0" />
+		</params>
+	</resource>
+
 	
 </resources>

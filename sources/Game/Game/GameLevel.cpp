@@ -38,7 +38,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     m_player->getComponent<CameraComponent>()->setCamera(camera);
 
     // Game objects
-    std::shared_ptr<Material> material = m_resourceManager->getResourceFromInstance<MaterialResource>("phong_material")->
+    std::shared_ptr<Material> material = m_resourceManager->getResourceFromInstance<MaterialResource>("deferred_gpass_brick")->
             getMaterial();
 
     {

@@ -15,5 +15,7 @@ public:
     void unconfigure(GameWorld *gameWorld) override;
 
     void update(GameWorld *gameWorld, float delta) override;
+
     void renderForward(GameWorld *gameWorld) override;
+    void renderDeferred(GameWorld *gameWorld) override;
 };

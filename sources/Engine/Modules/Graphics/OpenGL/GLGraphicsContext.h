@@ -19,6 +19,7 @@ struct RenderTask {
     size_t partsCount;
 
     GLenum primitivesType = GL_TRIANGLES;
+    GLFramebuffer* framebuffer = nullptr;
 };
 
 class GLGraphicsContext {
@@ -56,6 +57,7 @@ private:
     SDL_GLContext m_glContext;
 
     GLMaterial* m_currentMaterial = nullptr;
+    GLFramebuffer* m_currentFramebuffer = nullptr;
 
     std::unique_ptr<GLFramebuffer> m_defaultFramebuffer;
 

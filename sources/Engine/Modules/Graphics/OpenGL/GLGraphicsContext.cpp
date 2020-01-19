@@ -232,6 +232,17 @@ void GLGraphicsContext::applyMaterial(const GLMaterial& material)
 
 void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 {
+    if (m_currentFramebuffer != task.framebuffer) {
+        m_currentFramebuffer = task.framebuffer;
+
+        if (task.framebuffer == nullptr) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+        else {
+            glBindFramebuffer(GL_FRAMEBUFFER, task.framebuffer->getGLHandle());
+        }
+    }
+
     GLShadersPipeline* shadersPipeline = task.material->getShadersPipeline().get();
     glBindProgramPipeline(shadersPipeline->m_programPipeline);
 

@@ -17,6 +17,8 @@ enum class GLTextureInternalFormat {
     RGB8 = GL_RGB8,
     RGBA8 = GL_RGBA8,
     RGBA16 = GL_RGBA16,
+    RGB16F = GL_RGB16F,
+    RGB32F = GL_RGB32F,
     SRGB8 = GL_SRGB8,
     SRGBA8 = GL_SRGB8_ALPHA8,
     Depth24 = GL_DEPTH_COMPONENT24,

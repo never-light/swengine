@@ -35,6 +35,11 @@ void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
 {
+    ARG_UNUSED(gameWorld);
+}
+
+void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
+{
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
 
@@ -86,7 +91,9 @@ void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
                 &material->getGpuMaterial(),
                 mesh->getGeometryStore(),
                 mesh->getSubMeshIndicesOffset(subMeshIndex),
-                mesh->getSubMeshIndicesCount(subMeshIndex)
+                mesh->getSubMeshIndicesCount(subMeshIndex),
+                GL_TRIANGLES,
+                &m_sharedGraphicsState->getDeferredFramebuffer()
             });
         }
     }

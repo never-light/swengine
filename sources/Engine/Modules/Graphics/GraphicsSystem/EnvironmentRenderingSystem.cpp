@@ -74,6 +74,8 @@ void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
     m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
 
     m_graphicsContext->executeRenderTask(RenderTask{ &material->getGpuMaterial(),
-                                                     m_environmentMesh->getGeometryStore(),
-                                                     0, m_environmentMesh->getSubMeshIndicesCount(0) });
+        m_environmentMesh->getGeometryStore(), 0, m_environmentMesh->getSubMeshIndicesCount(0),
+        GL_TRIANGLES, &m_sharedGraphicsState->getForwardFramebuffer()
+    });
+
 }

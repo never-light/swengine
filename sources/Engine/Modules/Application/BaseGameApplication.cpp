@@ -180,7 +180,7 @@ void BaseGameApplication::initializeEngine()
     m_inputModule = std::make_shared<InputModule>(m_mainWindow);
 
     m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
-    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>();
+    m_sharedGraphicsState = std::make_shared<SharedGraphicsState>(m_graphicsModule->getGraphicsContext());
 
     m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
@@ -322,10 +322,6 @@ void BaseGameApplication::performRender()
 {    
     GLGraphicsContext* graphicsContext = m_graphicsModule->getGraphicsContext().get();
 
-    GLFramebuffer& defaultFramebuffer = graphicsContext->getDefaultFramebuffer();
-    defaultFramebuffer.clearColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    defaultFramebuffer.clearDepthStencil(1.0f, 0);
-
     m_sharedGraphicsState->getFrameStats().reset();
 
     m_gameWorld->beforeRender();
@@ -336,7 +332,5 @@ void BaseGameApplication::performRender()
     render();
 
     m_gameWorld->afterRender();
-
-    DebugPainter::flushRenderQueue(graphicsContext);
     graphicsContext->swapBuffers();
 }
