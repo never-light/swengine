@@ -4,6 +4,7 @@
 #include <pugixml.hpp>
 
 #include "Modules/Graphics/Resources/TextureResource.h"
+#include "Utility/files.h"
 
 ResourceManager::ResourceManager()
 {
@@ -80,10 +81,12 @@ void ResourceManager::addResourcesMap(const std::string& path)
         }
 
         ResourceSource source;
-
+        
         if (sourceAttribute) {
             std::string sourcePath = declarationNode.attribute("source").as_string();
-            source = ResourceSourceFile{ sourcePath };
+            if (FileUtills::isFileExists(sourcePath)) {
+                source = ResourceSourceFile{ sourcePath };
+            }
         }
         else {
             if (parentDeclaration != nullptr) {
