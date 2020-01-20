@@ -4,15 +4,12 @@
 #include <string>
 #include "Exceptions/EngineRuntimeException.h"
 
-bool FileUtills::isFileExists(const std::string& str)
+bool FileUtills::isFileExists(const std::string& path)
 {
     std::ifstream file;
-    file.open(str);
+    file.open(path);
     file.close();
-    if (!file){
-        ENGINE_RUNTIME_ERROR("Resourse file does not exist " + str);
-        return false;
-    }
-    return true;
+
+    return static_cast<bool>(file);
 }
 

@@ -2,5 +2,5 @@
 
 class FileUtills {
 public:
-    static bool isFileExists(const std::string& str);
+    static bool isFileExists(const std::string& path);
 };
