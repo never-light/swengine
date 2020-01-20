@@ -17,6 +17,4 @@ void main() {
 	gAlbedo = vec4(texture(tex, inVertexData.uv).rgb, 1.0);
 	gNormal = inVertexData.normal;
 	gPosition = inVertexData.position;
-	
-	gAlbedo.rgb = gNormal;
 };

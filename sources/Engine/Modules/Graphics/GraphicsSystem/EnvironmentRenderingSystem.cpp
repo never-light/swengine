@@ -1,6 +1,7 @@
 #include "EnvironmentRenderingSystem.h"
 #include "Modules/ECS/ECS.h"
 
+
 EnvironmentComponent::EnvironmentComponent()
 {
 

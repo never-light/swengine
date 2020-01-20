@@ -32,6 +32,14 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
 
     m_defaultFramebuffer = std::unique_ptr<GLFramebuffer>(new GLFramebuffer(bufferWidth, bufferHeight));
 
+    m_ndcTexturedQuad = std::make_unique<GLGeometryStore>(
+        std::vector<VertexPos3Norm3UV>{
+            { { -1.0f, 1.0f, 1.0f }, glm::vec3(), { 0.0f, 1.0f }  },
+            { { -1.0f, -1.0f, 1.0f }, glm::vec3(), { 0.0f, 0.0f }  },
+            { { 1.0f, 1.0f, 1.0f }, glm::vec3(), { 1.0f, 1.0f }  },
+            { { 1.0f, -1.0f, 1.0f }, glm::vec3(), { 1.0f, 0.0f }  },
+        }, std::vector<std::uint16_t>{ 0, 2, 1, 1, 2, 3 });
+
     spdlog::info("OpenGL context is created");
 }
 
@@ -94,6 +102,10 @@ void GLGraphicsContext::setDepthTestMode(DepthTestMode mode)
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         break;
+
+    case DepthTestMode::NotEqual:
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_NOTEQUAL);
 
     default:
         break;
@@ -195,6 +207,9 @@ void GLGraphicsContext::applyMaterial(const GLMaterial& material)
     // Polygon filling mode
     setPolygonFillingMode(material.getPolygonFillingMode());
 
+    // Depth writing mode
+    setDepthWritingMode(material.getDepthWritingMode());
+
     // Parameters
     GLShadersPipeline* shadersPipeline = material.getShadersPipeline().get();
 
@@ -259,6 +274,11 @@ void GLGraphicsContext::executeRenderTask(const RenderTask& task)
 GLFramebuffer& GLGraphicsContext::getDefaultFramebuffer() const
 {
     return *m_defaultFramebuffer.get();
+}
+
+GLGeometryStore& GLGraphicsContext::getNDCTexturedQuad() const
+{
+    return *m_ndcTexturedQuad.get();
 }
 
 void GLGraphicsContext::applyContextChange()

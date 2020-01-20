@@ -110,6 +110,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
         { "unspecified", DepthTestMode::Unspecified },
         { "less", DepthTestMode::Less },
         { "less_or_equal", DepthTestMode::LessOrEqual },
+        { "not_equal", DepthTestMode::NotEqual }
     };
 
     static std::unordered_map<std::string, DepthWritingMode> depthWritingModesMap = {

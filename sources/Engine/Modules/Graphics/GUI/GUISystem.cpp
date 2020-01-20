@@ -285,7 +285,6 @@ bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* wi
 
     return widgetOrigin.x <= point.x && point.x <= (widgetOrigin.x + widget->m_size.x) &&
             widgetOrigin.y <= point.y && point.y <= (widgetOrigin.y + widget->m_size.y);
-
 }
 
 void GUISystem::renderGUIWidget(GUIWidget* widget)

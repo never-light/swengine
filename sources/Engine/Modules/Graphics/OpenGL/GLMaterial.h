@@ -15,7 +15,7 @@
 #include "Modules/ResourceManagement/ResourceInstance.h"
 
 enum class DepthTestMode {
-    Disabled, Unspecified, Less, LessOrEqual
+    Disabled, Unspecified, Less, LessOrEqual, NotEqual
 };
 
 enum class FaceCullingMode {

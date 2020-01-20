@@ -30,4 +30,11 @@ void GameApplication::load()
     m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));
 
     m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
+
+    std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
+        resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
+        resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),
+        nullptr);
+
+    m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
 }

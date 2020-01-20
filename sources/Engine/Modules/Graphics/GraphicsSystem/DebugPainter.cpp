@@ -35,6 +35,7 @@ void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
     s_debugMaterial->setDepthTestMode(DepthTestMode::Less);
     s_debugMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
     s_debugMaterial->setFaceCullingMode(FaceCullingMode::Disabled);
+    s_debugMaterial->setDepthWritingMode(DepthWritingMode::Enabled);
 }
 
 void DebugPainter::renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)

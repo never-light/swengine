@@ -47,6 +47,7 @@ public:
     void executeRenderTask(const RenderTask& task);
 
     GLFramebuffer& getDefaultFramebuffer() const;
+    GLGeometryStore& getNDCTexturedQuad() const;
 
 private:
     void applyContextChange();
@@ -60,6 +61,7 @@ private:
     GLFramebuffer* m_currentFramebuffer = nullptr;
 
     std::unique_ptr<GLFramebuffer> m_defaultFramebuffer;
+    std::unique_ptr<GLGeometryStore> m_ndcTexturedQuad;
 
 private:
 	static void APIENTRY debugOutputCallback(GLenum source,

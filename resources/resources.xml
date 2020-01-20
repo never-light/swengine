@@ -144,11 +144,18 @@
 		</gpu_state>
 	</resource>
 	
-	<resource type="material" id="deferred_gpass_brick" extends="deferred_gpass_base">		
+    <resource type="material" id="deferred_gpass_brick" extends="deferred_gpass_base">
 		<params>
 			<param shader="fragment" name="albedo" type="texture" id="simple_texture" slot="0" />
 		</params>
-	</resource>
+    </resource>
 
-	
+    <resource type="shader" id="deferred_accum_pass_vertex_shader" source="../resources/shaders/deferred_accum_pass_vertex_shader.glsl" persistent="true" preload="true">
+            <type>vertex</type>
+    </resource>
+
+    <resource type="shader" id="deferred_accum_pass_fragment_shader" source="../resources/shaders/deferred_accum_pass_fragment_shader.glsl" preload="true" persistent="true">
+            <type>fragment</type>
+    </resource>
+
 </resources>

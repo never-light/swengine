@@ -2,6 +2,7 @@
 
 #include "Modules/ECS/GameSystemsGroup.h"
 #include "RenderingSystem.h"
+#include "Material.h"
 
 class RenderingSystemsPipeline : public GameSystemsGroup
 {
@@ -14,9 +15,13 @@ public:
 
     void render(GameWorld *gameWorld) override;
 
+    void setDeferredAccumulationShadersPipeline(std::shared_ptr<GLShadersPipeline> pipeline);
+    std::shared_ptr<GLShadersPipeline> getDeferredAccumulationShadersPipeline() const;
+
 private:
     std::shared_ptr<GLGraphicsContext> m_graphicsContext;
     std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
 
+    std::shared_ptr<Material> m_deferredAccumulationMaterial;
 };
 

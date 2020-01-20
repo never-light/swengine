@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Modules/Graphics/OpenGL/GLFramebuffer.h"
+#include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "Camera.h"
 
