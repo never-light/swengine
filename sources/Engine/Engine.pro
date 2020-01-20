@@ -47,7 +47,10 @@ SOURCES += \
     Modules/ScreenManagement/Screen.cpp \
     Modules/ScreenManagement/ScreenManager.cpp \
     Utility/files.cpp \
+<<<<<<< HEAD
     Utility/memory.cpp \
+=======
+>>>>>>> Add check of resource existence
     Utility/strings.cpp \
     Utility/xml.cpp \
     precompiled.cpp
@@ -93,6 +96,8 @@ HEADERS += \
     Utility/Bitmask.h \
     Utility/files.h \
     Utility/memory.h \
+    Utility/files.h \
+    Utility/helpers.h \
     Utility/strings.h \
     Utility/xml.h \
     precompiled.h \
