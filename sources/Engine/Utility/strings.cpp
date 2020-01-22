@@ -27,3 +27,35 @@ std::string StringUtils::toLowerCase(const std::string& str)
 
     return result;
 }
+
+std::string StringUtils::regexReplace(const std::string& expression, std::string str,
+    std::function<std::string (const std::smatch&)> callback)
+{
+    std::regex regexp(expression);
+    std::smatch match;
+
+    std::string result = "";
+
+    while (regex_search(str, match, regexp)) {
+        result += std::string(match.prefix()) + callback(match);
+        str = match.suffix();
+    }
+
+    result += str;
+
+    return result;
+}
+
+std::string StringUtils::replace(std::string source,
+                                 const std::string& pattern,
+                                 const std::string& replacement)
+{
+    size_t position = source.find(pattern);
+
+    while(position != std::string::npos) {
+        source.replace(position, pattern.length(), replacement);
+        position = source.find(pattern, position + replacement.length());
+    }
+
+    return source;
+}

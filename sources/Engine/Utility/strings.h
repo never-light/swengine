@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <regex>
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 
@@ -15,6 +16,13 @@ public:
     template<class T>
     static T filterValue(const std::string& rawValue,
         const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
+
+    static std::string regexReplace(const std::string& expression, std::string str,
+        std::function<std::string(const std::smatch&)> callback);
+
+    static std::string replace(std::string source,
+                               const std::string& pattern,
+                               const std::string& replacement);
 
 private:
     StringUtils() = delete;

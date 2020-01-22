@@ -4,6 +4,8 @@
 #include <fstream>
 #include <streambuf>
 
+#include "Utility/files.h"
+
 ShaderResource::ShaderResource()
 {
 
@@ -47,16 +49,17 @@ bool ShaderResource::isBusy() const
 
 std::shared_ptr<GLShader> ShaderResource::loadFromFile(const std::string& path, const ShaderResourceParameters& parameters)
 {
-    std::ifstream file(path);
-    std::string fileData((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
+    std::string source = preprocessShaderSource(FileUtills::readFile(path));
 
-    return std::make_shared<GLShader>(parameters.shaderType, fileData);
+    return std::make_shared<GLShader>(parameters.shaderType, source);
 }
 
-std::shared_ptr<GLShader> ShaderResource::loadFromRawString(const std::string& rawString, const ShaderResourceParameters& parameters)
+std::shared_ptr<GLShader> ShaderResource::loadFromRawString(const std::string& rawString,
+                                                            const ShaderResourceParameters& parameters)
 {
-    return std::make_shared<GLShader>(parameters.shaderType, rawString);
+    std::string source = preprocessShaderSource(rawString);
+
+    return std::make_shared<GLShader>(parameters.shaderType, source);
 }
 
 ShaderResource::ParametersType ShaderResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
@@ -84,4 +87,52 @@ ShaderResource::ParametersType ShaderResource::buildDeclarationParameters(const 
 std::shared_ptr<GLShader> ShaderResource::getShader() const
 {
     return m_shader;
+}
+
+std::string ShaderResource::preprocessShaderSource(const std::string& source)
+{
+    std::string processedSource = processIncludes(source);
+    processedSource = processMacros(processedSource);
+
+    return processedSource;
+}
+
+std::string ShaderResource::processIncludes(const std::string& source)
+{
+    return StringUtils::regexReplace("#include[\\s]+\"([a-zA-Z0-9/\\.]*)\"", source,
+    [] (const std::smatch& match) {
+        if (match.size() != 2) {
+            ENGINE_RUNTIME_ERROR("Shader preprocessor: #include - syntax error");
+        }
+
+        std::string path = match[1].str();
+
+        if (!FileUtills::isFileExists(path)) {
+            ENGINE_RUNTIME_ERROR("Shader preprocessor: #include - file is not found: " + std::string(path));
+        }
+
+        return processIncludes(FileUtills::readFile(path));
+    });
+}
+
+std::string ShaderResource::processMacros(const std::string& source)
+{
+    std::unordered_map<std::string, std::string> macros;
+
+    std::string processedSource = StringUtils::regexReplace("#define\\s([a-zA-Z0-9]+)\\s(.*)\n", source,
+    [&macros] (const std::smatch& match) {
+        if (match.size() != 3) {
+            ENGINE_RUNTIME_ERROR("Shader preprocessor: #define - syntax error");
+        }
+
+        macros[match[1].str()] = match[2].str();
+
+        return "";
+    });
+
+    for (auto& [ macroName, macroValue ] : macros) {
+        processedSource = StringUtils::replace(processedSource, macroName, macroValue);
+    }
+
+    return processedSource;
 }

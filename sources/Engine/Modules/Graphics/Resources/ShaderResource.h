@@ -37,5 +37,10 @@ public:
     std::shared_ptr<GLShader> getShader() const;
 
 private:
+    static std::string preprocessShaderSource(const std::string& source);
+    static std::string processIncludes(const std::string& source);
+    static std::string processMacros(const std::string& source);
+
+private:
     std::shared_ptr<GLShader> m_shader;
 };
