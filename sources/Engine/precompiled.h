@@ -21,6 +21,10 @@
 #include <sstream>
 
 // Third-party dependencies
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #include <SDL.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

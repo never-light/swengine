@@ -13,11 +13,11 @@ INCLUDEPATH += $$THIRD_PARTY_DIR/OpenGL
 
 DEPENDPATH += $$THIRD_PARTY_DIR
 
-#PRECOMPILED_HEADER = precompiled.h
+PRECOMPILED_HEADER = precompiled.h
 
-#precompile_header:!isEmpty(PRECOMPILED_HEADER) {
-#    DEFINES += USE_PRECOMPILED_HEADERS
-#}
+precompile_header:!isEmpty(PRECOMPILED_HEADER) {
+    DEFINES += USE_PRECOMPILED_HEADERS
+}
 
 SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
@@ -93,9 +93,9 @@ HEADERS += \
 include($$PWD/Modules/Graphics/Graphics.pri)
 
 #QMAKE_CXXFLAGS += -include $$PWD/Utility/helpers.h
-gcc:QMAKE_CXXFLAGS += -Wall
-gcc:QMAKE_CXXFLAGS += -Werror
-gcc:QMAKE_CXXFLAGS += -Wno-unknown-pragmas
+win32-g++: QMAKE_CXXFLAGS += -Wall
+win32-g++: QMAKE_CXXFLAGS += -Werror
+win32-g++: QMAKE_CXXFLAGS += -Wno-unknown-pragmas
 
 # Default rules for deployment.
 unix {

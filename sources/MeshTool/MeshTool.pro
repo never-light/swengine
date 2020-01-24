@@ -31,13 +31,18 @@ HEADERS += \
     MeshImporter.h \
     MeshToolApplication.h
 
-LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2main.a
-LIBS += $$THIRD_PARTY_DIR/SDL2/lib/x64/libSDL2.dll.a
-LIBS += $$THIRD_PARTY_DIR/Assimp/lib/libassimp.dll.a
+win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/mingw64
+!win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/msvc19
 
-QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
-QMAKE_CXXFLAGS += -Wall
-QMAKE_CXXFLAGS += -Werror
+LIBS += -lSDL2main
+LIBS += -lSDL2.dll
+LIBS += -lpugixml
+LIBS += -lassimp.dll
+#LIBS += $$APP_BUILD_DIR/libraries/libspdlog.a
+
+win32-g++: QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
+win32-g++: QMAKE_CXXFLAGS += -Wall
+win32-g++: QMAKE_CXXFLAGS += -Werror
 
 # Default rules for deployment.
 unix {
