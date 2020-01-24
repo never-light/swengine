@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "MeshRendererComponent.h"
 
 MeshRendererComponent::MeshRendererComponent()

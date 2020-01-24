@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <Engine/swdebug.h>
 
 MeshExporter::MeshExporter()
 {

@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GraphicsModule.h"
 
 GraphicsModule::GraphicsModule(SDL_Window* window)

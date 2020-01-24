@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "BitmapFont.h"
 
 BitmapFont::BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,

@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "BaseGameApplication.h"
 
 #include <Exceptions/EngineRuntimeException.h>

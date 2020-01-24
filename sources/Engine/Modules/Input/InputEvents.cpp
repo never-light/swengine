@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "InputEvents.h"
 
 void InputEventsListener::processInputActionToggleEvent(const InputActionToggleEvent& event)

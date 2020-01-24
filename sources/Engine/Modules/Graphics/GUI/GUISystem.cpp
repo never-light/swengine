@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GUISystem.h"
 
 #include <spdlog/spdlog.h>

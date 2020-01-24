@@ -3,6 +3,8 @@
 #include <string>
 #include <bitset>
 #include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/swdebug.h>
+
 #include <spdlog/spdlog.h>
 
 MeshImporter::MeshImporter()

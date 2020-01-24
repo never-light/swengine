@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GameObject.h"
 
 GameObject::GameObject(GameObjectId id, GameWorld* gameWorld)

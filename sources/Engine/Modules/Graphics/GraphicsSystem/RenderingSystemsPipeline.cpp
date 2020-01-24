@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "RenderingSystemsPipeline.h"
 #include "SharedGraphicsState.h"
 #include "DebugPainter.h"

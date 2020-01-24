@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GLShadersPipeline.h"
 #include "Exceptions/EngineRuntimeException.h"
 #include "GLDebug.h"

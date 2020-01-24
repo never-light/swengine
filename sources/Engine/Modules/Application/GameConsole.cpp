@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GameConsole.h"
 
 GameConsole::GameConsole(std::shared_ptr<GameWorld> gameWorld)

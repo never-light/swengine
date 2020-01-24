@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "ScreenManager.h"
 
 ScreenManager::ScreenManager(std::shared_ptr<GameWorld> gameWorld,

@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "MeshRenderingSystem.h"
 
 #include "Modules/ECS/ECS.h"

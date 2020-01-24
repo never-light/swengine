@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "BaseComponentInstance.h"
 
 BaseComponentInstance::BaseComponentInstance(GameObject * gameObject)

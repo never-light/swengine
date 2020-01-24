@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GLFramebuffer.h"
 #include "GLDebug.h"
 

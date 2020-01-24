@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "SharedGraphicsState.h"
 
 SharedGraphicsState::SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext)

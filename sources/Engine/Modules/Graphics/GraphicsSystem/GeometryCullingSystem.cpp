@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GeometryCullingSystem.h"
 
 #include "Modules/ECS/ECS.h"
@@ -38,6 +41,7 @@ void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
 {    
     for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
         const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+
         //DebugPainter::renderSphere(meshComponent->getAABB().toSphere(), glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f }, true);
 
         /*DebugPainter::renderAABB(meshComponent->getAABB().getMin(), meshComponent->getAABB().getMax(),

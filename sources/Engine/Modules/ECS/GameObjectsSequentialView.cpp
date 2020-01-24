@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "GameObjectsSequentialView.h"
 #include "GameObject.h"
 

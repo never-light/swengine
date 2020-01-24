@@ -1,5 +1,6 @@
 #pragma once
 
+#include "swdebug.h"
 #include "Resource.h"
 
 class ResourceManager;

@@ -13,6 +13,12 @@ INCLUDEPATH += $$THIRD_PARTY_DIR/OpenGL
 
 DEPENDPATH += $$THIRD_PARTY_DIR
 
+#PRECOMPILED_HEADER = precompiled.h
+
+#precompile_header:!isEmpty(PRECOMPILED_HEADER) {
+#    DEFINES += USE_PRECOMPILED_HEADERS
+#}
+
 SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
     Modules/Application/BaseGameApplication.cpp \
@@ -38,7 +44,8 @@ SOURCES += \
     Modules/ScreenManagement/ScreenManager.cpp \
     Utility/files.cpp \
     Utility/strings.cpp \
-    Utility/xml.cpp
+    Utility/xml.cpp \
+    precompiled.cpp
 
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
@@ -77,16 +84,18 @@ HEADERS += \
     Modules/ScreenManagement/ScreenManager.h \
     Utility/Bitmask.h \
     Utility/files.h \
-    Utility/helpers.h \
     Utility/strings.h \
     Utility/xml.h \
+    precompiled.h \
+    swdebug.h \
     types.h
 
 include($$PWD/Modules/Graphics/Graphics.pri)
 
-QMAKE_CXXFLAGS += -include $$PWD/Utility/helpers.h
-QMAKE_CXXFLAGS += -Wall
-QMAKE_CXXFLAGS += -Werror
+#QMAKE_CXXFLAGS += -include $$PWD/Utility/helpers.h
+gcc:QMAKE_CXXFLAGS += -Wall
+gcc:QMAKE_CXXFLAGS += -Werror
+gcc:QMAKE_CXXFLAGS += -Wno-unknown-pragmas
 
 # Default rules for deployment.
 unix {

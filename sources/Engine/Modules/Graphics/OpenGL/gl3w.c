@@ -26,6 +26,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "precompiled.h"
+#pragma hdrstop
+
 #include <GL/gl3w.h>
 #include <stdlib.h>
 

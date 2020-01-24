@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "RenderingSystem.h"
 
 RenderingSystem::RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,

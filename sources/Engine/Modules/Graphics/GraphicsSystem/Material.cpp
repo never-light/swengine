@@ -1,3 +1,6 @@
+#include "precompiled.h"
+#pragma hdrstop
+
 #include "Material.h"
 
 Material::Material(std::unique_ptr<GLMaterial> gpuMaterial)

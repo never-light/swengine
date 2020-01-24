@@ -5,6 +5,7 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
+#include <Engine/swdebug.h>
 
 #include "PlayerComponent.h"
 

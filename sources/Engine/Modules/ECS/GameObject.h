@@ -6,7 +6,7 @@
 #include "ComponentInstance.h"
 #include "ComponentHandle.h"
 
-using GameObjectId = ssize_t;
+using GameObjectId = int;
 
 constexpr GameObjectId GameObjectNone = -1;
 
