@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "spdlog/tweakme.h"
-#include "spdlog/details/null_mutex.h"
+#include <spdlog/tweakme.h>
+#include <spdlog/details/null_mutex.h>
 
 #include <atomic>
 #include <chrono>
@@ -35,7 +35,7 @@
 #define SPDLOG_INLINE inline
 #endif
 
-#include "spdlog/fmt/fmt.h"
+#include <spdlog/fmt/fmt.h>
 
 // visual studio upto 2013 does not support noexcept nor constexpr
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
@@ -62,7 +62,7 @@
 #endif
 
 #ifndef SPDLOG_FUNCTION
-#define SPDLOG_FUNCTION __FUNCTION__
+#define SPDLOG_FUNCTION static_cast<const char *>(__FUNCTION__)
 #endif
 
 #ifdef SPDLOG_NO_EXCEPTIONS
@@ -101,14 +101,13 @@ using sink_ptr = std::shared_ptr<sinks::sink>;
 using sinks_init_list = std::initializer_list<sink_ptr>;
 using err_handler = std::function<void(const std::string &err_msg)>;
 using string_view_t = fmt::basic_string_view<char>;
+using wstring_view_t = fmt::basic_string_view<wchar_t>;
 using memory_buf_t = fmt::basic_memory_buffer<char, 250>;
 
 #ifdef SPDLOG_WCHAR_TO_UTF8_SUPPORT
 #ifndef _WIN32
 #error SPDLOG_WCHAR_TO_UTF8_SUPPORT only supported on windows
 #else
-using wstring_view_t = fmt::basic_string_view<wchar_t>;
-
 template<typename T>
 struct is_convertible_to_wstring_view : std::is_convertible<T, wstring_view_t>
 {};
