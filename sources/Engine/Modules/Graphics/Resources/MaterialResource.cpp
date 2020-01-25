@@ -172,7 +172,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     if (gpuStateNode) {
         if (gpuStateNode.child("blending")) {
             std::string blendingValue = StringUtils::toLowerCase(gpuStateNode.child("blending").attribute("mode").as_string());
-            parameters.gpuState.blendingMode = StringUtils::filterValue(blendingValue, blendingModesMap, BlendingMode::Unspecified);
+            parameters.gpuState.blendingMode = ResourceDeclHelpers::getFilteredParameterValue(blendingValue, "blending", blendingModesMap, BlendingMode::Unspecified);
         }
 
         if (gpuStateNode.child("depth")) {
@@ -180,24 +180,24 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
 
             if (depthNode.attribute("testMode")) {
                 std::string depthTestMode = StringUtils::toLowerCase(depthNode.attribute("testMode").as_string());
-                parameters.gpuState.depthTestMode = StringUtils::filterValue(depthTestMode, depthTestModesMap, DepthTestMode::Unspecified);
+                parameters.gpuState.depthTestMode = ResourceDeclHelpers::getFilteredParameterValue(depthTestMode, "testMode", depthTestModesMap, DepthTestMode::Unspecified);
             }
 
             if (depthNode.attribute("write")) {
                 std::string depthWriteMode = StringUtils::toLowerCase(depthNode.attribute("write").as_string());
-                parameters.gpuState.depthWritingMode = StringUtils::filterValue(depthWriteMode, depthWritingModesMap,
+                parameters.gpuState.depthWritingMode = ResourceDeclHelpers::getFilteredParameterValue(depthWriteMode, "write", depthWritingModesMap,
                                                                              DepthWritingMode::Unspecified);
             }
         }
 
         if (gpuStateNode.child("face_culling")) {
             std::string faceCullingMode = StringUtils::toLowerCase(gpuStateNode.child("face_culling").attribute("mode").as_string());
-            parameters.gpuState.faceCullingMode = StringUtils::filterValue(faceCullingMode, faceCullingModesMap, FaceCullingMode::Unspecified);
+            parameters.gpuState.faceCullingMode = ResourceDeclHelpers::getFilteredParameterValue(faceCullingMode, "face_culling", faceCullingModesMap, FaceCullingMode::Unspecified);
         }
 
         if (gpuStateNode.child("polygon_filling")) {
             std::string polygonFillingMode = StringUtils::toLowerCase(gpuStateNode.child("polygon_filling").attribute("mode").as_string());
-            parameters.gpuState.polygonFillingMode = StringUtils::filterValue(polygonFillingMode, polygonFillingModesMap,
+            parameters.gpuState.polygonFillingMode = ResourceDeclHelpers::getFilteredParameterValue(polygonFillingMode, "polygon_filling", polygonFillingModesMap,
                                                                            PolygonFillingMode::Unspecified);
         }
     }
@@ -208,12 +208,12 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
             MaterialResourceParameters::ShaderParam param;
 
             std::string shaderType = StringUtils::toLowerCase(paramNode.attribute("shader").as_string());
-            param.shaderType = StringUtils::filterValue(shaderType, shaderTypesMap, static_cast<GLenum>(GL_VERTEX_SHADER));
+            param.shaderType = ResourceDeclHelpers::getFilteredParameterValue(shaderType, "shader", shaderTypesMap, static_cast<GLenum>(GL_VERTEX_SHADER));
 
             param.name = paramNode.attribute("name").as_string();
 
             std::string paramType = StringUtils::toLowerCase(paramNode.attribute("type").as_string());
-            param.type = StringUtils::filterValue(paramType, paramTypesMap, MaterialResourceParameters::ShaderParamType::Int);
+            param.type = ResourceDeclHelpers::getFilteredParameterValue(paramType, "type", paramTypesMap, MaterialResourceParameters::ShaderParamType::Int);
 
             switch (param.type) {
             case MaterialResourceParameters::ShaderParamType::Int:
