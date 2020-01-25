@@ -28,7 +28,7 @@ public:
     void declareResouceMapAlias(const std::string& alias);
 
     template <class T>
-    void declareResource(const std::string& resourceId, const ResourceDeclaration& source);
+    void declareResource(const std::string& resourceId, const ResourceDeclaration &declaration);
 
     template<class T>
     T* getResourceFromInstance(const std::string& resourceId);
@@ -39,7 +39,7 @@ public:
     void addResourcesMap(const std::string& path);
 
 private:
-    std::unordered_map<std::string, ResourceDeclaration> m_resourcesSources;
+    std::unordered_map<std::string, ResourceDeclaration> m_resourcesDeclarations;
     std::unordered_map<std::string, std::shared_ptr<ResourceInstance>> m_resourcesInstances;
 
     std::unordered_map<std::type_index, std::function<Resource* ()>> m_resourcesFactories;
@@ -101,10 +101,10 @@ void ResourceManager::declareResourceType()
 }
 
 template<class T>
-void ResourceManager::declareResource(const std::string &resourceId, const ResourceDeclaration &source)
+void ResourceManager::declareResource(const std::string &resourceId, const ResourceDeclaration &declaration)
 {
     static_assert (std::is_base_of_v<Resource, T>);
 
-    m_resourcesSources.insert({ resourceId, source });
+    m_resourcesDeclarations.insert({ resourceId, declaration });
     m_resourcesTypesIds.insert({ resourceId, std::type_index(typeid (T)) });
 }

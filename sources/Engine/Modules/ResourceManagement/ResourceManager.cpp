@@ -21,7 +21,7 @@ ResourceManager::~ResourceManager()
 
 const ResourceDeclaration& ResourceManager::getResourceDeclaration(const std::string &resourceId)
 {    
-    return m_resourcesSources.at(resourceId);
+    return m_resourcesDeclarations.at(resourceId);
 }
 
 std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std::string &resourceId)
@@ -81,9 +81,9 @@ void ResourceManager::addResourcesMap(const std::string& path)
         pugi::xml_attribute extendsAttribute = declarationNode.attribute("extends");
 
         if (extendsAttribute) {
-            auto parentDeclarationIt = m_resourcesSources.find(extendsAttribute.as_string());
+            auto parentDeclarationIt = m_resourcesDeclarations.find(extendsAttribute.as_string());
 
-            if (parentDeclarationIt == m_resourcesSources.end()) {
+            if (parentDeclarationIt == m_resourcesDeclarations.end()) {
                 ENGINE_RUNTIME_ERROR(std::string("Resource declaration has invalid parent id: ") + extendsAttribute.as_string());
             }
 
