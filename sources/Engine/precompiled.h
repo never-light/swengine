@@ -40,7 +40,7 @@
 
 #include <pugixml.hpp>
 #include <STB/stb_image.h>
-//#include <spdlog/spdlog.h>
+#include <spdlog/spdlog.h>
 
 // Engine headers to precompile
 #include "Utility/helpers.h"

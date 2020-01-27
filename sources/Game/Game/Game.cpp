@@ -19,6 +19,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
 {
     m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>()->getCamera());
     m_gameSystems->addGameSystem(m_playerControlSystem);
+
 }
 
 Game::~Game()

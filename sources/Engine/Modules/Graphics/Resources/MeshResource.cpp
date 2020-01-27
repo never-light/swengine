@@ -69,39 +69,39 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
     }
 
     const uint16_t verticesCount = rawMesh.header.verticesCount;
-    const std::bitset<64> storedAttributesMask(rawMesh.header.storedAttributesMask);
+    RawMeshAttributes storedAttributesMask = static_cast<RawMeshAttributes>(rawMesh.header.storedAttributesMask);
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::Positions))) {
+    if ((storedAttributesMask & RawMeshAttributes::Positions) != RawMeshAttributes::Empty) {
         rawMesh.positions.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.positions.data()),
                       sizeof(*rawMesh.positions.begin()) * verticesCount);
     }
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::Normals))) {
+    if ((storedAttributesMask & RawMeshAttributes::Normals) != RawMeshAttributes::Empty) {
         rawMesh.normals.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.normals.data()),
                       sizeof(*rawMesh.normals.begin()) * verticesCount);
     }
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::Tangents))) {
+    if ((storedAttributesMask & RawMeshAttributes::Tangents) != RawMeshAttributes::Empty) {
         rawMesh.tangents.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.tangents.data()),
                       sizeof(*rawMesh.tangents.begin()) * verticesCount);
     }
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::UV))) {
+    if ((storedAttributesMask & RawMeshAttributes::UV) != RawMeshAttributes::Empty) {
         rawMesh.uv.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.uv.data()),
                       sizeof(*rawMesh.uv.begin()) * verticesCount);
     }
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::BonesIDs))) {
+    if ((storedAttributesMask & RawMeshAttributes::BonesIDs) != RawMeshAttributes::Empty) {
         rawMesh.bonesIds.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.bonesIds.data()),
                       sizeof(*rawMesh.bonesIds.begin()) * verticesCount);
     }
 
-    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::BonesWeights))) {
+    if ((storedAttributesMask & RawMeshAttributes::BonesWeights) != RawMeshAttributes::Empty) {
         rawMesh.bonesWeights.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.bonesWeights.data()),
                       sizeof(*rawMesh.bonesWeights.begin()) * verticesCount);

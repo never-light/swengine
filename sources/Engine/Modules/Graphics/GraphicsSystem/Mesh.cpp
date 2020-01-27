@@ -54,6 +54,15 @@ void Mesh::setNormals(const std::vector<glm::vec3> &normals)
     m_normals = normals;
 }
 
+void Mesh::setTangents(const std::vector<glm::vec3>& tangents)
+{
+    SW_ASSERT(m_vertices.size() > 0 && tangents.size() == m_vertices.size());
+
+    m_needGeometryBufferUpdate = true;
+
+    m_tangents = tangents;
+}
+
 void Mesh::setUV(const std::vector<glm::vec2> &uv)
 {
     SW_ASSERT(m_vertices.size() > 0 && uv.size() == m_vertices.size());
@@ -61,6 +70,40 @@ void Mesh::setUV(const std::vector<glm::vec2> &uv)
     m_needGeometryBufferUpdate = true;
 
     m_uv = uv;
+}
+
+void Mesh::setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights)
+{
+    SW_ASSERT(m_vertices.size() > 0 && bonesIDs.size() == m_vertices.size() &&
+              bonesWeights.size() == m_vertices.size());
+
+    m_bonesIDs = bonesIDs;
+    m_bonesWeights = bonesWeights;
+}
+
+bool Mesh::hasVertices() const
+{
+    return m_vertices.size() > 0;
+}
+
+bool Mesh::hasNormals() const
+{
+    return m_normals.size() > 0;
+}
+
+bool Mesh::hasTangents() const
+{
+    return m_tangents.size() > 0;
+}
+
+bool Mesh::hasUV() const
+{
+    return m_uv.size() > 0;
+}
+
+bool Mesh::isSkinned() const
+{
+    return m_bonesIDs.size() > 0;
 }
 
 void Mesh::setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets)
@@ -147,7 +190,35 @@ void Mesh::updateGeometryBuffer()
 
     GLGeometryStore* geometryStore = nullptr;
 
-    if (m_normals.size() > 0 && m_uv.size() > 0) {
+    MeshAttributes meshAttributesMask = MeshAttributes::Empty;
+
+    if (hasVertices()) {
+        meshAttributesMask = meshAttributesMask | MeshAttributes::Positions;
+    }
+
+    if (hasNormals()) {
+        meshAttributesMask = meshAttributesMask | MeshAttributes::Normals;
+    }
+
+    if (hasTangents()) {
+        meshAttributesMask = meshAttributesMask | MeshAttributes::Tangents;
+    }
+
+    if (hasUV()) {
+        meshAttributesMask = meshAttributesMask | MeshAttributes::UV;
+    }
+
+    if (isSkinned()) {
+        SW_ASSERT(m_bonesIDs.size() > 0 && m_bonesWeights.size() > 0);
+
+        meshAttributesMask = meshAttributesMask | MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;
+    }
+
+    MeshAttributes pos3norm3uvAttributes = MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV;
+
+    if ((meshAttributesMask & pos3norm3uvAttributes) != MeshAttributes::Empty &&
+        (meshAttributesMask & (~pos3norm3uvAttributes)) == MeshAttributes::Empty)
+    {
         geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UV>(), indices);
     }
 

@@ -30,6 +30,8 @@ void RenderingSystemsPipeline::addGameSystem(std::shared_ptr<GameSystem> system)
 
 void RenderingSystemsPipeline::render(GameWorld* gameWorld)
 {
+    // TODO: get rid of buffers clearing and copying as possible
+    // Use depth swap trick to avoid depth buffer clearing
     m_sharedGraphicsState->getDeferredFramebuffer().clearColor({ 0.0f, 0.0f, 0.0f, 0.0f }, 0);
     m_sharedGraphicsState->getDeferredFramebuffer().clearColor({ 0.0f, 0.0f, 0.0f, 0.0f }, 1);
     m_sharedGraphicsState->getDeferredFramebuffer().clearColor({ 0.0f, 0.0f, 0.0f, 0.0f }, 2);
