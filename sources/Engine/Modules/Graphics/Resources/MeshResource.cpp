@@ -78,16 +78,33 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
     }
 
     if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::Normals))) {
-        rawMesh.positions.resize(rawMesh.header.verticesCount);
         rawMesh.normals.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.normals.data()),
                       sizeof(*rawMesh.normals.begin()) * verticesCount);
+    }
+
+    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::Tangents))) {
+        rawMesh.tangents.resize(rawMesh.header.verticesCount);
+        meshFile.read(reinterpret_cast<char*>(rawMesh.tangents.data()),
+                      sizeof(*rawMesh.tangents.begin()) * verticesCount);
     }
 
     if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::UV))) {
         rawMesh.uv.resize(rawMesh.header.verticesCount);
         meshFile.read(reinterpret_cast<char*>(rawMesh.uv.data()),
                       sizeof(*rawMesh.uv.begin()) * verticesCount);
+    }
+
+    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::BonesIDs))) {
+        rawMesh.bonesIds.resize(rawMesh.header.verticesCount);
+        meshFile.read(reinterpret_cast<char*>(rawMesh.bonesIds.data()),
+                      sizeof(*rawMesh.bonesIds.begin()) * verticesCount);
+    }
+
+    if (storedAttributesMask.test(static_cast<size_t>(RawMeshAttributes::BonesWeights))) {
+        rawMesh.bonesWeights.resize(rawMesh.header.verticesCount);
+        meshFile.read(reinterpret_cast<char*>(rawMesh.bonesWeights.data()),
+                      sizeof(*rawMesh.bonesWeights.begin()) * verticesCount);
     }
 
     const uint16_t indicesCount = rawMesh.header.indicesCount;

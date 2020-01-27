@@ -36,6 +36,8 @@ SOURCES += \
     Modules/ECS/GameSystem.cpp \
     Modules/ECS/GameWorld.cpp \
     Modules/Math/geometry.cpp \
+    Modules/Math/matrices.cpp \
+    Modules/ResourceManagement/RawDataStructures.cpp \
     Modules/ResourceManagement/Resource.cpp \
     Modules/ResourceManagement/ResourceInstance.cpp \
     Modules/ResourceManagement/ResourceManagementModule.cpp \
@@ -75,6 +77,7 @@ HEADERS += \
     Modules/ECS/GameSystem.h \
     Modules/ECS/GameWorld.h \
     Modules/Math/geometry.h \
+    Modules/Math/matrices.h \
     Modules/ResourceManagement/RawDataStructures.h \
     Modules/ResourceManagement/Resource.h \
     Modules/ResourceManagement/ResourceInstance.h \

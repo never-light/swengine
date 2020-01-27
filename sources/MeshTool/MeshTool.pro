@@ -21,15 +21,22 @@ DEPENDPATH += $$THIRD_PARTY_DIR
 DEPENDPATH += $$SOURCES_DIR/Engine
 
 SOURCES += \
+    AssimpMeshLoader.cpp \
     MeshExporter.cpp \
     MeshImporter.cpp \
     MeshTool.cpp \
-    MeshToolApplication.cpp
+    MeshToolApplication.cpp \
+    SkeletonExporter.cpp \
+    SkeletonImporter.cpp
 HEADERS += \
+    AssimpMeshLoader.h \
+    SkeletonExporter.h \
+    SkeletonImporter.h \
     \ \
     MeshExporter.h \
     MeshImporter.h \
-    MeshToolApplication.h
+    MeshToolApplication.h \
+    utils.h
 
 win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/mingw64
 !win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/msvc19

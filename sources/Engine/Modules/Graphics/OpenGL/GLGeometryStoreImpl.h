@@ -80,3 +80,38 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>()
     glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);
 }
 
+template<>
+void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>()
+{
+    glCreateVertexArrays(1, &m_vertexArrayObject);
+
+    glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Norm3UVSkinned));
+
+    if (isIndexed()) {
+        glVertexArrayElementBuffer(m_vertexArrayObject, m_indexBuffer);
+    }
+
+    glEnableVertexArrayAttrib(m_vertexArrayObject, 0);
+    glEnableVertexArrayAttrib(m_vertexArrayObject, 1);
+    glEnableVertexArrayAttrib(m_vertexArrayObject, 2);
+    glEnableVertexArrayAttrib(m_vertexArrayObject, 3);
+    glEnableVertexArrayAttrib(m_vertexArrayObject, 4);
+
+
+    glVertexArrayAttribFormat(m_vertexArrayObject, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, pos));
+    glVertexArrayAttribFormat(m_vertexArrayObject, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, norm));
+    glVertexArrayAttribFormat(m_vertexArrayObject, 2, 2, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, uv));
+
+    glVertexArrayAttribFormat(m_vertexArrayObject, 3, 4, GL_UNSIGNED_BYTE, GL_FALSE,
+                              offsetof(VertexPos3Norm3UVSkinned, bonesIds));
+    glVertexArrayAttribFormat(m_vertexArrayObject, 4, 4, GL_UNSIGNED_BYTE, GL_FALSE,
+                              offsetof(VertexPos3Norm3UVSkinned, bonesWeights));
+
+    glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);
+    glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);
+    glVertexArrayAttribBinding(m_vertexArrayObject, 2, 0);
+    glVertexArrayAttribBinding(m_vertexArrayObject, 3, 0);
+    glVertexArrayAttribBinding(m_vertexArrayObject, 4, 0);
+
+}
+

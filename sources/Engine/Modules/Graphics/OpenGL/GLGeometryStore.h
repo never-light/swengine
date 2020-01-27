@@ -2,9 +2,11 @@
 
 #include <cstddef>
 #include <vector>
+
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/gtc/type_precision.hpp>
 
 #include "GL.h"
 #include "GLDebug.h"
@@ -13,6 +15,14 @@ struct VertexPos3Norm3UV {
     glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
     glm::vec3 norm = { 0.0f, 0.0f, 0.0f };
     glm::vec2 uv = { 0.0f, 0.0f };
+};
+
+struct VertexPos3Norm3UVSkinned {
+    glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 norm = { 0.0f, 0.0f, 0.0f };
+    glm::vec2 uv = { 0.0f, 0.0f };
+    glm::u8vec4 bonesIds = { 0, 0, 0, 0 };
+    glm::u8vec4 bonesWeights = { 0, 0, 0, 0 };
 };
 
 struct VertexPos3Color4 {
@@ -25,6 +35,12 @@ class GLGeometryStore
 public:
     GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices);
     GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices, const std::vector<std::uint16_t>& indices);
+
+    GLGeometryStore(const std::vector<VertexPos3Color4>& vertices);
+    GLGeometryStore(const std::vector<VertexPos3Color4>& vertices, const std::vector<std::uint16_t>& indices);
+
+    GLGeometryStore(const std::vector<VertexPos3Norm3UVSkinned>& vertices);
+    GLGeometryStore(const std::vector<VertexPos3Norm3UVSkinned>& vertices, const std::vector<std::uint16_t>& indices);
 
     ~GLGeometryStore();
 
@@ -44,10 +60,10 @@ private:
     void createVAOAndSetupAttributes();
 
 private:
-    GLuint m_vertexBuffer;
-    GLuint m_indexBuffer;
-    GLuint m_vertexArrayObject;
+    GLuint m_vertexBuffer = 0;
+    GLuint m_indexBuffer = 0;
+    GLuint m_vertexArrayObject = 0;
 
-    size_t m_verticesCount;
-    size_t m_indicesCount;
+    size_t m_verticesCount = 0;
+    size_t m_indicesCount = 0;
 };

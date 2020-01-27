@@ -5,12 +5,6 @@
 #include "GLGeometryStoreImpl.h"
 
 GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices)
-    : m_vertexBuffer(0),
-    m_indexBuffer(0),
-    m_vertexArrayObject(0),
-    m_verticesCount(0),
-    m_indicesCount(0)
-
 {
     SW_ASSERT(vertices.size() > 0);
 
@@ -18,11 +12,36 @@ GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices)
 }
 
 GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices, const std::vector<uint16_t>& indices)
-    : m_vertexBuffer(0),
-      m_indexBuffer(0),
-      m_vertexArrayObject(0),
-      m_verticesCount(0),
-      m_indicesCount(0)
+{
+    SW_ASSERT(vertices.size() > 0 && indices.size() > 0);
+
+    createBuffersAndVAO(vertices, indices);
+}
+
+GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Color4>& vertices)
+
+{
+    SW_ASSERT(vertices.size() > 0);
+
+    createBuffersAndVAO(vertices, std::vector<uint16_t>());
+}
+
+GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Color4>& vertices, const std::vector<uint16_t>& indices)
+{
+    SW_ASSERT(vertices.size() > 0 && indices.size() > 0);
+
+    createBuffersAndVAO(vertices, indices);
+}
+
+GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Norm3UVSkinned>& vertices)
+{
+    SW_ASSERT(vertices.size() > 0);
+
+    createBuffersAndVAO(vertices, std::vector<uint16_t>());
+}
+
+GLGeometryStore::GLGeometryStore(const std::vector<VertexPos3Norm3UVSkinned>& vertices,
+                                 const std::vector<uint16_t>& indices)
 {
     SW_ASSERT(vertices.size() > 0 && indices.size() > 0);
 

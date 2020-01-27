@@ -33,6 +33,8 @@
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/geometric.hpp>
+#include <glm/gtc/type_precision.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_operation.hpp>
 
