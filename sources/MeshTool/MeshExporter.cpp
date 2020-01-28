@@ -54,10 +54,14 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
         ENGINE_RUNTIME_ERROR("The target format is not supported");
     }
 
-    if ((meshAttributes & targetAttributesMask) == RawMeshAttributes::Empty)
+    if ((meshAttributes & targetAttributesMask) != targetAttributesMask)
     {
         ENGINE_RUNTIME_ERROR("The mesh is incompatible with the target format");
     }
+
+    // Update stored attributes mask according to target format
+    RawMeshHeader targetRawMeshHeader = mesh.header;
+    targetRawMeshHeader.storedAttributesMask = static_cast<bitmask64>(targetAttributesMask);
 
     spdlog::info("Save mesh to file: {}", path);
 
@@ -65,7 +69,7 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
 
     const uint16_t verticesCount = mesh.header.verticesCount;
 
-    out.write(reinterpret_cast<const char*>(&mesh.header), sizeof(mesh.header));
+    out.write(reinterpret_cast<const char*>(&targetRawMeshHeader), sizeof(targetRawMeshHeader));
 
     if ((targetAttributesMask & RawMeshAttributes::Positions) != RawMeshAttributes::Empty) {
         SW_ASSERT(mesh.positions.size() == mesh.header.verticesCount);

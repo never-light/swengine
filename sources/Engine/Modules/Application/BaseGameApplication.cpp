@@ -8,6 +8,14 @@
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
+#include "Modules/Graphics/Resources/ShaderResource.h"
+#include "Modules/Graphics/Resources/MeshResource.h"
+#include "Modules/Graphics/Resources/TextureResource.h"
+#include "Modules/Graphics/Resources/BitmapFontResource.h"
+#include "Modules/Graphics/Resources/MaterialResource.h"
+#include "Modules/Graphics/Resources/SkeletonResource.h"
+
+
 BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight)
     : m_mainWindow(nullptr)
 {
@@ -193,6 +201,7 @@ void BaseGameApplication::initializeEngine()
     resourceManager->declareResourceType<TextureResource>("texture");
     resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
     resourceManager->declareResourceType<MaterialResource>("material");
+    resourceManager->declareResourceType<SkeletonResource>("skeleton");
 
     resourceManager->addResourcesMap("../resources/engine_resources.xml");
 

@@ -2,9 +2,12 @@
 
 #include <spdlog/spdlog.h>
 #include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
 
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
+
+#include <glm/gtx/string_cast.hpp>
 
 GameApplication::GameApplication(int argc, char* argv[])
     : BaseGameApplication(argc, argv, "Game", 1280, 720)
@@ -37,4 +40,7 @@ void GameApplication::load()
         nullptr);
 
     m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
+
+    auto testMesh = resourceMgr->getResourceFromInstance<MeshResource>("test_butter_mesh")->getMesh();
+    int a = 10;
 }

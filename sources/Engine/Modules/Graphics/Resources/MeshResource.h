@@ -1,9 +1,12 @@
 #pragma once
 
+#include <optional>
+
 #include "Modules/ResourceManagement/Resource.h"
 #include "Modules/Graphics/GraphicsSystem/Mesh.h"
 
 struct MeshResourceParameters : ResourceSourceParameters {
+    std::optional<std::string> skeletonResourceId;
 };
 
 class MeshResource : public Resource

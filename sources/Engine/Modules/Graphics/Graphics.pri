@@ -34,6 +34,7 @@ SOURCES += \
     $$PWD/Resources/MaterialResource.cpp \
     $$PWD/Resources/MeshResource.cpp \
     $$PWD/Resources/ShaderResource.cpp \
+    $$PWD/Resources/SkeletonResource.cpp \
     $$PWD/Resources/TextureResource.cpp \
     Modules/Graphics/OpenGL/GLGraphicsContext.cpp \
     Modules/Graphics/OpenGL/gl3w.c \
@@ -77,6 +78,7 @@ HEADERS += \
     $$PWD/Resources/MeshResource.h \
     $$PWD/Resources/RawMesh.h \
     $$PWD/Resources/ShaderResource.h \
+    $$PWD/Resources/SkeletonResource.h \
     $$PWD/Resources/TextureResource.h \
     Modules/Graphics/GraphicsModule.h \
     Modules/Graphics/OpenGL/GL.h \

@@ -11,6 +11,8 @@
 #include "GL.h"
 #include "GLDebug.h"
 
+// TODO: use SoA instead of AoS here
+// Vertex formats should be represented as structs of arrays
 struct VertexPos3Norm3UV {
     glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
     glm::vec3 norm = { 0.0f, 0.0f, 0.0f };

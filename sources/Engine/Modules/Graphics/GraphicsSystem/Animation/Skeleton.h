@@ -5,14 +5,15 @@
 
 struct Bone {
 public:
-    Bone(const std::string& name, size_t parentId, const glm::mat4& inverseBindPoseMatrix);
+    Bone();
+    Bone(const std::string& name, uint8_t parentId, const glm::mat4& inverseBindPoseMatrix);
     ~Bone() = default;
 
     void setName(const std::string& name);
     const std::string& getName() const;
 
-    void setParentId(const size_t parentId);
-    size_t getParentId() const;
+    void setParentId(const uint8_t parentId);
+    uint8_t getParentId() const;
 
     void setInverseBindPoseMatrix(const glm::mat4& inverseBindPoseMatrix);
     const glm::mat4& getInverseBindPoseMatrix() const;
@@ -20,7 +21,7 @@ public:
 private:
     std::string m_name;
 
-    size_t m_parentId;
+    uint8_t m_parentId;
     glm::mat4 m_inverseBindPoseMatrix;
 };
 

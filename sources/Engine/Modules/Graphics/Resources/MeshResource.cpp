@@ -2,12 +2,17 @@
 #pragma hdrstop
 
 #include "MeshResource.h"
-#include "Exceptions/EngineRuntimeException.h"
 
 #include <fstream>
 #include <streambuf>
 #include <bitset>
 #include <algorithm>
+
+#include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Exceptions/EngineRuntimeException.h"
+
+#include "SkeletonResource.h"
 
 #include "RawMesh.h"
 
@@ -31,6 +36,13 @@ void MeshResource::load(const ResourceDeclaration& declaration, ResourceManager&
 
     if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
         m_mesh = loadFromFile(sourceFile->path, parameters);
+
+        if (parameters.skeletonResourceId.has_value()) {
+            std::shared_ptr<Skeleton> skeleton = resourceManager.getResourceFromInstance<SkeletonResource>(
+                        parameters.skeletonResourceId.value())->getSkeleton();
+
+            m_mesh->setSkeleton(skeleton);
+        }
     }
     else {
         ENGINE_RUNTIME_ERROR("Trying to load mesh resource from invalid source");
@@ -128,32 +140,43 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
 
     if (rawMesh.positions.size() != 0) {
         std::vector<glm::vec3> positions;
-
-        std::transform(rawMesh.positions.cbegin(), rawMesh.positions.cend(), std::back_inserter(positions),
-                       [](const RawVector3& v) -> glm::vec3 { return { v.x, v.y, v.z }; }
-        );
+        positions.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.positions));
 
         mesh->setVertices(positions);
     }
 
     if (rawMesh.normals.size() != 0) {
         std::vector<glm::vec3> normals;
-
-        std::transform(rawMesh.normals.cbegin(), rawMesh.normals.cend(), std::back_inserter(normals),
-                       [](const RawVector3& v) -> glm::vec3 { return { v.x, v.y, v.z }; }
-        );
+        normals.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.normals));
 
         mesh->setNormals(normals);
     }
 
     if (rawMesh.uv.size() != 0) {
         std::vector<glm::vec2> uv;
-
-        std::transform(rawMesh.uv.cbegin(), rawMesh.uv.cend(), std::back_inserter(uv),
-                       [](const RawVector2& v) -> glm::vec2 { return { v.x, v.y }; }
-        );
+        uv.swap(reinterpret_cast<std::vector<glm::vec2>&>(rawMesh.uv));
 
         mesh->setUV(uv);
+    }
+
+    if (rawMesh.tangents.size() != 0) {
+        std::vector<glm::vec3> tangents;
+        tangents.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.tangents));
+
+        mesh->setTangents(tangents);
+    }
+
+    if (rawMesh.bonesIds.size() != 0) {
+        SW_ASSERT(rawMesh.bonesWeights.size() == rawMesh.bonesIds.size());
+
+        std::vector<glm::u8vec4> bonesIDs;
+        bonesIDs.swap(reinterpret_cast<std::vector<glm::u8vec4>&>(rawMesh.bonesIds));
+
+        std::vector<glm::u8vec4> bonesWeights;
+        bonesWeights.swap(reinterpret_cast<std::vector<glm::u8vec4>&>(rawMesh.bonesWeights));
+
+
+        mesh->setSkinData(bonesIDs, bonesWeights);
     }
 
     mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
@@ -165,9 +188,19 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
 MeshResource::ParametersType MeshResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
                                                                 const ParametersType& defaultParameters)
 {
-    ARG_UNUSED(declarationNode);
-
     ParametersType parameters = defaultParameters;
+
+    pugi::xml_node skeletonNode = declarationNode.child("skeleton");
+
+    if (skeletonNode) {
+        pugi::xml_attribute skeletonId = skeletonNode.attribute("id");
+
+        if (!skeletonId) {
+            ENGINE_RUNTIME_ERROR("Skeleton attribute for a mesh is added, but resource id is not specified");
+        }
+
+        parameters.skeletonResourceId = skeletonId.as_string();
+    }
 
     return parameters;
 }

@@ -8,6 +8,7 @@
 #include <glm/vec3.hpp>
 
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
+#include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
 #include "Modules/Math/geometry.h"
 
 enum class MeshAttributes {
@@ -41,6 +42,7 @@ public:
     bool hasTangents() const;
     bool hasUV() const;
     bool isSkinned() const;
+    bool hasSkeleton() const;
 
     void setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets);
 
@@ -52,6 +54,9 @@ public:
 
     void setAABB(const AABB& aabb);
     const AABB& getAABB() const;
+
+    void setSkeleton(std::shared_ptr<Skeleton> skeleton);
+    std::shared_ptr<Skeleton> getSkeleton() const;
 
 private:
     void calculateSubMeshesOffsets();
@@ -78,6 +83,8 @@ private:
     bool m_needGeometryBufferUpdate = false;
 
     AABB m_aabb;
+
+    std::shared_ptr<Skeleton> m_skeleton;
 };
 
 

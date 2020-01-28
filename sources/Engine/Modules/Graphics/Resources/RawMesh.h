@@ -63,7 +63,7 @@ struct RawSkeletonHeader {
 struct RawBone {
     char name[MAX_BONE_NAME_LENGTH];
 
-    int16_t parentId;
+    uint8_t parentId;
     RawMatrix4 inverseBindPoseMatrix;
 };
 

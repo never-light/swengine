@@ -106,6 +106,11 @@ bool Mesh::isSkinned() const
     return m_bonesIDs.size() > 0;
 }
 
+bool Mesh::hasSkeleton() const
+{
+    return m_skeleton != nullptr;
+}
+
 void Mesh::setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets)
 {
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesOffsets.size(); subMeshIndex++) {
@@ -153,6 +158,16 @@ const AABB& Mesh::getAABB() const
     return m_aabb;
 }
 
+void Mesh::setSkeleton(std::shared_ptr<Skeleton> skeleton)
+{
+    m_skeleton = skeleton;
+}
+
+std::shared_ptr<Skeleton> Mesh::getSkeleton() const
+{
+    return m_skeleton;
+}
+
 void Mesh::calculateSubMeshesOffsets()
 {
     m_subMeshesOffsets.clear();
@@ -173,6 +188,22 @@ std::vector<VertexPos3Norm3UV> Mesh::constructVerticesList() const
         vertices[vertexIndex].pos = m_vertices[vertexIndex];
         vertices[vertexIndex].norm = m_normals[vertexIndex];
         vertices[vertexIndex].uv = m_uv[vertexIndex];
+    }
+
+    return vertices;
+}
+
+template<>
+std::vector<VertexPos3Norm3UVSkinned> Mesh::constructVerticesList() const
+{
+    std::vector<VertexPos3Norm3UVSkinned> vertices(m_vertices.size());
+
+    for (size_t vertexIndex = 0; vertexIndex < m_vertices.size(); vertexIndex++) {
+        vertices[vertexIndex].pos = m_vertices[vertexIndex];
+        vertices[vertexIndex].norm = m_normals[vertexIndex];
+        vertices[vertexIndex].uv = m_uv[vertexIndex];
+        vertices[vertexIndex].bonesIds = m_bonesIDs[vertexIndex];
+        vertices[vertexIndex].bonesWeights = m_bonesWeights[vertexIndex];
     }
 
     return vertices;
@@ -214,12 +245,14 @@ void Mesh::updateGeometryBuffer()
         meshAttributesMask = meshAttributesMask | MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;
     }
 
-    MeshAttributes pos3norm3uvAttributes = MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV;
-
-    if ((meshAttributesMask & pos3norm3uvAttributes) != MeshAttributes::Empty &&
-        (meshAttributesMask & (~pos3norm3uvAttributes)) == MeshAttributes::Empty)
+    if (meshAttributesMask == (MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV))
     {
         geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UV>(), indices);
+    }
+    else if (meshAttributesMask == (MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV |
+                                    MeshAttributes::BonesIDs | MeshAttributes::BonesWeights))
+    {
+        geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UVSkinned>(), indices);
     }
 
     if (geometryStore == nullptr) {

@@ -54,9 +54,17 @@ DEPENDPATH += $$SOURCES_DIR/Engine
 win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/mingw64
 !win32-g++: LIBS += -L$$APP_BUILD_DIR/libraries/msvc19
 
-LIBS += -lSDL2main
-LIBS += -lSDL2.dll
-LIBS += -lpugixml
+debug {
+    LIBS += -lSDL2main
+    LIBS += -lSDL2.dll
+    LIBS += -lpugixmld
+}
+
+release {
+    LIBS += -lSDL2main
+    LIBS += -lSDL2.dll
+    LIBS += -lpugixml
+}
 #LIBS += $$APP_BUILD_DIR/libraries/libspdlog.a
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../Engine/release/libEngine.a

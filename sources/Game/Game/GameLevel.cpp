@@ -62,11 +62,11 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
         auto transformHandle = obj->addComponent<TransformComponent>();
 
         transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
-        transformHandle->getTransform()->pitch(45.0f);
-        transformHandle->getTransform()->roll(75.0f);
-        transformHandle->getTransform()->yaw(35.0f);
+        //transformHandle->getTransform()->pitch(45.0f);
+        transformHandle->getTransform()->pitch(-90.0f);
+        //transformHandle->getTransform()->yaw(35.0f);
 
-        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("test_butter_mesh")->getMesh();
 
         auto componentHandle = obj->addComponent<MeshRendererComponent>();
         componentHandle->setMeshInstance(cubeGeometry);

@@ -3,8 +3,13 @@
 
 #include "Skeleton.h"
 
+Bone::Bone()
+{
+
+}
+
 Bone::Bone(const std::string& name,
-           size_t parentId,
+           uint8_t parentId,
            const glm::mat4& inverseBindPoseMatrix)
     : m_name(name),
       m_parentId(parentId),
@@ -23,12 +28,12 @@ const std::string& Bone::getName() const
     return m_name;
 }
 
-void Bone::setParentId(const size_t parentId)
+void Bone::setParentId(const uint8_t parentId)
 {
     m_parentId = parentId;
 }
 
-size_t Bone::getParentId() const
+uint8_t Bone::getParentId() const
 {
     return m_parentId;
 }

@@ -118,6 +118,10 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
                                 subMesh.mNormals[vertexIndex].y,
                                 subMesh.mNormals[vertexIndex].z });
 
+            tangents.push_back({ subMesh.mTangents[vertexIndex].x,
+                                 subMesh.mTangents[vertexIndex].y,
+                                 subMesh.mTangents[vertexIndex].z });
+
             uv.push_back({ subMesh.mTextureCoords[0][vertexIndex].x,
                            subMesh.mTextureCoords[0][vertexIndex].y });
 
@@ -220,7 +224,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
             SW_ASSERT(weights.x + weights.y + weights.z + weights.w == 255);
         }
 
-        if (unskinnedVerticesCount > 0) {
+        if (options.loadSkin && unskinnedVerticesCount > 0) {
             spdlog::warn("There is {} unskinned vertices", unskinnedVerticesCount);
         }
 
@@ -255,7 +259,13 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     mesh->header.subMeshesIndicesOffsetsCount = static_cast<uint16_t>(subMeshesIndices.size());
 
     RawMeshAttributes storedAttributesMask = RawMeshAttributes::Empty;
-    storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals | RawMeshAttributes::UV;
+    storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
+            RawMeshAttributes::UV | RawMeshAttributes::Tangents;
+
+    if (options.loadSkin) {
+        storedAttributesMask = storedAttributesMask | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
+    }
+
     mesh->header.storedAttributesMask = static_cast<bitmask64>(storedAttributesMask);
 
     return mesh;

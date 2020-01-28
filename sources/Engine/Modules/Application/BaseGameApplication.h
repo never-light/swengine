@@ -22,12 +22,6 @@
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/ScreenManagement/ScreenManager.h"
 
-#include "Modules/Graphics/Resources/ShaderResource.h"
-#include "Modules/Graphics/Resources/MeshResource.h"
-#include "Modules/Graphics/Resources/TextureResource.h"
-#include "Modules/Graphics/Resources/BitmapFontResource.h"
-#include "Modules/Graphics/Resources/MaterialResource.h"
-
 #include "GameConsole.h"
 
 class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
