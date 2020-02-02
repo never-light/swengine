@@ -134,6 +134,18 @@ void GLShader::setParameter(const std::string& name, const GLTexture& texture, s
     setParameter(name, static_cast<int>(unitIndex));
 }
 
+void GLShader::setArrayParameter(const std::string& name, const std::vector<glm::mat4x4>& array)
+{
+    glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name + "[0]"].location,
+            static_cast<GLsizei>(array.size()), GL_FALSE, reinterpret_cast<const float*>(array.data()));
+}
+
+void GLShader::setArrayParameter(const std::string& name, size_t valueIndex, const glm::mat4x4& value)
+{
+    glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name + "[0]"].location + static_cast<GLint>(valueIndex),
+            1, GL_FALSE, glm::value_ptr(value));
+}
+
 bool GLShader::hasParameter(const std::string& name) const
 {
     return m_uniformsCache.find(name) != m_uniformsCache.end();
@@ -173,4 +185,9 @@ void GLShader::cacheUniformsLocations()
     }
 
     GL_CALL_BLOCK_END();
+}
+
+size_t GLShader::getArraySize(const std::string& name) const
+{
+    return static_cast<size_t>(m_uniformsCache.at(name + "[0]").size);
 }

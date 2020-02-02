@@ -153,8 +153,17 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     pugi::xml_node shadersNode = declarationNode.child("shaders_pipeline");
 
     if (shadersNode) {
-        parameters.shadersPipeline.vertexShaderId = shadersNode.child("vertex").attribute("id").as_string();
-        parameters.shadersPipeline.fragmentShaderId = shadersNode.child("fragment").attribute("id").as_string();
+        pugi::xml_node vertexShaderNode = shadersNode.child("vertex");
+
+        if (vertexShaderNode) {
+            parameters.shadersPipeline.vertexShaderId = vertexShaderNode.attribute("id").as_string();
+        }
+
+        pugi::xml_node fragmentShaderNode = shadersNode.child("fragment");
+
+        if (fragmentShaderNode) {
+            parameters.shadersPipeline.fragmentShaderId = fragmentShaderNode.attribute("id").as_string();
+        }
     }
 
     // GPU state

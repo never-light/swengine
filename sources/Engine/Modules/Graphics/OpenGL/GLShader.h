@@ -29,6 +29,11 @@ public:
     void setParameter(const std::string& name, const glm::mat4x4& value);
     void setParameter(const std::string& name, const GLTexture& texture, size_t unitIndex);
 
+    size_t getArraySize(const std::string& name) const;
+
+    void setArrayParameter(const std::string& name, const std::vector<glm::mat4x4>& array);
+    void setArrayParameter(const std::string& name, size_t valueIndex, const glm::mat4x4& value);
+
     bool hasParameter(const std::string& name) const;
 private:
     struct UniformInfo {

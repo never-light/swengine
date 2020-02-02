@@ -9,6 +9,9 @@ SOURCES += \
     $$PWD/GUI/GUIText.cpp \
     $$PWD/GUI/GUITextBox.cpp \
     $$PWD/GUI/GUIWidget.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.cpp \
     $$PWD/GraphicsSystem/Animation/Skeleton.cpp \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
@@ -51,6 +54,9 @@ HEADERS += \
     $$PWD/GUI/GUIText.h \
     $$PWD/GUI/GUITextBox.h \
     $$PWD/GUI/GUIWidget.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.h \
     $$PWD/GraphicsSystem/Animation/Skeleton.h \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \

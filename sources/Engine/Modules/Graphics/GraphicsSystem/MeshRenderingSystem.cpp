@@ -4,6 +4,7 @@
 #include "MeshRenderingSystem.h"
 
 #include "Modules/ECS/ECS.h"
+#include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
 
 #include "TransformComponent.h"
 #include "MeshRendererComponent.h"
@@ -54,6 +55,7 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
 
         SW_ASSERT(mesh != nullptr);
 
+
         Transform* transform = obj->getComponent<TransformComponent>()->getTransform();
 
         const size_t subMeshesCount = mesh->getSubMeshesCount();
@@ -85,6 +87,20 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
                 if (vertexShader->hasParameter("scene.worldToCamera")) {
                     vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
                     vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
+                }
+            }
+
+            if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
+                const SkeletalAnimationStatesManager& animationStatesManager =
+                        obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesManager();
+
+                if (animationStatesManager.hasActiveClip()) {
+                    vertexShader->setArrayParameter("animation.palette",
+                                                    animationStatesManager.getCurrentMatrixPalette().bonesTransforms);
+                }
+                else {
+                    vertexShader->setArrayParameter("animation.palette",
+                        std::vector<glm::mat4>(vertexShader->getArraySize("animation.palette"), glm::identity<glm::mat4>()));
                 }
             }
 

@@ -143,7 +143,7 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
     // Fill RawBone data structure
     RawBone bone;
     strcpy_s(bone.name, boneName.c_str());
-    bone.parentId = static_cast<int16_t>(parentBoneId);
+    bone.parentId = static_cast<uint8_t>(parentBoneId);
 
     glm::mat4 inverseBindPoseMatrix = aiMatrix4x4ToGlm(&boneData->mOffsetMatrix);
     bone.inverseBindPoseMatrix = glmMatrix4ToRawMatrix4(inverseBindPoseMatrix);
