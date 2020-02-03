@@ -37,12 +37,23 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
 {
     ARG_UNUSED(options);
 
-    std::unordered_map<std::string, const aiBone*> bonesList = collectBones(scene);
-    const aiNode* rootNode = findRootBoneNode(scene.mRootNode, bonesList);
+    std::unordered_map<std::string, const aiBone*> usedBonesList = collectBones(scene);
+    std::unordered_map<std::string, ImportSceneBoneData> bonesList;
+
+    const aiNode* rootNode = findRootBoneNode(scene.mRootNode, usedBonesList);
 
     if (rootNode == nullptr) {
         ENGINE_RUNTIME_ERROR("Failed to find the root bone");
     }
+
+    aiMatrix4x4 rootTransform;
+    aiIdentityMatrix4(&rootTransform);
+
+    traverseSkeletonHierarchy(rootNode, rootTransform, usedBonesList, bonesList);
+
+    //glm::mat4 transform = glm::inverse(aiMatrix4x4ToGlm(&bonesList.begin()->second.sceneTransfromationMatrix));
+    //glm::vec4 vertex = transform * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+
 
     std::vector<RawBone> rawBonesList;
     buildSkeleton(rootNode, bonesList, rawBonesList, -1);
@@ -51,7 +62,7 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
 
     std::unique_ptr<RawSkeleton> skeleton = std::make_unique<RawSkeleton>();
     skeleton->header.formatVersion = SKELETON_FORMAT_VERSION;
-    skeleton->header.bonesCount = static_cast<uint16_t>(rawBonesList.size());
+    skeleton->header.bonesCount = static_cast<uint8_t>(rawBonesList.size());
     skeleton->bones = std::move(rawBonesList);
 
     return skeleton;
@@ -84,6 +95,27 @@ std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(co
     return bonesList;
 }
 
+void SkeletonImporter::traverseSkeletonHierarchy(const aiNode* sceneNode,
+                                                 const aiMatrix4x4& parentNodeTransform,
+                                                 const std::unordered_map<std::string, const aiBone*>& usedBones,
+                                                 std::unordered_map<std::string, ImportSceneBoneData>& bonesData)
+{
+    std::string currentNodeName = sceneNode->mName.C_Str();
+    aiMatrix4x4 currentNodeTransform = parentNodeTransform * sceneNode->mTransformation;
+
+    auto usedBoneIt = usedBones.find(currentNodeName);
+
+    if (usedBoneIt != usedBones.end()) {
+        bonesData[currentNodeName] = { usedBoneIt->second, currentNodeTransform };
+    }
+
+    for (size_t childIndex = 0; childIndex < sceneNode->mNumChildren; childIndex++) {
+        const aiNode* childNode = sceneNode->mChildren[childIndex];
+
+        traverseSkeletonHierarchy(childNode, currentNodeTransform, usedBones, bonesData);
+    }
+}
+
 const aiNode* SkeletonImporter::findRootBoneNode(const aiNode* sceneRootNode,
                                                  const std::unordered_map<std::string, const aiBone*>& bonesList) const
 {
@@ -102,7 +134,7 @@ const aiNode* SkeletonImporter::findRootBoneNode(const aiNode* sceneRootNode,
 }
 
 void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
-                                     const std::unordered_map<std::string, const aiBone*>& bonesList,
+                                     const std::unordered_map<std::string, ImportSceneBoneData>& bonesList,
                                      std::vector<RawBone>& rawBonesList,
                                      int parentBoneId) const
 {
@@ -133,7 +165,7 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
 
     }
 
-    const aiBone* boneData = boneIt->second;
+    const aiBone* boneData = boneIt->second.bone;
     SW_ASSERT(boneData != nullptr);
 
     if (boneName.size() > MAX_BONE_NAME_LENGTH) {
@@ -145,7 +177,7 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
     strcpy_s(bone.name, boneName.c_str());
     bone.parentId = static_cast<uint8_t>(parentBoneId);
 
-    glm::mat4 inverseBindPoseMatrix = aiMatrix4x4ToGlm(&boneData->mOffsetMatrix);
+    glm::mat4 inverseBindPoseMatrix = glm::inverse(aiMatrix4x4ToGlm(&boneIt->second.sceneTransfromationMatrix));
     bone.inverseBindPoseMatrix = glmMatrix4ToRawMatrix4(inverseBindPoseMatrix);
 
     rawBonesList.push_back(bone);

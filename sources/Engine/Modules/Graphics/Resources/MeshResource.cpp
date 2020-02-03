@@ -11,6 +11,7 @@
 #include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
 #include "Modules/ResourceManagement/ResourceManager.h"
 #include "Exceptions/EngineRuntimeException.h"
+#include "Utility/memory.h"
 
 #include "SkeletonResource.h"
 
@@ -139,29 +140,29 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 
     if (rawMesh.positions.size() != 0) {
-        std::vector<glm::vec3> positions;
-        positions.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.positions));
+        std::vector<glm::vec3> positions =
+                MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.positions);
 
         mesh->setVertices(positions);
     }
 
     if (rawMesh.normals.size() != 0) {
-        std::vector<glm::vec3> normals;
-        normals.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.normals));
+        std::vector<glm::vec3> normals =
+                MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.normals);
 
         mesh->setNormals(normals);
     }
 
     if (rawMesh.uv.size() != 0) {
-        std::vector<glm::vec2> uv;
-        uv.swap(reinterpret_cast<std::vector<glm::vec2>&>(rawMesh.uv));
+        std::vector<glm::vec2> uv =
+            MemoryUtils::createBinaryCompatibleVector<RawVector2, glm::vec2>(rawMesh.uv);
 
         mesh->setUV(uv);
     }
 
     if (rawMesh.tangents.size() != 0) {
-        std::vector<glm::vec3> tangents;
-        tangents.swap(reinterpret_cast<std::vector<glm::vec3>&>(rawMesh.tangents));
+        std::vector<glm::vec3> tangents =
+            MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.tangents);
 
         mesh->setTangents(tangents);
     }
@@ -169,12 +170,11 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
     if (rawMesh.bonesIds.size() != 0) {
         SW_ASSERT(rawMesh.bonesWeights.size() == rawMesh.bonesIds.size());
 
-        std::vector<glm::u8vec4> bonesIDs;
-        bonesIDs.swap(reinterpret_cast<std::vector<glm::u8vec4>&>(rawMesh.bonesIds));
+        std::vector<glm::u8vec4> bonesIDs =
+            MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesIds);
 
-        std::vector<glm::u8vec4> bonesWeights;
-        bonesWeights.swap(reinterpret_cast<std::vector<glm::u8vec4>&>(rawMesh.bonesWeights));
-
+        std::vector<glm::u8vec4> bonesWeights =
+            MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesWeights);
 
         mesh->setSkinData(bonesIDs, bonesWeights);
     }

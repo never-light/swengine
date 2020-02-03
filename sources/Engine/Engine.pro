@@ -45,6 +45,7 @@ SOURCES += \
     Modules/ScreenManagement/Screen.cpp \
     Modules/ScreenManagement/ScreenManager.cpp \
     Utility/files.cpp \
+    Utility/memory.cpp \
     Utility/strings.cpp \
     Utility/xml.cpp \
     precompiled.cpp
@@ -87,6 +88,7 @@ HEADERS += \
     Modules/ScreenManagement/ScreenManager.h \
     Utility/Bitmask.h \
     Utility/files.h \
+    Utility/memory.h \
     Utility/strings.h \
     Utility/xml.h \
     precompiled.h \

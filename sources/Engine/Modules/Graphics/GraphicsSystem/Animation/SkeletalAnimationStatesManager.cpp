@@ -11,7 +11,7 @@ SkeletalAnimationStatesManager::SkeletalAnimationStatesManager(std::shared_ptr<S
 
 void SkeletalAnimationStatesManager::addAnimationClipInstance(const SkeletalAnimationClipInstance& clip)
 {
-    SW_ASSERT(m_skeleton.get() == &clip.getAnimationClip().getSkeleton());
+    SW_ASSERT(m_skeleton.get() == &clip.getSkeleton());
 
     m_animationClips.emplace(clip.getAnimationClip().getName(), clip);
 }

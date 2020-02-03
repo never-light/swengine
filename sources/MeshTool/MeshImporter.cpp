@@ -7,6 +7,7 @@
 #include <Engine/Exceptions/EngineRuntimeException.h>
 #include <Engine/swdebug.h>
 
+#include "utils.h"
 #include "AssimpMeshLoader.h"
 #include "SkeletonImporter.h"
 
@@ -76,7 +77,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     glm::vec3 aabbMin(std::numeric_limits<float>::max());
     glm::vec3 aabbMax(std::numeric_limits<float>::min());
 
-    std::unordered_map<std::string, const aiMesh*> meshesList;
+    std::unordered_map<std::string, ImportMeshData> meshesList;
 
     aiMatrix4x4 rootTransform;
     aiIdentityMatrix4(&rootTransform);
@@ -88,7 +89,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     }
 
     for (auto [ subMeshName, subMeshPtr ] : meshesList) {
-        const aiMesh& subMesh = *subMeshPtr;
+        const aiMesh& subMesh = *subMeshPtr.mesh;
         size_t subMeshIndex = subMeshesIndices.size() - 1;
 
         bool requiredAttributesFound = subMesh.HasPositions() && subMesh.HasNormals()
@@ -103,24 +104,19 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
         size_t verticesAddIndex = positions.size();
 
         for (size_t vertexIndex = 0; vertexIndex < subMesh.mNumVertices; vertexIndex++) {
-            positions.push_back({ subMesh.mVertices[vertexIndex].x,
-                                  subMesh.mVertices[vertexIndex].y,
-                                  subMesh.mVertices[vertexIndex].z });
-            aabbMin.x = std::fminf(aabbMin.x, subMesh.mVertices[vertexIndex].x);
-            aabbMin.y = std::fminf(aabbMin.y, subMesh.mVertices[vertexIndex].y);
-            aabbMin.z = std::fminf(aabbMin.z, subMesh.mVertices[vertexIndex].z);
+            RawVector3 position = getTransformedRawVector(subMesh.mVertices[vertexIndex],
+                                                          subMeshPtr.sceneTransfromationMatrix, true);
 
-            aabbMax.x = std::fmaxf(aabbMax.x, subMesh.mVertices[vertexIndex].x);
-            aabbMax.y = std::fmaxf(aabbMax.y, subMesh.mVertices[vertexIndex].y);
-            aabbMax.z = std::fmaxf(aabbMax.z, subMesh.mVertices[vertexIndex].z);
+            positions.push_back(position);
 
-            normals.push_back({ subMesh.mNormals[vertexIndex].x,
-                                subMesh.mNormals[vertexIndex].y,
-                                subMesh.mNormals[vertexIndex].z });
+            aabbMin = glm::min(aabbMin, { position.x, position.y, position.z });
+            aabbMax = glm::max(aabbMax, { position.x, position.y, position.z });
 
-            tangents.push_back({ subMesh.mTangents[vertexIndex].x,
-                                 subMesh.mTangents[vertexIndex].y,
-                                 subMesh.mTangents[vertexIndex].z });
+            normals.push_back(getTransformedRawVector(subMesh.mNormals[vertexIndex],
+                                                      subMeshPtr.sceneTransfromationMatrix, false, true));
+
+            tangents.push_back(getTransformedRawVector(subMesh.mTangents[vertexIndex],
+                                                       subMeshPtr.sceneTransfromationMatrix, false, true));
 
             uv.push_back({ subMesh.mTextureCoords[0][vertexIndex].x,
                            subMesh.mTextureCoords[0][vertexIndex].y });
@@ -273,13 +269,13 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
 void MeshImporter::collectMeshes(const aiScene& scene,
                                  const aiNode& sceneNode,
-                                 std::unordered_map<std::string, const aiMesh*>& meshesList,
+                                 std::unordered_map<std::string, ImportMeshData>& meshesList,
                                  const aiMatrix4x4& parentNodeTransform) const
 {
     std::string currentNodeName = sceneNode.mName.C_Str();
     aiMatrix4x4 currentNodeTransform = parentNodeTransform * sceneNode.mTransformation;
 
-    for (size_t meshIndex = 0; meshIndex < sceneNode.mNumMeshes; meshIndex++) {
+     for (size_t meshIndex = 0; meshIndex < sceneNode.mNumMeshes; meshIndex++) {
         const aiMesh* mesh = scene.mMeshes[sceneNode.mMeshes[meshIndex]];
 
         std::string meshName = mesh->mName.C_Str();
@@ -297,10 +293,10 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 
         if (!currentNodeTransform.IsIdentity()) {
             spdlog::warn("The mesh {} node {} has non-identity transform, "
-                         "all transform data will be skipped", meshName, currentNodeName);
+                         "vertices will be convertex to scene space", meshName, currentNodeName);
         }
 
-        meshesList.insert({ meshName, mesh });
+        meshesList.insert({ meshName, { mesh, currentNodeTransform } });
     }
 
 

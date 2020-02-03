@@ -8,7 +8,10 @@
 
 constexpr uint16_t MESH_FORMAT_VERSION = 112;
 constexpr uint16_t SKELETON_FORMAT_VERSION = 112;
+constexpr uint16_t ANIMATION_FORMAT_VERSION = 112;
+
 constexpr size_t MAX_BONE_NAME_LENGTH = 64;
+constexpr size_t MAX_ANIMATION_NAME_LENGTH = 64;
 
 enum class RawMeshAttributes {
     Empty = 0,
@@ -57,7 +60,7 @@ struct RawMesh {
 
 struct RawSkeletonHeader {
     uint16_t formatVersion;
-    uint16_t bonesCount;
+    uint8_t bonesCount;
 };
 
 struct RawBone {
@@ -71,4 +74,42 @@ struct RawSkeleton {
     RawSkeletonHeader header;
 
     std::vector<RawBone> bones;
+};
+
+struct RawSkeletalAnimationHeader {
+    uint16_t formatVersion;
+
+    char name[MAX_ANIMATION_NAME_LENGTH];
+    uint8_t skeletonBonesCount;
+
+    float duration;
+    float rate;
+};
+
+struct RawBonePositionFrame {
+    float time;
+    RawVector3 position;
+};
+
+struct RawBoneOrientationFrame {
+    float time;
+    RawQuaternion orientation;
+};
+
+struct RawBoneAnimationChannelHeader {
+    uint16_t positionFramesCount;
+    uint16_t orientationFramesCount;
+};
+
+struct RawBoneAnimationChannel {
+    RawBoneAnimationChannelHeader header;
+
+    std::vector<RawBonePositionFrame> positionFrames;
+    std::vector<RawBoneOrientationFrame> orientationFrames;
+};
+
+struct RawSkeletalAnimation {
+    RawSkeletalAnimationHeader header;
+
+    std::vector<RawBoneAnimationChannel> bonesAnimationChannels;
 };

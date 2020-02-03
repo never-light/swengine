@@ -11,5 +11,6 @@ public:
 private:
     void importMesh(const cxxopts::ParseResult& options);
     void importSkeleton(const cxxopts::ParseResult& options);
+    void importAnimation(const cxxopts::ParseResult& options);
 
 };

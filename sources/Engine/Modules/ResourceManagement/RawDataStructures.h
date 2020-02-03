@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 struct RawVector2 {
     float x;
@@ -34,6 +35,13 @@ struct RawMatrix3 {
 
 struct RawMatrix4 {
     float data[16];
+};
+
+struct RawQuaternion {
+    float x;
+    float y;
+    float z;
+    float w;
 };
 
 RawMatrix4 glmMatrix4ToRawMatrix4(const glm::mat4& matrix);

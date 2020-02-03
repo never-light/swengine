@@ -19,6 +19,8 @@ AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& o
         importOptions = importOptions | aiProcess_OptimizeGraph | aiProcess_OptimizeMeshes;
 
     importOptions |= aiProcess_LimitBoneWeights;
+    importOptions |= aiProcess_ValidateDataStructure;
+    //importOptions |= aiProcess_PreTransformVertices;
 
     m_sceneImporter.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, static_cast<int>(options.maxBonexPerVertex));
 

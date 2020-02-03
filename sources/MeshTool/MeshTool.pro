@@ -21,6 +21,8 @@ DEPENDPATH += $$THIRD_PARTY_DIR
 DEPENDPATH += $$SOURCES_DIR/Engine
 
 SOURCES += \
+    AnimationExporter.cpp \
+    AnimationImporter.cpp \
     AssimpMeshLoader.cpp \
     MeshExporter.cpp \
     MeshImporter.cpp \
@@ -29,6 +31,8 @@ SOURCES += \
     SkeletonExporter.cpp \
     SkeletonImporter.cpp
 HEADERS += \
+    AnimationExporter.h \
+    AnimationImporter.h \
     AssimpMeshLoader.h \
     SkeletonExporter.h \
     SkeletonImporter.h \

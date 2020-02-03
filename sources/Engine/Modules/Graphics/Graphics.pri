@@ -12,6 +12,7 @@ SOURCES += \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationSystem.cpp \
     $$PWD/GraphicsSystem/Animation/Skeleton.cpp \
     $$PWD/GraphicsSystem/Camera.cpp \
     $$PWD/GraphicsSystem/CameraComponent.cpp \
@@ -37,6 +38,7 @@ SOURCES += \
     $$PWD/Resources/MaterialResource.cpp \
     $$PWD/Resources/MeshResource.cpp \
     $$PWD/Resources/ShaderResource.cpp \
+    $$PWD/Resources/SkeletalAnimationResource.cpp \
     $$PWD/Resources/SkeletonResource.cpp \
     $$PWD/Resources/TextureResource.cpp \
     Modules/Graphics/OpenGL/GLGraphicsContext.cpp \
@@ -57,6 +59,7 @@ HEADERS += \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationSystem.h \
     $$PWD/GraphicsSystem/Animation/Skeleton.h \
     $$PWD/GraphicsSystem/Camera.h \
     $$PWD/GraphicsSystem/CameraComponent.h \
@@ -84,6 +87,7 @@ HEADERS += \
     $$PWD/Resources/MeshResource.h \
     $$PWD/Resources/RawMesh.h \
     $$PWD/Resources/ShaderResource.h \
+    $$PWD/Resources/SkeletalAnimationResource.h \
     $$PWD/Resources/SkeletonResource.h \
     $$PWD/Resources/TextureResource.h \
     Modules/Graphics/GraphicsModule.h \

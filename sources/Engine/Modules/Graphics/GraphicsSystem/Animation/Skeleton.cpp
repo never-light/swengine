@@ -59,12 +59,17 @@ const Bone& Skeleton::getRootBone() const
     return getBone(0);
 }
 
-size_t Skeleton::getBonesCount() const
+uint8_t Skeleton::getBoneParentId(uint8_t id) const
 {
-    return m_bones.size();
+    return m_bones[id].getParentId();
 }
 
-const Bone& Skeleton::getBone(size_t id) const
+uint8_t Skeleton::getBonesCount() const
+{
+    return static_cast<uint8_t>(m_bones.size());
+}
+
+const Bone& Skeleton::getBone(uint8_t id) const
 {
     return m_bones[id];
 }

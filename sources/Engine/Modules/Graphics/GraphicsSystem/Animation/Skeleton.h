@@ -33,8 +33,10 @@ public:
 
     const Bone& getRootBone() const;
 
-    size_t getBonesCount() const;
-    const Bone& getBone(size_t id) const;
+    uint8_t getBonesCount() const;
+    const Bone& getBone(uint8_t id) const;
+
+    uint8_t getBoneParentId(uint8_t id) const;
 
 private:
     std::vector<Bone> m_bones;

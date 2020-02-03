@@ -13,6 +13,8 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+#include <Engine/Modules/ResourceManagement/RawDataStructures.h>
+
 inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from)
 {
         glm::mat4 to;
@@ -52,4 +54,24 @@ inline glm::quat aiQuaternionToGlm(const aiQuaternion &from)
         to.z = from.z;
         to.w = from.w;
         return to;
+}
+
+inline RawVector3 getTransformedRawVector(const aiVector3D& vector, const aiMatrix4x4& matrix, bool point = true, bool normalize = false) {
+    glm::vec4 sourceVector = glm::vec4(aiVec3ToGlm(vector), point ? 1 : 0);
+    glm::vec3 transformedVector = aiMatrix4x4ToGlm(&matrix) * sourceVector;
+
+    if (normalize) {
+        transformedVector = glm::normalize(transformedVector);
+    }
+
+    return { transformedVector.x, transformedVector.y, transformedVector.z };
+}
+
+inline RawVector3 rawVectorMin(const RawVector3& a, const RawVector3& b) {
+    RawVector3 result;
+    result.x = std::fminf(a.x, b.x);
+    result.y = std::fminf(a.y, b.y);
+    result.z = std::fminf(a.z, b.z);
+
+    return result;
 }

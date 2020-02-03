@@ -109,7 +109,7 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>()
 
     glVertexArrayAttribFormat(m_vertexArrayObject, 4, 4, GL_UNSIGNED_BYTE, GL_FALSE,
                               offsetof(VertexPos3Norm3UVSkinned, bonesIds));
-    glVertexArrayAttribFormat(m_vertexArrayObject, 5, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+    glVertexArrayAttribFormat(m_vertexArrayObject, 5, 4, GL_UNSIGNED_BYTE, GL_FALSE,
                               offsetof(VertexPos3Norm3UVSkinned, bonesWeights));
 
     glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);

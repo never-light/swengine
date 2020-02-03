@@ -24,6 +24,11 @@ struct ImportBoneData {
     RawBone rawBone;
 };
 
+struct ImportMeshData {
+    const aiMesh* mesh;
+    aiMatrix4x4 sceneTransfromationMatrix;
+};
+
 class MeshImporter
 {
 public:
@@ -38,7 +43,7 @@ private:
 
     void collectMeshes(const aiScene& scene,
                        const aiNode& sceneNode,
-                       std::unordered_map<std::string, const aiMesh*>& meshesList,
+                       std::unordered_map<std::string, ImportMeshData>& meshesList,
                        const aiMatrix4x4& parentNodeTransform) const;
 
    std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const MeshImportOptions& options) const;

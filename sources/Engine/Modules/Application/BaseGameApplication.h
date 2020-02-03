@@ -14,6 +14,8 @@
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 #include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 
+#include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationSystem.h"
+
 #include "Modules/Graphics/GraphicsSystem/RenderingSystemsPipeline.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"

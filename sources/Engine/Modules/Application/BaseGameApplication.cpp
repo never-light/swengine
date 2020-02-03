@@ -14,11 +14,13 @@
 #include "Modules/Graphics/Resources/BitmapFontResource.h"
 #include "Modules/Graphics/Resources/MaterialResource.h"
 #include "Modules/Graphics/Resources/SkeletonResource.h"
-
+#include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
 
 BaseGameApplication::BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight)
     : m_mainWindow(nullptr)
 {
+    spdlog::set_level(spdlog::level::debug);
+
     spdlog::info("Application start...");
     initializePlatform(argc, argv, windowTitle, windowWidth, windowHeight);
     spdlog::info("Application is started");
@@ -202,6 +204,7 @@ void BaseGameApplication::initializeEngine()
     resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
     resourceManager->declareResourceType<MaterialResource>("material");
     resourceManager->declareResourceType<SkeletonResource>("skeleton");
+    resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
 
     resourceManager->addResourcesMap("../resources/engine_resources.xml");
 
@@ -227,6 +230,10 @@ void BaseGameApplication::initializeEngineSystems()
 
     m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
     m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+
+    // Skeletal animation system
+    auto skeletalAnimationSystem = std::make_shared<SkeletalAnimationSystem>();
+    engineGameSystems->addGameSystem(skeletalAnimationSystem);
 
     // Rendering pipeline
     m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_gameWorld,
