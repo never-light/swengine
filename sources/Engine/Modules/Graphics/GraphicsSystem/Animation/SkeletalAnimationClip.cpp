@@ -143,6 +143,8 @@ bool SkeletalAnimationClipInstance::isLooped() const
     return m_isLooped;
 }
 
+#include <glm/gtx/string_cast.hpp>
+
 const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() const
 {
     if (!m_isAnimationPoseOutdated) {
@@ -151,7 +153,10 @@ const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() c
 
     // Update animation pose
     m_animationPose.setBoneLocalPose(0, m_animationClip->getBoneRelativePose(0, m_currentTime));
-    m_animationPose.updateBoneGlobalPose(0, m_animationClip->getBoneRelativePose(0, m_currentTime));
+
+    BonePose rootGlobalPose = m_animationClip->getBoneRelativePose(0, m_currentTime);
+
+    m_animationPose.updateBoneGlobalPose(0, rootGlobalPose);
 
     for (uint8_t boneIndex = 1; boneIndex < m_skeleton->getBonesCount(); boneIndex++) {
         BonePose currentLocalPose = m_animationClip->getBoneRelativePose(boneIndex, m_currentTime);
@@ -160,10 +165,7 @@ const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() c
         const BonePose& parentGlobalPose = m_animationPose.getBoneGlobalPose(
                     m_skeleton->getBoneParentId(boneIndex));
 
-        BonePose currentGlobalPose;
-        currentGlobalPose.position = parentGlobalPose.position + currentLocalPose.position;
-        currentGlobalPose.orientation = parentGlobalPose.orientation * currentLocalPose.orientation;
-
+        BonePose currentGlobalPose = parentGlobalPose * currentLocalPose;
         m_animationPose.updateBoneGlobalPose(boneIndex, currentGlobalPose);
     }
 
@@ -199,12 +201,10 @@ const SkeletalAnimationMatrixPalette& SkeletalAnimationPose::getMatrixPalette() 
 {
     if (m_isMatrixPaletteOutdated) {        
         for (size_t boneIndex = 0; boneIndex < m_matrixPalette.bonesTransforms.size(); boneIndex++) {
-            m_matrixPalette.bonesTransforms[boneIndex] = glm::mat4_cast(m_bonesGlobalPoses[boneIndex].orientation);
-            m_matrixPalette.bonesTransforms[boneIndex] = glm::translate(m_matrixPalette.bonesTransforms[boneIndex],
-                                                                        m_bonesGlobalPoses[boneIndex].position);
+            m_matrixPalette.bonesTransforms[boneIndex] = glm::translate(glm::identity<glm::mat4>(),
+                m_bonesGlobalPoses[boneIndex].position) * glm::mat4_cast(m_bonesGlobalPoses[boneIndex].orientation);
 
-           m_matrixPalette.bonesTransforms[boneIndex] =
-                     m_matrixPalette.bonesTransforms[boneIndex] * m_skeleton->getBone(static_cast<uint8_t>(boneIndex)).getInverseBindPoseMatrix();
+           m_matrixPalette.bonesTransforms[boneIndex] = m_matrixPalette.bonesTransforms[boneIndex] * m_skeleton->getBone(static_cast<uint8_t>(boneIndex)).getInverseBindPoseMatrix();
         }
 
         m_isMatrixPaletteOutdated = false;
@@ -229,13 +229,6 @@ SkeletalAnimationMatrixPalette::SkeletalAnimationMatrixPalette(const std::vector
 
 }
 
-BonePose::BonePose(const glm::vec3& position, const glm::quat& orientation)
-    : position(position),
-      orientation(orientation)
-{
-
-}
-
 template<class T, class S>
 T SkeletalAnimationClip::getMixedAdjacentFrames(const std::vector<S>& frames, float time) const
 {
@@ -255,7 +248,12 @@ T SkeletalAnimationClip::getMixedAdjacentFrames(const std::vector<S>& frames, fl
         T next = getFrameValue<T, S>(*frameIt);
         T prev = (frameIt == frames.begin()) ? getIdentity<T>() : getFrameValue<T, S>(*std::prev(frameIt));
 
-        return getMixedValue<T>(prev, next, time / frameIt->time);
+        float currentFrameTime = frameIt->time;
+        float prevFrameTime = (frameIt == frames.begin()) ? 0 : std::prev(frameIt)->time;
+
+        float framesTimeDelta = currentFrameTime - prevFrameTime;
+
+        return getMixedValue<T>(prev, next, (time - prevFrameTime) / framesTimeDelta);
     }
 }
 

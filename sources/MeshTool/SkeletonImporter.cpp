@@ -33,6 +33,8 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::importFromFile(const std::string&
     return skeleton;
 }
 
+#include <glm/gtx/string_cast.hpp>
+
 std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiScene& scene, const SkeletonImportOptions& options)
 {
     ARG_UNUSED(options);
@@ -46,14 +48,22 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
         ENGINE_RUNTIME_ERROR("Failed to find the root bone");
     }
 
+    spdlog::warn("Root trasform: {}", glm::to_string(aiMatrix4x4ToGlm(&scene.mRootNode->mTransformation)));
+
     aiMatrix4x4 rootTransform;
     aiIdentityMatrix4(&rootTransform);
+
+    const aiNode* currentNode = rootNode->mParent;
+
+    while (currentNode != nullptr) {
+        rootTransform = currentNode->mTransformation * rootTransform;
+        currentNode = currentNode->mParent;
+    }
 
     traverseSkeletonHierarchy(rootNode, rootTransform, usedBonesList, bonesList);
 
     //glm::mat4 transform = glm::inverse(aiMatrix4x4ToGlm(&bonesList.begin()->second.sceneTransfromationMatrix));
-    //glm::vec4 vertex = transform * glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
-
+    //glm::vec4 vertex = transform * glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
 
     std::vector<RawBone> rawBonesList;
     buildSkeleton(rootNode, bonesList, rawBonesList, -1);
@@ -64,6 +74,16 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
     skeleton->header.formatVersion = SKELETON_FORMAT_VERSION;
     skeleton->header.bonesCount = static_cast<uint8_t>(rawBonesList.size());
     skeleton->bones = std::move(rawBonesList);
+
+    for (auto bone : skeleton->bones) {
+        auto translation = rawMatrix4ToGLMMatrix4(bone.inverseBindPoseMatrix);
+        auto translation2 = aiMatrix4x4ToGlm(&usedBonesList[std::string(bone.name)]->mOffsetMatrix);
+
+        auto t1 = aiVec3ToGlm(usedBonesList[std::string(bone.name)]->mOffsetMatrix * aiVector3D(0.0f, 0.0f, 0.0f));
+
+        spdlog::warn("Skeleton: {}", glm::to_string(translation));
+        spdlog::warn("Orig: {} {}", glm::to_string(translation2), glm::to_string(t1));
+    }
 
     return skeleton;
 }
@@ -106,7 +126,17 @@ void SkeletonImporter::traverseSkeletonHierarchy(const aiNode* sceneNode,
     auto usedBoneIt = usedBones.find(currentNodeName);
 
     if (usedBoneIt != usedBones.end()) {
-        bonesData[currentNodeName] = { usedBoneIt->second, currentNodeTransform };
+        //aiMatrix4x4 tempInvMatrixs = currentNodeTransform.Inverse() * usedBoneIt->second->mOffsetMatrix;
+
+        aiMatrix4x4 m = usedBoneIt->second->mOffsetMatrix;
+
+        auto itt= aiMatrix4x4ToGlm(&m);
+
+        m.Inverse();
+
+        spdlog::info("MTTT: {}", glm::to_string(glm::inverse(itt) * glm::vec4(0.0f, 0.0f, 1.5f, 1.0f)));
+
+        bonesData[currentNodeName] = { usedBoneIt->second, m };
     }
 
     for (size_t childIndex = 0; childIndex < sceneNode->mNumChildren; childIndex++) {

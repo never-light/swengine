@@ -137,7 +137,7 @@ void GLShader::setParameter(const std::string& name, const GLTexture& texture, s
 void GLShader::setArrayParameter(const std::string& name, const std::vector<glm::mat4x4>& array)
 {
     glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name + "[0]"].location,
-            static_cast<GLsizei>(array.size()), GL_FALSE, reinterpret_cast<const float*>(array.data()));
+            static_cast<GLsizei>(array.size()), GL_FALSE, glm::value_ptr(array[0]));
 }
 
 void GLShader::setArrayParameter(const std::string& name, size_t valueIndex, const glm::mat4x4& value)

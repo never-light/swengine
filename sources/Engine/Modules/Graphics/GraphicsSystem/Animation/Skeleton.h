@@ -3,6 +3,22 @@
 #include <string>
 #include <glm/mat4x4.hpp>
 
+struct BonePose {
+    BonePose() = default;
+    BonePose(const glm::vec3& position, const glm::quat& orientation);
+
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::quat orientation = glm::identity<glm::quat>();
+};
+
+inline BonePose operator*(const BonePose& a, const BonePose& b) {
+    BonePose result;
+    result.orientation = a.orientation * b.orientation;
+    result.position = a.position + glm::vec3(a.orientation * glm::vec4(b.position, 1.0f));
+
+    return result;
+}
+
 struct Bone {
 public:
     Bone();
@@ -38,7 +54,10 @@ public:
 
     uint8_t getBoneParentId(uint8_t id) const;
 
+    const BonePose& getRootBoneBindPose() const;
+
 private:
     std::vector<Bone> m_bones;
+    BonePose m_rootBoneBindPose;
 };
 

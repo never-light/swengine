@@ -111,8 +111,83 @@ std::unique_ptr<RawSkeletalAnimation> AnimationImporter::convertSceneToAnimation
         }
 
         uint8_t boneId = static_cast<uint8_t>(bonesMap[std::string(animationChannel->mNodeName.C_Str())]);
-        rawAnimation->bonesAnimationChannels[boneId] = rawChannel;
+
+        // Merge channels if a channel for current bone already exists
+        size_t currentPositonFramesCount = rawAnimation->bonesAnimationChannels[boneId].positionFrames.size();
+        size_t currentOrientationFramesCount = rawAnimation->bonesAnimationChannels[boneId].orientationFrames.size();
+
+        if (currentPositonFramesCount == 1 && rawChannel.positionFrames.size() > 1) {
+            rawAnimation->bonesAnimationChannels[boneId].positionFrames.resize(rawChannel.positionFrames.size());
+
+            for (size_t frameIndex = 0; frameIndex < rawChannel.positionFrames.size(); frameIndex++) {
+                rawAnimation->bonesAnimationChannels[boneId].positionFrames[frameIndex] =
+                        rawChannel.positionFrames[frameIndex];
+            }
+
+            spdlog::warn("Position frames for bone #{} {} were merged", boneId, std::string(skeleton->bones[boneId].name));
+        }
+        else if (currentOrientationFramesCount == 1 &&
+                 rawChannel.orientationFrames.size() > 1)
+        {
+            rawAnimation->bonesAnimationChannels[boneId].orientationFrames.resize(rawChannel.orientationFrames.size());
+
+            for (size_t frameIndex = 0; frameIndex < rawChannel.orientationFrames.size(); frameIndex++) {
+                rawAnimation->bonesAnimationChannels[boneId].orientationFrames[frameIndex] =
+                        rawChannel.orientationFrames[frameIndex];
+            }
+
+            spdlog::warn("Orientation frames for bone #{} {} were merged", boneId, std::string(skeleton->bones[boneId].name));
+        }
+        else {
+            if (currentPositonFramesCount > 0) {
+                if (rawChannel.positionFrames.size() > currentPositonFramesCount) {
+                    rawAnimation->bonesAnimationChannels[boneId].positionFrames = rawChannel.positionFrames;
+
+                    spdlog::warn("Position frames for bone #{} {} were replaced", boneId, std::string(skeleton->bones[boneId].name));
+                }
+                else {
+                    spdlog::warn("Position frames for bone #{} {} were skipped", boneId, std::string(skeleton->bones[boneId].name));
+                }
+            }
+            else {
+                rawAnimation->bonesAnimationChannels[boneId].positionFrames = rawChannel.positionFrames;
+            }
+
+            if (currentOrientationFramesCount > 0) {
+                if (rawChannel.orientationFrames.size() > currentOrientationFramesCount) {
+                    rawAnimation->bonesAnimationChannels[boneId].orientationFrames = rawChannel.orientationFrames;
+
+                    spdlog::warn("Orientation frames for bone #{} {} were replaced", boneId, std::string(skeleton->bones[boneId].name));
+                }
+                else {
+                    spdlog::warn("Orientation frames for bone #{} {} were skipped", boneId, std::string(skeleton->bones[boneId].name));
+                }
+            }
+            else {
+                rawAnimation->bonesAnimationChannels[boneId].orientationFrames = rawChannel.orientationFrames;
+            }
+        }
+
+        rawAnimation->bonesAnimationChannels[boneId].header.positionFramesCount =
+                static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].positionFrames.size());
+
+        rawAnimation->bonesAnimationChannels[boneId].header.orientationFramesCount =
+                static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].orientationFrames.size());
     }
+
+    // Swap (parent => child) transform to (child => parent)
+//    for (size_t boneIndex = 0; boneIndex < skeleton->bones.size(); boneIndex++) {
+//        for (RawBonePositionFrame& frame : rawAnimation->bonesAnimationChannels[boneIndex].positionFrames) {
+//            frame.position = {-frame.position.x, -frame.position.y, -frame.position.z};
+//        }
+
+//        for (RawBoneOrientationFrame& frame : rawAnimation->bonesAnimationChannels[boneIndex].orientationFrames) {
+//            glm::mat4 rotationMatrix = glm::mat4_cast(glm::quat{ frame.orientation.x, frame.orientation.y, frame.orientation.z, frame.orientation.w });
+//            glm::quat inversedRotation = glm::quat_cast(glm::inverse(rotationMatrix));
+
+//            frame.orientation = { inversedRotation.x, inversedRotation.y, inversedRotation.z, inversedRotation.w };
+//        }
+//    }
 
     return rawAnimation;
 }

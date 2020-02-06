@@ -70,7 +70,10 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
     std::vector<uint8_t> bonesFreeDataPosition;
     std::vector<RawU8Vector4> bonesIDs;
-    std::vector<RawU8Vector4> bonesWeights;
+
+    std::vector<glm::vec4> bonesWeights;
+    std::vector<RawU8Vector4> convertedBonesWeights;
+
 
     std::vector<std::vector<std::uint16_t>> subMeshesIndices;
 
@@ -103,6 +106,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
         // Vertices
         size_t verticesAddIndex = positions.size();
 
+        aiIdentityMatrix4(&subMeshPtr.sceneTransfromationMatrix);
+
         for (size_t vertexIndex = 0; vertexIndex < subMesh.mNumVertices; vertexIndex++) {
             RawVector3 position = getTransformedRawVector(subMesh.mVertices[vertexIndex],
                                                           subMeshPtr.sceneTransfromationMatrix, true);
@@ -122,7 +127,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
                            subMesh.mTextureCoords[0][vertexIndex].y });
 
             bonesIDs.push_back({ 0, 0, 0, 0 });
-            bonesWeights.push_back({ 0, 0, 0, 0 });
+            bonesWeights.push_back({ 0.0f, 0.0f, 0.0f, 0.0f });
+            convertedBonesWeights.push_back({ 0, 0, 0, 0 });
             bonesFreeDataPosition.push_back(0);
 
             // TODO: implement tangents, bitangents, bones import
@@ -174,14 +180,14 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
                     const aiVertexWeight& vertexWeight = bone.mWeights[weightIndex];
 
                     size_t affectedVertexId = verticesAddIndex + vertexWeight.mVertexId;
-                    uint8_t weight = static_cast<uint8_t>(vertexWeight.mWeight * 255);
+                    float weight = vertexWeight.mWeight;
 
                     uint8_t boneDataPosition = bonesFreeDataPosition[affectedVertexId];
 
                     SW_ASSERT(boneDataPosition < options.maxBonesPerVertex);
 
                     bonesIDs[affectedVertexId].data[boneDataPosition] = static_cast<uint8_t>(skeletonBoneIndex);
-                    bonesWeights[affectedVertexId].data[boneDataPosition] = weight;
+                    bonesWeights[affectedVertexId][boneDataPosition] = weight;
 
                     bonesFreeDataPosition[affectedVertexId]++;
                 }
@@ -191,33 +197,28 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
         // Correct bones influence weights
         int unskinnedVerticesCount = 0;
 
-        for (RawU8Vector4& weights : bonesWeights) {
-            int weightsSum = weights.x + weights.y + weights.z + weights.w;
+        for (size_t weightIndex = 0; weightIndex < bonesWeights.size(); weightIndex++) {
+            const glm::vec4& weight = bonesWeights[weightIndex];
 
-            if (weightsSum == 0) {
-                unskinnedVerticesCount++;
-                continue;
+            std::uint8_t remainingSum = 255;
+
+            for (size_t weightComponentIndex = 0; weightComponentIndex < 4; weightComponentIndex++) {
+                float sourceWeight = weight[static_cast<int>(weightComponentIndex)];
+                std::uint8_t convertedWeight = static_cast<std::uint8_t>(std::round(sourceWeight * 255));
+
+                if (convertedWeight > remainingSum || weightComponentIndex == 3) {
+                    convertedBonesWeights[weightIndex].data[weightComponentIndex] = remainingSum;
+
+                    break;
+                }
+                else {
+                    remainingSum -= convertedWeight;
+                    convertedBonesWeights[weightIndex].data[weightComponentIndex] = convertedWeight;
+                }
             }
 
-            int weightsAddition = 255 - weightsSum;
-
-            // TODO: remove hardcode, do it some more convinient way
-            SW_ASSERT(weightsSum == 253 || weightsSum == 254 || weightsSum == 255);
-
-            if (weights.x >= weights.y && weights.x >= weights.z && weights.x >= weights.w) {
-                weights.x += weightsAddition;
-            }
-            else if (weights.y >= weights.x && weights.y >= weights.z && weights.y >= weights.w) {
-                weights.y += weightsAddition;
-            }
-            else if (weights.z >= weights.x && weights.z >= weights.y && weights.z >= weights.w) {
-                weights.y += weightsAddition;
-            }
-            else {
-                weights.z += weightsAddition;
-            }
-
-            SW_ASSERT(weights.x + weights.y + weights.z + weights.w == 255);
+            SW_ASSERT(convertedBonesWeights[weightIndex].x + convertedBonesWeights[weightIndex].y +
+                      convertedBonesWeights[weightIndex].z + convertedBonesWeights[weightIndex].w == 255);
         }
 
         if (options.loadSkin && unskinnedVerticesCount > 0) {
@@ -237,7 +238,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     mesh->tangents = tangents;
     mesh->uv = uv;
     mesh->bonesIds = bonesIDs;
-    mesh->bonesWeights = bonesWeights;
+    mesh->bonesWeights = convertedBonesWeights;
 
     for (const auto& subMeshIndices : subMeshesIndices) {
         mesh->subMeshesIndicesOffsets.push_back(static_cast<uint16_t>(mesh->indices.size()));

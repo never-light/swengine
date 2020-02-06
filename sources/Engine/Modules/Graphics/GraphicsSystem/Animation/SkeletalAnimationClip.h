@@ -15,14 +15,6 @@ struct BoneAnimationOrientationFrame {
     glm::quat orientation;
 };
 
-struct BonePose {
-    BonePose() = default;
-    BonePose(const glm::vec3& position, const glm::quat& orientation);
-
-    glm::vec3 position = glm::vec3(0.0f);
-    glm::quat orientation = glm::identity<glm::quat>();
-};
-
 struct SkeletalAnimationMatrixPalette {
     SkeletalAnimationMatrixPalette(const std::vector<glm::mat4>& bonesTransforms);
 
