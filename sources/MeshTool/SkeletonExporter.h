@@ -1,7 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <string>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
 
 struct SkeletonExportOptions {
 

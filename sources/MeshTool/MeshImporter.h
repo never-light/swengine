@@ -8,7 +8,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawMesh.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
 
 struct MeshImportOptions {
     bool flipUV = false;

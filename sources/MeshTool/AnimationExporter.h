@@ -1,7 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <string>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h>
 
 struct AnimationExportOptions {
 
@@ -13,6 +14,6 @@ public:
     AnimationExporter();
 
     void exportToFile(const std::string& path,
-                      const RawSkeletalAnimation& animation,
+                      const RawSkeletalAnimationClip& animation,
                       const AnimationExportOptions& options);
 };

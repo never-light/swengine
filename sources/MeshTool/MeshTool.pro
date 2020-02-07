@@ -36,7 +36,6 @@ HEADERS += \
     AssimpMeshLoader.h \
     SkeletonExporter.h \
     SkeletonImporter.h \
-    \ \
     MeshExporter.h \
     MeshImporter.h \
     MeshToolApplication.h \

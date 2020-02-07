@@ -9,7 +9,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
 
 struct SkeletonImportOptions {
     int maxBonexPerVertex = 4;

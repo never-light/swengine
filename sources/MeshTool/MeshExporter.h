@@ -1,9 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawMesh.h>
 
-// pos3_norm3_uv, pos3_norm3_uv_skinned, "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned
 enum MeshExportFormat {
     Pos3Norm3UV,
     Pos3Norm3UVSkinned,

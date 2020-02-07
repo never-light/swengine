@@ -37,6 +37,9 @@ SOURCES += \
     $$PWD/Resources/BitmapFontResource.cpp \
     $$PWD/Resources/MaterialResource.cpp \
     $$PWD/Resources/MeshResource.cpp \
+    $$PWD/Resources/Raw/RawMesh.cpp \
+    $$PWD/Resources/Raw/RawSkeletalAnimationClip.cpp \
+    $$PWD/Resources/Raw/RawSkeleton.cpp \
     $$PWD/Resources/ShaderResource.cpp \
     $$PWD/Resources/SkeletalAnimationResource.cpp \
     $$PWD/Resources/SkeletonResource.cpp \
@@ -85,7 +88,9 @@ HEADERS += \
     $$PWD/Resources/BitmapFontResource.h \
     $$PWD/Resources/MaterialResource.h \
     $$PWD/Resources/MeshResource.h \
-    $$PWD/Resources/RawMesh.h \
+    $$PWD/Resources/Raw/RawMesh.h \
+    $$PWD/Resources/Raw/RawSkeletalAnimationClip.h \
+    $$PWD/Resources/Raw/RawSkeleton.h \
     $$PWD/Resources/ShaderResource.h \
     $$PWD/Resources/SkeletalAnimationResource.h \
     $$PWD/Resources/SkeletonResource.h \

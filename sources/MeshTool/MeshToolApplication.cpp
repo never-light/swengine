@@ -145,7 +145,7 @@ void MeshToolApplication::importAnimation(const cxxopts::ParseResult& options)
     AnimationImporter importer;
 
     const std::string inputPath = options["input"].as<std::string>();
-    std::unique_ptr<RawSkeletalAnimation> animation = importer.importFromFile(inputPath, importOptions);
+    std::unique_ptr<RawSkeletalAnimationClip> animation = importer.importFromFile(inputPath, importOptions);
 
     // Save raw animation clip data
     AnimationExportOptions exportOptions;

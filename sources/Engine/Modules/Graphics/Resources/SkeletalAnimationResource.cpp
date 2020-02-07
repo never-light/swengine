@@ -10,7 +10,7 @@
 #include "Exceptions/EngineRuntimeException.h"
 #include "Utility/memory.h"
 
-#include "RawMesh.h"
+#include "Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h"
 
 SkeletalAnimationResource::SkeletalAnimationResource()
 {
@@ -56,46 +56,11 @@ std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(c
     ARG_UNUSED(parameters);
 
     // Read raw mesh
-    std::ifstream clipFile(path, std::ios::binary);
-
-    RawSkeletalAnimation rawClip;
-
-    clipFile.read(reinterpret_cast<char*>(&rawClip.header), sizeof(rawClip.header));
-
-    if (rawClip.header.formatVersion != ANIMATION_FORMAT_VERSION) {
-        ENGINE_RUNTIME_ERROR("Trying to load animation clip with incompatible format version");
-    }
-
-    if (rawClip.header.skeletonBonesCount == 0) {
-        ENGINE_RUNTIME_ERROR("Trying to load animation clip with zero bones count");
-    }
-
-    const uint16_t skeletonBonesCount = rawClip.header.skeletonBonesCount;
-    rawClip.bonesAnimationChannels.resize(skeletonBonesCount);
-
-    for (size_t channelIndex = 0; channelIndex < skeletonBonesCount; channelIndex++) {
-        RawBoneAnimationChannel& channel = rawClip.bonesAnimationChannels[channelIndex];
-
-        clipFile.read(reinterpret_cast<char*>(&channel.header), sizeof(channel.header));
-
-        if (channel.header.positionFramesCount > 0) {
-            channel.positionFrames.resize(channel.header.positionFramesCount);
-
-            clipFile.read(reinterpret_cast<char*>(channel.positionFrames.data()),
-                              sizeof(*channel.positionFrames.begin()) * channel.header.positionFramesCount);
-        }
-
-        if (channel.header.orientationFramesCount > 0) {
-            channel.orientationFrames.resize(channel.header.orientationFramesCount);
-
-            clipFile.read(reinterpret_cast<char*>(channel.orientationFrames.data()),
-                              sizeof(*channel.orientationFrames.begin()) * channel.header.orientationFramesCount);
-        }
-    }
-
-    clipFile.close();
+    RawSkeletalAnimationClip rawClip = RawSkeletalAnimationClip::readFromFile(path);
 
     // Convert raw animation clip to internal animation clip object
+    const uint16_t skeletonBonesCount = rawClip.header.skeletonBonesCount;
+
     std::vector<BoneAnimationChannel> animationChannels;
     animationChannels.reserve(skeletonBonesCount);
 

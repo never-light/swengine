@@ -8,7 +8,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#include <Engine/Modules/Graphics/Resources/RawMesh.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h>
+
 
 struct AnimationImportOptions {
     std::string clipName;
@@ -20,10 +22,10 @@ class AnimationImporter
 public:
     AnimationImporter();
 
-    std::unique_ptr<RawSkeletalAnimation> importFromFile(const std::string& path, const AnimationImportOptions& options);
+    std::unique_ptr<RawSkeletalAnimationClip> importFromFile(const std::string& path, const AnimationImportOptions& options);
 
 private:
-    std::unique_ptr<RawSkeletalAnimation> convertSceneToAnimation(const aiScene& scene,
+    std::unique_ptr<RawSkeletalAnimationClip> convertSceneToAnimation(const aiScene& scene,
                                                 const RawSkeleton* skeleton,
                                                 const AnimationImportOptions& options);
 

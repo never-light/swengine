@@ -9,7 +9,7 @@
 #include "SkeletonResource.h"
 #include "Exceptions/EngineRuntimeException.h"
 
-#include "RawMesh.h"
+#include "Modules/Graphics/Resources/Raw/RawSkeleton.h"
 
 SkeletonResource::SkeletonResource()
 {
@@ -54,28 +54,7 @@ std::shared_ptr<Skeleton> SkeletonResource::loadFromFile(const std::string& path
     ARG_UNUSED(parameters);
 
     // Read raw mesh
-    std::ifstream skeletonFile(path, std::ios::binary);
-
-    RawSkeleton rawSkeleton;
-
-    skeletonFile.read(reinterpret_cast<char*>(&rawSkeleton.header), sizeof(rawSkeleton.header));
-
-    if (rawSkeleton.header.formatVersion != SKELETON_FORMAT_VERSION) {
-        ENGINE_RUNTIME_ERROR("Trying to load skeleton with incompatible format version");
-    }
-
-    if (rawSkeleton.header.bonesCount == 0) {
-        ENGINE_RUNTIME_ERROR("Trying to load skeleton with zero bones count");
-    }
-
-    const uint16_t bonesCount = rawSkeleton.header.bonesCount;
-
-    rawSkeleton.bones.resize(rawSkeleton.header.bonesCount);
-
-    skeletonFile.read(reinterpret_cast<char*>(rawSkeleton.bones.data()),
-                      sizeof(*rawSkeleton.bones.begin()) * bonesCount);
-
-    skeletonFile.close();
+    RawSkeleton rawSkeleton = RawSkeleton::readFromFile(path);
 
     // Convert raw skeleton to internal skeleton object
     std::vector<Bone> bones(rawSkeleton.bones.size());

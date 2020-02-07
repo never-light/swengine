@@ -15,7 +15,7 @@ AnimationImporter::AnimationImporter()
 
 }
 
-std::unique_ptr<RawSkeletalAnimation> AnimationImporter::importFromFile(const std::string& path,
+std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::importFromFile(const std::string& path,
                                                                         const AnimationImportOptions& options)
 {
     spdlog::info("Load source mesh: {}", path);
@@ -32,14 +32,14 @@ std::unique_ptr<RawSkeletalAnimation> AnimationImporter::importFromFile(const st
     std::unique_ptr<RawSkeleton> skeleton = getSkeleton(path, options);
     spdlog::info("Mesh skeleton is loaded");
 
-    std::unique_ptr<RawSkeletalAnimation> animation = convertSceneToAnimation(scene->getScene(), skeleton.get(), options);
+    std::unique_ptr<RawSkeletalAnimationClip> animation = convertSceneToAnimation(scene->getScene(), skeleton.get(), options);
 
     spdlog::info("Animation is parsed");
 
     return animation;
 }
 
-std::unique_ptr<RawSkeletalAnimation> AnimationImporter::convertSceneToAnimation(const aiScene& scene,
+std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnimation(const aiScene& scene,
                                                           const RawSkeleton* skeleton,
                                                           const AnimationImportOptions& options)
 {
@@ -61,7 +61,7 @@ std::unique_ptr<RawSkeletalAnimation> AnimationImporter::convertSceneToAnimation
         ENGINE_RUNTIME_ERROR("Failed to find target animation");
     }
 
-    std::unique_ptr<RawSkeletalAnimation> rawAnimation = std::make_unique<RawSkeletalAnimation>();
+    std::unique_ptr<RawSkeletalAnimationClip> rawAnimation = std::make_unique<RawSkeletalAnimationClip>();
     strcpy_s(rawAnimation->header.name, animationPtr->mName.C_Str());
 
     rawAnimation->header.formatVersion = SKELETON_FORMAT_VERSION;
