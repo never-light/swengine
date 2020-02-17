@@ -103,8 +103,13 @@ void SkeletalAnimationClipInstance::increaseCurrentTime(float delta)
     m_isAnimationPoseOutdated = true;
 
     if (m_currentTime > m_animationClip->getDuration()) {
-        int overflowParts = static_cast<int>(m_currentTime / m_animationClip->getDuration());
-        m_currentTime -= m_animationClip->getDuration() * overflowParts;
+        if (m_isLooped) {
+            int overflowParts = static_cast<int>(m_currentTime / m_animationClip->getDuration());
+            m_currentTime -= m_animationClip->getDuration() * overflowParts;
+        }
+        else {
+            m_currentTime = m_animationClip->getDuration();
+        }
     }
 }
 
@@ -143,8 +148,6 @@ bool SkeletalAnimationClipInstance::isLooped() const
     return m_isLooped;
 }
 
-#include <glm/gtx/string_cast.hpp>
-
 const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() const
 {
     if (!m_isAnimationPoseOutdated) {
@@ -154,19 +157,9 @@ const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() c
     // Update animation pose
     m_animationPose.setBoneLocalPose(0, m_animationClip->getBoneRelativePose(0, m_currentTime));
 
-    BonePose rootGlobalPose = m_animationClip->getBoneRelativePose(0, m_currentTime);
-
-    m_animationPose.updateBoneGlobalPose(0, rootGlobalPose);
-
     for (uint8_t boneIndex = 1; boneIndex < m_skeleton->getBonesCount(); boneIndex++) {
         BonePose currentLocalPose = m_animationClip->getBoneRelativePose(boneIndex, m_currentTime);
         m_animationPose.setBoneLocalPose(boneIndex, currentLocalPose);
-
-        const BonePose& parentGlobalPose = m_animationPose.getBoneGlobalPose(
-                    m_skeleton->getBoneParentId(boneIndex));
-
-        BonePose currentGlobalPose = parentGlobalPose * currentLocalPose;
-        m_animationPose.updateBoneGlobalPose(boneIndex, currentGlobalPose);
     }
 
     m_isAnimationPoseOutdated = false;
@@ -177,7 +170,6 @@ SkeletalAnimationPose::SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
                                              const std::vector<BonePose>& bonesPoses)
     : m_skeleton(skeleton),
       m_bonesLocalPoses(bonesPoses),
-      m_bonesGlobalPoses(bonesPoses.size()),
       m_matrixPalette(std::vector<glm::mat4>(bonesPoses.size(), glm::identity<glm::mat4>()))
 {
 
@@ -194,33 +186,27 @@ const BonePose& SkeletalAnimationPose::getBoneLocalPose(uint8_t boneIndex) const
     return m_bonesLocalPoses[boneIndex];
 }
 
-#include <spdlog/spdlog.h>
-#include <glm/gtx/string_cast.hpp>
-
 const SkeletalAnimationMatrixPalette& SkeletalAnimationPose::getMatrixPalette() const
 {
-    if (m_isMatrixPaletteOutdated) {        
-        for (size_t boneIndex = 0; boneIndex < m_matrixPalette.bonesTransforms.size(); boneIndex++) {
-            m_matrixPalette.bonesTransforms[boneIndex] = glm::translate(glm::identity<glm::mat4>(),
-                m_bonesGlobalPoses[boneIndex].position) * glm::mat4_cast(m_bonesGlobalPoses[boneIndex].orientation);
+    if (m_isMatrixPaletteOutdated) {
+        // Update matrix palette hierarchy
+        m_matrixPalette.bonesTransforms[0] =  m_bonesLocalPoses[0].getBoneMatrix();
 
-           m_matrixPalette.bonesTransforms[boneIndex] = m_matrixPalette.bonesTransforms[boneIndex] * m_skeleton->getBone(static_cast<uint8_t>(boneIndex)).getInverseBindPoseMatrix();
+        for (uint8_t boneIndex = 1; boneIndex < m_matrixPalette.bonesTransforms.size(); boneIndex++) {
+            m_matrixPalette.bonesTransforms[boneIndex] =
+                    m_matrixPalette.bonesTransforms[m_skeleton->getBoneParentId(boneIndex)] *
+                    m_bonesLocalPoses[boneIndex].getBoneMatrix();
+        }
+
+        // Multiply matrix palette by inverse bind pose matrices
+        for (uint8_t boneIndex = 0; boneIndex < m_matrixPalette.bonesTransforms.size(); boneIndex++) {
+            m_matrixPalette.bonesTransforms[boneIndex] *= m_skeleton->getBone(boneIndex).getInverseBindPoseMatrix();
         }
 
         m_isMatrixPaletteOutdated = false;
     }
 
     return m_matrixPalette;
-}
-
-const BonePose& SkeletalAnimationPose::getBoneGlobalPose(uint8_t boneIndex) const
-{
-    return m_bonesGlobalPoses[boneIndex];
-}
-
-void SkeletalAnimationPose::updateBoneGlobalPose(uint8_t boneIndex, const BonePose& pose)
-{
-    m_bonesGlobalPoses[boneIndex] = pose;
 }
 
 SkeletalAnimationMatrixPalette::SkeletalAnimationMatrixPalette(const std::vector<glm::mat4>& bonesTransforms)

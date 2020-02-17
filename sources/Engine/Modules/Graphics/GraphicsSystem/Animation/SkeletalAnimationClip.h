@@ -96,14 +96,9 @@ public:
     const SkeletalAnimationMatrixPalette& getMatrixPalette() const;
 
 private:
-    const BonePose& getBoneGlobalPose(uint8_t boneIndex) const;
-    void updateBoneGlobalPose(uint8_t boneIndex, const BonePose& pose);
-
-private:
     std::shared_ptr<Skeleton> m_skeleton;
 
     std::vector<BonePose> m_bonesLocalPoses;
-    std::vector<BonePose> m_bonesGlobalPoses;
 
     mutable SkeletalAnimationMatrixPalette m_matrixPalette;
     mutable bool m_isMatrixPaletteOutdated = true;
@@ -127,7 +122,6 @@ public:
     bool isLooped() const;
 
     const SkeletalAnimationPose& getAnimationPose() const;
-
     const Skeleton& getSkeleton() const;
 
     void increaseCurrentTime(float delta);

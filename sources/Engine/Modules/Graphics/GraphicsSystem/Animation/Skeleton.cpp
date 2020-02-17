@@ -10,6 +10,11 @@ BonePose::BonePose(const glm::vec3& position, const glm::quat& orientation)
 
 }
 
+glm::mat4 BonePose::getBoneMatrix() const
+{
+    return glm::translate(glm::identity<glm::mat4>(), position) * glm::mat4_cast(orientation);
+}
+
 Bone::Bone()
 {
 

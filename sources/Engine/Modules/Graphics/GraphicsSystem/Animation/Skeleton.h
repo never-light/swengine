@@ -7,6 +7,8 @@ struct BonePose {
     BonePose() = default;
     BonePose(const glm::vec3& position, const glm::quat& orientation);
 
+    glm::mat4 getBoneMatrix() const;
+
     glm::vec3 position = glm::vec3(0.0f);
     glm::quat orientation = glm::identity<glm::quat>();
 };
