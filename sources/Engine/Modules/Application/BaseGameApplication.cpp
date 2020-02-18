@@ -70,7 +70,7 @@ int BaseGameApplication::execute()
     const int FRAMES_PER_SECOND = 30;
     const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
 
-    unsigned long nextTick = GetTickCount();
+    unsigned long nextTick = SDL_GetTicks();
 
     long sleepTime = 0;
 
@@ -106,7 +106,7 @@ int BaseGameApplication::execute()
 
         if (!isFrameRateUnlimited) {
             nextTick += SKIP_TICKS;
-            sleepTime = static_cast<long>(nextTick) - static_cast<long>(GetTickCount());
+            sleepTime = static_cast<long>(nextTick) - static_cast<long>(SDL_GetTicks());
 
             if (sleepTime >= 0) {
                 SDL_Delay(static_cast<unsigned long>(sleepTime));
