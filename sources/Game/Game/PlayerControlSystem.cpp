@@ -70,19 +70,19 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
     playerCamera->getTransform()->yaw(mouseDelta.x);
 
     if (m_inputModule->isActionActive("forward")) {
-        move(playerCamera->getTransform()->getFrontDirection() * movementSpeed);
+        move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * delta);
     }
 
     if (m_inputModule->isActionActive("backward")) {
-        move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * (-1.0f));
+        move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * (-1.0f) * delta);
     }
 
     if (m_inputModule->isActionActive("right")) {
-        move(playerCamera->getTransform()->getRightDirection() * movementSpeed);
+        move(playerCamera->getTransform()->getRightDirection() * movementSpeed * delta);
     }
 
     if (m_inputModule->isActionActive("left")) {
-        move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f));
+        move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f) * delta);
     }
 }
 
