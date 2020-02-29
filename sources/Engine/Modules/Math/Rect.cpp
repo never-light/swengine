@@ -55,6 +55,12 @@ int Rect::getOriginY() const
     return m_origin.y;
 }
 
+bool Rect::isPointInRect(const glm::ivec2& point) const
+{
+    return m_origin.x <= point.x && point.x <= (m_origin.x + m_size.x) &&
+           m_origin.y <= point.y && point.y <= (m_origin.y + m_size.y);;
+}
+
 const glm::ivec2& Rect::getOrigin() const
 {
     return m_origin;

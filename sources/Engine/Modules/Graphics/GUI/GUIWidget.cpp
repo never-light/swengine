@@ -345,3 +345,8 @@ std::shared_ptr<GUIWidget> GUIWidget::getParent() const
 {
     return m_parent.lock();
 }
+
+Rect GUIWidget::getRect() const
+{
+    return Rect(m_origin, m_size);
+}

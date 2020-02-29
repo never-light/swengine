@@ -124,6 +124,7 @@ public:
     void setKeyboardEventCallback(EventCallback<GUIKeyboardEvent> callback);
 
     std::shared_ptr<GUIWidget> getParent() const;
+    Rect getRect() const;
 
 protected:
     void enableScaleTransform();

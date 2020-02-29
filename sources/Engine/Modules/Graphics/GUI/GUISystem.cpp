@@ -284,10 +284,7 @@ bool GUISystem::isMouseInWidgetArea(const GUIWidget* widget) const
 
 bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const
 {
-    glm::vec2 widgetOrigin = widget->getAbsoluteOrigin();
-
-    return widgetOrigin.x <= point.x && point.x <= (widgetOrigin.x + widget->m_size.x) &&
-            widgetOrigin.y <= point.y && point.y <= (widgetOrigin.y + widget->m_size.y);
+    return widget->getRect().isPointInRect(point);
 }
 
 void GUISystem::renderGUIWidget(GUIWidget* widget)
