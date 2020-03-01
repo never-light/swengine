@@ -348,5 +348,5 @@ std::shared_ptr<GUIWidget> GUIWidget::getParent() const
 
 Rect GUIWidget::getRect() const
 {
-    return Rect(m_origin, m_size);
+    return Rect(getAbsoluteOrigin(), m_size);
 }
