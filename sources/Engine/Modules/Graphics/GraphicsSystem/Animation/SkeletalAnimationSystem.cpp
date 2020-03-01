@@ -28,17 +28,11 @@ void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
     for (const GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
         const auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>();
 
-        if (!animationComponent->hasActiveAnimation()) {
-            continue;
-        }
-
-        SkeletalAnimationClipInstance& activeAnimationClip = animationComponent->getAnimationStatesManager().getActiveClip();
-        updateAnimationState(activeAnimationClip, delta);
+        updateAnimationStateMachine(animationComponent->getAnimationStatesMachine(), delta);
     }
 }
 
-void SkeletalAnimationSystem::updateAnimationState(SkeletalAnimationClipInstance& activeAnimationClip, float delta)
-{
-    activeAnimationClip.increaseCurrentTime(delta);
+void SkeletalAnimationSystem::updateAnimationStateMachine(SkeletalAnimationStatesMachine& stateMachine, float delta)
+{    
+    stateMachine.increaseCurrentTime(delta);
 }
-

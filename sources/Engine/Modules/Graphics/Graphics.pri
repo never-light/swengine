@@ -11,6 +11,8 @@ SOURCES += \
     $$PWD/GUI/GUIWidget.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationState.cpp \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesMachineVariables.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.cpp \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationSystem.cpp \
     $$PWD/GraphicsSystem/Animation/Skeleton.cpp \
@@ -61,6 +63,8 @@ HEADERS += \
     $$PWD/GUI/GUIWidget.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationClip.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationComponent.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationState.h \
+    $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesMachineVariables.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationStatesManager.h \
     $$PWD/GraphicsSystem/Animation/SkeletalAnimationSystem.h \
     $$PWD/GraphicsSystem/Animation/Skeleton.h \

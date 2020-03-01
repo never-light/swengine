@@ -7,13 +7,12 @@ class SkeletalAnimationComponent
 public:
     SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton);
 
-    SkeletalAnimationStatesManager& getAnimationStatesManager();
-    const SkeletalAnimationStatesManager& getAnimationStatesManager() const;
+    SkeletalAnimationStatesMachine& getAnimationStatesMachine();
+    const SkeletalAnimationStatesMachine& getAnimationStatesMachine() const;
 
-    bool hasActiveAnimation() const;
     const SkeletalAnimationMatrixPalette& getMatrixPalette() const;
 
 private:
-    SkeletalAnimationStatesManager m_animationStatesManager;
+    SkeletalAnimationStatesMachine m_animationStatesMachine;
 };
 

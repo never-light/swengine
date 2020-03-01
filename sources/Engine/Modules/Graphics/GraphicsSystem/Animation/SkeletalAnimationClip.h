@@ -87,6 +87,8 @@ class SkeletalAnimationClipInstance;
 
 class SkeletalAnimationPose {
 public:
+    SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton);
+
     SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
             const std::vector<BonePose>& bonesPoses);
 
@@ -107,6 +109,14 @@ private:
     friend class SkeletalAnimationClipInstance;
 };
 
+enum class SkeletalAnimationClipEndBehaviour {
+    Repeat, Stop, StopAndReset
+};
+
+enum class SkeletalAnimationClipState {
+    Active, Paused
+};
+
 class SkeletalAnimationClipInstance {
 public:
     SkeletalAnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
@@ -115,17 +125,23 @@ public:
     const SkeletalAnimationClip& getAnimationClip() const;
     SkeletalAnimationClip& getAnimationClip();
 
-    void setScale(float scale);
-    float getScale() const;
-
-    void setLooped(bool looped);
-    bool isLooped() const;
-
     const SkeletalAnimationPose& getAnimationPose() const;
     const Skeleton& getSkeleton() const;
 
+    std::shared_ptr<Skeleton> getSkeletonPtr() const;
+
+    void resetAnimationPose();
+
     void increaseCurrentTime(float delta);
+    void resetCurrentTime();
+
     float getCurrentTime() const;
+
+    void setScale(float scale);
+    float getScale() const;
+
+    void start();
+    void pause();
 
 private:
     std::shared_ptr<Skeleton> m_skeleton;
@@ -135,6 +151,8 @@ private:
     mutable bool m_isAnimationPoseOutdated = true;
 
     float m_scale = 1.0f;
-    bool m_isLooped = false;
     float m_currentTime = 0.0f;
+
+    SkeletalAnimationClipEndBehaviour m_endBehaviour = SkeletalAnimationClipEndBehaviour::Stop;
+    SkeletalAnimationClipState m_clipState = SkeletalAnimationClipState::Active;
 };

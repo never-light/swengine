@@ -91,12 +91,14 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
             }
 
             if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
-                const SkeletalAnimationStatesManager& animationStatesManager =
-                        obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesManager();
+                if (obj->hasComponent<SkeletalAnimationComponent>()) {
+                    const SkeletalAnimationStatesMachine& animationStatesMachine =
+                            obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+                    const SkeletalAnimationMatrixPalette& currentMatrixPalette =
+                            animationStatesMachine.getCurrentMatrixPalette();
 
-                if (animationStatesManager.hasActiveClip()) {
                     vertexShader->setArrayParameter("animation.palette",
-                                                    animationStatesManager.getCurrentMatrixPalette().bonesTransforms);
+                        currentMatrixPalette.bonesTransforms);
                 }
                 else {
                     vertexShader->setArrayParameter("animation.palette",

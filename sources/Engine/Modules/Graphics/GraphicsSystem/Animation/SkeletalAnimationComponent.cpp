@@ -4,27 +4,22 @@
 #include "SkeletalAnimationComponent.h"
 
 SkeletalAnimationComponent::SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton)
-    : m_animationStatesManager(skeleton)
+    : m_animationStatesMachine(skeleton)
 {
 
 }
 
-SkeletalAnimationStatesManager& SkeletalAnimationComponent::getAnimationStatesManager()
+SkeletalAnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine()
 {
-    return m_animationStatesManager;
+    return m_animationStatesMachine;
 }
 
-const SkeletalAnimationStatesManager& SkeletalAnimationComponent::getAnimationStatesManager() const
+const SkeletalAnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine() const
 {
-    return m_animationStatesManager;
-}
-
-bool SkeletalAnimationComponent::hasActiveAnimation() const
-{
-    return m_animationStatesManager.hasActiveClip();
+    return m_animationStatesMachine;
 }
 
 const SkeletalAnimationMatrixPalette& SkeletalAnimationComponent::getMatrixPalette() const
 {
-    return m_animationStatesManager.getActiveClip().getAnimationPose().getMatrixPalette();
+    return m_animationStatesMachine.getCurrentMatrixPalette();
 }

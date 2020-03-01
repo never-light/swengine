@@ -21,12 +21,14 @@ precompile_header:!isEmpty(PRECOMPILED_HEADER) {
 
 SOURCES += \
     Exceptions/EngineRuntimeException.cpp \
+    Exceptions/NotImplementedException.cpp \
     Modules/Application/BaseGameApplication.cpp \
     Modules/Application/GameConsole.cpp \
     Modules/ECS/GameSystemsGroup.cpp \
     Modules/Input/InputEvents.cpp \
     Modules/Input/InputModule.cpp \
     Modules/Input/InputSystem.cpp \
+    Modules/Math/RTTransform.cpp \
     Modules/Math/Rect.cpp \
     Modules/Math/RectF.cpp \
     Modules/ECS/BaseComponentInstance.cpp \
@@ -52,6 +54,7 @@ SOURCES += \
 
 HEADERS += \
     Exceptions/EngineRuntimeException.h \
+    Exceptions/NotImplementedException.h \
     Modules/Application/BaseGameApplication.h \
     Modules/Application/GameConsole.h \
     Modules/ECS/GameSystemsGroup.h \
@@ -59,6 +62,7 @@ HEADERS += \
     Modules/Input/InputEvents.h \
     Modules/Input/InputModule.h \
     Modules/Input/InputSystem.h \
+    Modules/Math/RTTransform.h \
     Modules/Math/Rect.h \
     Modules/Math/RectF.h \
     Modules/ECS/BaseComponentInstance.h \

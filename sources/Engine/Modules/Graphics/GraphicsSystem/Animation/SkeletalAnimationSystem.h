@@ -15,5 +15,5 @@ public:
     void update(GameWorld *gameWorld, float delta) override;
 
 private:
-    void updateAnimationState(SkeletalAnimationClipInstance& activeAnimationClip, float delta);
+    void updateAnimationStateMachine(SkeletalAnimationStatesMachine& stateMachine, float delta);
 };

@@ -1,52 +1,92 @@
 #include "precompiled.h"
 #pragma hdrstop
 
+#include <Exceptions/NotImplementedException.h>
+
 #include "SkeletalAnimationStatesManager.h"
 
-SkeletalAnimationStatesManager::SkeletalAnimationStatesManager(std::shared_ptr<Skeleton> skeleton)
+
+SkeletalAnimationStatesMachine::SkeletalAnimationStatesMachine(std::shared_ptr<Skeleton> skeleton)
     : m_skeleton(skeleton)
 {
 
 }
 
-void SkeletalAnimationStatesManager::addAnimationClipInstance(const SkeletalAnimationClipInstance& clip)
+int16_t SkeletalAnimationStatesMachine::getStateIdByName(const std::string& name) const
 {
-    SW_ASSERT(m_skeleton.get() == &clip.getSkeleton());
-
-    m_animationClips.emplace(clip.getAnimationClip().getName(), clip);
+    return m_statesNameToIdMap.at(name);
 }
 
-bool SkeletalAnimationStatesManager::hasActiveClip() const
+SkeletalAnimationState& SkeletalAnimationStatesMachine::addState(const std::string& name,
+                                                                 std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode)
 {
-    return m_activeClip != nullptr;
+    int16_t newStateId = static_cast<int16_t>(m_states.size());
+
+    m_states.push_back(SkeletalAnimationState(name, std::move(initialPoseNode)));
+    m_statesNameToIdMap[name] = newStateId;
+
+    m_states.rbegin()->m_id = newStateId;
+
+    return *m_states.rbegin();
 }
 
-void SkeletalAnimationStatesManager::resetActiveClip()
+void SkeletalAnimationStatesMachine::addTransition(int16_t sourceStateId, int16_t targetStateId)
 {
-    m_activeClip = nullptr;
+    SW_ASSERT(sourceStateId >= 0 && sourceStateId < int16_t(m_states.size()) &&
+              m_states[size_t(sourceStateId)].hasTransition(targetStateId));
+
+    m_states[size_t(sourceStateId)].m_nextTransitions.insert(targetStateId);
 }
 
-void SkeletalAnimationStatesManager::setActiveClip(const std::string& name)
+void SkeletalAnimationStatesMachine::switchToNextState(int16_t stateId)
 {
-    m_activeClip = &m_animationClips.at(name);
+    SW_ASSERT(m_activeStateId > 0 && m_states[size_t(m_activeStateId)].hasTransition(stateId));
+
+    m_activeStateId = stateId;
 }
 
-const SkeletalAnimationClipInstance& SkeletalAnimationStatesManager::getActiveClip() const
+void SkeletalAnimationStatesMachine::setActiveState(int16_t stateId)
 {
-    return *m_activeClip;
+    SW_ASSERT(stateId >= 0 && stateId < int16_t(m_states.size()));
+
+    m_activeStateId = stateId;
 }
 
-SkeletalAnimationClipInstance& SkeletalAnimationStatesManager::getActiveClip()
+const SkeletalAnimationState& SkeletalAnimationStatesMachine::getActiveState() const
 {
-    return *m_activeClip;
+    SW_ASSERT(m_activeStateId != -1);
+
+    return m_states[size_t(m_activeStateId)];
 }
 
-const SkeletalAnimationPose& SkeletalAnimationStatesManager::getCurrentPose() const
+SkeletalAnimationState& SkeletalAnimationStatesMachine::getActiveState()
 {
-    return m_activeClip->getAnimationPose();
+    SW_ASSERT(m_activeStateId != -1);
+
+    return m_states[size_t(m_activeStateId)];
 }
 
-const SkeletalAnimationMatrixPalette& SkeletalAnimationStatesManager::getCurrentMatrixPalette() const
+const SkeletalAnimationPose& SkeletalAnimationStatesMachine::getCurrentPose() const
 {
-    return m_activeClip->getAnimationPose().getMatrixPalette();
+    return getActiveState().getCurrentPose();
+}
+
+const SkeletalAnimationMatrixPalette& SkeletalAnimationStatesMachine::getCurrentMatrixPalette() const
+{
+    return getCurrentPose().getMatrixPalette();
+}
+
+const SkeletalAnimationStatesMachineVariables& SkeletalAnimationStatesMachine::getVariablesSet() const
+{
+    return m_variablesSet;
+}
+
+SkeletalAnimationStatesMachineVariables& SkeletalAnimationStatesMachine::getVariablesSet()
+{
+    return m_variablesSet;
+}
+
+void SkeletalAnimationStatesMachine::increaseCurrentTime(float delta)
+{
+    getActiveState().increaseCurrentTime(delta, m_variablesSet);
 }

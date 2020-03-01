@@ -1,31 +1,42 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
+
 #include "SkeletalAnimationClip.h"
+#include "SkeletalAnimationState.h"
+#include "SkeletalAnimationStatesMachineVariables.h"
 
-class SkeletalAnimationStatesManager
-{
+class SkeletalAnimationStatesMachine {
 public:
-    SkeletalAnimationStatesManager(std::shared_ptr<Skeleton> skeleton);
-    ~SkeletalAnimationStatesManager() = default;
+    SkeletalAnimationStatesMachine(std::shared_ptr<Skeleton> skeleton);
 
-    void addAnimationClipInstance(const SkeletalAnimationClipInstance& clip);
+    int16_t getStateIdByName(const std::string& name) const;
 
-    bool hasActiveClip() const;
-    void resetActiveClip();
+    SkeletalAnimationState& addState(const std::string& name, std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode);
+    void addTransition(int16_t sourceStateId, int16_t targetStateId);
 
-    void setActiveClip(const std::string& name);
+    void switchToNextState(int16_t stateId);
 
-    const SkeletalAnimationClipInstance& getActiveClip() const;
-    SkeletalAnimationClipInstance& getActiveClip();
+    void setActiveState(int16_t stateId);
+    const SkeletalAnimationState& getActiveState() const;
+    SkeletalAnimationState& getActiveState();
 
     const SkeletalAnimationPose& getCurrentPose() const;
     const SkeletalAnimationMatrixPalette& getCurrentMatrixPalette() const;
 
+    const SkeletalAnimationStatesMachineVariables& getVariablesSet() const;
+    SkeletalAnimationStatesMachineVariables& getVariablesSet();
+
+    void increaseCurrentTime(float delta);
+
 private:
     std::shared_ptr<Skeleton> m_skeleton;
-    std::unordered_map<std::string, SkeletalAnimationClipInstance> m_animationClips;
 
-    SkeletalAnimationClipInstance* m_activeClip = nullptr;
+    std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
+    std::vector<SkeletalAnimationState> m_states;
+
+    SkeletalAnimationStatesMachineVariables m_variablesSet;
+
+    int16_t m_activeStateId = -1;
 };
-

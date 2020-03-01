@@ -4,11 +4,16 @@
 #include <glm/mat4x4.hpp>
 
 struct BonePose {
+public:
     BonePose() = default;
     BonePose(const glm::vec3& position, const glm::quat& orientation);
 
     glm::mat4 getBoneMatrix() const;
 
+public:
+    static BonePose interpolate(const BonePose& first, const BonePose& second, float factor);
+
+public:
     glm::vec3 position = glm::vec3(0.0f);
     glm::quat orientation = glm::identity<glm::quat>();
 };

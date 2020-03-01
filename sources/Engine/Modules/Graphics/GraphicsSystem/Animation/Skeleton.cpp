@@ -15,6 +15,15 @@ glm::mat4 BonePose::getBoneMatrix() const
     return glm::translate(glm::identity<glm::mat4>(), position) * glm::mat4_cast(orientation);
 }
 
+BonePose BonePose::interpolate(const BonePose& first, const BonePose& second, float factor)
+{
+    BonePose result;
+    result.position = glm::mix(first.position, second.position, factor);
+    result.orientation = glm::slerp(first.orientation, second.orientation, factor);
+
+    return result;
+}
+
 Bone::Bone()
 {
 
