@@ -6,8 +6,7 @@
 Transform::Transform()
     : m_position(0.0f, 0.0f, 0.0f),
     m_scale(1.0f, 1.0f, 1.0f),
-    m_orientation(glm::identity<glm::quat>()),
-    m_fixedYAxis(false)
+    m_orientation(glm::identity<glm::quat>())
 {
 
 }
@@ -70,12 +69,25 @@ glm::vec3 Transform::getScale() const
     return m_scale;
 }
 
-void Transform::rotate(float x, float y, float z, float angle)
+void Transform::rotateGlobal(float x, float y, float z, float angle)
 {
-    rotate(glm::vec3(x, y, z), angle);
+    rotateGlobal(glm::vec3(x, y, z), angle);
 }
 
-void Transform::rotate(const glm::vec3& axis, float angle)
+void Transform::rotateGlobal(const glm::vec3& axis, float angle)
+{
+    m_orientation = glm::angleAxis(glm::radians(angle), axis) * m_orientation;
+    m_orientation = glm::normalize(m_orientation);
+
+    resetTransformationCache();
+}
+
+void Transform::rotateLocal(float x, float y, float z, float angle)
+{
+    rotateLocal(glm::vec3(x, y, z), angle);
+}
+
+void Transform::rotateLocal(const glm::vec3& axis, float angle)
 {
     m_orientation *= glm::angleAxis(glm::radians(angle), axis);
     m_orientation = glm::normalize(m_orientation);
@@ -107,40 +119,42 @@ glm::vec3 Transform::getUpDirection() const {
     return glm::normalize(m_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
-void Transform::fixYAxis(bool fixed)
+void Transform::yawLocal(float angle)
 {
-    m_fixedYAxis = fixed;
+    rotateLocal(glm::vec3(0.0f, 1.0f, 0.0f), angle);
+    resetTransformationCache();
 }
 
-bool Transform::isYAxisFixed() const
+void Transform::pitchLocal(float angle)
 {
-    return m_fixedYAxis;
-}
-
-void Transform::yaw(float angle)
-{
-    if (m_fixedYAxis) {
-        m_orientation = glm::quat(glm::vec3(0.0, glm::radians(angle), 0.0)) * m_orientation;
-    }
-    else {
-        m_orientation *= glm::quat(glm::vec3(0.0, glm::radians(angle), 0.0));
-    }
-
-    m_orientation = glm::normalize(m_orientation);
+    rotateLocal(glm::vec3(1.0f, 0.0f, 0.0f), angle);
 
     resetTransformationCache();
 }
 
-void Transform::pitch(float angle)
+void Transform::rollLocal(float angle)
 {
-    rotate(glm::vec3(1.0f, 0.0f, 0.0f), angle);
+    rotateLocal(glm::vec3(0.0f, 0.0f, 1.0f), angle);
 
     resetTransformationCache();
 }
 
-void Transform::roll(float angle)
+void Transform::yawGlobal(float angle)
 {
-    rotate(glm::vec3(0.0f, 0.0f, 1.0f), angle);
+    rotateGlobal(glm::vec3(0.0f, 1.0f, 0.0f), angle);
+    resetTransformationCache();
+}
+
+void Transform::pitchGlobal(float angle)
+{
+    rotateGlobal(glm::vec3(1.0f, 0.0f, 0.0f), angle);
+
+    resetTransformationCache();
+}
+
+void Transform::rollGlobal(float angle)
+{
+    rotateGlobal(glm::vec3(0.0f, 0.0f, 1.0f), angle);
 
     resetTransformationCache();
 }

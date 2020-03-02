@@ -24,8 +24,11 @@ public:
     void setScale(const glm::vec3& scale);
     glm::vec3 getScale() const;
 
-    void rotate(float x, float y, float z, float angle);
-    void rotate(const glm::vec3& axis, float angle);
+    void rotateLocal(float x, float y, float z, float angle);
+    void rotateLocal(const glm::vec3& axis, float angle);
+
+    void rotateGlobal(float x, float y, float z, float angle);
+    void rotateGlobal(const glm::vec3& axis, float angle);
 
     void setOrientation(const glm::quat& orientation);
     glm::quat getOrientation() const;
@@ -34,12 +37,13 @@ public:
     glm::vec3 getRightDirection() const;
     glm::vec3 getUpDirection() const;
 
-    void fixYAxis(bool fixed = true);
-    bool isYAxisFixed() const;
+    void yawLocal(float angle);
+    void pitchLocal(float angle);
+    void rollLocal(float angle);
 
-    void yaw(float angle);
-    void pitch(float angle);
-    void roll(float angle);
+    void yawGlobal(float angle);
+    void pitchGlobal(float angle);
+    void rollGlobal(float angle);
 
     float getYawValue() const;
     float getPitchValue() const;
@@ -58,8 +62,6 @@ private:
     glm::vec3 m_position;
     glm::vec3 m_scale;
     glm::quat m_orientation;
-
-    bool m_fixedYAxis;
 
     glm::mat4x4 m_transformationMatrixCache;
     bool m_needTransformationMatrixCacheUpdate = true;
