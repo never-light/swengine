@@ -7,7 +7,8 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp \
-        tests/transform/transform.cpp \
+        tests/math/geometry.cpp \
+        tests/math/transform.cpp \
         utils/utils.cpp
 
 

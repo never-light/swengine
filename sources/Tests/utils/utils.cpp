@@ -53,4 +53,14 @@ bool MathUtils::isEqual(const glm::quat& a, const glm::quat& b, float eps)
     return isQuatsEqual(a, b, eps);
 }
 
+bool MathUtils::isEqual(const glm::vec3& a, const glm::vec3& b, float eps)
+{
+    return isVectorsEqual(a, b, eps);
+}
+
+bool MathUtils::isEqual(float a, float b, float eps)
+{
+    return glm::abs(a - b) <= eps;
+}
+
 }

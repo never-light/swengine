@@ -2,8 +2,6 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Transform.h>
 #include <Engine/Modules/Math/matrices.h>
-#include <glm/gtx/string_cast.hpp>
-#include <iostream>
 
 #include "utils/utils.h"
 
@@ -13,7 +11,11 @@ TEST_CASE( "Test affine transformations", "[transform]" ) {
     Transform transform;
 
     SECTION("Default transform") {
-       REQUIRE(transform.getTransformationMatrix() == MathUtils::IDENTITY_MATRIX4);
+       REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), MathUtils::IDENTITY_MATRIX4));
+
+       REQUIRE(MathUtils::isEqual(transform.getFrontDirection(), -MathUtils::AXIS_Z));
+       REQUIRE(MathUtils::isEqual(transform.getRightDirection(), MathUtils::AXIS_X));
+       REQUIRE(MathUtils::isEqual(transform.getUpDirection(), MathUtils::AXIS_Y));
     }
 
     SECTION("Positions and movements") {
@@ -104,5 +106,19 @@ TEST_CASE( "Test affine transformations", "[transform]" ) {
                 MathUtils::getScaleMatrix({ 2.0f, 3.0f, 4.0f });
 
         REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), resultMatrix));
+    }
+
+    SECTION("Look directions") {
+        transform.yawGlobal(180.0f);
+
+        REQUIRE(MathUtils::isEqual(transform.getFrontDirection(), MathUtils::AXIS_Z));
+        REQUIRE(MathUtils::isEqual(transform.getRightDirection(), -MathUtils::AXIS_X));
+        REQUIRE(MathUtils::isEqual(transform.getUpDirection(), MathUtils::AXIS_Y));
+
+        transform.pitchGlobal(90.0f);
+
+        REQUIRE(MathUtils::isEqual(transform.getFrontDirection(), -MathUtils::AXIS_Y));
+        REQUIRE(MathUtils::isEqual(transform.getUpDirection(), MathUtils::AXIS_Z));
+        REQUIRE(MathUtils::isEqual(transform.getRightDirection(), -MathUtils::AXIS_X));
     }
 }

@@ -11,6 +11,8 @@ class MathUtils {
 public:
     static bool isEqual(const glm::mat4& a, const glm::mat4& b, float eps = 1e-6f);
     static bool isEqual(const glm::quat& a, const glm::quat& b, float eps = 1e-6f);
+    static bool isEqual(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f);
+    static bool isEqual(float a, float b, float eps = 1e-6f);
 
 public:
     static glm::mat4 getTranslationMatix(const glm::vec3& translation);
