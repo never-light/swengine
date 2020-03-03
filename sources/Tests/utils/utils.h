@@ -30,7 +30,9 @@ public:
     static constexpr glm::vec3 AXIS_Z = { 0.0f, 0.0f, 1.0f };
 
     static constexpr glm::mat4 IDENTITY_MATRIX4 = glm::identity<glm::mat4>();
+    static constexpr glm::quat IDENTITY_QUAT = glm::identity<glm::quat>();
 
+    static constexpr glm::vec3 ZERO_VEC3 = { 0.0f, 0.0f, 0.0f };
 };
 
 }

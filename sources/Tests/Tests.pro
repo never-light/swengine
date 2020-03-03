@@ -9,6 +9,7 @@ SOURCES += \
         main.cpp \
         tests/math/geometry.cpp \
         tests/math/transform.cpp \
+        tests/graphics/animation.cpp \
         utils/utils.cpp
 
 

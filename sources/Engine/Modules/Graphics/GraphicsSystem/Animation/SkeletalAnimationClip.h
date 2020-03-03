@@ -48,8 +48,6 @@ public:
                           float rate,
                           const std::vector<BoneAnimationChannel>& bonesAnimationChannels);
 
-    SkeletalAnimationClip(const SkeletalAnimationClip& clip);
-
     ~SkeletalAnimationClip() = default;
 
     const std::string& getName() const;
