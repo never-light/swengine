@@ -40,7 +40,4 @@ void GameApplication::load()
         nullptr);
 
     m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
-
-    auto testMesh = resourceMgr->getResourceFromInstance<MeshResource>("test_butter_mesh")->getMesh();
-    int a = 10;
 }

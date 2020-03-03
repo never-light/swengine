@@ -66,8 +66,8 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 
     mouseDelta *= -0.25;
 
-    playerCamera->getTransform()->pitch(mouseDelta.y);
-    playerCamera->getTransform()->yaw(mouseDelta.x);
+    playerCamera->getTransform()->pitchLocal(mouseDelta.y);
+    playerCamera->getTransform()->yawGlobal(mouseDelta.x);
 
     if (m_inputModule->isActionActive("forward")) {
         move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * delta);

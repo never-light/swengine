@@ -11,6 +11,6 @@ public:
     float getMovementSpeed() const;
 
 private:
-    float m_movementSpeed = 0.15f;
+    float m_movementSpeed = 2.15f;
 };
 

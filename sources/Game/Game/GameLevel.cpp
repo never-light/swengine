@@ -32,7 +32,6 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     camera->setFOVy(glm::pi<float>() / 4);
 
     camera->getTransform()->setPosition(0, 0, 0);
-    camera->getTransform()->fixYAxis();
     camera->getTransform()->lookAt(0, 0, 1);
 
     m_player->getComponent<CameraComponent>()->setCamera(camera);
@@ -62,11 +61,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
         auto transformHandle = obj->addComponent<TransformComponent>();
 
         transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
-        //transformHandle->getTransform()->pitch(45.0f);
-        transformHandle->getTransform()->pitch(-90.0f);
-        //transformHandle->getTransform()->yaw(35.0f);
 
-        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("test_butter_mesh")->getMesh();
+        std::shared_ptr<Mesh> cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
 
         auto componentHandle = obj->addComponent<MeshRendererComponent>();
         componentHandle->setMeshInstance(cubeGeometry);

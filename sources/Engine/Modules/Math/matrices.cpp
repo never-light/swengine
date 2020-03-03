@@ -29,8 +29,3 @@ bool isQuatsEqual(const glm::quat& a, const glm::quat& b, float eps)
 {
     return glm::abs(glm::dot(a, b)) > 1 - eps;
 }
-
-bool isVectorsEqual(const glm::vec3& a, const glm::vec3& b, float eps)
-{
-
-}

@@ -100,7 +100,8 @@ void ResourceManager::addResourcesMap(const std::string& path)
             }
 
             source = ResourceSourceFile{ sourcePath };
-            if (FileUtills::isFileExists(sourcePath)) {
+
+            if (FileUtils::isFileExists(sourcePath)) {
                 source = ResourceSourceFile{ sourcePath };
             }
 
