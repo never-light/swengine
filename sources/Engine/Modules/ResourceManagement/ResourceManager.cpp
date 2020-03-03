@@ -20,7 +20,7 @@ ResourceManager::~ResourceManager()
 }
 
 const ResourceDeclaration& ResourceManager::getResourceDeclaration(const std::string &resourceId)
-{
+{    
     return m_resourcesSources.at(resourceId);
 }
 
@@ -32,7 +32,14 @@ std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std
         return resourceInstanceIt->second;
     }
 
-    const auto& typeIndex = m_resourcesTypesIds.at(resourceId);
+    auto resourceTypeIdIt = m_resourcesTypesIds.find(resourceId);
+
+    if (resourceTypeIdIt == m_resourcesTypesIds.end()) {
+        ENGINE_RUNTIME_ERROR("Failed to get unknown resource instance: " + resourceId);
+    }
+
+    const auto& typeIndex = resourceTypeIdIt->second;
+
     auto resource = std::unique_ptr<Resource>(m_resourcesFactories.at(typeIndex)());
 
     auto resourceInstance = std::make_shared<ResourceInstance>(resourceId, std::move(resource), shared_from_this());

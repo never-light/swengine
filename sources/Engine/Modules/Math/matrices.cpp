@@ -32,13 +32,5 @@ bool isQuatsEqual(const glm::quat& a, const glm::quat& b, float eps)
 
 bool isVectorsEqual(const glm::vec3& a, const glm::vec3& b, float eps)
 {
-    using vector_length_type = glm::vec3::length_type;
 
-    for (vector_length_type coordinateIndex = 0; coordinateIndex < a.length(); coordinateIndex++) {
-        if (glm::abs(a[coordinateIndex] - b[coordinateIndex]) > eps) {
-            return false;
-        }
-    }
-
-    return true;
 }
