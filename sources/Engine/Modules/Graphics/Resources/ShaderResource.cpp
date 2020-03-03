@@ -52,7 +52,7 @@ bool ShaderResource::isBusy() const
 
 std::shared_ptr<GLShader> ShaderResource::loadFromFile(const std::string& path, const ShaderResourceParameters& parameters)
 {
-    std::string source = preprocessShaderSource(FileUtills::readFile(path));
+    std::string source = preprocessShaderSource(FileUtils::readFile(path));
 
     return std::make_shared<GLShader>(parameters.shaderType, source);
 }
@@ -110,11 +110,11 @@ std::string ShaderResource::processIncludes(const std::string& source)
 
         std::string path = match[1].str();
 
-        if (!FileUtills::isFileExists(path)) {
+        if (!FileUtils::isFileExists(path)) {
             ENGINE_RUNTIME_ERROR("Shader preprocessor: #include - file is not found: " + std::string(path));
         }
 
-        return processIncludes(FileUtills::readFile(path));
+        return processIncludes(FileUtils::readFile(path));
     });
 }
 
