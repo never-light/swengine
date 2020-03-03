@@ -19,6 +19,8 @@ public:
 
     void normalize();
 
+    static Plane fromUnnormalized(const glm::vec3& normal, float distance);
+
 private:
     glm::vec3 m_normal = glm::vec3(0.0f, 0.0f, 0.0f);
     float m_distance = 0.0f;

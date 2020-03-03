@@ -44,6 +44,14 @@ void Plane::normalize()
     m_distance *= inv_length;
 }
 
+Plane Plane::fromUnnormalized(const glm::vec3& normal, float distance)
+{
+    Plane plane(normal, distance);
+    plane.normalize();
+
+    return plane;
+}
+
 Frustum::Frustum()
 {
 
