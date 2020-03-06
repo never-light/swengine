@@ -128,7 +128,7 @@ public:
 
     std::shared_ptr<Skeleton> getSkeletonPtr() const;
 
-    void resetAnimationPose();
+    void resetAnimationPoseCache();
 
     void increaseCurrentTime(float delta);
     void resetCurrentTime();
@@ -140,6 +140,8 @@ public:
 
     void start();
     void pause();
+
+    void setEndBehaviour(SkeletalAnimationClipEndBehaviour behaviour);
 
 private:
     std::shared_ptr<Skeleton> m_skeleton;

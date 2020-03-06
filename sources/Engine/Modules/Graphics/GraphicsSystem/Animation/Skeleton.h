@@ -42,6 +42,9 @@ public:
     void setInverseBindPoseMatrix(const glm::mat4& inverseBindPoseMatrix);
     const glm::mat4& getInverseBindPoseMatrix() const;
 
+public:
+    static constexpr uint8_t ROOT_BONE_PARENT_ID = 255;
+
 private:
     std::string m_name;
 
@@ -53,6 +56,7 @@ class Skeleton
 {
 public:
     Skeleton(const std::vector<Bone>& bones);
+    Skeleton(const Skeleton& skeleton) = default;
     ~Skeleton() = default;
 
     const Bone& getRootBone() const;

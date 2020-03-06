@@ -1,25 +1,28 @@
 #include "catch.hpp"
 
-#include <Engine/Modules/Graphics/GraphicsSystem/Animation/Skeleton.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationClip.h>
+#include <glm/gtx/string_cast.hpp>
+#include <spdlog/spdlog.h>
 
-#include "utils/utils.h"
+#include "animation.h"
 
-Skeleton generateTestSkeleton() {
-    using tests::MathUtils;
+Skeleton generateTestSkeleton()
+{
+   using tests::MathUtils;
 
-    std::vector<Bone> bones;
+   std::vector<Bone> bones;
 
-    bones.push_back(Bone("root", 255, glm::inverse(MathUtils::getTranslationMatix({ 1.0f, 0.0f, 0.0f }))));
-    bones.push_back(Bone("spin", 0, glm::inverse(MathUtils::getTranslationMatix({ 0.0f, 1.0f, 0.0f }))));
-    bones.push_back(Bone("spin_child", 1, glm::inverse(MathUtils::getTranslationMatix({ 0.0f, 0.0f, 1.0f }))));
+   bones.push_back(Bone("root", Bone::ROOT_BONE_PARENT_ID,
+                        glm::inverse(MathUtils::getTranslationMatix({ 1.0f, 0.0f, 0.0f }))));
+   bones.push_back(Bone("spin", 0, glm::inverse(MathUtils::getTranslationMatix({ 0.0f, 1.0f, 0.0f }))));
+   bones.push_back(Bone("spin_child", 1, glm::inverse(MathUtils::getTranslationMatix({ 0.0f, 0.0f, 1.0f }))));
 
-    Skeleton skeleton(bones);
+   Skeleton skeleton(bones);
 
-    return skeleton;
+   return skeleton;
 }
 
-SkeletalAnimationClip generateTestAnimationClip() {
+SkeletalAnimationClip generateTestAnimationClip()
+{
     using tests::MathUtils;
 
     std::vector<BoneAnimationChannel> bonesAnimationChannels;
@@ -47,74 +50,12 @@ SkeletalAnimationClip generateTestAnimationClip() {
     return animationClip;
 }
 
-TEST_CASE("bone-pose-matrix", "[animation]") {
-    using tests::MathUtils;
+SkeletalAnimationClipInstance generateTestAnimationClipInstance()
+{
+    auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
+    auto clip = std::make_shared<SkeletalAnimationClip>(generateTestAnimationClip());
 
-    glm::vec3 originPosition = { 1.0f, 2.0f, 3.0f };
-    glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
-    BonePose originPose(originPosition, originOrientation);
+    SkeletalAnimationClipInstance clipInstance(skeleton, clip);
 
-    REQUIRE(MathUtils::isEqual(originPose.getBoneMatrix(), MathUtils::getTranslationMatix(originPosition) *
-                               glm::mat4_cast(originOrientation)));
-}
-
-TEST_CASE("bone-poses-interpolation", "[animation]") {
-    using tests::MathUtils;
-
-    glm::vec3 originPosition = { 1.0f, 2.0f, 3.0f };
-    glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
-    BonePose originPose(originPosition, originOrientation);
-
-    SECTION("interpolation") {
-        glm::vec3 targetPosition = { 2.0f, 4.0f, 6.0f };
-        glm::quat targetOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_Y);
-
-        BonePose targetPose(targetPosition, targetOrientation);
-
-        float interpolationFactor = 0.5f;
-        BonePose interpolatedPose = BonePose::interpolate(originPose, targetPose, interpolationFactor);
-
-        glm::vec3 interpolatedPosition = glm::mix(originPosition, targetPosition, interpolationFactor);
-        glm::quat interpolatedOrientation = glm::slerp(originOrientation, targetOrientation, interpolationFactor);
-
-        REQUIRE(MathUtils::isEqual(interpolatedPose.position, interpolatedPosition));
-        REQUIRE(MathUtils::isEqual(interpolatedPose.orientation, interpolatedOrientation));
-
-        REQUIRE(MathUtils::isEqual(interpolatedPose.getBoneMatrix(), MathUtils::getTranslationMatix(interpolatedPosition) *
-                                   glm::mat4_cast(interpolatedOrientation)));
-    }
-}
-
-TEST_CASE("getting-clip-bones-poses", "[animation]") {
-    using tests::MathUtils;
-
-    Skeleton skeleton = generateTestSkeleton();
-    SkeletalAnimationClip clip = generateTestAnimationClip();
-
-    // Root bone poses
-    BonePose rootBonePose = clip.getBoneRelativePose(0, 15.0f);
-
-    REQUIRE(MathUtils::isEqual(rootBonePose.position, { 15.0f, 0.0f, 0.0f }));
-    REQUIRE(MathUtils::isEqual(rootBonePose.orientation, MathUtils::IDENTITY_QUAT));
-
-    // Spin bone poses
-    BonePose spinBonePose = clip.getBoneRelativePose(1, 15.0f);
-
-    REQUIRE(MathUtils::isEqual(spinBonePose.position, { 0.0f, 15.0f, 0.0f }));
-    REQUIRE(MathUtils::isEqual(spinBonePose.orientation, glm::slerp(glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X),
-                                         glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X), 0.5f)));
-
-    BonePose spinBonePoseLast = clip.getBoneRelativePose(1, 60.0f);
-
-    REQUIRE(MathUtils::isEqual(spinBonePoseLast.orientation, glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X)));
-
-    BonePose spinBonePoseTimeOverflow = clip.getBoneRelativePose(2, 123.0f);
-
-    REQUIRE(MathUtils::isEqual(spinBonePoseTimeOverflow.position, spinBonePoseLast.position));
-    REQUIRE(MathUtils::isEqual(spinBonePoseTimeOverflow.orientation, spinBonePoseLast.orientation));
-
-    // Spin end bone poses
-    BonePose spinEndBonePose = clip.getBoneRelativePose(2, 15.0f);
-
-    REQUIRE(MathUtils::isEqual(spinEndBonePose.orientation, MathUtils::IDENTITY_QUAT));
+    return clipInstance;
 }

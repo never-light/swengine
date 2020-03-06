@@ -8,41 +8,41 @@ SkeletalAnimationStatesMachineVariables::SkeletalAnimationStatesMachineVariables
 
 }
 
-size_t SkeletalAnimationStatesMachineVariables::registerVaraible(const std::string& name, float initialValue)
+SkeletalAnimationVariableId SkeletalAnimationStatesMachineVariables::registerVariable(const std::string& name, float initialValue)
 {
     SW_ASSERT(m_variablesNameIdMap.count(name) == 0);
 
     m_variablesValues.push_back(initialValue);
-    m_variablesNameIdMap[name] = m_variablesValues.size() - 1;
+    m_variablesNameIdMap[name] = static_cast<SkeletalAnimationVariableId>(m_variablesValues.size()) - 1;
 
-    return m_variablesValues.size() - 1;
+    return static_cast<SkeletalAnimationVariableId>(m_variablesValues.size()) - 1;
 }
 
-size_t SkeletalAnimationStatesMachineVariables::getVariableId(const std::string& name) const
+SkeletalAnimationVariableId SkeletalAnimationStatesMachineVariables::getVariableId(const std::string& name) const
 {
     return m_variablesNameIdMap.at(name);
 }
 
 void SkeletalAnimationStatesMachineVariables::setVariableValue(const std::string& name, float value)
 {
-    m_variablesValues[getVariableId(name)] = value;
+    m_variablesValues[static_cast<size_t>(getVariableId(name))] = value;
 }
 
 float SkeletalAnimationStatesMachineVariables::getVariableValue(const std::string& name) const
 {
-    return m_variablesValues[getVariableId(name)];
+    return m_variablesValues[static_cast<size_t>(getVariableId(name))];
 }
 
-float SkeletalAnimationStatesMachineVariables::getVariableValue(size_t id) const
+float SkeletalAnimationStatesMachineVariables::getVariableValue(SkeletalAnimationVariableId id) const
 {
-    SW_ASSERT(id < m_variablesValues.size());
+    SW_ASSERT(id < SkeletalAnimationVariableId(m_variablesValues.size()));
 
-    return m_variablesValues[id];
+    return m_variablesValues[static_cast<size_t>(id)];
 }
 
-void SkeletalAnimationStatesMachineVariables::setVariableValue(size_t id, float value)
+void SkeletalAnimationStatesMachineVariables::setVariableValue(SkeletalAnimationVariableId id, float value)
 {
-    SW_ASSERT(id < m_variablesValues.size());
+    SW_ASSERT(id < SkeletalAnimationVariableId(m_variablesValues.size()));
 
-    m_variablesValues[id] = value;
+    m_variablesValues[static_cast<size_t>(id)] = value;
 }

@@ -103,9 +103,9 @@ std::shared_ptr<Skeleton> SkeletalAnimationClipInstance::getSkeletonPtr() const
     return m_skeleton;
 }
 
-void SkeletalAnimationClipInstance::resetAnimationPose()
+void SkeletalAnimationClipInstance::resetAnimationPoseCache()
 {
-    m_isAnimationPoseOutdated = false;
+    m_isAnimationPoseOutdated = true;
 }
 
 void SkeletalAnimationClipInstance::increaseCurrentTime(float delta)
@@ -134,7 +134,7 @@ void SkeletalAnimationClipInstance::increaseCurrentTime(float delta)
         }
     }
 
-    resetAnimationPose();
+    resetAnimationPoseCache();
 }
 
 void SkeletalAnimationClipInstance::resetCurrentTime()
@@ -165,6 +165,11 @@ void SkeletalAnimationClipInstance::start()
 void SkeletalAnimationClipInstance::pause()
 {
     m_clipState = SkeletalAnimationClipState::Paused;
+}
+
+void SkeletalAnimationClipInstance::setEndBehaviour(SkeletalAnimationClipEndBehaviour behaviour)
+{
+    m_endBehaviour = behaviour;
 }
 
 const SkeletalAnimationClip& SkeletalAnimationClipInstance::getAnimationClip() const

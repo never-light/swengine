@@ -7,6 +7,8 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp \
+        tests/graphics/animationClips.cpp \
+        tests/graphics/animationStateMachine.cpp \
         tests/math/geometry.cpp \
         tests/math/transform.cpp \
         tests/graphics/animation.cpp \
@@ -14,6 +16,7 @@ SOURCES += \
 
 
 HEADERS += \ \
+    tests/graphics/animation.h \
     utils/utils.h
 
 win32-g++: QMAKE_CXXFLAGS += -include $$PWD/../Engine/Utility/helpers.h
