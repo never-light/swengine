@@ -73,7 +73,7 @@ void SkeletalAnimationClipPoseNode::increaseCurrentTime(float delta, const Skele
 
 SkeletalAnimationBlendPoseNode::SkeletalAnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
                                                                const SkeletalAnimationClipInstance& secondClip,
-                                                               size_t blendParameterVariableId,
+                                                               SkeletalAnimationVariableId blendParameterVariableId,
                                                                SkeletalAnimationBlendPoseType blendType,
                                                                uint8_t overriddenBone)
     : m_firstClip(firstClip),
@@ -108,29 +108,26 @@ void SkeletalAnimationBlendPoseNode::increaseCurrentTime(float delta,
     m_firstClip.increaseCurrentTime(delta);
     m_secondClip.increaseCurrentTime(delta);
 
-    const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
-    const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+    switch (m_blendType) {
+    case SkeletalAnimationBlendPoseType::Linear:
+        linearBlendPoses(variablesSet);
+        break;
 
-    for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
-        if (!m_overrideMask[boneIndex]) {
-            continue;
-        }
+    case SkeletalAnimationBlendPoseType::Override:
+        overriddenBlendPoses(variablesSet);
+        break;
 
-        float blendParameterValue = variablesSet.getVariableValue(m_blendParameterVariableId);
-
-        BonePose interpolatedBonePose = BonePose::interpolate(firstClipPose.getBoneLocalPose(boneIndex),
-                                                              secondClipPose.getBoneLocalPose(boneIndex), blendParameterValue);
-
-        m_blendedPose.setBoneLocalPose(boneIndex, interpolatedBonePose);
+    default:
+        break;
     }
 }
 
-void SkeletalAnimationBlendPoseNode::setBlendParameterVariableId(size_t variableId)
+void SkeletalAnimationBlendPoseNode::setBlendParameterVariableId(SkeletalAnimationVariableId variableId)
 {
     m_blendParameterVariableId = variableId;
 }
 
-size_t SkeletalAnimationBlendPoseNode::getBlendParameterVariableId() const
+SkeletalAnimationVariableId SkeletalAnimationBlendPoseNode::getBlendParameterVariableId() const
 {
     return m_blendParameterVariableId;
 }
@@ -152,6 +149,42 @@ void SkeletalAnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
             }
 
             parentId = m_firstClip.getSkeleton().getBoneParentId(parentId);
+        }
+    }
+}
+
+void SkeletalAnimationBlendPoseNode::linearBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet)
+{
+    const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
+    const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+
+    for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
+        if (m_overrideMask[boneIndex]) {
+            float blendParameterValue = variablesSet.getVariableValue(m_blendParameterVariableId);
+            BonePose interpolatedBonePose = BonePose::interpolate(firstClipPose.getBoneLocalPose(boneIndex),
+                                                                  secondClipPose.getBoneLocalPose(boneIndex), blendParameterValue);
+
+            m_blendedPose.setBoneLocalPose(boneIndex, interpolatedBonePose);
+        }
+        else {
+            m_blendedPose.setBoneLocalPose(boneIndex, firstClipPose.getBoneLocalPose(boneIndex));
+        }
+    }
+}
+
+void SkeletalAnimationBlendPoseNode::overriddenBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet)
+{
+    ARG_UNUSED(variablesSet);
+
+    const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
+    const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+
+    for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
+        if (m_overrideMask[boneIndex]) {
+            m_blendedPose.setBoneLocalPose(boneIndex, secondClipPose.getBoneLocalPose(boneIndex));
+        }
+        else {
+            m_blendedPose.setBoneLocalPose(boneIndex, firstClipPose.getBoneLocalPose(boneIndex));
         }
     }
 }

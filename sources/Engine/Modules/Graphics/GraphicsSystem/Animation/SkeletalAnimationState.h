@@ -42,7 +42,7 @@ class SkeletalAnimationBlendPoseNode : public SkeletalAnimationPoseNode {
 public:
     SkeletalAnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
                                    const SkeletalAnimationClipInstance& secondClip,
-                                   size_t blendParameterVariableId,
+                                   SkeletalAnimationVariableId blendParameterVariableId,
                                    SkeletalAnimationBlendPoseType blendType = SkeletalAnimationBlendPoseType::Linear,
                                    uint8_t overriddenBone = 0);
 
@@ -53,18 +53,21 @@ public:
     void increaseCurrentTime(float delta,
                              const SkeletalAnimationStatesMachineVariables& variablesSet) override;
 
-    void setBlendParameterVariableId(size_t variableId);
-    size_t getBlendParameterVariableId() const;
+    void setBlendParameterVariableId(SkeletalAnimationVariableId variableId);
+    SkeletalAnimationVariableId getBlendParameterVariableId() const;
 
 private:
     void fillOverrideMask(uint8_t overriddenBoneId);
+
+    void linearBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet);
+    void overriddenBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet);
 
 private:
     SkeletalAnimationClipInstance m_firstClip;
     SkeletalAnimationClipInstance m_secondClip;
 
     SkeletalAnimationBlendPoseType m_blendType;
-    size_t m_blendParameterVariableId;
+    SkeletalAnimationVariableId m_blendParameterVariableId;
 
     std::vector<uint8_t> m_overrideMask;
 

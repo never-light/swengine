@@ -76,6 +76,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]") {
     using tests::MathUtils;
 
     SkeletalAnimationClipInstance clipInstance = generateTestAnimationClipInstance();
+    std::shared_ptr<Skeleton> skeleton = clipInstance.getSkeletonPtr();
 
     SECTION("clip-zero-time") {
         SkeletalAnimationPose pose = clipInstance.getAnimationPose();
