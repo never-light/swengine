@@ -9,34 +9,33 @@
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
 struct BitmapCharacter {
-public:
-    Rect bitmapArea;
+ public:
+  Rect bitmapArea;
 
-    int xOffset;
-    int yOffset;
-    int xAdvance;
+  int xOffset;
+  int yOffset;
+  int xAdvance;
 
-    bool isMapped = false;
+  bool isMapped = false;
 };
 
-class BitmapFont
-{
-public:
-    BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
-               int baseSize, int height);
+class BitmapFont {
+ public:
+  BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
+             int baseSize, int height);
 
-    const BitmapCharacter& getCharacter(unsigned char character) const;
+  [[nodiscard]] const BitmapCharacter& getCharacter(unsigned char character) const;
 
-    std::shared_ptr<GLTexture> getBitmap() const;
+  [[nodiscard]] std::shared_ptr<GLTexture> getBitmap() const;
 
-    int getBaseSize() const;
-    int getHeight() const;
+  [[nodiscard]] int getBaseSize() const;
+  [[nodiscard]] int getHeight() const;
 
-private:
-    std::shared_ptr<GLTexture> m_bitmap;
-    std::array<BitmapCharacter, 256> m_characters;
+ private:
+  std::shared_ptr<GLTexture> m_bitmap;
+  std::array<BitmapCharacter, 256> m_characters;
 
-    int m_baseSize;
-    int m_height;
+  int m_baseSize;
+  int m_height;
 };
 

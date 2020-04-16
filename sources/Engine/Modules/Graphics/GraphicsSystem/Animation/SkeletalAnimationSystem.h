@@ -5,15 +5,15 @@
 #include "SkeletalAnimationComponent.h"
 
 class SkeletalAnimationSystem : public GameSystem {
-public:
-    SkeletalAnimationSystem();
-    ~SkeletalAnimationSystem() override;
+ public:
+  SkeletalAnimationSystem();
+  ~SkeletalAnimationSystem() override;
 
-    void configure(GameWorld *gameWorld) override;
-    void unconfigure(GameWorld *gameWorld) override;
+  void configure(GameWorld* gameWorld) override;
+  void unconfigure(GameWorld* gameWorld) override;
 
-    void update(GameWorld *gameWorld, float delta) override;
+  void update(GameWorld* gameWorld, float delta) override;
 
-private:
-    void updateAnimationStateMachine(SkeletalAnimationStatesMachine& stateMachine, float delta);
+ private:
+  void updateAnimationStateMachine(SkeletalAnimationStatesMachine& stateMachine, float delta);
 };

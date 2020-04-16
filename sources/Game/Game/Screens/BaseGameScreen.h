@@ -4,21 +4,20 @@
 #include <Engine/Modules/ECS/ECS.h>
 
 enum class GameScreenType {
-    MainMenu, Game
+  MainMenu, Game
 };
 
-class BaseGameScreen : public Screen
-{
-public:
-    BaseGameScreen(GameScreenType type);
+class BaseGameScreen : public Screen {
+ public:
+  BaseGameScreen(GameScreenType type);
 
-protected:
-    void activateNextScreen(GameScreenType type);
+ protected:
+  void activateNextScreen(GameScreenType type);
 
-public:
-    static std::string getScreenName(GameScreenType type);
+ public:
+  static std::string getScreenName(GameScreenType type);
 
-private:
-    static const std::unordered_map<GameScreenType, std::string> s_gameScreensNames;
+ private:
+  static const std::unordered_map<GameScreenType, std::string> s_gameScreensNames;
 };
 

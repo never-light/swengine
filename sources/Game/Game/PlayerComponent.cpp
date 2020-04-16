@@ -1,16 +1,13 @@
 #include "PlayerComponent.h"
 
-PlayerComponent::PlayerComponent()
-{
+PlayerComponent::PlayerComponent() {
 
 }
 
-void PlayerComponent::setMovementSpeed(float speed)
-{
-    m_movementSpeed = speed;
+void PlayerComponent::setMovementSpeed(float speed) {
+  m_movementSpeed = speed;
 }
 
-float PlayerComponent::getMovementSpeed() const
-{
-    return m_movementSpeed;
+float PlayerComponent::getMovementSpeed() const {
+  return m_movementSpeed;
 }

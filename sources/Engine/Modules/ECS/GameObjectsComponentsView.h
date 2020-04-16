@@ -9,26 +9,26 @@
  */
 template<class... ComponentsTypes>
 class GameObjectsComponentsView {
-public:
-	GameObjectsComponentsView(const GameObjectsComponentsIterator<ComponentsTypes...>& begin, 
-		const GameObjectsComponentsIterator<ComponentsTypes...>& end);
-	~GameObjectsComponentsView();
+ public:
+  GameObjectsComponentsView(const GameObjectsComponentsIterator<ComponentsTypes...>& begin,
+                            const GameObjectsComponentsIterator<ComponentsTypes...>& end);
+  ~GameObjectsComponentsView();
 
-	/*!
-	 * \brief Returns an iterator to the beginning of the collection
-	 *
-	 * \return beginning of the sequence iterator
-	 */
-	const GameObjectsComponentsIterator<ComponentsTypes...>& begin() const;
+  /*!
+   * \brief Returns an iterator to the beginning of the collection
+   *
+   * \return beginning of the sequence iterator
+   */
+  const GameObjectsComponentsIterator<ComponentsTypes...>& begin() const;
 
-	/*!
-	 * \brief Returns an iterator to the end of the collection
-	 *
-	 * \return end of the sequence iterator
-	 */
-	const GameObjectsComponentsIterator<ComponentsTypes...>& end() const;
+  /*!
+   * \brief Returns an iterator to the end of the collection
+   *
+   * \return end of the sequence iterator
+   */
+  const GameObjectsComponentsIterator<ComponentsTypes...>& end() const;
 
-private:
-	GameObjectsComponentsIterator<ComponentsTypes...> m_begin;
-	GameObjectsComponentsIterator<ComponentsTypes...> m_end;
+ private:
+  GameObjectsComponentsIterator<ComponentsTypes...> m_begin;
+  GameObjectsComponentsIterator<ComponentsTypes...> m_end;
 };

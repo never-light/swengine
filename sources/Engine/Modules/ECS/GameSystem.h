@@ -8,44 +8,44 @@ class GameWorld;
  * This class allows to represent a game system with user-specified functionality
  */
 class GameSystem {
-public:
-	GameSystem();
-	virtual ~GameSystem();
+ public:
+  GameSystem();
+  virtual ~GameSystem();
 
-	/*!
-	 * \brief Performs the game system update
-	 *
-	 * \param gameWorld the game world pointer
-	 * \param delta delta time
-	 */
-    virtual void update(GameWorld* gameWorld, float delta);
+  /*!
+   * \brief Performs the game system update
+   *
+   * \param gameWorld the game world pointer
+   * \param delta delta time
+   */
+  virtual void update(GameWorld* gameWorld, float delta);
 
-	/*!
-	 * \brief Renders the game system data
-	 */
-	virtual void render(GameWorld* gameWorld);
+  /*!
+   * \brief Renders the game system data
+   */
+  virtual void render(GameWorld* gameWorld);
 
-    /*!
-     * \brief It is called before rendering of the game world
-     */
-    virtual void beforeRender(GameWorld* gameWorld);
+  /*!
+   * \brief It is called before rendering of the game world
+   */
+  virtual void beforeRender(GameWorld* gameWorld);
 
-    /*!
-     * \brief It is called after rendering of the game world
-     */
-    virtual void afterRender(GameWorld* gameWorld);
+  /*!
+   * \brief It is called after rendering of the game world
+   */
+  virtual void afterRender(GameWorld* gameWorld);
 
-	/*!
-	 * \brief Calls at the time of the game system registration
-	 * 
-	 * \param gameWorld the game world pointer
-	 */
-    virtual void configure(GameWorld* gameWorld);
+  /*!
+   * \brief Calls at the time of the game system registration
+   *
+   * \param gameWorld the game world pointer
+   */
+  virtual void configure(GameWorld* gameWorld);
 
-	/*!
-	 * \brief Calls at the time of the game system removal
-	 *
-	 * \param gameWorld the game world pointer
-	 */
-	virtual void unconfigure(GameWorld* gameWorld);
+  /*!
+   * \brief Calls at the time of the game system removal
+   *
+   * \param gameWorld the game world pointer
+   */
+  virtual void unconfigure(GameWorld* gameWorld);
 };

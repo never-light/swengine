@@ -1,16 +1,17 @@
 #pragma once
 
 #include <unordered_map>
+#include <memory>
+
 #include "ResourceManager.h"
 
-class ResourceManagementModule final
-{
-public:
-    ResourceManagementModule();
-    ~ResourceManagementModule();
+class ResourceManagementModule final {
+ public:
+  ResourceManagementModule();
+  ~ResourceManagementModule();
 
-    std::shared_ptr<ResourceManager> getResourceManager() const;
+  [[nodiscard]] std::shared_ptr<ResourceManager> getResourceManager() const;
 
-private:
-    std::shared_ptr<ResourceManager> m_resourceManager;
+ private:
+  std::shared_ptr<ResourceManager> m_resourceManager;
 };

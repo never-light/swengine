@@ -1,16 +1,16 @@
 #pragma once
 
 #include <memory>
+
 #include "Transform.h"
 
-class TransformComponent
-{
-public:
-    TransformComponent();
+class TransformComponent {
+ public:
+  TransformComponent();
 
-    Transform* getTransform() const;
+  [[nodiscard]] Transform* getTransform() const;
 
-private:
-    std::unique_ptr<Transform> m_transform;
+ private:
+  std::unique_ptr<Transform> m_transform;
 };
 

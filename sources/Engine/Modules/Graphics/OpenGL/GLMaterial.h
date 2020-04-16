@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 #include <variant>
+#include <memory>
+#include <utility>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -15,90 +17,87 @@
 #include "Modules/ResourceManagement/ResourceInstance.h"
 
 enum class DepthTestMode {
-    Disabled, Unspecified, Less, LessOrEqual, NotEqual
+  Disabled, Unspecified, Less, LessOrEqual, NotEqual
 };
 
 enum class FaceCullingMode {
-    Disabled, Unspecified, Back, Front
+  Disabled, Unspecified, Back, Front
 };
 
 enum class PolygonFillingMode {
-    Unspecified, Fill, Wireframe
+  Unspecified, Fill, Wireframe
 };
 
 enum class BlendingMode {
-    Disabled, Unspecified, Alpha_OneMinusAlpha
+  Disabled, Unspecified, Alpha_OneMinusAlpha
 };
 
 enum class DepthWritingMode {
-    Disabled, Unspecified, Enabled
+  Disabled, Unspecified, Enabled
 };
 
 class GLGraphicsContext;
 
-class GLMaterial
-{
-public:
-    struct TextureParameter {
-        TextureParameter(std::shared_ptr<GLTexture> texture, size_t slotIndex)
-            : texture(texture), slotIndex(slotIndex)
-        {
+class GLMaterial {
+ public:
+  struct TextureParameter {
+    TextureParameter(std::shared_ptr<GLTexture> texture, size_t slotIndex)
+        : texture(texture), slotIndex(slotIndex) {
 
-        }
+    }
 
-        std::shared_ptr<GLTexture> texture;
-        size_t slotIndex;
-    };
+    std::shared_ptr<GLTexture> texture;
+    size_t slotIndex;
+  };
 
-    using GenericParameterValue = std::variant<int, float, glm::vec3, glm::vec4, glm::mat3, glm::mat4, TextureParameter>;
+  using GenericParameterValue = std::variant<int, float, glm::vec3, glm::vec4, glm::mat3, glm::mat4, TextureParameter>;
 
-    struct GenericParameter {
-        GenericParameter(GLenum shaderType, const GenericParameterValue& value)
-            : shaderType(shaderType), value(value)
-        {
+  struct GenericParameter {
+    GenericParameter(GLenum shaderType, GenericParameterValue  value)
+        : shaderType(shaderType), value(std::move(value)) {
 
-        }
+    }
 
-        GLenum shaderType;
-        GenericParameterValue value;
-    };
+    GLenum shaderType;
+    GenericParameterValue value;
+  };
 
-public:
-    GLMaterial();
-    ~GLMaterial();
+ public:
+  GLMaterial();
+  ~GLMaterial();
 
-    void setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline);
-    std::shared_ptr<GLShadersPipeline> getShadersPipeline() const;
+  void setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline);
+  [[nodiscard]] std::shared_ptr<GLShadersPipeline> getShadersPipeline() const;
 
-    void setDepthTestMode(DepthTestMode mode);
-    DepthTestMode getDepthTestMode() const;
+  void setDepthTestMode(DepthTestMode mode);
+  [[nodiscard]] DepthTestMode getDepthTestMode() const;
 
-    void setFaceCullingMode(FaceCullingMode mode);
-    FaceCullingMode getFaceCullingMode() const;
+  void setFaceCullingMode(FaceCullingMode mode);
+  [[nodiscard]] FaceCullingMode getFaceCullingMode() const;
 
-    void setPolygonFillingMode(PolygonFillingMode mode);
-    PolygonFillingMode getPolygonFillingMode() const;
+  void setPolygonFillingMode(PolygonFillingMode mode);
+  [[nodiscard]] PolygonFillingMode getPolygonFillingMode() const;
 
-    void setBlendingMode(BlendingMode mode);
-    BlendingMode getBlendingMode() const;
+  void setBlendingMode(BlendingMode mode);
+  [[nodiscard]] BlendingMode getBlendingMode() const;
 
-    void setDepthWritingMode(DepthWritingMode mode);
-    DepthWritingMode getDepthWritingMode() const;
+  void setDepthWritingMode(DepthWritingMode mode);
+  [[nodiscard]] DepthWritingMode getDepthWritingMode() const;
 
-    void setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value);
-    const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
+  void setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value);
+  [[nodiscard]] const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
 
-private:
-    std::unordered_map<std::string, GenericParameter> m_parameters;
+ private:
+  std::unordered_map<std::string, GenericParameter> m_parameters;
 
-    std::shared_ptr<GLShadersPipeline> m_shadersPipeline;
+  std::shared_ptr<GLShadersPipeline> m_shadersPipeline;
 
-    DepthTestMode m_depthTestMode = DepthTestMode::Unspecified;
-    FaceCullingMode m_faceCullingMode = FaceCullingMode::Unspecified;
-    PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Unspecified;
-    BlendingMode m_materialBlendingMode = BlendingMode::Unspecified;
-    DepthWritingMode m_depthWritingMode = DepthWritingMode::Unspecified;
+  DepthTestMode m_depthTestMode = DepthTestMode::Unspecified;
+  FaceCullingMode m_faceCullingMode = FaceCullingMode::Unspecified;
+  PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Unspecified;
+  BlendingMode m_materialBlendingMode = BlendingMode::Unspecified;
+  DepthWritingMode m_depthWritingMode = DepthWritingMode::Unspecified;
 
-private:
-    friend class GLGraphicsContext;
+ private:
+  friend class GLGraphicsContext;
 };

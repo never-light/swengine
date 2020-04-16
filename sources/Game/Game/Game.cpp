@@ -14,25 +14,20 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
       m_resourceManager(resourceManager),
       m_level(std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager)),
       m_gameSystems(std::make_shared<GameSystemsGroup>(gameWorld)),
-      m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule))
-
-{
-    m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>()->getCamera());
-    m_gameSystems->addGameSystem(m_playerControlSystem);
+      m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule)) {
+  m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>()->getCamera());
+  m_gameSystems->addGameSystem(m_playerControlSystem);
 
 }
 
-Game::~Game()
-{
+Game::~Game() {
 
 }
 
-void Game::activate()
-{
-    m_gameWorld->getGameSystemsGroup()->addGameSystem(m_gameSystems);
+void Game::activate() {
+  m_gameWorld->getGameSystemsGroup()->addGameSystem(m_gameSystems);
 }
 
-void Game::deactivate()
-{
-    m_gameWorld->getGameSystemsGroup()->removeGameSystem(m_gameSystems);
+void Game::deactivate() {
+  m_gameWorld->getGameSystemsGroup()->removeGameSystem(m_gameSystems);
 }

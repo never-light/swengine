@@ -3,7 +3,7 @@
 #include <string>
 
 class FileUtils {
-public:
-    static bool isFileExists(const std::string& path);
-    static std::string readFile(const std::string& path);
+ public:
+  [[nodiscard]] static bool isFileExists(const std::string& path);
+  [[nodiscard]] static std::string readFile(const std::string& path);
 };

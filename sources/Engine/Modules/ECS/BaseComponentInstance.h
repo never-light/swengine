@@ -3,12 +3,12 @@
 class GameObject;
 
 class BaseComponentInstance {
-public:
-	BaseComponentInstance(GameObject* gameObject);
-	virtual ~BaseComponentInstance();
+ public:
+  explicit BaseComponentInstance(GameObject* gameObject);
+  virtual ~BaseComponentInstance();
 
-	GameObject* getGameObject() const;
+  GameObject* getGameObject() const;
 
-protected:
-	GameObject* m_gameObject;
+ protected:
+  GameObject* m_gameObject;
 };

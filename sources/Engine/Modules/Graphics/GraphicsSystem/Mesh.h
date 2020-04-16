@@ -12,93 +12,88 @@
 #include "Modules/Math/geometry.h"
 
 enum class MeshAttributes {
-    Empty = 0,
-    Positions = 1,
-    Normals = 2,
-    UV = 4,
-    Tangents = 8,
-    BonesIDs = 16,
-    BonesWeights = 32,
+  Empty = 0,
+  Positions = 1,
+  Normals = 2,
+  UV = 4,
+  Tangents = 8,
+  BonesIDs = 16,
+  BonesWeights = 32,
 };
 
-class Mesh
-{
-public:
-    Mesh();
-    ~Mesh();
+class Mesh {
+ public:
+  Mesh();
+  ~Mesh();
 
-    size_t addSubMesh(const std::vector<uint16_t>& indices);
-    void setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex);
+  [[nodiscard]] size_t addSubMesh(const std::vector<uint16_t>& indices);
+  void setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex);
 
-    void setVertices(const std::vector<glm::vec3>& vertices);
-    void setNormals(const std::vector<glm::vec3>& normals);
-    void setTangents(const std::vector<glm::vec3>& tangents);
-    void setUV(const std::vector<glm::vec2>& uv);
+  void setVertices(const std::vector<glm::vec3>& vertices);
+  void setNormals(const std::vector<glm::vec3>& normals);
+  void setTangents(const std::vector<glm::vec3>& tangents);
+  void setUV(const std::vector<glm::vec2>& uv);
 
-    void setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights);
+  void setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights);
 
-    bool hasVertices() const;
-    bool hasNormals() const;
-    bool hasTangents() const;
-    bool hasUV() const;
-    bool isSkinned() const;
-    bool hasSkeleton() const;
+  [[nodiscard]] bool hasVertices() const;
+  [[nodiscard]] bool hasNormals() const;
+  [[nodiscard]] bool hasTangents() const;
+  [[nodiscard]] bool hasUV() const;
+  [[nodiscard]] bool isSkinned() const;
+  [[nodiscard]] bool hasSkeleton() const;
 
-    void setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets);
+  void setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets);
 
-    size_t getSubMeshesCount() const;
-    size_t getSubMeshIndicesOffset(size_t subMeshIndex) const;
-    size_t getSubMeshIndicesCount(size_t subMeshIndex) const;
+  [[nodiscard]] size_t getSubMeshesCount() const;
+  [[nodiscard]] size_t getSubMeshIndicesOffset(size_t subMeshIndex) const;
+  [[nodiscard]] size_t getSubMeshIndicesCount(size_t subMeshIndex) const;
 
-    GLGeometryStore* getGeometryStore();
+  GLGeometryStore* getGeometryStore();
 
-    void setAABB(const AABB& aabb);
-    const AABB& getAABB() const;
+  void setAABB(const AABB& aabb);
+  [[nodiscard]] const AABB& getAABB() const;
 
-    void setSkeleton(std::shared_ptr<Skeleton> skeleton);
-    std::shared_ptr<Skeleton> getSkeleton() const;
+  void setSkeleton(std::shared_ptr<Skeleton> skeleton);
+  [[nodiscard]] std::shared_ptr<Skeleton> getSkeleton() const;
 
-private:
-    void calculateSubMeshesOffsets();
+ private:
+  void calculateSubMeshesOffsets();
 
-    void updateGeometryBuffer();
+  void updateGeometryBuffer();
 
-    template<class T>
-    std::vector<T> constructVerticesList() const;
+  template<class T>
+  std::vector<T> constructVerticesList() const;
 
-private:
-    std::unique_ptr<GLGeometryStore> m_geometryStore;
+ private:
+  std::unique_ptr<GLGeometryStore> m_geometryStore;
 
-    std::vector<glm::vec3> m_vertices;
+  std::vector<glm::vec3> m_vertices;
 
-    std::vector<std::vector<uint16_t>> m_indices;
-    std::vector<size_t> m_subMeshesOffsets;
+  std::vector<std::vector<uint16_t>> m_indices;
+  std::vector<size_t> m_subMeshesOffsets;
 
-    std::vector<glm::vec3> m_normals;
-    std::vector<glm::vec3> m_tangents;
-    std::vector<glm::vec2> m_uv;
-    std::vector<glm::u8vec4> m_bonesIDs;
-    std::vector<glm::u8vec4> m_bonesWeights;
+  std::vector<glm::vec3> m_normals;
+  std::vector<glm::vec3> m_tangents;
+  std::vector<glm::vec2> m_uv;
+  std::vector<glm::u8vec4> m_bonesIDs;
+  std::vector<glm::u8vec4> m_bonesWeights;
 
-    bool m_needGeometryBufferUpdate = false;
+  bool m_needGeometryBufferUpdate = false;
 
-    AABB m_aabb;
+  AABB m_aabb;
 
-    std::shared_ptr<Skeleton> m_skeleton;
+  std::shared_ptr<Skeleton> m_skeleton;
 };
 
-
-inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b)
-{
-    return static_cast<MeshAttributes>(static_cast<int>(a) | static_cast<int>(b));
+inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b) {
+  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
 }
 
-inline MeshAttributes operator&(MeshAttributes a, MeshAttributes b)
-{
-    return static_cast<MeshAttributes>(static_cast<int>(a) & static_cast<int>(b));
+inline MeshAttributes operator&(MeshAttributes a, MeshAttributes b) {
+  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
 }
 
-inline MeshAttributes operator~(MeshAttributes a)
-{
-    return static_cast<MeshAttributes>(~static_cast<int>(a));
+inline MeshAttributes operator~(MeshAttributes a) {
+  return static_cast<MeshAttributes>(~static_cast<unsigned int>(a));
 }

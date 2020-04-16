@@ -2,26 +2,27 @@
 #pragma hdrstop
 
 #include "EngineRuntimeException.h"
+#include <utility>
 
-EngineRuntimeException::EngineRuntimeException(const std::string& message, const std::string& file, size_t line, const std::string& function)
+
+EngineRuntimeException::EngineRuntimeException(const std::string& message,
+                                               std::string file,
+                                               size_t line,
+                                               std::string function)
     : runtime_error(message),
-    m_file(file),
-    m_function(function),
-    m_line(line)
-{
+      m_file(std::move(file)),
+      m_function(std::move(function)),
+      m_line(line) {
 }
 
-const std::string& EngineRuntimeException::getFile() const
-{
-    return m_file;
+const std::string& EngineRuntimeException::getFile() const {
+  return m_file;
 }
 
-const std::string& EngineRuntimeException::getFunction() const
-{
-    return m_function;
+const std::string& EngineRuntimeException::getFunction() const {
+  return m_function;
 }
 
-size_t EngineRuntimeException::getLine() const
-{
-    return m_line;
+size_t EngineRuntimeException::getLine() const {
+  return m_line;
 }

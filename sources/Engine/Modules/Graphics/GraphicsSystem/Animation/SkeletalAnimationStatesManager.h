@@ -2,41 +2,46 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "SkeletalAnimationClip.h"
 #include "SkeletalAnimationState.h"
 #include "SkeletalAnimationStatesMachineVariables.h"
 
 class SkeletalAnimationStatesMachine {
-public:
-    SkeletalAnimationStatesMachine(std::shared_ptr<Skeleton> skeleton);
+ public:
+  explicit SkeletalAnimationStatesMachine(std::shared_ptr<Skeleton> skeleton);
 
-    int16_t getStateIdByName(const std::string& name) const;
+  [[nodiscard]] int16_t getStateIdByName(const std::string& name) const;
 
-    SkeletalAnimationState& addState(const std::string& name, std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode);
-    void addTransition(int16_t sourceStateId, int16_t targetStateId);
+  [[nodiscard]] SkeletalAnimationState& addState(const std::string& name,
+      std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode);
 
-    void switchToNextState(int16_t stateId);
+  void addTransition(int16_t sourceStateId, int16_t targetStateId);
 
-    void setActiveState(int16_t stateId);
-    const SkeletalAnimationState& getActiveState() const;
-    SkeletalAnimationState& getActiveState();
+  void switchToNextState(int16_t stateId);
 
-    const SkeletalAnimationPose& getCurrentPose() const;
-    const SkeletalAnimationMatrixPalette& getCurrentMatrixPalette() const;
+  void setActiveState(int16_t stateId);
+  [[nodiscard]] const SkeletalAnimationState& getActiveState() const;
+  [[nodiscard]] SkeletalAnimationState& getActiveState();
 
-    const SkeletalAnimationStatesMachineVariables& getVariablesSet() const;
-    SkeletalAnimationStatesMachineVariables& getVariablesSet();
+  [[nodiscard]] const SkeletalAnimationPose& getCurrentPose() const;
+  [[nodiscard]] const SkeletalAnimationMatrixPalette& getCurrentMatrixPalette() const;
 
-    void increaseCurrentTime(float delta);
+  [[nodiscard]] const SkeletalAnimationStatesMachineVariables& getVariablesSet() const;
+  [[nodiscard]] SkeletalAnimationStatesMachineVariables& getVariablesSet();
 
-private:
-    std::shared_ptr<Skeleton> m_skeleton;
+  void increaseCurrentTime(float delta);
 
-    std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
-    std::vector<SkeletalAnimationState> m_states;
+ private:
+  std::shared_ptr<Skeleton> m_skeleton;
 
-    SkeletalAnimationStatesMachineVariables m_variablesSet;
+  std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
+  std::vector<SkeletalAnimationState> m_states;
 
-    int16_t m_activeStateId = -1;
+  SkeletalAnimationStatesMachineVariables m_variablesSet;
+
+  int16_t m_activeStateId = -1;
 };

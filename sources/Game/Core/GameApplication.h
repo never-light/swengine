@@ -5,13 +5,12 @@
 #include <Engine/Modules/Graphics/OpenGL/GLShadersPipeline.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
 
-class GameApplication : public BaseGameApplication
-{
-public:
-    GameApplication(int argc, char* argv[]);
-    ~GameApplication() override;
+class GameApplication : public BaseGameApplication {
+ public:
+  GameApplication(int argc, char* argv[]);
+  ~GameApplication() override;
 
-    void render() override;
-    void load() override;
+  void render() override;
+  void load() override;
 };
 

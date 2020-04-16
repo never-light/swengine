@@ -7,10 +7,10 @@ file(GLOB_RECURSE GAME_SOURCES
 
 SET(GAME_SOURCES ${GAME_SOURCES} ${GAME_INCLUDES})
 
-add_executable (game ${GAME_SOURCES})
+add_executable(game ${GAME_SOURCES})
 
 target_include_directories(game PUBLIC ../)
 target_include_directories(game PRIVATE ./)
 
-target_link_libraries (game ${CONAN_LIBS}
+target_link_libraries(game ${CONAN_LIBS}
         engine)

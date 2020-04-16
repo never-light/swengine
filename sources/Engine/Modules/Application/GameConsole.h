@@ -1,28 +1,29 @@
 #pragma once
 
+#include <string>
+#include <memory>
 #include "Modules/Graphics/GUI/GUIConsole.h"
 #include "Modules/ECS/ECS.h"
 
 struct GameConsoleCommandEvent {
-    std::string command;
+  std::string command;
 };
 
-class GameConsole : public GUIConsoleCommandsExecutor
-{
-public:
-    GameConsole(std::shared_ptr<GameWorld> gameWorld);
-    ~GameConsole() override;
+class GameConsole : public GUIConsoleCommandsExecutor {
+ public:
+  explicit GameConsole(std::shared_ptr<GameWorld> gameWorld);
+  ~GameConsole() override;
 
-    void print(const std::string& command);
+  void print(const std::string& command);
 
-    void executeCommand(const std::string& command);
-    void executeCommand(const std::string& command, GUIConsole& console) override;
+  void executeCommand(const std::string& command);
+  void executeCommand(const std::string& command, GUIConsole& console) override;
 
-    void setGUIConsole(std::weak_ptr<GUIConsole> console);
-    std::shared_ptr<GUIConsole> getGUIConsole() const;
+  void setGUIConsole(std::weak_ptr<GUIConsole> console);
+  [[nodiscard]] std::shared_ptr<GUIConsole> getGUIConsole() const;
 
-private:
-    std::shared_ptr<GameWorld> m_gameWorld;
-    std::weak_ptr<GUIConsole> m_guiConsole;
+ private:
+  std::shared_ptr<GameWorld> m_gameWorld;
+  std::weak_ptr<GUIConsole> m_guiConsole;
 };
 

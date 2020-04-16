@@ -19,6 +19,7 @@
 #include <typeindex>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 // Third-party dependencies
 #ifndef NOMINMAX

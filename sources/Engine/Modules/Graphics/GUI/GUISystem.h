@@ -18,60 +18,58 @@
 #include "GUITextBox.h"
 
 class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISystem>,
-        public EventsListener<MouseButtonEvent>,
-        public EventsListener<KeyboardEvent>
-{
-public:
-    GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
-              std::shared_ptr<GLGraphicsContext> graphicsContext,
-              std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
+                  public EventsListener<MouseButtonEvent>,
+                  public EventsListener<KeyboardEvent> {
+ public:
+  GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
+            std::shared_ptr<GLGraphicsContext> graphicsContext,
+            std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
 
-    void configure(GameWorld* gameWorld) override;
-    void unconfigure(GameWorld* gameWorld) override;
+  void configure(GameWorld* gameWorld) override;
+  void unconfigure(GameWorld* gameWorld) override;
 
-    void update(GameWorld* gameWorld, float delta) override;
-    void render(GameWorld* gameWorld) override;
+  void update(GameWorld* gameWorld, float delta) override;
+  void render(GameWorld* gameWorld) override;
 
-    void setActiveLayout(std::shared_ptr<GUILayout> layout);
-    std::shared_ptr<GUILayout> getActiveLayout();
+  void setActiveLayout(std::shared_ptr<GUILayout> layout);
+  [[nodiscard]] std::shared_ptr<GUILayout> getActiveLayout();
 
-    void setDefaultFont(std::shared_ptr<BitmapFont> font);
-    std::shared_ptr<BitmapFont> getDefaultFont() const;
+  void setDefaultFont(std::shared_ptr<BitmapFont> font);
+  [[nodiscard]] std::shared_ptr<BitmapFont> getDefaultFont() const;
 
-    std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
-    RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
+  [[nodiscard]] std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
+  [[nodiscard]] RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
 
-    int getScreenWidth() const;
-    int getScreenHeight() const;
+  [[nodiscard]] int getScreenWidth() const;
+  [[nodiscard]] int getScreenHeight() const;
 
-    EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
-    EventProcessStatus receiveEvent(GameWorld *gameWorld, const KeyboardEvent &event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
 
-private:
-    void updateGUIWidget(GUIWidget* widget);
-    void processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event);
+ private:
+  void updateGUIWidget(GUIWidget* widget);
+  void processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event);
 
-    bool isMouseInWidgetArea(const GUIWidget* widget) const;
-    bool isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const;
+  bool isMouseInWidgetArea(const GUIWidget* widget) const;
+  bool isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const;
 
+  void renderGUIWidget(GUIWidget* widget);
 
-    void renderGUIWidget(GUIWidget* widget);
+ private:
+  std::unique_ptr<Mesh> m_guiNDCQuad;
 
-private:
-    std::unique_ptr<Mesh> m_guiNDCQuad;
+  std::shared_ptr<GUILayout> m_activeLayout;
 
-    std::shared_ptr<GUILayout> m_activeLayout;
+  std::shared_ptr<GameWorld> m_gameWorld;
+  std::shared_ptr<InputModule> m_inputModule;
+  std::shared_ptr<GLGraphicsContext> m_graphicsContext;
+  std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
+  std::shared_ptr<BitmapFont> m_defaultFont;
 
-    std::shared_ptr<GameWorld> m_gameWorld;
-    std::shared_ptr<InputModule> m_inputModule;
-    std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-    std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
-    std::shared_ptr<BitmapFont> m_defaultFont;
+  std::shared_ptr<GUIWidget> m_focusedWidget;
 
-    std::shared_ptr<GUIWidget> m_focusedWidget;
+  glm::mat4x4 m_guiProjectionMatrix;
 
-    glm::mat4x4 m_guiProjectionMatrix;
-
-    std::unique_ptr<GLMaterial> m_guiMaterial;
+  std::unique_ptr<GLMaterial> m_guiMaterial;
 };
 

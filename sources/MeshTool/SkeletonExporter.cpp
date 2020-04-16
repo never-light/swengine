@@ -5,17 +5,15 @@
 
 #include <Engine/swdebug.h>
 
-SkeletonExporter::SkeletonExporter()
-{
+SkeletonExporter::SkeletonExporter() {
 
 }
 
 void SkeletonExporter::exportToFile(const std::string& path,
                                     const RawSkeleton& skeleton,
-                                    const SkeletonExportOptions& options)
-{
-    ARG_UNUSED(options);
+                                    const SkeletonExportOptions& options) {
+  ARG_UNUSED(options);
 
-    spdlog::info("Save skeleton to file: {}", path);
-    RawSkeleton::writeToFile(path, skeleton);
+  spdlog::info("Save skeleton to file: {}", path);
+  RawSkeleton::writeToFile(path, skeleton);
 }

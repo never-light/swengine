@@ -4,26 +4,25 @@
 #include <Engine/Modules/Application/GameConsole.h>
 
 class MainMenuScreen : public BaseGameScreen,
-        public EventsListener<InputActionToggleEvent>
-{
-public:
-    MainMenuScreen(std::shared_ptr<InputModule> inputModule,
-                   std::shared_ptr<GameConsole> gameConsole);
+                       public EventsListener<InputActionToggleEvent> {
+ public:
+  MainMenuScreen(std::shared_ptr<InputModule> inputModule,
+                 std::shared_ptr<GameConsole> gameConsole);
 
-    void activate() override;
-    void deactivate() override;
+  void activate() override;
+  void deactivate() override;
 
-    void load() override;
-    void unload() override;
+  void load() override;
+  void unload() override;
 
-    EventProcessStatus receiveEvent(GameWorld *gameWorld, const InputActionToggleEvent &event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
 
-private:
-    void initializeGUI();
-    void deinitializeGUI();
+ private:
+  void initializeGUI();
+  void deinitializeGUI();
 
-private:
-    std::shared_ptr<InputModule> m_inputModule;
-    std::shared_ptr<GameConsole> m_gameConsole;
+ private:
+  std::shared_ptr<InputModule> m_inputModule;
+  std::shared_ptr<GameConsole> m_gameConsole;
 };
 

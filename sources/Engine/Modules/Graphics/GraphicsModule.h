@@ -3,14 +3,13 @@
 #include <memory>
 #include "OpenGL/GLGraphicsContext.h"
 
-class GraphicsModule final
-{
-public:
-    GraphicsModule(SDL_Window* window);
-    ~GraphicsModule();
+class GraphicsModule final {
+ public:
+  explicit GraphicsModule(SDL_Window* window);
+  ~GraphicsModule();
 
-    std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
+  [[nodiscard]] std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
 
-private:
-    std::shared_ptr<GLGraphicsContext> m_graphicsContext;
+ private:
+  std::shared_ptr<GLGraphicsContext> m_graphicsContext;
 };

@@ -2,9 +2,8 @@
 
 // TODO: move methods here from BonePose
 
-class RTTransform
-{
-public:
-    RTTransform();
+class RTTransform {
+ public:
+  RTTransform();
 };
 

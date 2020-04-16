@@ -1,17 +1,17 @@
 #pragma once
 
 #include <memory>
+
 #include "Camera.h"
 
-class CameraComponent
-{
-public:
-    CameraComponent();
+class CameraComponent {
+ public:
+  CameraComponent();
 
-    void setCamera(std::shared_ptr<Camera> camera);
-    std::shared_ptr<Camera> getCamera() const;
+  void setCamera(std::shared_ptr<Camera> camera);
+  [[nodiscard]] std::shared_ptr<Camera> getCamera() const;
 
-private:
-    std::shared_ptr<Camera> m_camera;
+ private:
+  std::shared_ptr<Camera> m_camera;
 };
 

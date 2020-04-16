@@ -1,49 +1,50 @@
 #pragma once
 
 #include <variant>
+#include <string>
 
 #include "InputActions.h"
 
 struct InputActionToggleEvent {
-    std::string actionName;
-    InputActionState newState;
+  std::string actionName;
+  InputActionState newState;
 };
 
 struct MouseMoveEvent {
-    int x;
-    int y;
+  int x;
+  int y;
 
-    int deltaX;
-    int deltaY;
+  int deltaX;
+  int deltaY;
 };
 
 enum class KeyboardEventType {
-    KeyDown, KeyUp
+  KeyDown, KeyUp
 };
 
 struct KeyboardEvent {
-    KeyboardEventType type;
-    SDL_Keycode keyCode;
-    bool repeated;
-    SDL_Keymod keyModifiers;
+  KeyboardEventType type;
+  SDL_Keycode keyCode;
+  bool repeated;
+  SDL_Keymod keyModifiers;
 };
 
 enum class MouseButtonEventType {
-    ButtonDown, ButtonUp
+  ButtonDown, ButtonUp
 };
 
 struct MouseButtonEvent {
-    MouseButtonEventType type;
-    uint8_t button;
+  MouseButtonEventType type;
+  uint8_t button;
 };
 
 class InputEventsListener {
-public:
-    InputEventsListener() = default;
-    virtual ~InputEventsListener() = default;
+ public:
+  InputEventsListener() = default;
+  virtual ~InputEventsListener() = default;
 
-    virtual void processInputActionToggleEvent(const InputActionToggleEvent& event);
-    virtual void processMouseMoveEvent(const MouseMoveEvent& event);
-    virtual void processKeyboardEvent(const KeyboardEvent& event);
-    virtual void processMouseButtonEvent(const MouseButtonEvent& event);
+  virtual void processInputActionToggleEvent(const InputActionToggleEvent& event);
+  virtual void processMouseMoveEvent(const MouseMoveEvent& event);
+  virtual void processKeyboardEvent(const KeyboardEvent& event);
+  virtual void processMouseButtonEvent(const MouseButtonEvent& event);
 };

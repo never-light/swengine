@@ -1,37 +1,38 @@
 #pragma once
 
 #include <optional>
+#include <string>
+#include <memory>
 
 #include "Modules/ResourceManagement/Resource.h"
 #include "Modules/Graphics/GraphicsSystem/Mesh.h"
 
 struct MeshResourceParameters : ResourceSourceParameters {
-    std::optional<std::string> skeletonResourceId;
+  std::optional<std::string> skeletonResourceId;
 };
 
-class MeshResource : public Resource
-{
-public:
-    using ParametersType = MeshResourceParameters;
+class MeshResource : public Resource {
+ public:
+  using ParametersType = MeshResourceParameters;
 
-public:
-    MeshResource();
-    ~MeshResource() override;
+ public:
+  MeshResource();
+  ~MeshResource() override;
 
-    void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-    void unload() override;
+  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
+  void unload() override;
 
-    bool isBusy() const override;
+  [[nodiscard]] bool isBusy() const override;
 
-    static std::shared_ptr<Mesh> loadFromFile(const std::string& path,
-                                              const MeshResourceParameters& parameters);
+  static std::shared_ptr<Mesh> loadFromFile(const std::string& path,
+                                            const MeshResourceParameters& parameters);
 
-    static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                             const ParametersType& defaultParameters);
+  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
+                                                   const ParametersType& defaultParameters);
 
-public:
-    std::shared_ptr<Mesh> getMesh() const;
+ public:
+  [[nodiscard]] std::shared_ptr<Mesh> getMesh() const;
 
-private:
-    std::shared_ptr<Mesh> m_mesh;
+ private:
+  std::shared_ptr<Mesh> m_mesh;
 };

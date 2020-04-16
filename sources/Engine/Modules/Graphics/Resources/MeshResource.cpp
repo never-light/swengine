@@ -1,4 +1,5 @@
 #include "precompiled.h"
+
 #pragma hdrstop
 
 #include "MeshResource.h"
@@ -17,128 +18,120 @@
 
 #include "Modules/Graphics/Resources/Raw/RawMesh.h"
 
-MeshResource::MeshResource()
-{
+MeshResource::MeshResource() {
 
 }
 
-MeshResource::~MeshResource()
-{
-    SW_ASSERT(m_mesh.use_count() <= 1);
+MeshResource::~MeshResource() {
+  SW_ASSERT(m_mesh.use_count() <= 1);
 }
 
-void MeshResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-    ARG_UNUSED(resourceManager);
+void MeshResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) {
+  ARG_UNUSED(resourceManager);
 
-    SW_ASSERT(m_mesh == nullptr);
+  SW_ASSERT(m_mesh == nullptr);
 
-    MeshResourceParameters parameters = declaration.getParameters<MeshResourceParameters>();
+  MeshResourceParameters parameters = declaration.getParameters<MeshResourceParameters>();
 
-    if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-        m_mesh = loadFromFile(sourceFile->path, parameters);
+  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
+    m_mesh = loadFromFile(sourceFile->path, parameters);
 
-        if (parameters.skeletonResourceId.has_value()) {
-            std::shared_ptr<Skeleton> skeleton = resourceManager.getResourceFromInstance<SkeletonResource>(
-                        parameters.skeletonResourceId.value())->getSkeleton();
+    if (parameters.skeletonResourceId.has_value()) {
+      std::shared_ptr<Skeleton> skeleton = resourceManager.getResourceFromInstance<SkeletonResource>(
+          parameters.skeletonResourceId.value())->getSkeleton();
 
-            m_mesh->setSkeleton(skeleton);
-        }
+      m_mesh->setSkeleton(skeleton);
     }
-    else {
-        ENGINE_RUNTIME_ERROR("Trying to load mesh resource from invalid source");
-    }
+  }
+  else {
+    ENGINE_RUNTIME_ERROR("Trying to load mesh resource from invalid source");
+  }
 }
 
-void MeshResource::unload()
-{
-    SW_ASSERT(m_mesh.use_count() == 1);
+void MeshResource::unload() {
+  SW_ASSERT(m_mesh.use_count() == 1);
 
-    m_mesh.reset();
+  m_mesh.reset();
 }
 
-bool MeshResource::isBusy() const
-{
-    return m_mesh.use_count() > 1;
+bool MeshResource::isBusy() const {
+  return m_mesh.use_count() > 1;
 }
 
-std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const MeshResourceParameters& parameters)
-{
-    ARG_UNUSED(parameters);
+std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const MeshResourceParameters& parameters) {
+  ARG_UNUSED(parameters);
 
-    // Read raw mesh
-    RawMesh rawMesh = RawMesh::readFromFile(path);
+  // Read raw mesh
+  RawMesh rawMesh = RawMesh::readFromFile(path);
 
-    // Convert raw mesh to internal mesh object
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+  // Convert raw mesh to internal mesh object
+  std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 
-    if (rawMesh.positions.size() != 0) {
-        std::vector<glm::vec3> positions =
-                MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.positions);
+  if (rawMesh.positions.size() != 0) {
+    std::vector<glm::vec3> positions =
+        MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.positions);
 
-        mesh->setVertices(positions);
-    }
+    mesh->setVertices(positions);
+  }
 
-    if (rawMesh.normals.size() != 0) {
-        std::vector<glm::vec3> normals =
-                MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.normals);
+  if (rawMesh.normals.size() != 0) {
+    std::vector<glm::vec3> normals =
+        MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.normals);
 
-        mesh->setNormals(normals);
-    }
+    mesh->setNormals(normals);
+  }
 
-    if (rawMesh.uv.size() != 0) {
-        std::vector<glm::vec2> uv =
-            MemoryUtils::createBinaryCompatibleVector<RawVector2, glm::vec2>(rawMesh.uv);
+  if (rawMesh.uv.size() != 0) {
+    std::vector<glm::vec2> uv =
+        MemoryUtils::createBinaryCompatibleVector<RawVector2, glm::vec2>(rawMesh.uv);
 
-        mesh->setUV(uv);
-    }
+    mesh->setUV(uv);
+  }
 
-    if (rawMesh.tangents.size() != 0) {
-        std::vector<glm::vec3> tangents =
-            MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.tangents);
+  if (rawMesh.tangents.size() != 0) {
+    std::vector<glm::vec3> tangents =
+        MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.tangents);
 
-        mesh->setTangents(tangents);
-    }
+    mesh->setTangents(tangents);
+  }
 
-    if (rawMesh.bonesIds.size() != 0) {
-        SW_ASSERT(rawMesh.bonesWeights.size() == rawMesh.bonesIds.size());
+  if (rawMesh.bonesIds.size() != 0) {
+    SW_ASSERT(rawMesh.bonesWeights.size() == rawMesh.bonesIds.size());
 
-        std::vector<glm::u8vec4> bonesIDs =
-            MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesIds);
+    std::vector<glm::u8vec4> bonesIDs =
+        MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesIds);
 
-        std::vector<glm::u8vec4> bonesWeights =
-            MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesWeights);
+    std::vector<glm::u8vec4> bonesWeights =
+        MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesWeights);
 
-        mesh->setSkinData(bonesIDs, bonesWeights);
-    }
+    mesh->setSkinData(bonesIDs, bonesWeights);
+  }
 
-    mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
-    mesh->setAABB(rawMesh.aabb);
+  mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
+  mesh->setAABB(rawMesh.aabb);
 
-    return mesh;
+  return mesh;
 }
 
 MeshResource::ParametersType MeshResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                                const ParametersType& defaultParameters)
-{
-    ParametersType parameters = defaultParameters;
+                                                                      const ParametersType& defaultParameters) {
+  ParametersType parameters = defaultParameters;
 
-    pugi::xml_node skeletonNode = declarationNode.child("skeleton");
+  pugi::xml_node skeletonNode = declarationNode.child("skeleton");
 
-    if (skeletonNode) {
-        pugi::xml_attribute skeletonId = skeletonNode.attribute("id");
+  if (skeletonNode) {
+    pugi::xml_attribute skeletonId = skeletonNode.attribute("id");
 
-        if (!skeletonId) {
-            ENGINE_RUNTIME_ERROR("Skeleton attribute for a mesh is added, but resource id is not specified");
-        }
-
-        parameters.skeletonResourceId = skeletonId.as_string();
+    if (!skeletonId) {
+      ENGINE_RUNTIME_ERROR("Skeleton attribute for a mesh is added, but resource id is not specified");
     }
 
-    return parameters;
+    parameters.skeletonResourceId = skeletonId.as_string();
+  }
+
+  return parameters;
 }
 
-std::shared_ptr<Mesh> MeshResource::getMesh() const
-{
-    return m_mesh;
+std::shared_ptr<Mesh> MeshResource::getMesh() const {
+  return m_mesh;
 }

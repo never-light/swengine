@@ -7,10 +7,10 @@ file(GLOB_RECURSE TESTS_SOURCES
 
 SET(TESTS_SOURCES ${TESTS_SOURCES} ${TESTS_INCLUDES})
 
-add_executable (tests ${TESTS_SOURCES})
+add_executable(tests ${TESTS_SOURCES})
 
 target_include_directories(tests PUBLIC ../)
 target_include_directories(tests PRIVATE ./)
 
-target_link_libraries (tests ${CONAN_LIBS}
+target_link_libraries(tests ${CONAN_LIBS}
         engine)

@@ -1,51 +1,52 @@
 #pragma once
 
+#include <memory>
+
 #include "Modules/Graphics/OpenGL/GLFramebuffer.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "Camera.h"
 
 struct FrameStats {
-public:
-    FrameStats() = default;
+ public:
+  FrameStats() = default;
 
-    void reset();
+  void reset();
 
-    void increasePrimitivesCount(size_t count);
-    void increaseSubMeshesCount(size_t count);
-    void increaseCulledSubMeshesCount(size_t count);
+  void increasePrimitivesCount(size_t count);
+  void increaseSubMeshesCount(size_t count);
+  void increaseCulledSubMeshesCount(size_t count);
 
-    size_t getPrimivitesCount() const;
-    size_t getSubMeshesCount() const;
-    size_t getCulledSubMeshesCount() const;
+  [[nodiscard]] size_t getPrimivitesCount() const;
+  [[nodiscard]] size_t getSubMeshesCount() const;
+  [[nodiscard]] size_t getCulledSubMeshesCount() const;
 
-private:
-    size_t m_primitivesCount = 0;
+ private:
+  size_t m_primitivesCount = 0;
 
-    size_t m_subMeshesCount = 0;
-    size_t m_culledSubMeshesCount = 0;
+  size_t m_subMeshesCount = 0;
+  size_t m_culledSubMeshesCount = 0;
 };
 
-class SharedGraphicsState
-{
-public:
-    SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
+class SharedGraphicsState {
+ public:
+  SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
 
-    void setActiveCamera(std::shared_ptr<Camera> camera);
-    std::shared_ptr<Camera> getActiveCamera() const;
+  void setActiveCamera(std::shared_ptr<Camera> camera);
+  std::shared_ptr<Camera> getActiveCamera() const;
 
-    const FrameStats& getFrameStats() const;
-    FrameStats& getFrameStats();
+  const FrameStats& getFrameStats() const;
+  FrameStats& getFrameStats();
 
-    GLFramebuffer& getDeferredFramebuffer() const;
-    GLFramebuffer& getForwardFramebuffer() const;
+  GLFramebuffer& getDeferredFramebuffer() const;
+  GLFramebuffer& getForwardFramebuffer() const;
 
-private:
-    std::shared_ptr<Camera> m_activeCamera;
+ private:
+  std::shared_ptr<Camera> m_activeCamera;
 
-    FrameStats m_frameStats;
+  FrameStats m_frameStats;
 
-    std::unique_ptr<GLFramebuffer> m_deferredFramebuffer;
-    std::unique_ptr<GLFramebuffer> m_forwardFramebuffer;
+  std::unique_ptr<GLFramebuffer> m_deferredFramebuffer;
+  std::unique_ptr<GLFramebuffer> m_forwardFramebuffer;
 };
 

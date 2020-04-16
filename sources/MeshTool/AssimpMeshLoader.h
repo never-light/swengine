@@ -8,31 +8,30 @@
 #include <memory>
 
 struct AssimpMeshLoadOptions {
-    bool flipUV = false;
-    bool joinIdenticalVertices = false;
-    bool calculateTangents = false;
-    bool glueByMaterials = false;
-    int maxBonexPerVertex = 4;
+  bool flipUV = false;
+  bool joinIdenticalVertices = false;
+  bool calculateTangents = false;
+  bool glueByMaterials = false;
+  int maxBonexPerVertex = 4;
 };
 
 class AssimpScene {
-public:
-    AssimpScene(const std::string& path, const AssimpMeshLoadOptions& options);
-    ~AssimpScene();
+ public:
+  AssimpScene(const std::string& path, const AssimpMeshLoadOptions& options);
+  ~AssimpScene();
 
-    const aiScene& getScene() const;
+  const aiScene& getScene() const;
 
-private:
-    Assimp::Importer m_sceneImporter;
-    const aiScene* m_scene;
+ private:
+  Assimp::Importer m_sceneImporter;
+  const aiScene* m_scene;
 };
 
-class AssimpMeshLoader
-{
-public:
-    static std::unique_ptr<AssimpScene> loadScene(const std::string& path, const AssimpMeshLoadOptions& options);
+class AssimpMeshLoader {
+ public:
+  static std::unique_ptr<AssimpScene> loadScene(const std::string& path, const AssimpMeshLoadOptions& options);
 
-private:
-    AssimpMeshLoader() = delete;
+ private:
+  AssimpMeshLoader() = delete;
 };
 

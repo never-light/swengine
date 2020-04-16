@@ -2,7 +2,9 @@
 
 #include <functional>
 #include <vector>
+#include <string>
 #include <unordered_map>
+#include <memory>
 
 #include <SDL.h>
 #include <glm/vec2.hpp>
@@ -11,54 +13,53 @@
 #include "InputEvents.h"
 
 struct MousePosition {
-    int x;
-    int y;
+  int x;
+  int y;
 };
 
 enum class MouseMovementMode {
-    Absolute, Relative
+  Absolute, Relative
 };
 
-class InputModule
-{
-public:
-    InputModule(SDL_Window* window);
-    ~InputModule();
+class InputModule {
+ public:
+  explicit InputModule(SDL_Window* window);
+  ~InputModule();
 
-    void registerAction(const std::string& actionName,
-                        const InputAction& action);
+  void registerAction(const std::string& actionName,
+                      const InputAction& action);
 
-    void unregisterAction(const std::string& actionName);
+  void unregisterAction(const std::string& actionName);
 
-    bool isActionActive(const std::string& actionName) const;
+  [[nodiscard]] bool isActionActive(const std::string& actionName) const;
 
-    void enableGlobalTracking();
-    void disableGlobalTracking();
+  void enableGlobalTracking();
+  void disableGlobalTracking();
 
-    bool isGlobalTrackingEnabled() const;
+  [[nodiscard]] bool isGlobalTrackingEnabled() const;
 
-    void setMouseMovementMode(MouseMovementMode mode);
-    MouseMovementMode getMouseMovementMode() const;
+  void setMouseMovementMode(MouseMovementMode mode);
+  [[nodiscard]] MouseMovementMode getMouseMovementMode() const;
 
-    void setMousePosition(const MousePosition& position);
-    MousePosition getMousePosition() const;
+  void setMousePosition(const MousePosition& position);
+  [[nodiscard]] MousePosition getMousePosition() const;
 
-    MousePosition getMouseDelta() const;
+  [[nodiscard]] MousePosition getMouseDelta() const;
 
-    void processRawSDLEvent(const SDL_Event& ev);
+  void processRawSDLEvent(const SDL_Event& ev);
 
-    void registerEventsListener(std::shared_ptr<InputEventsListener> listener);
-    void unregisterEventsListener(std::shared_ptr<InputEventsListener> listener);
+  void registerEventsListener(std::shared_ptr<InputEventsListener> listener);
+  void unregisterEventsListener(std::shared_ptr<InputEventsListener> listener);
 
-private:
-    void toggleActionState(const InputAction& action, InputActionState state);
+ private:
+  void toggleActionState(const InputAction& action, InputActionState state);
 
-private:
-    std::vector<InputAction*> m_inputActions;
-    std::unordered_map<std::string, InputActionState> m_inputActionsState;
+ private:
+  std::vector<InputAction*> m_inputActions;
+  std::unordered_map<std::string, InputActionState> m_inputActionsState;
 
-    std::vector<std::shared_ptr<InputEventsListener>> m_eventsListeners;
+  std::vector<std::shared_ptr<InputEventsListener>> m_eventsListeners;
 
-    SDL_Window* m_window;
+  SDL_Window* m_window;
 };
 

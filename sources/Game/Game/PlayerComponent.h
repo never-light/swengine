@@ -2,15 +2,14 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Camera.h>
 
-class PlayerComponent
-{
-public:
-    PlayerComponent();
+class PlayerComponent {
+ public:
+  PlayerComponent();
 
-    void setMovementSpeed(float speed);
-    float getMovementSpeed() const;
+  void setMovementSpeed(float speed);
+  float getMovementSpeed() const;
 
-private:
-    float m_movementSpeed = 2.15f;
+ private:
+  float m_movementSpeed = 2.15f;
 };
 

@@ -11,78 +11,75 @@
 #include "GLTexture.h"
 
 enum class FramebufferCopyFilter {
-    Nearest, Linear
+  Nearest, Linear
 };
 
 class GLGraphicsContext;
 
-class GLFramebuffer
-{
-public:
-    GLFramebuffer(int width, int height, size_t colorComponentsCount,
-                  GLTextureInternalFormat colorComponentsFormat,
-                  bool createDepthStencilComponent);
+class GLFramebuffer {
+ public:
+  GLFramebuffer(int width, int height, size_t colorComponentsCount,
+                GLTextureInternalFormat colorComponentsFormat,
+                bool createDepthStencilComponent);
 
-    GLFramebuffer(int width, int height, const std::vector<std::shared_ptr<GLTexture>>& colorComponents,
-                  std::shared_ptr<GLTexture> depthStencilComponent);
+  GLFramebuffer(int width, int height, const std::vector<std::shared_ptr<GLTexture>>& colorComponents,
+                std::shared_ptr<GLTexture> depthStencilComponent);
 
-    GLFramebuffer(const GLFramebuffer& framebuffer) = delete;
+  GLFramebuffer(const GLFramebuffer& framebuffer) = delete;
 
-    ~GLFramebuffer();
+  ~GLFramebuffer();
 
-    Rect getBounds() const;
-    float getAspectRatio() const;
+  Rect getBounds() const;
+  float getAspectRatio() const;
 
-    int getWidth() const;
-    int getHeight() const;
+  int getWidth() const;
+  int getHeight() const;
 
-    void clearColor(const glm::vec4& color, size_t componentIndex = 0);
-    void clearDepthStencil(float depthValue, int stencilValue);
+  void clearColor(const glm::vec4& color, size_t componentIndex = 0);
+  void clearDepthStencil(float depthValue, int stencilValue);
 
-    void copyColor(GLFramebuffer& target, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
-    void copyColor(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-                FramebufferCopyFilter filter, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
+  void copyColor(GLFramebuffer& target, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
+  void copyColor(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+                 FramebufferCopyFilter filter, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
 
-    void copyDepthStencil(GLFramebuffer& target);
-    void copyDepthStencil(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-                FramebufferCopyFilter filter);
+  void copyDepthStencil(GLFramebuffer& target);
+  void copyDepthStencil(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+                        FramebufferCopyFilter filter);
 
-    GLuint getGLHandle() const;
+  [[nodiscard]] GLuint getGLHandle() const;
 
-    std::shared_ptr<GLTexture> getDepthComponent() const;
-    std::shared_ptr<GLTexture> getColorComponent(size_t index) const;
+  [[nodiscard]] std::shared_ptr<GLTexture> getDepthComponent() const;
+  [[nodiscard]] std::shared_ptr<GLTexture> getColorComponent(size_t index) const;
 
-private:
+ private:
 
+  /*!
+   * \brief GLFramebuffer Handles GL default framebuffer
+   * \param width
+   * \param height
+   */
+  GLFramebuffer(int width, int height);
 
-    /*!
-     * \brief GLFramebuffer Handles GL default framebuffer
-     * \param width
-     * \param height
-     */
-    GLFramebuffer(int width, int height);
+  void copyTo(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+              GLbitfield copyMask, FramebufferCopyFilter filter,
+              GLenum sourceAttachment, GLenum targetAttachment);
 
-    void copyTo(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-                GLbitfield copyMask, FramebufferCopyFilter filter,
-                GLenum sourceAttachment, GLenum targetAttachment);
+  void performInternalInitialization(const std::vector<std::shared_ptr<GLTexture>>& colorAttachments,
+                                     std::shared_ptr<GLTexture> depthAttachment);
+  void enableWritingToAllBuffers();
 
-    void performInternalInitialization(const std::vector<std::shared_ptr<GLTexture>>& colorAttachments,
-                                       std::shared_ptr<GLTexture> depthAttachment);
-    void enableWritingToAllBuffers();
+ private:
+  GLuint m_framebuffer;
 
+  int m_width;
+  int m_height;
 
-private:
-    GLuint m_framebuffer;
+  size_t m_colorComponentsCount;
 
-    int m_width;
-    int m_height;
+  std::array<std::shared_ptr<GLTexture>, 4> m_colorComponents;
+  std::shared_ptr<GLTexture> m_depthComponent;
 
-    size_t m_colorComponentsCount;
-
-    std::array<std::shared_ptr<GLTexture>, 4> m_colorComponents;
-    std::shared_ptr<GLTexture> m_depthComponent;
-
-private:
-    friend class GLGraphicsContext;
+ private:
+  friend class GLGraphicsContext;
 };
 

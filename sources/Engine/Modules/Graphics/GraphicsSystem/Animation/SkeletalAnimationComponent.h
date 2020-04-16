@@ -1,18 +1,19 @@
 #pragma once
 
+#include <memory>
+
 #include "SkeletalAnimationStatesManager.h"
 
-class SkeletalAnimationComponent
-{
-public:
-    SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton);
+class SkeletalAnimationComponent {
+ public:
+  explicit SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton);
 
-    SkeletalAnimationStatesMachine& getAnimationStatesMachine();
-    const SkeletalAnimationStatesMachine& getAnimationStatesMachine() const;
+  SkeletalAnimationStatesMachine& getAnimationStatesMachine();
+  [[nodiscard]] const SkeletalAnimationStatesMachine& getAnimationStatesMachine() const;
 
-    const SkeletalAnimationMatrixPalette& getMatrixPalette() const;
+  [[nodiscard]] const SkeletalAnimationMatrixPalette& getMatrixPalette() const;
 
-private:
-    SkeletalAnimationStatesMachine m_animationStatesMachine;
+ private:
+  SkeletalAnimationStatesMachine m_animationStatesMachine;
 };
 

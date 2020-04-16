@@ -7,23 +7,23 @@
 class GLGraphicsContext;
 
 class GLShadersPipeline {
-public:
-    GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
-                      std::shared_ptr<GLShader> fragmentShader,
-                      std::shared_ptr<GLShader> geometrySHader);
+ public:
+  GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
+                    std::shared_ptr<GLShader> fragmentShader,
+                    std::shared_ptr<GLShader> geometrySHader);
 
-    ~GLShadersPipeline();
+  ~GLShadersPipeline();
 
-    bool hasShader(GLenum type) const;
-    GLShader* getShader(GLenum type) const;
+  [[nodiscard]] bool hasShader(GLenum type) const;
+  [[nodiscard]] GLShader* getShader(GLenum type) const;
 
-private:
-    GLuint m_programPipeline;
+ private:
+  GLuint m_programPipeline;
 
-    std::shared_ptr<GLShader> m_vertexShader;
-    std::shared_ptr<GLShader> m_fragmentShader;
-    std::shared_ptr<GLShader> m_geometryShader;
+  std::shared_ptr<GLShader> m_vertexShader;
+  std::shared_ptr<GLShader> m_fragmentShader;
+  std::shared_ptr<GLShader> m_geometryShader;
 
-private:
-    friend class GLGraphicsContext;
+ private:
+  friend class GLGraphicsContext;
 };

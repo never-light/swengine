@@ -6,48 +6,48 @@
 #include "Transform.h"
 
 class Camera {
-public:
-    Camera();
-    ~Camera();
+ public:
+  Camera();
+  ~Camera();
 
-    Transform* getTransform() const;
+  [[nodiscard]] Transform* getTransform() const;
 
-    const Frustum& getFrustum();
+  [[nodiscard]] const Frustum& getFrustum();
 
-    void setAspectRatio(float ratio);
-    float getAspectRatio() const;
+  void setAspectRatio(float ratio);
+  [[nodiscard]] float getAspectRatio() const;
 
-    void setNearClipDistance(float distance);
-    float getNearClipDistance() const;
+  void setNearClipDistance(float distance);
+  [[nodiscard]] float getNearClipDistance() const;
 
-    void setFarClipDistance(float distance);
-    float getFarClipDistance() const;
+  void setFarClipDistance(float distance);
+  [[nodiscard]] float getFarClipDistance() const;
 
-    void setFOVy(float fov);
-    float getFOVy() const;
+  void setFOVy(float fov);
+  [[nodiscard]] float getFOVy() const;
 
-    glm::mat4x4 getProjectionMatrix();
-    glm::mat4x4 getViewMatrix();
+  [[nodiscard]] glm::mat4x4 getProjectionMatrix();
+  [[nodiscard]] glm::mat4x4 getViewMatrix();
 
-private:
-    void resetViewCache();
-    void resetProjectionCache();
+ private:
+  void resetViewCache();
+  void resetProjectionCache();
 
-private:
-    // View space transform
-    std::unique_ptr<Transform> m_transform;
+ private:
+  // View space transform
+  std::unique_ptr<Transform> m_transform;
 
-    Frustum m_frustum;
-    bool m_needFrustumUpdate = true;
+  Frustum m_frustum;
+  bool m_needFrustumUpdate = true;
 
-    // Projection parameters
-    float m_FOVy;
-    float m_aspectRatio;
-    float m_nearClipDistance;
-    float m_farClipDistance;
+  // Projection parameters
+  float m_FOVy;
+  float m_aspectRatio;
+  float m_nearClipDistance;
+  float m_farClipDistance;
 
-    glm::mat4x4 m_projectionMatrixCache;
-    bool m_needProjectionMatrixCacheUpdate = true;
+  glm::mat4x4 m_projectionMatrixCache;
+  bool m_needProjectionMatrixCacheUpdate = true;
 
-    glm::mat4x4 m_viewMatrixCache;
+  glm::mat4x4 m_viewMatrixCache;
 };

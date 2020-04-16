@@ -7,10 +7,10 @@ file(GLOB_RECURSE MESH_TOOL_SOURCES
 
 SET(MESH_TOOL_SOURCES ${MESH_TOOL_SOURCES} ${MESH_TOOL_INCLUDES})
 
-add_executable (mesh_tool ${MESH_TOOL_SOURCES})
+add_executable(mesh_tool ${MESH_TOOL_SOURCES})
 
 target_include_directories(mesh_tool PUBLIC ../)
 target_include_directories(mesh_tool PRIVATE ./)
 
-target_link_libraries (mesh_tool ${CONAN_LIBS}
+target_link_libraries(mesh_tool ${CONAN_LIBS}
         engine)

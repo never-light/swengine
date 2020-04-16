@@ -10,34 +10,30 @@
 #include <glm/gtx/string_cast.hpp>
 
 GameApplication::GameApplication(int argc, char* argv[])
-    : BaseGameApplication(argc, argv, "Game", 1280, 720)
-{
+    : BaseGameApplication(argc, argv, "Game", 1280, 720) {
 
 }
 
-GameApplication::~GameApplication()
-{
+GameApplication::~GameApplication() {
 
 }
 
-void GameApplication::render()
-{
+void GameApplication::render() {
 }
 
-void GameApplication::load()
-{
-    auto resourceMgr = m_resourceManagementModule->getResourceManager();
-    resourceMgr->addResourcesMap("../resources/resources.xml");
+void GameApplication::load() {
+  auto resourceMgr = m_resourceManagementModule->getResourceManager();
+  resourceMgr->addResourcesMap("../resources/resources.xml");
 
-    m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule));
-    m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));
+  m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule));
+  m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));
 
-    m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
+  m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
 
-    std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
-        resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
-        resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),
-        nullptr);
+  std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
+      resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
+      resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),
+      nullptr);
 
-    m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
+  m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
 }

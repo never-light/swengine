@@ -8,12 +8,11 @@ struct SkeletonExportOptions {
 
 };
 
-class SkeletonExporter
-{
-public:
-    SkeletonExporter();
+class SkeletonExporter {
+ public:
+  SkeletonExporter();
 
-    void exportToFile(const std::string& path,
-                      const RawSkeleton& skeleton,
-                      const SkeletonExportOptions& options);
+  void exportToFile(const std::string& path,
+                    const RawSkeleton& skeleton,
+                    const SkeletonExportOptions& options);
 };

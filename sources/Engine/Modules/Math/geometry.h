@@ -7,94 +7,94 @@
 #include <glm/mat4x4.hpp>
 
 struct Plane {
-public:
-    Plane();
-    Plane(const glm::vec3& normal, float distance);
+ public:
+  Plane();
+  Plane(const glm::vec3& normal, float distance);
 
-    void setNormal(const glm::vec3& normal);
-    glm::vec3 getNormal() const;
+  void setNormal(const glm::vec3& normal);
+  [[nodiscard]] glm::vec3 getNormal() const;
 
-    void setDistance(float distance);
-    float getDistance() const;
+  void setDistance(float distance);
+  [[nodiscard]] float getDistance() const;
 
-    void normalize();
+  void normalize();
 
-    static Plane fromUnnormalized(const glm::vec3& normal, float distance);
+  [[nodiscard]] static Plane fromUnnormalized(const glm::vec3& normal, float distance);
 
-private:
-    glm::vec3 m_normal = glm::vec3(0.0f, 0.0f, 0.0f);
-    float m_distance = 0.0f;
+ private:
+  glm::vec3 m_normal = glm::vec3(0.0f, 0.0f, 0.0f);
+  float m_distance = 0.0f;
 };
 
 enum class FrustumPlane {
-    Left,
-    Right,
-    Top,
-    Bottom,
-    Near,
-    Far
+  Left,
+  Right,
+  Top,
+  Bottom,
+  Near,
+  Far
 };
 
 struct Frustum {
-public:
-    Frustum();
-    Frustum(const std::array<Plane, 6>& planes);
+ public:
+  Frustum();
+  explicit Frustum(const std::array<Plane, 6>& planes);
 
-    const Plane& getPlane(size_t index) const;
-    Plane& getPlane(size_t index);
+  [[nodiscard]] const Plane& getPlane(size_t index) const;
+  [[nodiscard]] Plane& getPlane(size_t index);
 
-    const Plane& getPlane(FrustumPlane plane) const;
-    Plane& getPlane(FrustumPlane plane);
+  [[nodiscard]] const Plane& getPlane(FrustumPlane plane) const;
+  [[nodiscard]] Plane& getPlane(FrustumPlane plane);
 
-    void setPlane(size_t index, const Plane& plane);
-    void setPlane(FrustumPlane planeType, const Plane& plane);
+  void setPlane(size_t index, const Plane& plane);
+  void setPlane(FrustumPlane planeType, const Plane& plane);
 
-    std::array<glm::vec3, 8> getCorners() const;
+  [[nodiscard]] std::array<glm::vec3, 8> getCorners() const;
 
-public:
-    static Frustum extractFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection);
+ public:
+  static Frustum extractFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection);
 
-private:
-    // Left, right, top, bottom, near, far
-    std::array<Plane, 6> m_planes;
+ private:
+  // Left, right, top, bottom, near, far
+  std::array<Plane, 6> m_planes;
 };
 
 struct Sphere {
-public:
-    Sphere();
-    Sphere(const glm::vec3& origin, float radius);
+ public:
+  Sphere();
+  Sphere(const glm::vec3& origin, float radius);
 
-    void setOrigin(const glm::vec3& origin);
-    glm::vec3 getOrigin() const;
+  void setOrigin(const glm::vec3& origin);
+  [[nodiscard]] glm::vec3 getOrigin() const;
 
-    void setRadius(float radius);
-    float getRadius() const;
+  void setRadius(float radius);
+  [[nodiscard]] float getRadius() const;
 
-private:
-    glm::vec3 m_origin = glm::vec3(0.0f, 0.0f, 0.0f);
-    float m_radius = 0.0f;
+ private:
+  glm::vec3 m_origin = glm::vec3(0.0f, 0.0f, 0.0f);
+  float m_radius = 0.0f;
 };
 
 struct AABB {
-public:
-    AABB();
-    AABB(const glm::vec3& min, const glm::vec3& max);
+ public:
+  AABB();
+  AABB(const glm::vec3& min, const glm::vec3& max);
 
-    void setMin(const glm::vec3& min);
-    const glm::vec3& getMin() const;
+  void setMin(const glm::vec3& min);
+  [[nodiscard]] const glm::vec3& getMin() const;
 
-    void setMax(const glm::vec3& max);
-    const glm::vec3& getMax() const;
+  void setMax(const glm::vec3& max);
+  [[nodiscard]] const glm::vec3& getMax() const;
 
-    glm::vec3 getSize() const;
+  [[nodiscard]] glm::vec3 getSize() const;
 
-    Sphere toSphere() const;
+  [[nodiscard]] Sphere toSphere() const;
 
-    std::array<glm::vec3, 8> getCorners() const;
+  [[nodiscard]] std::array<glm::vec3, 8> getCorners() const;
 
-private:
-    glm::vec3 m_min;
-    glm::vec3 m_max;
+ private:
+  glm::vec3 m_min;
+  glm::vec3 m_max;
 };
 
 float calculateDistance(const glm::vec3& v1, const glm::vec3& v2);

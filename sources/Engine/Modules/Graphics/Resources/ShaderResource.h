@@ -1,46 +1,49 @@
 #pragma once
 
+#include <string>
+#include <memory>
+
 #include "Modules/ResourceManagement/Resource.h"
 #include "Modules/Graphics/OpenGL/GLShader.h"
 
 struct ShaderResourceParameters : ResourceSourceParameters {
-    ShaderResourceParameters() {}
-    ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType) {}
+  ShaderResourceParameters() = default;
 
-    GLenum shaderType;
+  explicit ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType) {}
+
+  GLenum shaderType;
 };
 
-class ShaderResource : public Resource
-{
-public:
-    using ParametersType = ShaderResourceParameters;
+class ShaderResource : public Resource {
+ public:
+  using ParametersType = ShaderResourceParameters;
 
-public:
-    ShaderResource();
-    ~ShaderResource() override;
+ public:
+  ShaderResource();
+  ~ShaderResource() override;
 
-    void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-    void unload() override;
+  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
+  void unload() override;
 
-    bool isBusy() const override;
+  [[nodiscard]] bool isBusy() const override;
 
-    static std::shared_ptr<GLShader> loadFromFile(const std::string& path,
-                                                  const ShaderResourceParameters& parameters);
+  static std::shared_ptr<GLShader> loadFromFile(const std::string& path,
+                                                const ShaderResourceParameters& parameters);
 
-    static std::shared_ptr<GLShader> loadFromRawString(const std::string& rawString,
-                                                       const ShaderResourceParameters& parameters);
+  static std::shared_ptr<GLShader> loadFromRawString(const std::string& rawString,
+                                                     const ShaderResourceParameters& parameters);
 
-    static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                               const ParametersType& defaultParameters);
+  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
+                                                   const ParametersType& defaultParameters);
 
-public:
-    std::shared_ptr<GLShader> getShader() const;
+ public:
+  [[nodiscard]] std::shared_ptr<GLShader> getShader() const;
 
-private:
-    static std::string preprocessShaderSource(const std::string& source);
-    static std::string processIncludes(const std::string& source);
-    static std::string processMacros(const std::string& source);
+ private:
+  static std::string preprocessShaderSource(const std::string& source);
+  static std::string processIncludes(const std::string& source);
+  static std::string processMacros(const std::string& source);
 
-private:
-    std::shared_ptr<GLShader> m_shader;
+ private:
+  std::shared_ptr<GLShader> m_shader;
 };

@@ -3,9 +3,7 @@
 #include <pugixml.hpp>
 
 class XMLUtils {
-public:
-
-private:
-    XMLUtils() = delete;
+ public:
+  XMLUtils() = delete;
 };
 
