@@ -39,7 +39,7 @@
 #include <glm/gtx/matrix_operation.hpp>
 
 #include <pugixml.hpp>
-#include <STB/stb_image.h>
+#include <stb_image.h>
 #include <spdlog/spdlog.h>
 
 // Engine headers to precompile

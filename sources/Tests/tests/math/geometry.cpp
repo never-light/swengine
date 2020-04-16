@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 #include <Engine/Modules/Math/matrices.h>
 #include <Engine/Modules/Math/geometry.h>

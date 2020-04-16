@@ -3,7 +3,7 @@
 TEST_CASE("bone-pose-matrix", "[animation]") {
     using tests::MathUtils;
 
-    glm::vec3 originPosition = { 1.0f, 2.0f, 3.0f };
+    glm::vec3 originPosition = { 5.0f, 2.0f, 3.0f };
     glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
     BonePose originPose(originPosition, originOrientation);
 
