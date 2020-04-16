@@ -1,0 +1,13 @@
+[requires]
+glm/0.9.9.8
+assimp/5.0.1
+catch2/2.11.3
+openal/1.19.1
+pugixml/1.10@bincrafters/stable
+sdl2/2.0.12@bincrafters/stable
+spdlog/1.5.0
+stb/20200203
+cxxopts/v2.1.2@inexorgame/stable
+
+[generators]
+cmake
