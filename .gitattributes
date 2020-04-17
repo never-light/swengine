@@ -1,0 +1,7 @@
+* text=auto
+
+*.c text
+*.h text
+
+*.png binary
+*.jpg binary
