@@ -32,8 +32,8 @@
 *.app
 
 # Project environment
-*.pro.*
-build-*/
+.idea
+build/
+cmake-*/
 bin/
-*.pro.user
 resources/
