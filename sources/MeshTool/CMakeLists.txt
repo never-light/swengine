@@ -9,8 +9,12 @@ SET(MESH_TOOL_SOURCES ${MESH_TOOL_SOURCES} ${MESH_TOOL_INCLUDES})
 
 add_executable(mesh_tool ${MESH_TOOL_SOURCES})
 
-target_include_directories(mesh_tool PUBLIC ../)
+target_include_directories(mesh_tool PUBLIC ../
+        ../../ThirdParty)
 target_include_directories(mesh_tool PRIVATE ./)
 
+target_link_directories(mesh_tool PRIVATE ../../build/libraries)
+
 target_link_libraries(mesh_tool ${CONAN_LIBS}
-        engine)
+        engine
+        assimp)

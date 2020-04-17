@@ -11,7 +11,7 @@ TEST_CASE("state-machine-variables-get-set", "[animation]") {
   SkeletalAnimationStatesMachineVariables& variablesSet = stateMachine.getVariablesSet();
 
   SkeletalAnimationVariableId speedVarId = variablesSet.registerVariable("player_speed", 0.0f);
-  variablesSet.setVariableValue("player_speed", 5.0f);
+  variablesSet.setVariableValue("player_speed", 15.0f);
 
   REQUIRE(variablesSet.getVariableId("player_speed") == speedVarId);
   REQUIRE(MathUtils::isEqual(variablesSet.getVariableValue("player_speed"), 15.0f));

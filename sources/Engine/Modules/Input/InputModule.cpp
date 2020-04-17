@@ -81,14 +81,14 @@ void InputModule::setMousePosition(const MousePosition& position) {
 }
 
 MousePosition InputModule::getMousePosition() const {
-  MousePosition position;
+  MousePosition position{};
   SDL_GetMouseState(&position.x, &position.y);
 
   return position;
 }
 
 MousePosition InputModule::getMouseDelta() const {
-  MousePosition position;
+  MousePosition position{};
   SDL_GetRelativeMouseState(&position.x, &position.y);
 
   return position;
@@ -96,14 +96,14 @@ MousePosition InputModule::getMouseDelta() const {
 
 void InputModule::processRawSDLEvent(const SDL_Event& ev) {
   if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
-    KeyboardEvent event;
+    KeyboardEvent event{};
 
     event.type = (ev.type == SDL_KEYDOWN) ? KeyboardEventType::KeyDown : KeyboardEventType::KeyUp;
     event.keyCode = ev.key.keysym.sym;
     event.repeated = ev.key.repeat;
     event.keyModifiers = SDL_GetModState();
 
-    for (auto eventsListener : m_eventsListeners) {
+    for (const auto& eventsListener : m_eventsListeners) {
       eventsListener->processKeyboardEvent(event);
     }
 
@@ -111,28 +111,29 @@ void InputModule::processRawSDLEvent(const SDL_Event& ev) {
     toggleActionState(KeyboardInputAction(ev.key.keysym.sym), newState);
   }
   else if (ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP) {
-    MouseButtonEvent event;
+    MouseButtonEvent event{};
 
     event.type = (ev.type == SDL_MOUSEBUTTONDOWN) ? MouseButtonEventType::ButtonDown : MouseButtonEventType::ButtonUp;
     event.button = ev.button.button;
 
-    for (auto eventsListener : m_eventsListeners) {
+    for (const auto& eventsListener : m_eventsListeners) {
       eventsListener->processMouseButtonEvent(event);
     }
 
-    InputActionState
-        newState = (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
+    InputActionState newState =
+        (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
+
     toggleActionState(MouseButtonClickAction(ev.button.button), newState);
   }
   else if (ev.type == SDL_MOUSEMOTION) {
-    MouseMoveEvent event;
+    MouseMoveEvent event{};
     event.x = ev.motion.x;
     event.y = ev.motion.y;
 
     event.deltaX = ev.motion.xrel;
     event.deltaY = ev.motion.yrel;
 
-    for (auto eventsListener : m_eventsListeners) {
+    for (const auto& eventsListener : m_eventsListeners) {
       eventsListener->processMouseMoveEvent(event);
     }
   }
@@ -156,20 +157,16 @@ void InputModule::toggleActionState(const InputAction& action, InputActionState 
       event.actionName = currentAction->m_name;
       event.newState = state;
 
-      for (auto eventsListener : m_eventsListeners) {
+      for (const auto& eventsListener : m_eventsListeners) {
         eventsListener->processInputActionToggleEvent(event);
       }
     }
   }
 }
 
-InputAction::InputAction() {
+InputAction::InputAction() = default;
 
-}
-
-InputAction::~InputAction() {
-
-}
+InputAction::~InputAction() = default;
 
 KeyboardInputAction::KeyboardInputAction(SDL_Keycode keyCode)
     : m_keyCode(keyCode) {
@@ -184,8 +181,8 @@ InputAction* KeyboardInputAction::clone() const {
   return new KeyboardInputAction(m_keyCode);
 }
 
-bool KeyboardInputAction::equals(const InputAction* const action) const {
-  const KeyboardInputAction* const keyboardAction = dynamic_cast<const KeyboardInputAction* const>(action);
+bool KeyboardInputAction::equals(const InputAction* action) const {
+  const auto* keyboardAction = dynamic_cast<const KeyboardInputAction* const>(action);
   return keyboardAction != nullptr && keyboardAction->getKeyCode() == m_keyCode;
 }
 
@@ -202,7 +199,7 @@ InputAction* MouseButtonClickAction::clone() const {
   return new MouseButtonClickAction(m_button);
 }
 
-bool MouseButtonClickAction::equals(const InputAction* const action) const {
-  const MouseButtonClickAction* const clickAction = dynamic_cast<const MouseButtonClickAction* const>(action);
+bool MouseButtonClickAction::equals(const InputAction* action) const {
+  const auto* clickAction = dynamic_cast<const MouseButtonClickAction* const>(action);
   return clickAction != nullptr && clickAction->getButtonCode() == m_button;
 }
