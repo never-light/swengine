@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 class StringUtils {
  public:
@@ -37,7 +37,7 @@ T StringUtils::filterValue(const std::string& rawValue,
     auto valueIt = allowedValues.find(rawValue);
 
     if (valueIt == allowedValues.end()) {
-      ENGINE_RUNTIME_ERROR("The value has invalid format");
+      THROW_EXCEPTION(EngineRuntimeException, "The value has invalid format");
     }
 
     value = valueIt->second;

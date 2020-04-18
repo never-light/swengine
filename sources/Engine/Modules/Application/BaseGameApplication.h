@@ -56,6 +56,8 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   void performUpdate(float delta);
   void performRender();
 
+  static void handleAppTerminate();
+
  protected:
   SDL_Window* m_mainWindow;
 

@@ -30,8 +30,8 @@ class GLTexture {
   GLTexture(GLTextureType type, int width, int height, GLTextureInternalFormat internalFormat);
   ~GLTexture();
 
-  void setData(GLenum dataFormat, GLenum dataType, const byte* data, size_t lodIndex = 0);
-  void setCubemapFaceData(size_t faceIndex, GLenum dataFormat, GLenum dataType, const byte* data, size_t lodIndex = 0);
+  void setData(GLenum dataFormat, GLenum dataType, const std::byte* data, size_t lodIndex = 0);
+  void setCubemapFaceData(size_t faceIndex, GLenum dataFormat, GLenum dataType, const std::byte* data, size_t lodIndex = 0);
 
   void generateMipMaps();
 

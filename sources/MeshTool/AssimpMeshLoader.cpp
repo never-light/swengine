@@ -1,6 +1,6 @@
 #include "AssimpMeshLoader.h"
 
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 
 AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& options) {
   unsigned int importOptions = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_ImproveCacheLocality;
@@ -35,7 +35,7 @@ AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& o
   m_scene = m_sceneImporter.ReadFile(path, importOptions);
 
   if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !m_scene->mRootNode) {
-    ENGINE_RUNTIME_ERROR(m_sceneImporter.GetErrorString());
+    THROW_EXCEPTION(EngineRuntimeException, m_sceneImporter.GetErrorString());
   }
 }
 

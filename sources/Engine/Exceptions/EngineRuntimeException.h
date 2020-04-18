@@ -16,5 +16,3 @@ class EngineRuntimeException : public std::runtime_error {
   std::string m_function;
   size_t m_line;
 };
-
-#define ENGINE_RUNTIME_ERROR(message) throw EngineRuntimeException((message), __FILE__, __LINE__, __FUNCTION__)

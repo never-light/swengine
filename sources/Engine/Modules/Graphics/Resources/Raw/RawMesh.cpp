@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "RawMesh.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 RawMesh RawMesh::readFromFile(const std::string& path) {
   RawMesh rawMesh;
@@ -12,11 +12,11 @@ RawMesh RawMesh::readFromFile(const std::string& path) {
   meshFile.read(reinterpret_cast<char*>(&rawMesh.header), sizeof(rawMesh.header));
 
   if (rawMesh.header.formatVersion != MESH_FORMAT_VERSION) {
-    ENGINE_RUNTIME_ERROR("Trying to load mesh with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with incompatible format version");
   }
 
   if (rawMesh.header.verticesCount == 0) {
-    ENGINE_RUNTIME_ERROR("Trying to load mesh with zero vertices count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with zero vertices count");
   }
 
   const uint16_t verticesCount = rawMesh.header.verticesCount;

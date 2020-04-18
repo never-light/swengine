@@ -5,7 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include <Engine/swdebug.h>
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 
 MeshExporter::MeshExporter() {
 
@@ -41,11 +41,12 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
           | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
       break;
 
-    default:ENGINE_RUNTIME_ERROR("The target format is not supported");
+    default:
+      THROW_EXCEPTION(EngineRuntimeException, "The target format is not supported");
   }
 
   if ((meshAttributes & targetAttributesMask) != targetAttributesMask) {
-    ENGINE_RUNTIME_ERROR("The mesh is incompatible with the target format");
+    THROW_EXCEPTION(EngineRuntimeException, "The mesh is incompatible with the target format");
   }
 
   // Update stored attributes mask according to target format

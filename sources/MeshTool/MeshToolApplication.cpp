@@ -1,7 +1,7 @@
 #include "MeshToolApplication.h"
 
 #include <spdlog/spdlog.h>
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 #include <Engine/swdebug.h>
 #include <Engine/Utility/strings.h>
 
@@ -58,11 +58,11 @@ void MeshToolApplication::execute(int argc, char* argv[]) {
       importAnimation(parsedArgs);
     }
     else {
-      ENGINE_RUNTIME_ERROR("Unknown import type");
+      THROW_EXCEPTION(EngineRuntimeException, "Unknown import type");
     }
   }
   else {
-    ENGINE_RUNTIME_ERROR("Unknown action");
+    THROW_EXCEPTION(EngineRuntimeException, "Unknown action");
   }
 }
 

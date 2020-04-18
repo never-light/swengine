@@ -22,7 +22,7 @@ GLTexture::~GLTexture() {
   GL_CALL(glDeleteTextures(1, &m_texture));
 }
 
-void GLTexture::setData(GLenum dataFormat, GLenum dataType, const byte* data, size_t lodIndex) {
+void GLTexture::setData(GLenum dataFormat, GLenum dataType, const std::byte* data, size_t lodIndex) {
   SW_ASSERT(m_type == GLTextureType::Texture2D);
 
   GL_CALL(glTextureSubImage2D(m_texture, static_cast<GLint>(lodIndex), 0, 0, m_width, m_height, dataFormat, dataType,
@@ -32,7 +32,7 @@ void GLTexture::setData(GLenum dataFormat, GLenum dataType, const byte* data, si
 void GLTexture::setCubemapFaceData(size_t faceIndex,
                                    GLenum dataFormat,
                                    GLenum dataType,
-                                   const byte* data,
+                                   const std::byte* data,
                                    size_t lodIndex) {
   SW_ASSERT(m_type == GLTextureType::Cubemap);
 

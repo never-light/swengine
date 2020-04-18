@@ -11,7 +11,7 @@
 
 #include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
 #include "Modules/ResourceManagement/ResourceManager.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 #include "Utility/memory.h"
 
 #include "SkeletonResource.h"
@@ -44,7 +44,7 @@ void MeshResource::load(const ResourceDeclaration& declaration, ResourceManager&
     }
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load mesh resource from invalid source");
+      THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh resource from invalid source");
   }
 }
 
@@ -95,7 +95,7 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
     mesh->setTangents(tangents);
   }
 
-  if (rawMesh.bonesIds.size() != 0) {
+  if (!rawMesh.bonesIds.empty()) {
     SW_ASSERT(rawMesh.bonesWeights.size() == rawMesh.bonesIds.size());
 
     std::vector<glm::u8vec4> bonesIDs =
@@ -123,7 +123,7 @@ MeshResource::ParametersType MeshResource::buildDeclarationParameters(const pugi
     pugi::xml_attribute skeletonId = skeletonNode.attribute("id");
 
     if (!skeletonId) {
-      ENGINE_RUNTIME_ERROR("Skeleton attribute for a mesh is added, but resource id is not specified");
+        THROW_EXCEPTION(EngineRuntimeException, "Skeleton attribute for a mesh is added, but resource id is not specified");
     }
 
     parameters.skeletonResourceId = skeletonId.as_string();

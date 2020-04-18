@@ -5,7 +5,7 @@
 #include "GLGraphicsContext.h"
 
 #include <spdlog/spdlog.h>
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
 GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
@@ -15,15 +15,15 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
   m_glContext = SDL_GL_CreateContext(m_window);
 
   if (m_glContext == nullptr) {
-    ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+      THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
   }
 
   if (gl3wInit()) {
-    ENGINE_RUNTIME_ERROR("Failed to initialize OpenGL");
+      THROW_EXCEPTION(EngineRuntimeException, "Failed to initialize OpenGL");
   }
 
   if (!gl3wIsSupported(4, 5)) {
-    ENGINE_RUNTIME_ERROR("Failed to load OpenGL functions");
+      THROW_EXCEPTION(EngineRuntimeException, "Failed to load OpenGL functions");
   }
 
   glEnable(GL_DEBUG_OUTPUT);
@@ -212,7 +212,7 @@ void GLGraphicsContext::applyMaterial(const GLMaterial& material) {
       shader->setParameter(parameterName, *(*pval).texture.get(), (*pval).slotIndex);
     }
     else {
-      ENGINE_RUNTIME_ERROR("Failed to set generic material parameter");
+        THROW_EXCEPTION(EngineRuntimeException, "Failed to set generic material parameter");
     }
   }
 }

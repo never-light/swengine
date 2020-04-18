@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "SkeletalAnimationResource.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 #include "Utility/memory.h"
 
 #include "Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h"
@@ -32,7 +32,7 @@ void SkeletalAnimationResource::load(const ResourceDeclaration& declaration, Res
     m_clip = loadFromFile(sourceFile->path, parameters);
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load skeletal animation resource from invalid source");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeletal animation resource from invalid source");
   }
 }
 

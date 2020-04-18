@@ -4,7 +4,7 @@
 
 #include <string>
 #include <bitset>
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 #include <Engine/swdebug.h>
 
 #include "utils.h"
@@ -83,7 +83,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
   collectMeshes(scene, *scene.mRootNode, meshesList, rootTransform);
 
   if (meshesList.empty()) {
-    ENGINE_RUNTIME_ERROR("Failed to import mesh, geometry is not found");
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to import mesh, geometry is not found");
   }
 
   for (auto[subMeshName, subMeshPtr] : meshesList) {
@@ -91,7 +91,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     size_t subMeshIndex = subMeshesIndices.size() - 1;
 
     bool requiredAttributesFound = subMesh.HasPositions() && subMesh.HasNormals()
-        && subMesh.HasTextureCoords(0) && subMesh.HasFaces() && subMesh.HasTangentsAndBitangents();
+      && subMesh.HasTextureCoords(0) && subMesh.HasFaces() && subMesh.HasTangentsAndBitangents();
 
     if (!requiredAttributesFound) {
       spdlog::info("Submesh #{} ({}) is incomplete and was skipped", subMeshIndex, subMeshName);
@@ -119,7 +119,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
                                                  subMeshPtr.sceneTransfromationMatrix, false, true));
 
       uv.push_back({subMesh.mTextureCoords[0][vertexIndex].x,
-                       subMesh.mTextureCoords[0][vertexIndex].y});
+                     subMesh.mTextureCoords[0][vertexIndex].y});
 
       bonesIDs.push_back({0, 0, 0, 0});
       bonesWeights.push_back({0.0f, 0.0f, 0.0f, 0.0f});
@@ -168,7 +168,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
         int skeletonBoneIndex = rawBoneIt->second;
 
         if (rawBoneIt == bonesMap.end()) {
-          ENGINE_RUNTIME_ERROR("Bone " + boneName + " that is attached to the submesh is not found in the skeleton");
+          THROW_EXCEPTION(EngineRuntimeException,
+                          "Bone " + boneName + " that is attached to the submesh is not found in the skeleton");
         }
 
         for (size_t weightIndex = 0; weightIndex < bone.mNumWeights; weightIndex++) {
@@ -205,15 +206,14 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = remainingSum;
 
           break;
-        }
-        else {
+        } else {
           remainingSum -= convertedWeight;
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = convertedWeight;
         }
       }
 
       SW_ASSERT(convertedBonesWeights[weightIndex].x + convertedBonesWeights[weightIndex].y +
-          convertedBonesWeights[weightIndex].z + convertedBonesWeights[weightIndex].w == 255);
+        convertedBonesWeights[weightIndex].z + convertedBonesWeights[weightIndex].w == 255);
     }
 
     if (options.loadSkin && unskinnedVerticesCount > 0) {
@@ -252,7 +252,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
   RawMeshAttributes storedAttributesMask = RawMeshAttributes::Empty;
   storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
-      RawMeshAttributes::UV | RawMeshAttributes::Tangents;
+    RawMeshAttributes::UV | RawMeshAttributes::Tangents;
 
   if (options.loadSkin) {
     storedAttributesMask = storedAttributesMask | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;

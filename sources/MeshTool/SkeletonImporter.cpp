@@ -3,7 +3,7 @@
 #include <unordered_set>
 #include <spdlog/spdlog.h>
 #include <Engine/swdebug.h>
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 
 #include "AssimpMeshLoader.h"
 #include "utils.h"
@@ -44,7 +44,7 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
   const aiNode* rootNode = findRootBoneNode(scene.mRootNode, usedBonesList);
 
   if (rootNode == nullptr) {
-    ENGINE_RUNTIME_ERROR("Failed to find the root bone");
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to find the root bone");
   }
 
   spdlog::warn("Root trasform: {}", glm::to_string(aiMatrix4x4ToGlm(&scene.mRootNode->mTransformation)));
@@ -101,7 +101,7 @@ std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(co
         auto boneIt = bonesList.find(boneName);
 
         if (boneIt != bonesList.end() && boneIt->second != bone) {
-          ENGINE_RUNTIME_ERROR("Failed to collect bones names, "
+          THROW_EXCEPTION(EngineRuntimeException, "Failed to collect bones names, "
                                "there are to bones with the same name");
         }
 
@@ -174,11 +174,11 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
   if (boneIt == bonesList.end()) {
     if (skeletonNode->mNumChildren != 0) {
       if (skeletonNode->mNumMeshes == 0) {
-        ENGINE_RUNTIME_ERROR("Failed to build skeleton, "
+        THROW_EXCEPTION(EngineRuntimeException, "Failed to build skeleton, "
                              "the bone node is not presented in list of bones' names ( " + boneName + " )");
       }
       else {
-        ENGINE_RUNTIME_ERROR("There are node with meshes in skeleton tree (" + boneName + ") "
+        THROW_EXCEPTION(EngineRuntimeException, "There are node with meshes in skeleton tree (" + boneName + ") "
                                                                                           "such format is not supported");
       }
     }
@@ -194,7 +194,7 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
   SW_ASSERT(boneData != nullptr);
 
   if (boneName.size() > MAX_BONE_NAME_LENGTH) {
-    ENGINE_RUNTIME_ERROR("The bone name is too long");
+    THROW_EXCEPTION(EngineRuntimeException, "The bone name is too long");
   }
 
   // Fill RawBone data structure

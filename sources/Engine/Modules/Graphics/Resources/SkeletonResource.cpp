@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "SkeletonResource.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 #include "Modules/Graphics/Resources/Raw/RawSkeleton.h"
 
@@ -31,7 +31,7 @@ void SkeletonResource::load(const ResourceDeclaration& declaration, ResourceMana
     m_skeleton = loadFromFile(sourceFile->path, parameters);
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load skeleton resource from invalid source");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton resource from invalid source");
   }
 }
 

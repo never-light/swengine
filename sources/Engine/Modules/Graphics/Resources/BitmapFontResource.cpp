@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "BitmapFontResource.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 #include <fstream>
 #include <streambuf>
@@ -34,7 +34,7 @@ void BitmapFontResource::load(const ResourceDeclaration& declaration, ResourceMa
     m_font = loadFromFile(sourceFile->path, parameters);
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load shader resource from invalid source");
+      THROW_EXCEPTION(EngineRuntimeException, "Trying to load shader resource from invalid source");
   }
 }
 
@@ -60,7 +60,7 @@ std::shared_ptr<BitmapFont> BitmapFontResource::loadFromFile(const std::string& 
   pugi::xml_parse_result result = fontDescription.load_file(path.c_str());
 
   if (!result) {
-    ENGINE_RUNTIME_ERROR("Trying to load font resource from invalid source");
+      THROW_EXCEPTION(EngineRuntimeException, "Trying to load font resource from invalid source");
   }
 
   pugi::xml_node fontNode = fontDescription.child("font");

@@ -6,8 +6,8 @@
 #include "ScreenManager.h"
 
 Screen::Screen(const std::string& name)
-    : m_name(name),
-      m_guiLayout(std::make_shared<GUILayout>()) {
+  : m_name(name),
+    m_guiLayout(std::make_shared<GUILayout>()) {
 
 }
 

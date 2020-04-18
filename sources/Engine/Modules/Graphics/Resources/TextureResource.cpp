@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "TextureResource.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 #include <fstream>
 #include <streambuf>
@@ -33,7 +33,7 @@ void TextureResource::load(const ResourceDeclaration& declaration, ResourceManag
     m_texture = loadFromFile(sourceFile->path, parameters);
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load shader resource from invalid source");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load shader resource from invalid source");
   }
 }
 
@@ -51,10 +51,10 @@ std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path
                                                          const TextureResourceParameters& parameters) {
   int width, height;
   int nrChannels;
-  byte* data = reinterpret_cast<byte*>(stbi_load(path.c_str(), &width, &height, &nrChannels, 0));
+  std::byte* data = reinterpret_cast<std::byte*>(stbi_load(path.c_str(), &width, &height, &nrChannels, 0));
 
   if (data == nullptr) {
-    ENGINE_RUNTIME_ERROR(std::string("Texture file has invalid format: ") +
+    THROW_EXCEPTION(EngineRuntimeException, std::string("Texture file has invalid format: ") +
         stbi_failure_reason());
   }
 
@@ -73,7 +73,7 @@ std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path
     pixelFormat = GL_RGBA;
   }
   else {
-    ENGINE_RUNTIME_ERROR("Texture file has invalid format");
+    THROW_EXCEPTION(EngineRuntimeException, "Texture file has invalid format");
   }
 
   std::shared_ptr<GLTexture>

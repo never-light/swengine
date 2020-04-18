@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "RawSkeletalAnimationClip.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::string& path) {
   std::ifstream clipFile(path, std::ios::binary);
@@ -13,11 +13,11 @@ RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::strin
   clipFile.read(reinterpret_cast<char*>(&rawClip.header), sizeof(rawClip.header));
 
   if (rawClip.header.formatVersion != ANIMATION_FORMAT_VERSION) {
-    ENGINE_RUNTIME_ERROR("Trying to load animation clip with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with incompatible format version");
   }
 
   if (rawClip.header.skeletonBonesCount == 0) {
-    ENGINE_RUNTIME_ERROR("Trying to load animation clip with zero bones count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with zero bones count");
   }
 
   const uint16_t skeletonBonesCount = rawClip.header.skeletonBonesCount;

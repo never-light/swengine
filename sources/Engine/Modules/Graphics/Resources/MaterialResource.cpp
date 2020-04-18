@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "MaterialResource.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 #include <fstream>
 #include <streambuf>
@@ -39,9 +39,9 @@ void MaterialResource::load(const ResourceDeclaration& declaration, ResourceMana
         getResourceFromInstance<ShaderResource>(parameters.shadersPipeline.fragmentShaderId)->getShader();
 
     std::shared_ptr<GLShadersPipeline>
-        shadersPileline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
+        shadersPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
 
-    gpuMaterial->setShadersPipeline(shadersPileline);
+    gpuMaterial->setShadersPipeline(shadersPipeline);
 
     gpuMaterial->setBlendingMode(parameters.gpuState.blendingMode);
     gpuMaterial->setDepthTestMode(parameters.gpuState.depthTestMode);
@@ -82,7 +82,7 @@ void MaterialResource::load(const ResourceDeclaration& declaration, ResourceMana
     m_material = std::make_shared<Material>(std::move(gpuMaterial));
   }
   else {
-    ENGINE_RUNTIME_ERROR("Trying to load mesh resource from invalid source");
+      THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh resource from invalid source");
   }
 }
 

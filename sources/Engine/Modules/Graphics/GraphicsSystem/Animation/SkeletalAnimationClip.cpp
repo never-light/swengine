@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "SkeletalAnimationClip.h"
-#include "Exceptions/NotImplementedException.h"
+#include "Exceptions/exceptions.h"
 
 BoneAnimationChannel::BoneAnimationChannel(const std::vector<BoneAnimationPositionFrame>& positionFrames,
                                            const std::vector<BoneAnimationOrientationFrame>& orientationFrames)
@@ -111,10 +111,10 @@ void SkeletalAnimationClipInstance::increaseCurrentTime(float delta) {
     }
     else if (m_endBehaviour == SkeletalAnimationClipEndBehaviour::Repeat) {
       int overflowParts = static_cast<int>(m_currentTime / m_animationClip->getDuration());
-      m_currentTime -= m_animationClip->getDuration() * overflowParts;
+      m_currentTime -= m_animationClip->getDuration() * static_cast<float>(overflowParts);
     }
     else {
-      ENGINE_NOT_IMPLEMENTED_ERROR("Clip behaviour is not impelented");
+        THROW_EXCEPTION(NotImplementedException, "Clip behaviour is not impelented");
     }
   }
 

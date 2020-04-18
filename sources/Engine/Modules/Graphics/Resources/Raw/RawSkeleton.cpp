@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "RawSkeleton.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 RawSkeleton RawSkeleton::readFromFile(const std::string& path) {
   std::ifstream skeletonFile(path, std::ios::binary);
@@ -13,11 +13,11 @@ RawSkeleton RawSkeleton::readFromFile(const std::string& path) {
   skeletonFile.read(reinterpret_cast<char*>(&rawSkeleton.header), sizeof(rawSkeleton.header));
 
   if (rawSkeleton.header.formatVersion != SKELETON_FORMAT_VERSION) {
-    ENGINE_RUNTIME_ERROR("Trying to load skeleton with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with incompatible format version");
   }
 
   if (rawSkeleton.header.bonesCount == 0) {
-    ENGINE_RUNTIME_ERROR("Trying to load skeleton with zero bones count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with zero bones count");
   }
 
   const uint16_t bonesCount = rawSkeleton.header.bonesCount;

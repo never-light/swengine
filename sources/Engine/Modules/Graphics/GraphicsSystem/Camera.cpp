@@ -67,6 +67,11 @@ float Camera::getFOVy() const {
   return m_FOVy;
 }
 
+#include <boost/stacktrace.hpp>
+#include <boost/exception/error_info.hpp>
+
+typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
+
 glm::mat4x4 Camera::getProjectionMatrix() {
   if (m_needProjectionMatrixCacheUpdate) {
     m_projectionMatrixCache = glm::perspective(m_FOVy, m_aspectRatio, m_nearClipDistance, m_farClipDistance);

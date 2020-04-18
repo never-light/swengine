@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "Mesh.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 Mesh::Mesh() {
 
@@ -228,7 +228,7 @@ void Mesh::updateGeometryBuffer() {
   }
 
   if (geometryStore == nullptr) {
-    ENGINE_RUNTIME_ERROR("Unsupported vertex buffer layout");
+      THROW_EXCEPTION(EngineRuntimeException, "Unsupported vertex buffer layout");
   }
 
   m_geometryStore.reset(geometryStore);

@@ -3,25 +3,29 @@
 #pragma hdrstop
 
 #include "GLShader.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 #include "GLDebug.h"
 
 #include <memory>
 #include <vector>
 
 GLShader::GLShader(GLenum type, const std::string& source)
-    : m_shaderProgram(0),
-      m_type(type) {
+  : m_shaderProgram(0),
+    m_type(type) {
   GLenum shader = 0;
 
   switch (type) {
-    case GL_VERTEX_SHADER:shader = glCreateShader(GL_VERTEX_SHADER);
+    case GL_VERTEX_SHADER:
+      shader = glCreateShader(GL_VERTEX_SHADER);
       break;
-    case GL_FRAGMENT_SHADER:shader = glCreateShader(GL_FRAGMENT_SHADER);
+    case GL_FRAGMENT_SHADER:
+      shader = glCreateShader(GL_FRAGMENT_SHADER);
       break;
-    case GL_GEOMETRY_SHADER:shader = glCreateShader(GL_GEOMETRY_SHADER);
+    case GL_GEOMETRY_SHADER:
+      shader = glCreateShader(GL_GEOMETRY_SHADER);
       break;
-    default:ENGINE_RUNTIME_ERROR("Tring to create invalid shader with invalid type");
+    default:
+      THROW_EXCEPTION(EngineRuntimeException, "Trying to create invalid shader with invalid type");
   }
 
   const char* rawSource = source.c_str();
@@ -43,7 +47,7 @@ GLShader::GLShader(GLenum type, const std::string& source)
 
     glGetShaderInfoLog(shader, infoLogLength, nullptr, &message[0]);
 
-    ENGINE_RUNTIME_ERROR("Failed to compile shader: " + message);
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to compile shader: " + message);
   }
 
   m_shaderProgram = glCreateProgram();
@@ -68,7 +72,7 @@ GLShader::GLShader(GLenum type, const std::string& source)
 
     glGetProgramInfoLog(shader, infoLogLength, nullptr, &message[0]);
 
-    ENGINE_RUNTIME_ERROR("Failed to link shader program: " + message);
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to link shader program: " + message);
   }
 
   glDetachShader(m_shaderProgram, shader);
@@ -157,8 +161,8 @@ void GLShader::cacheUniformsLocations() {
                          uniformName.data());
 
       UniformInfo uniformInfo = {
-          glGetUniformLocation(m_shaderProgram, uniformName.data()),
-          count
+        glGetUniformLocation(m_shaderProgram, uniformName.data()),
+        count
       };
 
       m_uniformsCache.insert({std::string(uniformName.data(),

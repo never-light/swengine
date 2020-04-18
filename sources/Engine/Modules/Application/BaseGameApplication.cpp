@@ -4,7 +4,7 @@
 
 #include "BaseGameApplication.h"
 
-#include <Exceptions/EngineRuntimeException.h>
+#include <Exceptions/exceptions.h>
 #include <spdlog/spdlog.h>
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
@@ -24,6 +24,7 @@ BaseGameApplication::BaseGameApplication(int argc,
                                          int windowHeight)
     : m_mainWindow(nullptr) {
   spdlog::set_level(spdlog::level::debug);
+  std::set_terminate([]() { BaseGameApplication::handleAppTerminate(); });
 
   spdlog::info("Application start...");
   initializePlatform(argc, argv, windowTitle, windowWidth, windowHeight);
@@ -162,7 +163,7 @@ void BaseGameApplication::initializePlatform(int argc,
   int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
 
   if (initStatus != 0) {
-    ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+    THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
   }
 
   spdlog::info("SDL is initialized");
@@ -182,7 +183,7 @@ void BaseGameApplication::initializePlatform(int argc,
                                   windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 
   if (m_mainWindow == nullptr) {
-    ENGINE_RUNTIME_ERROR(std::string(SDL_GetError()));
+    THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
   }
 
   spdlog::info("Window is created");
@@ -351,4 +352,14 @@ void BaseGameApplication::performRender() {
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();
+}
+
+void BaseGameApplication::handleAppTerminate() {
+  auto trace = boost::stacktrace::stacktrace();
+  std::string traceRepresentation = boost::stacktrace::detail::to_string(&trace.as_vector()[0], trace.size());
+
+  spdlog::critical("The application crashed");
+  spdlog::debug(traceRepresentation);
+
+  std::abort();
 }

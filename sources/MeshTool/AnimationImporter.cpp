@@ -4,7 +4,7 @@
 
 #include <string>
 #include <bitset>
-#include <Engine/Exceptions/EngineRuntimeException.h>
+#include <Engine/Exceptions/exceptions.h>
 #include <Engine/swdebug.h>
 
 #include "AssimpMeshLoader.h"
@@ -56,7 +56,7 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
   const aiAnimation* animationPtr = findAnimation(scene, options.clipName);
 
   if (animationPtr == nullptr) {
-    ENGINE_RUNTIME_ERROR("Failed to find target animation");
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to find target animation");
   }
 
   std::unique_ptr<RawSkeletalAnimationClip> rawAnimation = std::make_unique<RawSkeletalAnimationClip>();

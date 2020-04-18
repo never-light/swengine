@@ -5,5 +5,3 @@
 
 using bitmask32 = uint32_t;
 using bitmask64 = uint64_t;
-
-using byte = std::byte;

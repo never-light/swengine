@@ -3,7 +3,7 @@
 #pragma hdrstop
 
 #include "ResourceManager.h"
-#include "Exceptions/EngineRuntimeException.h"
+#include "Exceptions/exceptions.h"
 
 #include <pugixml.hpp>
 
@@ -32,7 +32,7 @@ std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std
   auto resourceTypeIdIt = m_resourcesTypesIds.find(resourceId);
 
   if (resourceTypeIdIt == m_resourcesTypesIds.end()) {
-    ENGINE_RUNTIME_ERROR("Failed to get unknown resource instance: " + resourceId);
+    THROW_EXCEPTION(EngineRuntimeException, "Failed to get unknown resource instance: " + resourceId);
   }
 
   const auto& typeIndex = resourceTypeIdIt->second;
@@ -50,7 +50,7 @@ void ResourceManager::addResourcesMap(const std::string& path) {
   pugi::xml_parse_result result = resourcesMap.load_file(path.c_str());
 
   if (!result) {
-    ENGINE_RUNTIME_ERROR("Trying to load resources map from invalid source");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load resources map from invalid source");
   }
 
   pugi::xml_node declarationsList = resourcesMap.child("resources");
@@ -59,14 +59,14 @@ void ResourceManager::addResourcesMap(const std::string& path) {
     std::string resourceName = declarationNode.attribute("id").as_string();
 
     if (resourceName.empty()) {
-      ENGINE_RUNTIME_ERROR("Resource declaration has invalid id");
+      THROW_EXCEPTION(EngineRuntimeException, "Resource declaration has invalid id");
     }
 
     std::string resourceType = declarationNode.attribute("type").as_string();
     auto declarerIt = m_resourcesDeclarers.find(resourceType);
 
     if (declarerIt == m_resourcesDeclarers.end()) {
-      ENGINE_RUNTIME_ERROR("Resource declaration has invalid type (" + resourceType + ")");
+      THROW_EXCEPTION(EngineRuntimeException, "Resource declaration has invalid type (" + resourceType + ")");
     }
 
     std::function resourceDeclarer = declarerIt->second;
@@ -80,7 +80,7 @@ void ResourceManager::addResourcesMap(const std::string& path) {
       auto parentDeclarationIt = m_resourcesDeclarations.find(extendsAttribute.as_string());
 
       if (parentDeclarationIt == m_resourcesDeclarations.end()) {
-        ENGINE_RUNTIME_ERROR(
+        THROW_EXCEPTION(EngineRuntimeException,
             std::string("Resource declaration has invalid parent id: ") + extendsAttribute.as_string());
       }
 
@@ -93,7 +93,7 @@ void ResourceManager::addResourcesMap(const std::string& path) {
       std::string sourcePath = declarationNode.attribute("source").as_string();
 
       if (!FileUtils::isFileExists(sourcePath)) {
-        ENGINE_RUNTIME_ERROR("Resourse file does not exist " + sourcePath);
+        THROW_EXCEPTION(EngineRuntimeException, "Resource file does not exist " + sourcePath);
       }
 
       source = ResourceSourceFile{sourcePath};

@@ -10,5 +10,3 @@ class NotImplementedException : public EngineRuntimeException {
                           size_t line,
                           const std::string& function);
 };
-
-#define ENGINE_NOT_IMPLEMENTED_ERROR(message) throw NotImplementedException((message), __FILE__, __LINE__, __FUNCTION__)
