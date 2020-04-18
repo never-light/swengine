@@ -10,15 +10,18 @@
 #include "PlayerComponent.h"
 
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule)
-    : m_inputModule(inputModule) {
+  : m_inputModule(inputModule)
+{
 
 }
 
-PlayerControlSystem::~PlayerControlSystem() {
+PlayerControlSystem::~PlayerControlSystem()
+{
 
 }
 
-void PlayerControlSystem::configure(GameWorld* gameWorld) {
+void PlayerControlSystem::configure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 
   m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
@@ -31,7 +34,8 @@ void PlayerControlSystem::configure(GameWorld* gameWorld) {
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 }
 
-void PlayerControlSystem::unconfigure(GameWorld* gameWorld) {
+void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 
   m_inputModule->unregisterAction("forward");
@@ -42,7 +46,8 @@ void PlayerControlSystem::unconfigure(GameWorld* gameWorld) {
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
 
-void PlayerControlSystem::update(GameWorld* gameWorld, float delta) {
+void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
+{
   ARG_UNUSED(delta);
 
   if (m_playerObject == nullptr) {
@@ -81,14 +86,17 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta) {
   }
 }
 
-Camera* PlayerControlSystem::getPlayerCamera() const {
+Camera* PlayerControlSystem::getPlayerCamera() const
+{
   return m_playerObject->getComponent<CameraComponent>()->getCamera().get();
 }
 
-Transform* PlayerControlSystem::getPlayerTransform() const {
+Transform* PlayerControlSystem::getPlayerTransform() const
+{
   return m_playerObject->getComponent<TransformComponent>()->getTransform();
 }
 
-void PlayerControlSystem::move(const glm::vec3& movement) {
+void PlayerControlSystem::move(const glm::vec3& movement)
+{
   getPlayerCamera()->getTransform()->move(movement);
 }

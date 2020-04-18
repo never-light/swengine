@@ -7,7 +7,7 @@ class MainMenuScreen : public BaseGameScreen,
                        public EventsListener<InputActionToggleEvent> {
  public:
   MainMenuScreen(std::shared_ptr<InputModule> inputModule,
-                 std::shared_ptr<GameConsole> gameConsole);
+    std::shared_ptr<GameConsole> gameConsole);
 
   void activate() override;
   void deactivate() override;

@@ -5,7 +5,8 @@
 #include "RawSkeletalAnimationClip.h"
 #include "Exceptions/exceptions.h"
 
-RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::string& path) {
+RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::string& path)
+{
   std::ifstream clipFile(path, std::ios::binary);
 
   RawSkeletalAnimationClip rawClip;
@@ -32,14 +33,14 @@ RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::strin
       channel.positionFrames.resize(channel.header.positionFramesCount);
 
       clipFile.read(reinterpret_cast<char*>(channel.positionFrames.data()),
-                    sizeof(*channel.positionFrames.begin()) * channel.header.positionFramesCount);
+        sizeof(*channel.positionFrames.begin()) * channel.header.positionFramesCount);
     }
 
     if (channel.header.orientationFramesCount > 0) {
       channel.orientationFrames.resize(channel.header.orientationFramesCount);
 
       clipFile.read(reinterpret_cast<char*>(channel.orientationFrames.data()),
-                    sizeof(*channel.orientationFrames.begin()) * channel.header.orientationFramesCount);
+        sizeof(*channel.orientationFrames.begin()) * channel.header.orientationFramesCount);
     }
   }
 
@@ -48,11 +49,12 @@ RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::strin
   return rawClip;
 }
 
-void RawSkeletalAnimationClip::writeToFile(const std::string& path, const RawSkeletalAnimationClip& rawClip) {
+void RawSkeletalAnimationClip::writeToFile(const std::string& path, const RawSkeletalAnimationClip& rawClip)
+{
   SW_ASSERT(rawClip.header.formatVersion == ANIMATION_FORMAT_VERSION);
 
   SW_ASSERT(rawClip.header.skeletonBonesCount > 0 && rawClip.header.skeletonBonesCount ==
-      rawClip.bonesAnimationChannels.size());
+    rawClip.bonesAnimationChannels.size());
 
   std::ofstream out(path, std::ios::binary);
 
@@ -67,12 +69,12 @@ void RawSkeletalAnimationClip::writeToFile(const std::string& path, const RawSke
 
     if (channel.positionFrames.size() > 0) {
       out.write(reinterpret_cast<const char*>(channel.positionFrames.data()),
-                sizeof(*channel.positionFrames.begin()) * channel.header.positionFramesCount);
+        sizeof(*channel.positionFrames.begin()) * channel.header.positionFramesCount);
     }
 
     if (channel.orientationFrames.size() > 0) {
       out.write(reinterpret_cast<const char*>(channel.orientationFrames.data()),
-                sizeof(*channel.orientationFrames.begin()) * channel.header.orientationFramesCount);
+        sizeof(*channel.orientationFrames.begin()) * channel.header.orientationFramesCount);
     }
   }
 

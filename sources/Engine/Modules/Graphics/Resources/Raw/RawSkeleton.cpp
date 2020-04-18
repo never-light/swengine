@@ -5,7 +5,8 @@
 #include "RawSkeleton.h"
 #include "Exceptions/exceptions.h"
 
-RawSkeleton RawSkeleton::readFromFile(const std::string& path) {
+RawSkeleton RawSkeleton::readFromFile(const std::string& path)
+{
   std::ifstream skeletonFile(path, std::ios::binary);
 
   RawSkeleton rawSkeleton;
@@ -25,14 +26,15 @@ RawSkeleton RawSkeleton::readFromFile(const std::string& path) {
   rawSkeleton.bones.resize(rawSkeleton.header.bonesCount);
 
   skeletonFile.read(reinterpret_cast<char*>(rawSkeleton.bones.data()),
-                    sizeof(*rawSkeleton.bones.begin()) * bonesCount);
+    sizeof(*rawSkeleton.bones.begin()) * bonesCount);
 
   skeletonFile.close();
 
   return rawSkeleton;
 }
 
-void RawSkeleton::writeToFile(const std::string& path, const RawSkeleton& rawSkeleton) {
+void RawSkeleton::writeToFile(const std::string& path, const RawSkeleton& rawSkeleton)
+{
   SW_ASSERT(rawSkeleton.header.formatVersion == SKELETON_FORMAT_VERSION);
 
   SW_ASSERT(rawSkeleton.header.bonesCount > 0 && rawSkeleton.header.bonesCount == rawSkeleton.bones.size());
@@ -44,7 +46,7 @@ void RawSkeleton::writeToFile(const std::string& path, const RawSkeleton& rawSke
   out.write(reinterpret_cast<const char*>(&rawSkeleton.header), sizeof(rawSkeleton.header));
 
   out.write(reinterpret_cast<const char*>(rawSkeleton.bones.data()),
-            sizeof(*rawSkeleton.bones.begin()) * bonesCount);
+    sizeof(*rawSkeleton.bones.begin()) * bonesCount);
 
   out.close();
 }

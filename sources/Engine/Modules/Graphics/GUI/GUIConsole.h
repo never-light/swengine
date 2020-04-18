@@ -27,7 +27,7 @@ class GUIConsoleCommandsBackPrinter : public GUIConsoleCommandsExecutor {
 class GUIConsole : public GUIWidget {
  public:
   GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
-             std::shared_ptr<BitmapFont> font);
+    std::shared_ptr<BitmapFont> font);
 
   [[nodiscard]] int getHistorySize() const;
 

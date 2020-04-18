@@ -1,5 +1,6 @@
 #include "RTTransform.h"
 
-RTTransform::RTTransform() {
+RTTransform::RTTransform()
+{
 
 }

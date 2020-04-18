@@ -12,15 +12,18 @@
 
 #include "Modules/Graphics/Resources/Raw/RawSkeleton.h"
 
-SkeletonResource::SkeletonResource() {
+SkeletonResource::SkeletonResource()
+{
 
 }
 
-SkeletonResource::~SkeletonResource() {
+SkeletonResource::~SkeletonResource()
+{
   SW_ASSERT(m_skeleton.use_count() <= 1);
 }
 
-void SkeletonResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) {
+void SkeletonResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+{
   ARG_UNUSED(resourceManager);
 
   SW_ASSERT(m_skeleton == nullptr);
@@ -35,18 +38,21 @@ void SkeletonResource::load(const ResourceDeclaration& declaration, ResourceMana
   }
 }
 
-void SkeletonResource::unload() {
+void SkeletonResource::unload()
+{
   SW_ASSERT(m_skeleton.use_count() == 1);
 
   m_skeleton.reset();
 }
 
-bool SkeletonResource::isBusy() const {
+bool SkeletonResource::isBusy() const
+{
   return m_skeleton.use_count() > 1;
 }
 
 std::shared_ptr<Skeleton> SkeletonResource::loadFromFile(const std::string& path,
-                                                         const SkeletonResourceParameters& parameters) {
+  const SkeletonResourceParameters& parameters)
+{
   ARG_UNUSED(parameters);
 
   // Read raw mesh
@@ -69,7 +75,8 @@ std::shared_ptr<Skeleton> SkeletonResource::loadFromFile(const std::string& path
 }
 
 SkeletonResource::ParametersType SkeletonResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                                              const ParametersType& defaultParameters) {
+  const ParametersType& defaultParameters)
+{
   ARG_UNUSED(declarationNode);
 
   ParametersType parameters = defaultParameters;
@@ -77,6 +84,7 @@ SkeletonResource::ParametersType SkeletonResource::buildDeclarationParameters(co
   return parameters;
 }
 
-std::shared_ptr<Skeleton> SkeletonResource::getSkeleton() const {
+std::shared_ptr<Skeleton> SkeletonResource::getSkeleton() const
+{
   return m_skeleton;
 }

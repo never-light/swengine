@@ -18,11 +18,12 @@
 #include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
 
 BaseGameApplication::BaseGameApplication(int argc,
-                                         char* argv[],
-                                         const std::string& windowTitle,
-                                         int windowWidth,
-                                         int windowHeight)
-    : m_mainWindow(nullptr) {
+  char* argv[],
+  const std::string& windowTitle,
+  int windowWidth,
+  int windowHeight)
+  : m_mainWindow(nullptr)
+{
   spdlog::set_level(spdlog::level::debug);
   std::set_terminate([]() { BaseGameApplication::handleAppTerminate(); });
 
@@ -39,27 +40,33 @@ BaseGameApplication::BaseGameApplication(int argc,
   spdlog::info("Game systems are initialized");
 }
 
-BaseGameApplication::~BaseGameApplication() {
+BaseGameApplication::~BaseGameApplication()
+{
   SDL_DestroyWindow(m_mainWindow);
 }
 
-void BaseGameApplication::load() {
+void BaseGameApplication::load()
+{
 
 }
 
-void BaseGameApplication::unload() {
+void BaseGameApplication::unload()
+{
 
 }
 
-void BaseGameApplication::update(float delta) {
+void BaseGameApplication::update(float delta)
+{
   ARG_UNUSED(delta);
 }
 
-void BaseGameApplication::render() {
+void BaseGameApplication::render()
+{
 
 }
 
-int BaseGameApplication::execute() {
+int BaseGameApplication::execute()
+{
   spdlog::info("Perform game application loading...");
   performLoad();
   spdlog::info("Game application is loaded and ready...");
@@ -82,7 +89,7 @@ int BaseGameApplication::execute() {
   while (m_isMainLoopActive) {
     while (SDL_PollEvent(&event) != 0) {
       if (event.type == SDL_QUIT || (event.type == SDL_WINDOWEVENT &&
-          event.window.event == SDL_WINDOWEVENT_CLOSE)) {
+        event.window.event == SDL_WINDOWEVENT_CLOSE)) {
         m_isMainLoopActive = false;
         break;
       }
@@ -121,7 +128,8 @@ int BaseGameApplication::execute() {
   return 0;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event) {
+EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
+{
   ARG_UNUSED(gameWorld);
 
   if (event.command == "exit") {
@@ -133,7 +141,8 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) {
+EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+{
   ARG_UNUSED(gameWorld);
 
   if (event.actionName == "console" && event.newState == InputActionState::Active) {
@@ -148,15 +157,17 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   return EventProcessStatus::Processed;
 }
 
-void BaseGameApplication::shutdown() {
+void BaseGameApplication::shutdown()
+{
   m_isMainLoopActive = false;
 }
 
 void BaseGameApplication::initializePlatform(int argc,
-                                             char* argv[],
-                                             const std::string& windowTitle,
-                                             int windowWidth,
-                                             int windowHeight) {
+  char* argv[],
+  const std::string& windowTitle,
+  int windowWidth,
+  int windowHeight)
+{
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
 
@@ -180,7 +191,7 @@ void BaseGameApplication::initializePlatform(int argc,
   spdlog::info("Create main window...");
 
   m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+    windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 
   if (m_mainWindow == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
@@ -189,7 +200,8 @@ void BaseGameApplication::initializePlatform(int argc,
   spdlog::info("Window is created");
 }
 
-void BaseGameApplication::initializeEngine() {
+void BaseGameApplication::initializeEngine()
+{
   m_inputModule = std::make_shared<InputModule>(m_mainWindow);
 
   m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
@@ -210,12 +222,13 @@ void BaseGameApplication::initializeEngine() {
 
   m_gameWorld = std::make_shared<GameWorld>();
   m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
-                                                    m_sharedGraphicsState, resourceManager);
+    m_sharedGraphicsState, resourceManager);
 
   DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_sharedGraphicsState);
 }
 
-void BaseGameApplication::initializeEngineSystems() {
+void BaseGameApplication::initializeEngineSystems()
+{
   std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
   m_gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(m_gameWorld));
@@ -236,48 +249,48 @@ void BaseGameApplication::initializeEngineSystems() {
 
   // Rendering pipeline
   m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_gameWorld,
-                                                                          m_graphicsModule->getGraphicsContext(),
-                                                                          m_sharedGraphicsState);
+    m_graphicsModule->getGraphicsContext(),
+    m_sharedGraphicsState);
 
   engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
   // Geometry culling
   auto geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                       m_sharedGraphicsState);
+    m_sharedGraphicsState);
 
   m_renderingSystemsPipeline->addGameSystem(geometryCullingSystem);
 
   // Mesh rendering system
   auto meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                   m_sharedGraphicsState);
+    m_sharedGraphicsState);
   m_renderingSystemsPipeline->addGameSystem(meshRenderingSystem);
 
   // Environment rendering
   auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-                                                                                 m_sharedGraphicsState,
-                                                                                 resourceManager
-                                                                                     ->getResourceFromInstance<
-                                                                                         MeshResource>(
-                                                                                         "mesh_identity_sphere")
-                                                                                     ->getMesh());
+    m_sharedGraphicsState,
+    resourceManager
+      ->getResourceFromInstance<
+        MeshResource>(
+        "mesh_identity_sphere")
+      ->getMesh());
 
   m_renderingSystemsPipeline->addGameSystem(environmentRenderingSystem);
 
   // GUI system
   std::shared_ptr<GLShader> guiVertexShader = resourceManager->
-      getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
+    getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
 
   std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
-      getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
+    getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
 
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
-      guiVertexShader, guiFragmentShader, nullptr);
+    guiVertexShader, guiFragmentShader, nullptr);
 
   auto guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
-                                               m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
+    m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
 
   std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
-      getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+    getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
   guiSystem->setDefaultFont(guiDefaultFont);
   guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
@@ -319,11 +332,13 @@ void BaseGameApplication::initializeEngineSystems() {
   m_gameConsole->print("Engine is initialized...");
 }
 
-void BaseGameApplication::performLoad() {
+void BaseGameApplication::performLoad()
+{
   load();
 }
 
-void BaseGameApplication::performUnload() {
+void BaseGameApplication::performUnload()
+{
   unload();
 
   m_screenManager.reset();
@@ -331,14 +346,16 @@ void BaseGameApplication::performUnload() {
   SDL_Quit();
 }
 
-void BaseGameApplication::performUpdate(float delta) {
+void BaseGameApplication::performUpdate(float delta)
+{
   m_gameWorld->update(delta);
   m_screenManager->update(delta);
 
   update(delta);
 }
 
-void BaseGameApplication::performRender() {
+void BaseGameApplication::performRender()
+{
   GLGraphicsContext* graphicsContext = m_graphicsModule->getGraphicsContext().get();
 
   m_sharedGraphicsState->getFrameStats().reset();
@@ -354,7 +371,8 @@ void BaseGameApplication::performRender() {
   graphicsContext->swapBuffers();
 }
 
-void BaseGameApplication::handleAppTerminate() {
+void BaseGameApplication::handleAppTerminate()
+{
   auto trace = boost::stacktrace::stacktrace();
   std::string traceRepresentation = boost::stacktrace::detail::to_string(&trace.as_vector()[0], trace.size());
 

@@ -25,10 +25,10 @@ class MeshResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static std::shared_ptr<Mesh> loadFromFile(const std::string& path,
-                                            const MeshResourceParameters& parameters);
+    const MeshResourceParameters& parameters);
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<Mesh> getMesh() const;

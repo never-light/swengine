@@ -5,13 +5,15 @@
 
 #include <Engine/swdebug.h>
 
-AnimationExporter::AnimationExporter() {
+AnimationExporter::AnimationExporter()
+{
 
 }
 
 void AnimationExporter::exportToFile(const std::string& path,
-                                     const RawSkeletalAnimationClip& animation,
-                                     const AnimationExportOptions& options) {
+  const RawSkeletalAnimationClip& animation,
+  const AnimationExportOptions& options)
+{
   ARG_UNUSED(options);
 
   spdlog::info("Save animation clip to file: {}", path);

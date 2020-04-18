@@ -9,8 +9,8 @@ class GLGraphicsContext;
 class GLShadersPipeline {
  public:
   GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
-                    std::shared_ptr<GLShader> fragmentShader,
-                    std::shared_ptr<GLShader> geometrySHader);
+    std::shared_ptr<GLShader> fragmentShader,
+    std::shared_ptr<GLShader> geometrySHader);
 
   ~GLShadersPipeline();
 

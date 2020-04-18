@@ -5,25 +5,30 @@
 #include "RenderingSystem.h"
 
 RenderingSystem::RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                                 std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-    : m_graphicsContext(graphicsContext),
-      m_sharedGraphicsState(sharedGraphicsState) {
+  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  : m_graphicsContext(graphicsContext),
+    m_sharedGraphicsState(sharedGraphicsState)
+{
 
 }
 
-void RenderingSystem::renderDeferred(GameWorld* gameWorld) {
+void RenderingSystem::renderDeferred(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::renderForward(GameWorld* gameWorld) {
+void RenderingSystem::renderForward(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::renderPostProcess(GameWorld* gameWorld) {
+void RenderingSystem::renderPostProcess(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::render(GameWorld* gameWorld) {
+void RenderingSystem::render(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 
   /*

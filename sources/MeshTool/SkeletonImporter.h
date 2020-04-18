@@ -31,13 +31,13 @@ class SkeletonImporter {
   std::unordered_map<std::string, const aiBone*> collectBones(const aiScene& scene) const;
 
   void traverseSkeletonHierarchy(const aiNode* sceneNode,
-                                 const aiMatrix4x4& parentNodeTransform,
-                                 const std::unordered_map<std::string, const aiBone*>& usedBones,
-                                 std::unordered_map<std::string, ImportSceneBoneData>& bonesData);
+    const aiMatrix4x4& parentNodeTransform,
+    const std::unordered_map<std::string, const aiBone*>& usedBones,
+    std::unordered_map<std::string, ImportSceneBoneData>& bonesData);
 
   const aiNode* findRootBoneNode(const aiNode* sceneRootNode,
-                                 const std::unordered_map<std::string, const aiBone*>& bonesList) const;
+    const std::unordered_map<std::string, const aiBone*>& bonesList) const;
 
   void buildSkeleton(const aiNode* skeletonNode, const std::unordered_map<std::string, ImportSceneBoneData>& bonesList,
-                     std::vector<RawBone>& rawBonesList, int parentBoneId) const;
+    std::vector<RawBone>& rawBonesList, int parentBoneId) const;
 };

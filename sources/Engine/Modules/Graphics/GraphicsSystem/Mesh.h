@@ -86,14 +86,17 @@ class Mesh {
   std::shared_ptr<Skeleton> m_skeleton;
 };
 
-inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b) {
+inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b)
+{
   return static_cast<MeshAttributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
 }
 
-inline MeshAttributes operator&(MeshAttributes a, MeshAttributes b) {
+inline MeshAttributes operator&(MeshAttributes a, MeshAttributes b)
+{
   return static_cast<MeshAttributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
 }
 
-inline MeshAttributes operator~(MeshAttributes a) {
+inline MeshAttributes operator~(MeshAttributes a)
+{
   return static_cast<MeshAttributes>(~static_cast<unsigned int>(a));
 }

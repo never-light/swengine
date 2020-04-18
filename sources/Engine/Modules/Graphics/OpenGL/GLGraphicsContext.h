@@ -68,10 +68,10 @@ class GLGraphicsContext {
 
  private:
   static void APIENTRY debugOutputCallback(GLenum source,
-                                           GLenum type,
-                                           GLuint id,
-                                           GLenum severity,
-                                           GLsizei length,
-                                           const GLchar* message,
-                                           GLvoid* userParam);
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    GLvoid* userParam);
 };

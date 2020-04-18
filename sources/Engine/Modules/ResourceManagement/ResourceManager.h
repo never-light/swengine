@@ -48,18 +48,20 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
 
   std::unordered_map<std::string,
                      std::function<void(const std::string&,
-                                        const ResourceSource&,
-                                        const pugi::xml_node&,
-                                        const ResourceDeclaration*)>> m_resourcesDeclarers;
+                       const ResourceSource&,
+                       const pugi::xml_node&,
+                       const ResourceDeclaration*)>> m_resourcesDeclarers;
 };
 
 template<class T>
-T* ResourceManager::getResourceFromInstance(const std::string& resourceId) {
+T* ResourceManager::getResourceFromInstance(const std::string& resourceId)
+{
   return getResourceInstance(resourceId)->getResource<T>();
 }
 
 template<class T>
-void ResourceManager::declareResourceType(const std::string& mapAlias) {
+void ResourceManager::declareResourceType(const std::string& mapAlias)
+{
   static_assert(std::is_base_of_v<Resource, T>);
 
   declareResourceType<T>();
@@ -67,11 +69,12 @@ void ResourceManager::declareResourceType(const std::string& mapAlias) {
 }
 
 template<class T>
-void ResourceManager::declareResouceMapAlias(const std::string& alias) {
+void ResourceManager::declareResouceMapAlias(const std::string& alias)
+{
   static_assert(std::is_base_of_v<Resource, T>);
 
   std::function declarer = [=](const std::string& resourceId, const ResourceSource& source,
-                               const pugi::xml_node& declarationNode, const ResourceDeclaration* parentDeclaration) {
+    const pugi::xml_node& declarationNode, const ResourceDeclaration* parentDeclaration) {
     using ParametersType = typename T::ParametersType;
 
     ParametersType defaultParametersInstance;
@@ -88,7 +91,8 @@ void ResourceManager::declareResouceMapAlias(const std::string& alias) {
 }
 
 template<class T>
-void ResourceManager::declareResourceType() {
+void ResourceManager::declareResourceType()
+{
   static_assert(std::is_base_of_v<Resource, T>);
 
   m_resourcesFactories.insert({std::type_index(typeid(T)), []() {
@@ -97,7 +101,8 @@ void ResourceManager::declareResourceType() {
 }
 
 template<class T>
-void ResourceManager::declareResource(const std::string& resourceId, const ResourceDeclaration& declaration) {
+void ResourceManager::declareResource(const std::string& resourceId, const ResourceDeclaration& declaration)
+{
   static_assert(std::is_base_of_v<Resource, T>);
 
   m_resourcesDeclarations.insert({resourceId, declaration});

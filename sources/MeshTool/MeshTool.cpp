@@ -9,7 +9,8 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   try {
     MeshToolApplication app;
     app.execute(argc, argv);
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]) {
   }
   catch (const EngineRuntimeException& ex) {
     spdlog::error("Processing error: {} [file: {}, line: {}, function: {}",
-                  ex.what(), ex.getFile(), ex.getLine(), ex.getFunction());
+      ex.what(), ex.getFile(), ex.getLine(), ex.getFunction());
   }
   catch (const std::exception& ex) {
     spdlog::error("Unknown error: {}", ex.what());

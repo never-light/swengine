@@ -7,11 +7,12 @@
 #include "GLDebug.h"
 
 GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
-                                     std::shared_ptr<GLShader> fragmentShader,
-                                     std::shared_ptr<GLShader> geometrySHader)
+  std::shared_ptr<GLShader> fragmentShader,
+  std::shared_ptr<GLShader> geometrySHader)
   : m_vertexShader(vertexShader),
     m_fragmentShader(fragmentShader),
-    m_geometryShader(geometrySHader) {
+    m_geometryShader(geometrySHader)
+{
   GL_CALL_BLOCK_BEGIN();
 
   glCreateProgramPipelines(1, &m_programPipeline);
@@ -43,11 +44,13 @@ GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
   GL_CALL_BLOCK_END();
 }
 
-GLShadersPipeline::~GLShadersPipeline() {
+GLShadersPipeline::~GLShadersPipeline()
+{
   glDeleteProgramPipelines(1, &m_programPipeline);
 }
 
-bool GLShadersPipeline::hasShader(GLenum type) const {
+bool GLShadersPipeline::hasShader(GLenum type) const
+{
   switch (type) {
     case GL_VERTEX_SHADER:
       return m_vertexShader != nullptr;
@@ -60,7 +63,8 @@ bool GLShadersPipeline::hasShader(GLenum type) const {
   THROW_EXCEPTION(EngineRuntimeException, "Trying to check existing of invalid shader type");
 }
 
-GLShader* GLShadersPipeline::getShader(GLenum type) const {
+GLShader* GLShadersPipeline::getShader(GLenum type) const
+{
   switch (type) {
     case GL_VERTEX_SHADER:
       return m_vertexShader.get();

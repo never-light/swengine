@@ -7,7 +7,8 @@
 #include "Modules/Graphics/GUI/BitmapFont.h"
 
 struct BitmapFontResourceParameters : ResourceSourceParameters {
-  BitmapFontResourceParameters() {}
+  BitmapFontResourceParameters()
+  {}
 };
 
 class BitmapFontResource : public Resource {
@@ -24,10 +25,10 @@ class BitmapFontResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static std::shared_ptr<BitmapFont> loadFromFile(const std::string& path,
-                                                  const BitmapFontResourceParameters& parameters);
+    const BitmapFontResourceParameters& parameters);
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;

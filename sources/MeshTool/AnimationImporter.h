@@ -21,17 +21,17 @@ class AnimationImporter {
   AnimationImporter();
 
   std::unique_ptr<RawSkeletalAnimationClip> importFromFile(const std::string& path,
-                                                           const AnimationImportOptions& options);
+    const AnimationImportOptions& options);
 
  private:
   std::unique_ptr<RawSkeletalAnimationClip> convertSceneToAnimation(const aiScene& scene,
-                                                                    const RawSkeleton* skeleton,
-                                                                    const AnimationImportOptions& options);
+    const RawSkeleton* skeleton,
+    const AnimationImportOptions& options);
 
   void collectMeshes(const aiScene& scene,
-                     const aiNode& sceneNode,
-                     std::unordered_map<std::string, const aiMesh*>& meshesList,
-                     const aiMatrix4x4& parentNodeTransform) const;
+    const aiNode& sceneNode,
+    std::unordered_map<std::string, const aiMesh*>& meshesList,
+    const aiMatrix4x4& parentNodeTransform) const;
 
   std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const AnimationImportOptions& options) const;
   std::unordered_map<std::string, int> getBonesMap(const RawSkeleton& skeleton) const;

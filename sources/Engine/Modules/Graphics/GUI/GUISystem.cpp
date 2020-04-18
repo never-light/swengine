@@ -7,34 +7,35 @@
 #include <spdlog/spdlog.h>
 
 GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
-                     std::shared_ptr<GLGraphicsContext> graphicsContext,
-                     std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
-    : m_gameWorld(gameWorld),
-      m_inputModule(inputModule),
-      m_graphicsContext(graphicsContext),
-      m_guiShadersPipeline(guiShadersPipeline) {
+  std::shared_ptr<GLGraphicsContext> graphicsContext,
+  std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
+  : m_gameWorld(gameWorld),
+    m_inputModule(inputModule),
+    m_graphicsContext(graphicsContext),
+    m_guiShadersPipeline(guiShadersPipeline)
+{
   m_guiNDCQuad = std::make_unique<Mesh>();
 
   m_guiNDCQuad->setVertices({
-                                {0.0f, 1.0f, 1.0f},
-                                {0.0f, 0.0f, 1.0f},
-                                {1.0f, 1.0f, 1.0f},
-                                {1.0f, 0.0f, 1.0f},
-                            });
+    {0.0f, 1.0f, 1.0f},
+    {0.0f, 0.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 0.0f, 1.0f},
+  });
 
   m_guiNDCQuad->setUV({
-                          {0.0f, 1.0f},
-                          {0.0f, 0.0f},
-                          {1.0f, 1.0f},
-                          {1.0f, 0.0f},
-                      });
+    {0.0f, 1.0f},
+    {0.0f, 0.0f},
+    {1.0f, 1.0f},
+    {1.0f, 0.0f},
+  });
 
   m_guiNDCQuad->setNormals({
-                               {0.0f, 0.0f, 0.0f},
-                               {0.0f, 0.0f, 0.0f},
-                               {0.0f, 0.0f, 0.0f},
-                               {0.0f, 0.0f, 0.0f},
-                           });
+    {0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f},
+  });
 
   RETURN_VALUE_UNUSED(m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3}));
 
@@ -46,21 +47,24 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
   m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
 }
 
-void GUISystem::configure(GameWorld* gameWorld) {
+void GUISystem::configure(GameWorld* gameWorld)
+{
   gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
   gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
   m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getWidth()),
-                                     static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
-                                     0.0f, -1.0f, 1.0f);
+    static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
+    0.0f, -1.0f, 1.0f);
 }
 
-void GUISystem::unconfigure(GameWorld* gameWorld) {
+void GUISystem::unconfigure(GameWorld* gameWorld)
+{
   gameWorld->unsubscribeEventsListener<KeyboardEvent>(this);
   gameWorld->unsubscribeEventsListener<MouseButtonEvent>(this);
 }
 
-void GUISystem::update(GameWorld* gameWorld, float delta) {
+void GUISystem::update(GameWorld* gameWorld, float delta)
+{
   ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 
@@ -69,7 +73,8 @@ void GUISystem::update(GameWorld* gameWorld, float delta) {
   }
 }
 
-void GUISystem::render(GameWorld* gameWorld) {
+void GUISystem::render(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 
   GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
@@ -80,27 +85,33 @@ void GUISystem::render(GameWorld* gameWorld) {
   }
 }
 
-void GUISystem::setActiveLayout(std::shared_ptr<GUILayout> layout) {
+void GUISystem::setActiveLayout(std::shared_ptr<GUILayout> layout)
+{
   m_activeLayout = layout;
 }
 
-std::shared_ptr<GUILayout> GUISystem::getActiveLayout() {
+std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
+{
   return m_activeLayout;
 }
 
-void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font) {
+void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font)
+{
   m_defaultFont = font;
 }
 
-std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const {
+std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const
+{
   return m_defaultFont;
 }
 
-std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const {
+std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
+{
   return m_graphicsContext;
 }
 
-RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const {
+RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
+{
   // Transformation
   GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
   vertexShader->setParameter("transform.localToScreen", widget->getTransformationMatrix());
@@ -155,15 +166,18 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const {
   return task;
 }
 
-int GUISystem::getScreenWidth() const {
+int GUISystem::getScreenWidth() const
+{
   return m_graphicsContext->getDefaultFramebuffer().getWidth();
 }
 
-int GUISystem::getScreenHeight() const {
+int GUISystem::getScreenHeight() const
+{
   return m_graphicsContext->getDefaultFramebuffer().getHeight();
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) {
+EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
+{
   ARG_UNUSED(gameWorld);
 
   if (m_activeLayout != nullptr) {
@@ -180,7 +194,8 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) {
+EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+{
   ARG_UNUSED(gameWorld);
 
   if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {
@@ -198,7 +213,8 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
   return EventProcessStatus::Processed;
 }
 
-void GUISystem::updateGUIWidget(GUIWidget* widget) {
+void GUISystem::updateGUIWidget(GUIWidget* widget)
+{
   if (!widget->isShown()) {
     return;
   }
@@ -225,7 +241,8 @@ void GUISystem::updateGUIWidget(GUIWidget* widget) {
   }
 }
 
-void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event) {
+void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event)
+{
   if (!widget->isShown()) {
     return;
   }
@@ -260,16 +277,19 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
   }
 }
 
-bool GUISystem::isMouseInWidgetArea(const GUIWidget* widget) const {
+bool GUISystem::isMouseInWidgetArea(const GUIWidget* widget) const
+{
   MousePosition mousePosition = m_inputModule->getMousePosition();
   return isPointInWidgetArea({mousePosition.x, mousePosition.y}, widget);
 }
 
-bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const {
+bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const
+{
   return widget->getRect().isPointInRect(point);
 }
 
-void GUISystem::renderGUIWidget(GUIWidget* widget) {
+void GUISystem::renderGUIWidget(GUIWidget* widget)
+{
   if (!widget->isShown()) {
     return;
   }

@@ -6,7 +6,8 @@
 
 #include "matrices.h"
 
-bool isMatricesEqual(const glm::mat4& a, const glm::mat4& b, float eps) {
+bool isMatricesEqual(const glm::mat4& a, const glm::mat4& b, float eps)
+{
   using matrix_length_type = glm::mat4::length_type;
 
   for (matrix_length_type c = 0; c < 4; c++) {
@@ -20,10 +21,12 @@ bool isMatricesEqual(const glm::mat4& a, const glm::mat4& b, float eps) {
   return true;
 }
 
-bool isMatrixIdentity(const glm::mat4& matrix, const float eps) {
+bool isMatrixIdentity(const glm::mat4& matrix, const float eps)
+{
   return isMatricesEqual(matrix, glm::identity<glm::mat4>(), eps);
 }
 
-bool isQuatsEqual(const glm::quat& a, const glm::quat& b, float eps) {
+bool isQuatsEqual(const glm::quat& a, const glm::quat& b, float eps)
+{
   return glm::abs(glm::dot(a, b)) > 1 - eps;
 }

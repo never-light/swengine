@@ -9,8 +9,8 @@
 class RenderingSystemsPipeline : public GameSystemsGroup {
  public:
   RenderingSystemsPipeline(std::shared_ptr<GameWorld> gameWorld,
-                           std::shared_ptr<GLGraphicsContext> graphicsContext,
-                           std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<GLGraphicsContext> graphicsContext,
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
 
   void addGameSystem(std::shared_ptr<GameSystem> system) override;
 

@@ -14,15 +14,18 @@
 
 #include "Utility/strings.h"
 
-TextureResource::TextureResource() {
+TextureResource::TextureResource()
+{
 
 }
 
-TextureResource::~TextureResource() {
+TextureResource::~TextureResource()
+{
   SW_ASSERT(m_texture.use_count() <= 1);
 }
 
-void TextureResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) {
+void TextureResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+{
   ARG_UNUSED(resourceManager);
 
   SW_ASSERT(m_texture == nullptr);
@@ -37,25 +40,28 @@ void TextureResource::load(const ResourceDeclaration& declaration, ResourceManag
   }
 }
 
-void TextureResource::unload() {
+void TextureResource::unload()
+{
   SW_ASSERT(m_texture.use_count() == 1);
 
   m_texture.reset();
 }
 
-bool TextureResource::isBusy() const {
+bool TextureResource::isBusy() const
+{
   return m_texture.use_count() > 1;
 }
 
 std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path,
-                                                         const TextureResourceParameters& parameters) {
+  const TextureResourceParameters& parameters)
+{
   int width, height;
   int nrChannels;
   std::byte* data = reinterpret_cast<std::byte*>(stbi_load(path.c_str(), &width, &height, &nrChannels, 0));
 
   if (data == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string("Texture file has invalid format: ") +
-        stbi_failure_reason());
+      stbi_failure_reason());
   }
 
   GLenum pixelFormat;
@@ -77,7 +83,7 @@ std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path
   }
 
   std::shared_ptr<GLTexture>
-      texture = std::make_shared<GLTexture>(parameters.type, width, height, parameters.internalFormat);
+    texture = std::make_shared<GLTexture>(parameters.type, width, height, parameters.internalFormat);
   texture->setData(pixelFormat, GL_UNSIGNED_BYTE, data);
 
   if (parameters.autoGenerateMipmaps) {
@@ -97,23 +103,24 @@ std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path
 }
 
 TextureResource::ParametersType TextureResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                                            const ParametersType& defaultParameters) {
+  const ParametersType& defaultParameters)
+{
   static std::unordered_map<std::string, GLTextureInternalFormat> internalFormatsMap = {
-      {"r8", GLTextureInternalFormat::R8},
-      {"rg8", GLTextureInternalFormat::RG8},
-      {"rgb8", GLTextureInternalFormat::RGB8},
-      {"rgba8", GLTextureInternalFormat::RGBA8},
-      {"rgba16", GLTextureInternalFormat::RGBA16},
+    {"r8", GLTextureInternalFormat::R8},
+    {"rg8", GLTextureInternalFormat::RG8},
+    {"rgb8", GLTextureInternalFormat::RGB8},
+    {"rgba8", GLTextureInternalFormat::RGBA8},
+    {"rgba16", GLTextureInternalFormat::RGBA16},
   };
 
   static std::unordered_map<std::string, GLint> filtersMap = {
-      {"linear", GL_LINEAR},
-      {"linear_mipmap_linear", GL_LINEAR_MIPMAP_LINEAR},
+    {"linear", GL_LINEAR},
+    {"linear_mipmap_linear", GL_LINEAR_MIPMAP_LINEAR},
   };
 
   static std::unordered_map<std::string, GLint> wrapModesMap = {
-      {"clamp_to_edge", GL_CLAMP_TO_EDGE},
-      {"repeat", GL_REPEAT},
+    {"clamp_to_edge", GL_CLAMP_TO_EDGE},
+    {"repeat", GL_REPEAT},
   };
 
   ParametersType parameters = defaultParameters;
@@ -121,7 +128,7 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   // Texture type
   if (declarationNode.child("type")) {
     GLTextureType textureType = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "type", {
-        {"2d", GLTextureType::Texture2D},
+      {"2d", GLTextureType::Texture2D},
     }, GLTextureType::Texture2D);
 
     parameters.type = textureType;
@@ -130,9 +137,9 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   // Internal format
   if (declarationNode.child("format")) {
     GLTextureInternalFormat internalFormat = ResourceDeclHelpers::getFilteredParameterValue(declarationNode,
-                                                                                            "format",
-                                                                                            internalFormatsMap,
-                                                                                            GLTextureInternalFormat::RGB8);
+      "format",
+      internalFormatsMap,
+      GLTextureInternalFormat::RGB8);
 
     parameters.internalFormat = internalFormat;
   }
@@ -140,8 +147,8 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   // Auto generate mipmaps
   if (declarationNode.child("generate_mipmaps")) {
     bool autoGenerateMipmaps = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "generate_mipmaps", {
-        {"true", true},
-        {"false", false},
+      {"true", true},
+      {"false", false},
     }, true);
 
     parameters.autoGenerateMipmaps = autoGenerateMipmaps;
@@ -150,7 +157,7 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   // Minification filter
   if (declarationNode.child("min_filter")) {
     GLint minFilter = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "min_filter",
-                                                                     filtersMap, GL_LINEAR_MIPMAP_LINEAR);
+      filtersMap, GL_LINEAR_MIPMAP_LINEAR);
 
     parameters.minificationFilter = minFilter;
   }
@@ -158,7 +165,7 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   // Magnification filter
   if (declarationNode.child("mag_filter")) {
     GLint magFilter = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "mag_filter",
-                                                                     filtersMap, GL_LINEAR);
+      filtersMap, GL_LINEAR);
 
     parameters.magnificationFilter = magFilter;
   }
@@ -167,24 +174,24 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   if (declarationNode.child("wrap")) {
     if (declarationNode.child("wrap").attribute("u")) {
       GLint wrapModeU =
-          ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("u").as_string(),
-                                                         "wrap_u", wrapModesMap, GL_CLAMP_TO_EDGE);
+        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("u").as_string(),
+          "wrap_u", wrapModesMap, GL_CLAMP_TO_EDGE);
 
       parameters.wrapModeU = wrapModeU;
     }
 
     if (declarationNode.child("wrap").attribute("v")) {
       GLint wrapModeV =
-          ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("v").as_string(),
-                                                         "wrap_v", wrapModesMap, GL_CLAMP_TO_EDGE);
+        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("v").as_string(),
+          "wrap_v", wrapModesMap, GL_CLAMP_TO_EDGE);
 
       parameters.wrapModeV = wrapModeV;
     }
 
     if (declarationNode.child("wrap").attribute("w")) {
       GLint wrapModeW =
-          ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("w").as_string(),
-                                                         "wrap_w", wrapModesMap, GL_CLAMP_TO_EDGE);
+        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("w").as_string(),
+          "wrap_w", wrapModesMap, GL_CLAMP_TO_EDGE);
 
       parameters.wrapModeW = wrapModeW;
     }
@@ -193,7 +200,8 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
   return parameters;
 }
 
-std::shared_ptr<GLTexture> TextureResource::getTexture() const {
+std::shared_ptr<GLTexture> TextureResource::getTexture() const
+{
   return m_texture;
 }
 

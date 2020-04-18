@@ -27,7 +27,7 @@ class InputModule {
   ~InputModule();
 
   void registerAction(const std::string& actionName,
-                      const InputAction& action);
+    const InputAction& action);
 
   void unregisterAction(const std::string& actionName);
 

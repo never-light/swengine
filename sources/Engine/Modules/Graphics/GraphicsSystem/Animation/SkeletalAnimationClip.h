@@ -28,7 +28,7 @@ class BoneAnimationChannel {
  public:
   BoneAnimationChannel() = default;
   BoneAnimationChannel(const std::vector<BoneAnimationPositionFrame>& positionFrames,
-                       const std::vector<BoneAnimationOrientationFrame>& orientationFrames);
+    const std::vector<BoneAnimationOrientationFrame>& orientationFrames);
 
   ~BoneAnimationChannel() = default;
 
@@ -46,9 +46,9 @@ class BoneAnimationChannel {
 class SkeletalAnimationClip {
  public:
   SkeletalAnimationClip(const std::string& name,
-                        float duration,
-                        float rate,
-                        const std::vector<BoneAnimationChannel>& bonesAnimationChannels);
+    float duration,
+    float rate,
+    const std::vector<BoneAnimationChannel>& bonesAnimationChannels);
 
   ~SkeletalAnimationClip() = default;
 
@@ -90,7 +90,7 @@ class SkeletalAnimationPose {
   explicit SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton);
 
   SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
-                        const std::vector<BonePose>& bonesPoses);
+    const std::vector<BonePose>& bonesPoses);
 
   void setBoneLocalPose(uint8_t boneIndex, const BonePose& pose);
   [[nodiscard]] const BonePose& getBoneLocalPose(uint8_t boneIndex) const;
@@ -120,7 +120,7 @@ enum class SkeletalAnimationClipState {
 class SkeletalAnimationClipInstance {
  public:
   SkeletalAnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
-                                std::shared_ptr<SkeletalAnimationClip> animationClip);
+    std::shared_ptr<SkeletalAnimationClip> animationClip);
 
   [[nodiscard]] const SkeletalAnimationClip& getAnimationClip() const;
   [[nodiscard]] SkeletalAnimationClip& getAnimationClip();

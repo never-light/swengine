@@ -20,7 +20,7 @@ class SkeletalAnimationPoseNode {
   virtual ~SkeletalAnimationPoseNode() = default;
 
   virtual void increaseCurrentTime(float delta,
-                                   const SkeletalAnimationStatesMachineVariables& variablesSet) = 0;
+    const SkeletalAnimationStatesMachineVariables& variablesSet) = 0;
 
   [[nodiscard]] virtual const SkeletalAnimationPose& getCurrentPose() const = 0;
 };
@@ -33,7 +33,7 @@ class SkeletalAnimationClipPoseNode : public SkeletalAnimationPoseNode {
   [[nodiscard]] const SkeletalAnimationPose& getCurrentPose() const override;
 
   void increaseCurrentTime(float delta,
-                           const SkeletalAnimationStatesMachineVariables& variablesSet) override;
+    const SkeletalAnimationStatesMachineVariables& variablesSet) override;
 
  private:
   SkeletalAnimationClipInstance m_clip;
@@ -46,17 +46,17 @@ enum class SkeletalAnimationBlendPoseType {
 class SkeletalAnimationBlendPoseNode : public SkeletalAnimationPoseNode {
  public:
   SkeletalAnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
-                                 const SkeletalAnimationClipInstance& secondClip,
-                                 SkeletalAnimationVariableId blendParameterVariableId,
-                                 SkeletalAnimationBlendPoseType blendType = SkeletalAnimationBlendPoseType::Linear,
-                                 uint8_t overriddenBone = 0);
+    const SkeletalAnimationClipInstance& secondClip,
+    SkeletalAnimationVariableId blendParameterVariableId,
+    SkeletalAnimationBlendPoseType blendType = SkeletalAnimationBlendPoseType::Linear,
+    uint8_t overriddenBone = 0);
 
   ~SkeletalAnimationBlendPoseNode() override;
 
   const SkeletalAnimationPose& getCurrentPose() const override;
 
   void increaseCurrentTime(float delta,
-                           const SkeletalAnimationStatesMachineVariables& variablesSet) override;
+    const SkeletalAnimationStatesMachineVariables& variablesSet) override;
 
   void setBlendParameterVariableId(SkeletalAnimationVariableId variableId);
   SkeletalAnimationVariableId getBlendParameterVariableId() const;

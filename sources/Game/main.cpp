@@ -4,14 +4,15 @@
 #include <Engine/Exceptions/exceptions.h>
 #include "Core/GameApplication.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   try {
     GameApplication app(argc, argv);
     return app.execute();
   }
   catch (const EngineRuntimeException& error) {
     spdlog::critical("Engine failed with exception: {}, file: {}, line: {}, function: {}", error.what(),
-                     error.getFile(), error.getLine(), error.getFunction());
+      error.getFile(), error.getLine(), error.getFunction());
 
     const boost::stacktrace::stacktrace* trace = boost::get_error_info<TracedExceptionWrapper>(error);
 

@@ -11,8 +11,8 @@ class ResourceManager;
 class ResourceInstance {
  public:
   ResourceInstance(const std::string& resourceId,
-                   std::unique_ptr<Resource> resource,
-                   std::shared_ptr<ResourceManager> resourceManager);
+    std::unique_ptr<Resource> resource,
+    std::shared_ptr<ResourceManager> resourceManager);
 
   ~ResourceInstance();
 
@@ -34,7 +34,8 @@ class ResourceInstance {
 };
 
 template<class T>
-T* ResourceInstance::getResource() {
+T* ResourceInstance::getResource()
+{
   if (!m_resource->isLoaded()) {
     loadResource();
 

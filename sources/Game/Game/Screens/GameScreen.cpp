@@ -19,13 +19,15 @@
 #include "Game/PlayerComponent.h"
 
 GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule)
-    : BaseGameScreen(GameScreenType::Game),
-      m_inputModule(inputModule) {
+  : BaseGameScreen(GameScreenType::Game),
+    m_inputModule(inputModule)
+{
 }
 
 GameScreen::~GameScreen() = default;
 
-void GameScreen::activate() {
+void GameScreen::activate()
+{
   m_game->activate();
 
   m_inputModule->registerAction("toggle_menu", KeyboardInputAction(SDLK_ESCAPE));
@@ -33,7 +35,8 @@ void GameScreen::activate() {
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 }
 
-void GameScreen::deactivate() {
+void GameScreen::deactivate()
+{
   m_gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
 
   m_inputModule->unregisterAction("toggle_menu");
@@ -41,17 +44,20 @@ void GameScreen::deactivate() {
   m_game->deactivate();
 }
 
-void GameScreen::load() {
+void GameScreen::load()
+{
   initializeGame();
   initializeDebugGUI();
 }
 
-void GameScreen::unload() {
+void GameScreen::unload()
+{
   deinitializeGame();
   deinitialzieDebugGUI();
 }
 
-void GameScreen::update(float delta) {
+void GameScreen::update(float delta)
+{
   ARG_UNUSED(delta);
 
   const FrameStats& stats = m_sharedGraphicsState->getFrameStats();
@@ -61,16 +67,18 @@ void GameScreen::update(float delta) {
   m_culledSubMeshesCountText->setText("Culled: " + std::to_string(stats.getCulledSubMeshesCount()));
 }
 
-void GameScreen::render() {
+void GameScreen::render()
+{
   //DebugPainter::renderFrustum(m_sharedGraphicsState->getActiveCamera()->getFrustum(), { 1.0f, 0.0f, 0.0f, 1.0f });
   DebugPainter::renderSphere(m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh()
-                                 ->getAABB().toSphere(),
-                             {1.0f, 0.0f, 0.0f, 1.0f}, true);
+      ->getAABB().toSphere(),
+    {1.0f, 0.0f, 0.0f, 1.0f}, true);
 
   DebugPainter::renderBasis({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f});
 }
 
-EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) {
+EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+{
   ARG_UNUSED(gameWorld);
 
   if (event.actionName == "toggle_menu" && event.newState == InputActionState::Active) {
@@ -80,23 +88,26 @@ EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputAct
   return EventProcessStatus::Processed;
 }
 
-void GameScreen::initializeGame() {
+void GameScreen::initializeGame()
+{
   spdlog::info("Load game...");
 
   m_game = std::make_unique<Game>(m_gameWorld, m_inputModule,
-                                  m_graphicsModule->getGraphicsContext(),
-                                  m_sharedGraphicsState, m_resourceManager);
+    m_graphicsModule->getGraphicsContext(),
+    m_sharedGraphicsState, m_resourceManager);
 
   spdlog::info("Game is loaded...");
 }
 
-void GameScreen::deinitializeGame() {
+void GameScreen::deinitializeGame()
+{
   spdlog::info("Unload game...");
 
   m_game.reset();
 }
 
-void GameScreen::initializeDebugGUI() {
+void GameScreen::initializeDebugGUI()
+{
   m_debugGUILayout = std::make_shared<GUILayout>();
   m_debugGUILayout->setSize({150, 120});
   m_debugGUILayout->setOrigin({getGUILayout()->getSize().x - 150, 0});
@@ -105,7 +116,7 @@ void GameScreen::initializeDebugGUI() {
   getGUILayout()->addChildWidget(m_debugGUILayout);
 
   std::shared_ptr<BitmapFont> textFont = m_resourceManager->
-      getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+    getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
 
   m_primivitesCountText = std::make_shared<GUIText>(textFont, "Hello1");
   m_primivitesCountText->setFontSize(9);
@@ -126,6 +137,7 @@ void GameScreen::initializeDebugGUI() {
   m_culledSubMeshesCountText->setOrigin({5, 70});
 }
 
-void GameScreen::deinitialzieDebugGUI() {
+void GameScreen::deinitialzieDebugGUI()
+{
   getGUILayout()->removeChildWidget(m_debugGUILayout);
 }

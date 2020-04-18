@@ -13,6 +13,6 @@ class SkeletonExporter {
   SkeletonExporter();
 
   void exportToFile(const std::string& path,
-                    const RawSkeleton& skeleton,
-                    const SkeletonExportOptions& options);
+    const RawSkeleton& skeleton,
+    const SkeletonExportOptions& options);
 };

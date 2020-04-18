@@ -7,18 +7,21 @@
 #include <spdlog/spdlog.h>
 
 InputModule::InputModule(SDL_Window* window)
-    : m_window(window) {
+  : m_window(window)
+{
 
 }
 
-InputModule::~InputModule() {
+InputModule::~InputModule()
+{
   for (InputAction* action : m_inputActions) {
     delete action;
   }
 }
 
 void InputModule::registerAction(const std::string& actionName,
-                                 const InputAction& action) {
+  const InputAction& action)
+{
   InputAction* actionClone = action.clone();
   actionClone->m_name = actionName;
 
@@ -27,7 +30,8 @@ void InputModule::registerAction(const std::string& actionName,
   m_inputActionsState.insert({actionName, InputActionState::Inactive});
 }
 
-void InputModule::unregisterAction(const std::string& actionName) {
+void InputModule::unregisterAction(const std::string& actionName)
+{
   auto inputActionStateIt = m_inputActionsState.find(actionName);
 
   if (inputActionStateIt == m_inputActionsState.end()) {
@@ -43,25 +47,30 @@ void InputModule::unregisterAction(const std::string& actionName) {
   m_inputActionsState.erase(inputActionStateIt);
 }
 
-bool InputModule::isActionActive(const std::string& actionName) const {
+bool InputModule::isActionActive(const std::string& actionName) const
+{
   return m_inputActionsState.at(actionName) == InputActionState::Active;
 }
 
-void InputModule::enableGlobalTracking() {
+void InputModule::enableGlobalTracking()
+{
   SDL_CaptureMouse(SDL_TRUE);
 }
 
-void InputModule::disableGlobalTracking() {
+void InputModule::disableGlobalTracking()
+{
   SDL_CaptureMouse(SDL_FALSE);
 }
 
-bool InputModule::isGlobalTrackingEnabled() const {
+bool InputModule::isGlobalTrackingEnabled() const
+{
   uint32_t windowFlags = SDL_GetWindowFlags(m_window);
 
   return windowFlags & SDL_WINDOW_MOUSE_CAPTURE;
 }
 
-void InputModule::setMouseMovementMode(MouseMovementMode mode) {
+void InputModule::setMouseMovementMode(MouseMovementMode mode)
+{
   if (mode == MouseMovementMode::Relative) {
     SDL_SetRelativeMouseMode(SDL_TRUE);
   }
@@ -70,31 +79,36 @@ void InputModule::setMouseMovementMode(MouseMovementMode mode) {
   }
 }
 
-MouseMovementMode InputModule::getMouseMovementMode() const {
+MouseMovementMode InputModule::getMouseMovementMode() const
+{
   SDL_bool relativeMode = SDL_GetRelativeMouseMode();
 
   return (relativeMode == SDL_TRUE) ? MouseMovementMode::Relative : MouseMovementMode::Absolute;
 }
 
-void InputModule::setMousePosition(const MousePosition& position) {
+void InputModule::setMousePosition(const MousePosition& position)
+{
   SDL_WarpMouseInWindow(m_window, position.x, position.y);
 }
 
-MousePosition InputModule::getMousePosition() const {
+MousePosition InputModule::getMousePosition() const
+{
   MousePosition position{};
   SDL_GetMouseState(&position.x, &position.y);
 
   return position;
 }
 
-MousePosition InputModule::getMouseDelta() const {
+MousePosition InputModule::getMouseDelta() const
+{
   MousePosition position{};
   SDL_GetRelativeMouseState(&position.x, &position.y);
 
   return position;
 }
 
-void InputModule::processRawSDLEvent(const SDL_Event& ev) {
+void InputModule::processRawSDLEvent(const SDL_Event& ev)
+{
   if (ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP) {
     KeyboardEvent event{};
 
@@ -121,7 +135,7 @@ void InputModule::processRawSDLEvent(const SDL_Event& ev) {
     }
 
     InputActionState newState =
-        (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
+      (ev.type == SDL_MOUSEBUTTONDOWN) ? InputActionState::Active : InputActionState::Inactive;
 
     toggleActionState(MouseButtonClickAction(ev.button.button), newState);
   }
@@ -139,16 +153,19 @@ void InputModule::processRawSDLEvent(const SDL_Event& ev) {
   }
 }
 
-void InputModule::registerEventsListener(std::shared_ptr<InputEventsListener> listener) {
+void InputModule::registerEventsListener(std::shared_ptr<InputEventsListener> listener)
+{
   m_eventsListeners.push_back(listener);
 }
 
-void InputModule::unregisterEventsListener(std::shared_ptr<InputEventsListener> listener) {
+void InputModule::unregisterEventsListener(std::shared_ptr<InputEventsListener> listener)
+{
   m_eventsListeners.erase(std::remove(m_eventsListeners.begin(), m_eventsListeners.end(), listener),
-                          m_eventsListeners.end());
+    m_eventsListeners.end());
 }
 
-void InputModule::toggleActionState(const InputAction& action, InputActionState state) {
+void InputModule::toggleActionState(const InputAction& action, InputActionState state)
+{
   for (InputAction* currentAction : m_inputActions) {
     if (currentAction->equals(&action)) {
       m_inputActionsState[currentAction->m_name] = state;
@@ -169,37 +186,45 @@ InputAction::InputAction() = default;
 InputAction::~InputAction() = default;
 
 KeyboardInputAction::KeyboardInputAction(SDL_Keycode keyCode)
-    : m_keyCode(keyCode) {
+  : m_keyCode(keyCode)
+{
 
 }
 
-SDL_Keycode KeyboardInputAction::getKeyCode() const {
+SDL_Keycode KeyboardInputAction::getKeyCode() const
+{
   return m_keyCode;
 }
 
-InputAction* KeyboardInputAction::clone() const {
+InputAction* KeyboardInputAction::clone() const
+{
   return new KeyboardInputAction(m_keyCode);
 }
 
-bool KeyboardInputAction::equals(const InputAction* action) const {
+bool KeyboardInputAction::equals(const InputAction* action) const
+{
   const auto* keyboardAction = dynamic_cast<const KeyboardInputAction* const>(action);
   return keyboardAction != nullptr && keyboardAction->getKeyCode() == m_keyCode;
 }
 
 MouseButtonClickAction::MouseButtonClickAction(uint8_t button)
-    : m_button(button) {
+  : m_button(button)
+{
 
 }
 
-uint8_t MouseButtonClickAction::getButtonCode() const {
+uint8_t MouseButtonClickAction::getButtonCode() const
+{
   return m_button;
 }
 
-InputAction* MouseButtonClickAction::clone() const {
+InputAction* MouseButtonClickAction::clone() const
+{
   return new MouseButtonClickAction(m_button);
 }
 
-bool MouseButtonClickAction::equals(const InputAction* action) const {
+bool MouseButtonClickAction::equals(const InputAction* action) const
+{
   const auto* clickAction = dynamic_cast<const MouseButtonClickAction* const>(action);
   return clickAction != nullptr && clickAction->getButtonCode() == m_button;
 }

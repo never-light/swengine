@@ -13,6 +13,6 @@ class AnimationExporter {
   AnimationExporter();
 
   void exportToFile(const std::string& path,
-                    const RawSkeletalAnimationClip& animation,
-                    const AnimationExportOptions& options);
+    const RawSkeletalAnimationClip& animation,
+    const AnimationExportOptions& options);
 };

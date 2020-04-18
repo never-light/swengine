@@ -8,7 +8,8 @@
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 
-TEST_CASE("Distances", "[geometry]") {
+TEST_CASE("Distances", "[geometry]")
+{
   using tests::MathUtils;
 
   SECTION("Points") {

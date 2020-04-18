@@ -15,7 +15,8 @@
 
 #include <Engine/Modules/ResourceManagement/RawDataStructures.h>
 
-inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from) {
+inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from)
+{
   glm::mat4 to;
 
   to[0][0] = static_cast<float>(from->a1);
@@ -41,11 +42,13 @@ inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from) {
   return to;
 }
 
-inline glm::vec3 aiVec3ToGlm(const aiVector3D& vector) {
+inline glm::vec3 aiVec3ToGlm(const aiVector3D& vector)
+{
   return glm::vec3(vector.x, vector.y, vector.z);
 }
 
-inline glm::quat aiQuaternionToGlm(const aiQuaternion& from) {
+inline glm::quat aiQuaternionToGlm(const aiQuaternion& from)
+{
   glm::quat to;
   to.x = from.x;
   to.y = from.y;
@@ -55,9 +58,10 @@ inline glm::quat aiQuaternionToGlm(const aiQuaternion& from) {
 }
 
 inline RawVector3 getTransformedRawVector(const aiVector3D& vector,
-                                          const aiMatrix4x4& matrix,
-                                          bool point = true,
-                                          bool normalize = false) {
+  const aiMatrix4x4& matrix,
+  bool point = true,
+  bool normalize = false)
+{
   glm::vec4 sourceVector = glm::vec4(aiVec3ToGlm(vector), point ? 1 : 0);
   glm::vec3 transformedVector = aiMatrix4x4ToGlm(&matrix) * sourceVector;
 
@@ -68,7 +72,8 @@ inline RawVector3 getTransformedRawVector(const aiVector3D& vector,
   return {transformedVector.x, transformedVector.y, transformedVector.z};
 }
 
-inline RawVector3 rawVectorMin(const RawVector3& a, const RawVector3& b) {
+inline RawVector3 rawVectorMin(const RawVector3& a, const RawVector3& b)
+{
   RawVector3 result;
   result.x = std::fminf(a.x, b.x);
   result.y = std::fminf(a.y, b.y);

@@ -203,7 +203,8 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 };
 
 template<class T, class ...Args>
-inline ComponentHandle<T> GameWorld::assignComponent(GameObject* gameObject, Args&& ...args) {
+inline ComponentHandle<T> GameWorld::assignComponent(GameObject* gameObject, Args&& ...args)
+{
   std::type_index typeId = std::type_index(typeid(T));
 
   T component(std::forward<Args>(args)...);
@@ -216,7 +217,8 @@ inline ComponentHandle<T> GameWorld::assignComponent(GameObject* gameObject, Arg
 }
 
 template<class T>
-inline void GameWorld::removeComponent(GameObject* gameObject) {
+inline void GameWorld::removeComponent(GameObject* gameObject)
+{
   std::type_index typeId = std::type_index(typeid(T));
 
   auto componentIterator = gameObject->m_components.find(typeId);
@@ -233,7 +235,8 @@ inline void GameWorld::removeComponent(GameObject* gameObject) {
 }
 
 template<class ...ComponentsTypes>
-inline GameObjectsComponentsView<ComponentsTypes...> GameWorld::allWith() {
+inline GameObjectsComponentsView<ComponentsTypes...> GameWorld::allWith()
+{
   GameObjectsComponentsIterator<ComponentsTypes...> begin(this, 0, false);
   GameObjectsComponentsIterator<ComponentsTypes...> end(this, m_gameObjects.size(), true);
 
@@ -241,7 +244,8 @@ inline GameObjectsComponentsView<ComponentsTypes...> GameWorld::allWith() {
 }
 
 template<class T>
-inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener) {
+inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener)
+{
   std::type_index typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
@@ -255,7 +259,8 @@ inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener) {
 }
 
 template<class T>
-inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener) {
+inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener)
+{
   std::type_index typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
@@ -265,12 +270,13 @@ inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener) {
   }
 
   eventListenersListIt->second.erase(std::remove(eventListenersListIt->second.begin(),
-                                                 eventListenersListIt->second.end(), listener),
-                                     eventListenersListIt->second.end());
+    eventListenersListIt->second.end(), listener),
+    eventListenersListIt->second.end());
 }
 
 template<class T>
-inline EventProcessStatus GameWorld::emitEvent(const T& event) {
+inline EventProcessStatus GameWorld::emitEvent(const T& event)
+{
   std::type_index typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);

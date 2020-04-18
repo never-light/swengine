@@ -9,7 +9,7 @@
 class GeometryCullingSystem : public RenderingSystem {
  public:
   GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                        std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
 
   ~GeometryCullingSystem() override;
 

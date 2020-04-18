@@ -9,7 +9,8 @@
 struct ShaderResourceParameters : ResourceSourceParameters {
   ShaderResourceParameters() = default;
 
-  explicit ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType) {}
+  explicit ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType)
+  {}
 
   GLenum shaderType;
 };
@@ -28,13 +29,13 @@ class ShaderResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static std::shared_ptr<GLShader> loadFromFile(const std::string& path,
-                                                const ShaderResourceParameters& parameters);
+    const ShaderResourceParameters& parameters);
 
   static std::shared_ptr<GLShader> loadFromRawString(const std::string& rawString,
-                                                     const ShaderResourceParameters& parameters);
+    const ShaderResourceParameters& parameters);
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<GLShader> getShader() const;

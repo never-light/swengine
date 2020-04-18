@@ -11,33 +11,40 @@
 #include "MeshRendererComponent.h"
 
 MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                                         std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-    : RenderingSystem(graphicsContext, sharedGraphicsState) {
+  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  : RenderingSystem(graphicsContext, sharedGraphicsState)
+{
 
 }
 
-MeshRenderingSystem::~MeshRenderingSystem() {
+MeshRenderingSystem::~MeshRenderingSystem()
+{
 
 }
 
-void MeshRenderingSystem::configure(GameWorld* gameWorld) {
+void MeshRenderingSystem::configure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::unconfigure(GameWorld* gameWorld) {
+void MeshRenderingSystem::unconfigure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::update(GameWorld* gameWorld, float delta) {
+void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
+{
   ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::renderForward(GameWorld* gameWorld) {
+void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld) {
+void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
+{
   for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
     const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
 
@@ -86,30 +93,30 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld) {
       if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
         if (obj->hasComponent<SkeletalAnimationComponent>()) {
           const SkeletalAnimationStatesMachine& animationStatesMachine =
-              obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+            obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
           const SkeletalAnimationMatrixPalette& currentMatrixPalette =
-              animationStatesMachine.getCurrentMatrixPalette();
+            animationStatesMachine.getCurrentMatrixPalette();
 
           vertexShader->setArrayParameter("animation.palette",
-                                          currentMatrixPalette.bonesTransforms);
+            currentMatrixPalette.bonesTransforms);
         }
         else {
           vertexShader->setArrayParameter("animation.palette",
-                                          std::vector<glm::mat4>(vertexShader->getArraySize("animation.palette"),
-                                                                 glm::identity<glm::mat4>()));
+            std::vector<glm::mat4>(vertexShader->getArraySize("animation.palette"),
+              glm::identity<glm::mat4>()));
         }
       }
 
       m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
       m_graphicsContext->executeRenderTask({
-                                               &material->getGpuMaterial(),
-                                               mesh->getGeometryStore(),
-                                               mesh->getSubMeshIndicesOffset(subMeshIndex),
-                                               mesh->getSubMeshIndicesCount(subMeshIndex),
-                                               GL_TRIANGLES,
-                                               &m_sharedGraphicsState->getDeferredFramebuffer()
-                                           });
+        &material->getGpuMaterial(),
+        mesh->getGeometryStore(),
+        mesh->getSubMeshIndicesOffset(subMeshIndex),
+        mesh->getSubMeshIndicesCount(subMeshIndex),
+        GL_TRIANGLES,
+        &m_sharedGraphicsState->getDeferredFramebuffer()
+      });
     }
   }
 }

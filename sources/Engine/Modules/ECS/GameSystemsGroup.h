@@ -38,7 +38,8 @@ class GameSystemsGroup : public GameSystem {
 };
 
 template<class T>
-std::shared_ptr<T> GameSystemsGroup::getGameSystem() const {
+std::shared_ptr<T> GameSystemsGroup::getGameSystem() const
+{
   static_assert(std::is_base_of_v<GameSystem, T>);
 
   for (std::shared_ptr<GameSystem> gameSystem : m_gameSystems) {

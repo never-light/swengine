@@ -22,7 +22,7 @@ struct BitmapCharacter {
 class BitmapFont {
  public:
   BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
-             int baseSize, int height);
+    int baseSize, int height);
 
   [[nodiscard]] const BitmapCharacter& getCharacter(unsigned char character) const;
 

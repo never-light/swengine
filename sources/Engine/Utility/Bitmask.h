@@ -8,15 +8,18 @@ class Bitmask {
   Bitmask() = default;
   ~Bitmask() = default;
 
-  [[nodiscard]] bool test(T bitIndex) {
+  [[nodiscard]] bool test(T bitIndex)
+  {
     return m_bits.test(static_cast<size_t>(bitIndex));
   }
 
-  void reset(T bitIndex) {
+  void reset(T bitIndex)
+  {
     m_bits.reset(static_cast<size_t>(bitIndex));
   }
 
-  void set(T bitIndex) {
+  void set(T bitIndex)
+  {
     m_bits.set(static_cast<size_t>(bitIndex));
   }
 

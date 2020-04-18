@@ -4,14 +4,17 @@
 
 #include "CameraComponent.h"
 
-CameraComponent::CameraComponent() {
+CameraComponent::CameraComponent()
+{
 
 }
 
-void CameraComponent::setCamera(std::shared_ptr<Camera> camera) {
+void CameraComponent::setCamera(std::shared_ptr<Camera> camera)
+{
   m_camera = camera;
 }
 
-std::shared_ptr<Camera> CameraComponent::getCamera() const {
+std::shared_ptr<Camera> CameraComponent::getCamera() const
+{
   return m_camera;
 }

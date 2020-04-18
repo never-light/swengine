@@ -21,7 +21,8 @@ struct BonePose {
   glm::quat orientation = glm::identity<glm::quat>();
 };
 
-inline BonePose operator*(const BonePose& a, const BonePose& b) {
+inline BonePose operator*(const BonePose& a, const BonePose& b)
+{
   BonePose result;
   result.orientation = a.orientation * b.orientation;
   result.position = a.position + glm::vec3(a.orientation * glm::vec4(b.position, 1.0f));

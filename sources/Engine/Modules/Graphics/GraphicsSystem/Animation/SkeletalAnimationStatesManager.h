@@ -17,7 +17,7 @@ class SkeletalAnimationStatesMachine {
   [[nodiscard]] int16_t getStateIdByName(const std::string& name) const;
 
   [[nodiscard]] SkeletalAnimationState& addState(const std::string& name,
-      std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode);
+    std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode);
 
   void addTransition(int16_t sourceStateId, int16_t targetStateId);
 

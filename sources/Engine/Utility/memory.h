@@ -11,9 +11,10 @@ class MemoryUtils {
 };
 
 template<class SourceType, class TargetType>
-std::vector<TargetType> MemoryUtils::createBinaryCompatibleVector(std::vector<SourceType>& source) {
+std::vector<TargetType> MemoryUtils::createBinaryCompatibleVector(std::vector<SourceType>& source)
+{
   static_assert(std::is_pod_v<SourceType> && std::is_pod_v<TargetType> &&
-      sizeof(SourceType) == sizeof(TargetType));
+    sizeof(SourceType) == sizeof(TargetType));
 
   size_t dataSize = sizeof(SourceType);
 

@@ -8,12 +8,14 @@
 #include "AssimpMeshLoader.h"
 #include "utils.h"
 
-SkeletonImporter::SkeletonImporter() {
+SkeletonImporter::SkeletonImporter()
+{
 
 }
 
 std::unique_ptr<RawSkeleton> SkeletonImporter::importFromFile(const std::string& path,
-                                                              const SkeletonImportOptions& options) {
+  const SkeletonImportOptions& options)
+{
   spdlog::info("Load source mesh: {}", path);
 
   AssimpMeshLoadOptions assimpOptions;
@@ -27,7 +29,7 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::importFromFile(const std::string&
   std::unique_ptr<RawSkeleton> skeleton = convertSceneToSkeleton(scene->getScene(), options);
 
   spdlog::info("Mesh is parsed, skeleton is extracted ({} bones)",
-               skeleton->header.bonesCount);
+    skeleton->header.bonesCount);
 
   return skeleton;
 }
@@ -35,7 +37,8 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::importFromFile(const std::string&
 #include <glm/gtx/string_cast.hpp>
 
 std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiScene& scene,
-                                                                      const SkeletonImportOptions& options) {
+  const SkeletonImportOptions& options)
+{
   ARG_UNUSED(options);
 
   std::unordered_map<std::string, const aiBone*> usedBonesList = collectBones(scene);
@@ -87,7 +90,8 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
   return skeleton;
 }
 
-std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(const aiScene& scene) const {
+std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(const aiScene& scene) const
+{
   std::unordered_map<std::string, const aiBone*> bonesList;
 
   for (size_t meshIndex = 0; meshIndex < scene.mNumMeshes; meshIndex++) {
@@ -102,7 +106,7 @@ std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(co
 
         if (boneIt != bonesList.end() && boneIt->second != bone) {
           THROW_EXCEPTION(EngineRuntimeException, "Failed to collect bones names, "
-                               "there are to bones with the same name");
+                                                  "there are to bones with the same name");
         }
 
         bonesList.insert({boneName, bone});
@@ -114,9 +118,10 @@ std::unordered_map<std::string, const aiBone*> SkeletonImporter::collectBones(co
 }
 
 void SkeletonImporter::traverseSkeletonHierarchy(const aiNode* sceneNode,
-                                                 const aiMatrix4x4& parentNodeTransform,
-                                                 const std::unordered_map<std::string, const aiBone*>& usedBones,
-                                                 std::unordered_map<std::string, ImportSceneBoneData>& bonesData) {
+  const aiMatrix4x4& parentNodeTransform,
+  const std::unordered_map<std::string, const aiBone*>& usedBones,
+  std::unordered_map<std::string, ImportSceneBoneData>& bonesData)
+{
   std::string currentNodeName = sceneNode->mName.C_Str();
   aiMatrix4x4 currentNodeTransform = parentNodeTransform * sceneNode->mTransformation;
 
@@ -144,14 +149,15 @@ void SkeletonImporter::traverseSkeletonHierarchy(const aiNode* sceneNode,
 }
 
 const aiNode* SkeletonImporter::findRootBoneNode(const aiNode* sceneRootNode,
-                                                 const std::unordered_map<std::string,
-                                                                          const aiBone*>& bonesList) const {
+  const std::unordered_map<std::string,
+                           const aiBone*>& bonesList) const
+{
   for (auto[boneName, bone] : bonesList) {
     const aiNode* boneNode = sceneRootNode->FindNode(boneName.c_str());
     std::string boneNodeName = boneNode->mParent->mName.C_Str();
 
     if (boneNode != nullptr && boneNode->mParent != nullptr &&
-        bonesList.find(boneNodeName) == bonesList.end()) {
+      bonesList.find(boneNodeName) == bonesList.end()) {
       return boneNode;
     }
   }
@@ -160,9 +166,10 @@ const aiNode* SkeletonImporter::findRootBoneNode(const aiNode* sceneRootNode,
 }
 
 void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
-                                     const std::unordered_map<std::string, ImportSceneBoneData>& bonesList,
-                                     std::vector<RawBone>& rawBonesList,
-                                     int parentBoneId) const {
+  const std::unordered_map<std::string, ImportSceneBoneData>& bonesList,
+  std::vector<RawBone>& rawBonesList,
+  int parentBoneId) const
+{
   SW_ASSERT(skeletonNode != nullptr);
   SW_ASSERT(bonesList.size() > 0);
 
@@ -175,11 +182,12 @@ void SkeletonImporter::buildSkeleton(const aiNode* skeletonNode,
     if (skeletonNode->mNumChildren != 0) {
       if (skeletonNode->mNumMeshes == 0) {
         THROW_EXCEPTION(EngineRuntimeException, "Failed to build skeleton, "
-                             "the bone node is not presented in list of bones' names ( " + boneName + " )");
+                                                "the bone node is not presented in list of bones' names ( " + boneName
+          + " )");
       }
       else {
         THROW_EXCEPTION(EngineRuntimeException, "There are node with meshes in skeleton tree (" + boneName + ") "
-                                                                                          "such format is not supported");
+                                                                                                             "such format is not supported");
       }
     }
     else {

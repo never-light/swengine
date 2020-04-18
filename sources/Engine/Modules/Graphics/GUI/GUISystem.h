@@ -22,8 +22,8 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
                   public EventsListener<KeyboardEvent> {
  public:
   GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
-            std::shared_ptr<GLGraphicsContext> graphicsContext,
-            std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
+    std::shared_ptr<GLGraphicsContext> graphicsContext,
+    std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
 
   void configure(GameWorld* gameWorld) override;
   void unconfigure(GameWorld* gameWorld) override;

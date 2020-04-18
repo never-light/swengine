@@ -5,14 +5,17 @@
 #include "GraphicsModule.h"
 
 GraphicsModule::GraphicsModule(SDL_Window* window)
-    : m_graphicsContext(new GLGraphicsContext(window)) {
+  : m_graphicsContext(new GLGraphicsContext(window))
+{
 
 }
 
-GraphicsModule::~GraphicsModule() {
+GraphicsModule::~GraphicsModule()
+{
 
 }
 
-std::shared_ptr<GLGraphicsContext> GraphicsModule::getGraphicsContext() const {
+std::shared_ptr<GLGraphicsContext> GraphicsModule::getGraphicsContext() const
+{
   return m_graphicsContext;
 }

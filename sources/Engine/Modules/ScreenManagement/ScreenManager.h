@@ -9,9 +9,9 @@
 class ScreenManager : public std::enable_shared_from_this<ScreenManager> {
  public:
   ScreenManager(std::shared_ptr<GameWorld> gameWorld,
-                std::shared_ptr<GraphicsModule> graphicsModule,
-                std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-                std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<GraphicsModule> graphicsModule,
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<ResourceManager> resourceManager);
 
   ~ScreenManager();
 

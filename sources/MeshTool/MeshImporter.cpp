@@ -11,11 +11,13 @@
 #include "AssimpMeshLoader.h"
 #include "SkeletonImporter.h"
 
-MeshImporter::MeshImporter() {
+MeshImporter::MeshImporter()
+{
 
 }
 
-std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, const MeshImportOptions& options) {
+std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, const MeshImportOptions& options)
+{
   spdlog::info("Load source mesh: {}", path);
 
   AssimpMeshLoadOptions assimpOptions;
@@ -43,14 +45,15 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
   std::unique_ptr<RawMesh> mesh = convertSceneToMesh(scene->getScene(), skeleton.get(), options);
 
   spdlog::info("Mesh is parsed ({} vertices, {} indices, {} submeshes)",
-               mesh->header.verticesCount, mesh->header.indicesCount, mesh->header.subMeshesIndicesOffsetsCount);
+    mesh->header.verticesCount, mesh->header.indicesCount, mesh->header.subMeshesIndicesOffsetsCount);
 
   return mesh;
 }
 
 std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
-                                                          const RawSkeleton* skeleton,
-                                                          const MeshImportOptions& options) {
+  const RawSkeleton* skeleton,
+  const MeshImportOptions& options)
+{
   SW_ASSERT(!options.loadSkin || (options.loadSkin && skeleton != nullptr));
 
   std::unordered_map<std::string, int> bonesMap;
@@ -105,7 +108,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
     for (size_t vertexIndex = 0; vertexIndex < subMesh.mNumVertices; vertexIndex++) {
       RawVector3 position = getTransformedRawVector(subMesh.mVertices[vertexIndex],
-                                                    subMeshPtr.sceneTransfromationMatrix, true);
+        subMeshPtr.sceneTransfromationMatrix, true);
 
       positions.push_back(position);
 
@@ -113,13 +116,13 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
       aabbMax = glm::max(aabbMax, {position.x, position.y, position.z});
 
       normals.push_back(getTransformedRawVector(subMesh.mNormals[vertexIndex],
-                                                subMeshPtr.sceneTransfromationMatrix, false, true));
+        subMeshPtr.sceneTransfromationMatrix, false, true));
 
       tangents.push_back(getTransformedRawVector(subMesh.mTangents[vertexIndex],
-                                                 subMeshPtr.sceneTransfromationMatrix, false, true));
+        subMeshPtr.sceneTransfromationMatrix, false, true));
 
       uv.push_back({subMesh.mTextureCoords[0][vertexIndex].x,
-                     subMesh.mTextureCoords[0][vertexIndex].y});
+        subMesh.mTextureCoords[0][vertexIndex].y});
 
       bonesIDs.push_back({0, 0, 0, 0});
       bonesWeights.push_back({0.0f, 0.0f, 0.0f, 0.0f});
@@ -169,7 +172,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
         if (rawBoneIt == bonesMap.end()) {
           THROW_EXCEPTION(EngineRuntimeException,
-                          "Bone " + boneName + " that is attached to the submesh is not found in the skeleton");
+            "Bone " + boneName + " that is attached to the submesh is not found in the skeleton");
         }
 
         for (size_t weightIndex = 0; weightIndex < bone.mNumWeights; weightIndex++) {
@@ -206,7 +209,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = remainingSum;
 
           break;
-        } else {
+        }
+        else {
           remainingSum -= convertedWeight;
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = convertedWeight;
         }
@@ -264,9 +268,10 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 }
 
 void MeshImporter::collectMeshes(const aiScene& scene,
-                                 const aiNode& sceneNode,
-                                 std::unordered_map<std::string, ImportMeshData>& meshesList,
-                                 const aiMatrix4x4& parentNodeTransform) const {
+  const aiNode& sceneNode,
+  std::unordered_map<std::string, ImportMeshData>& meshesList,
+  const aiMatrix4x4& parentNodeTransform) const
+{
   std::string currentNodeName = sceneNode.mName.C_Str();
   aiMatrix4x4 currentNodeTransform = parentNodeTransform * sceneNode.mTransformation;
 
@@ -282,7 +287,7 @@ void MeshImporter::collectMeshes(const aiScene& scene,
       // Nodes structure and ability to use one mesh in two different nodes is ignored
 
       spdlog::warn("The same mesh is attached to multiple nodes ({}), attachment is skipped (node {})",
-                   meshName, currentNodeName);
+        meshName, currentNodeName);
       continue;
     }
 
@@ -302,7 +307,8 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 }
 
 std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
-                                                       const MeshImportOptions& options) const {
+  const MeshImportOptions& options) const
+{
   SkeletonImporter importer;
   SkeletonImportOptions importOptions;
   importOptions.maxBonexPerVertex = options.maxBonesPerVertex;
@@ -310,7 +316,8 @@ std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
   return importer.importFromFile(path, importOptions);
 }
 
-std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton) const {
+std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton) const
+{
   std::unordered_map<std::string, int> bonesMap;
 
   for (size_t boneIndex = 0; boneIndex < skeleton.bones.size(); boneIndex++) {

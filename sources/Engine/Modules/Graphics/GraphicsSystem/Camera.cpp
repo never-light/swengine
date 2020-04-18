@@ -5,19 +5,23 @@
 #include "Camera.h"
 
 Camera::Camera()
-    : m_transform(new Transform()) {
+    : m_transform(new Transform())
+{
 
 }
 
-Camera::~Camera() {
+Camera::~Camera()
+{
 
 }
 
-Transform* Camera::getTransform() const {
+Transform* Camera::getTransform() const
+{
   return m_transform.get();
 }
 
-const Frustum& Camera::getFrustum() {
+const Frustum& Camera::getFrustum()
+{
   if (m_needFrustumUpdate || m_transform->isCacheOutdated()) {
     m_frustum = Frustum::extractFromViewProjection(getViewMatrix(), getProjectionMatrix());
 
@@ -27,43 +31,51 @@ const Frustum& Camera::getFrustum() {
   return m_frustum;
 }
 
-void Camera::setAspectRatio(float ratio) {
+void Camera::setAspectRatio(float ratio)
+{
   m_aspectRatio = ratio;
 
   resetProjectionCache();
 }
 
-float Camera::getAspectRatio() const {
+float Camera::getAspectRatio() const
+{
   return m_aspectRatio;
 }
 
-void Camera::setNearClipDistance(float distance) {
+void Camera::setNearClipDistance(float distance)
+{
   m_nearClipDistance = distance;
 
   resetProjectionCache();
 }
 
-float Camera::getNearClipDistance() const {
+float Camera::getNearClipDistance() const
+{
   return m_nearClipDistance;
 }
 
-void Camera::setFarClipDistance(float distance) {
+void Camera::setFarClipDistance(float distance)
+{
   m_farClipDistance = distance;
 
   resetProjectionCache();
 }
 
-float Camera::getFarClipDistance() const {
+float Camera::getFarClipDistance() const
+{
   return m_farClipDistance;
 }
 
-void Camera::setFOVy(float fov) {
+void Camera::setFOVy(float fov)
+{
   m_FOVy = fov;
 
   resetProjectionCache();
 }
 
-float Camera::getFOVy() const {
+float Camera::getFOVy() const
+{
   return m_FOVy;
 }
 
@@ -72,7 +84,8 @@ float Camera::getFOVy() const {
 
 typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
 
-glm::mat4x4 Camera::getProjectionMatrix() {
+glm::mat4x4 Camera::getProjectionMatrix()
+{
   if (m_needProjectionMatrixCacheUpdate) {
     m_projectionMatrixCache = glm::perspective(m_FOVy, m_aspectRatio, m_nearClipDistance, m_farClipDistance);
 
@@ -83,11 +96,12 @@ glm::mat4x4 Camera::getProjectionMatrix() {
   return m_projectionMatrixCache;
 }
 
-glm::mat4x4 Camera::getViewMatrix() {
+glm::mat4x4 Camera::getViewMatrix()
+{
   if (m_transform->isCacheOutdated()) {
     m_viewMatrixCache = glm::lookAt(m_transform->getPosition(),
-                                    m_transform->getPosition() + m_transform->getFrontDirection(),
-                                    m_transform->getUpDirection());
+        m_transform->getPosition() + m_transform->getFrontDirection(),
+        m_transform->getUpDirection());
 
     // Trigger transformation cache update
     (void)m_transform->getTransformationMatrix();
@@ -98,7 +112,8 @@ glm::mat4x4 Camera::getViewMatrix() {
   return m_viewMatrixCache;
 }
 
-void Camera::resetProjectionCache() {
+void Camera::resetProjectionCache()
+{
   m_needProjectionMatrixCacheUpdate = true;
   m_needFrustumUpdate = true;
 }

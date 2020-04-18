@@ -14,22 +14,24 @@
 #include "AnimationImporter.h"
 #include "AnimationExporter.h"
 
-MeshToolApplication::MeshToolApplication() {
+MeshToolApplication::MeshToolApplication()
+{
 
 }
 
-void MeshToolApplication::execute(int argc, char* argv[]) {
+void MeshToolApplication::execute(int argc, char* argv[])
+{
   cxxopts::Options options("StarWind Mesh Tool", "StarWind mesh processing tool");
   options.add_options()
-      ("h,help", "Help")
-      ("i,input", "Input file", cxxopts::value<std::string>())
-      ("o,output", "Output file", cxxopts::value<std::string>())
-      ("a,action", "Action (import)", cxxopts::value<std::string>()->default_value("import"))
-      ("t,type", "Import type (mesh, skeleton, animation)", cxxopts::value<std::string>()->default_value("mesh"))
-      ("format", "Output mesh format (pos3_norm3_uv, pos3_norm3_uv_skinned,"
-                 "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned)",
-       cxxopts::value<std::string>()->default_value("pos3_norm3_uv"))
-      ("clip-name", "Skeletal animation clip name to import", cxxopts::value<std::string>());
+    ("h,help", "Help")
+    ("i,input", "Input file", cxxopts::value<std::string>())
+    ("o,output", "Output file", cxxopts::value<std::string>())
+    ("a,action", "Action (import)", cxxopts::value<std::string>()->default_value("import"))
+    ("t,type", "Import type (mesh, skeleton, animation)", cxxopts::value<std::string>()->default_value("mesh"))
+    ("format", "Output mesh format (pos3_norm3_uv, pos3_norm3_uv_skinned,"
+               "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned)",
+      cxxopts::value<std::string>()->default_value("pos3_norm3_uv"))
+    ("clip-name", "Skeletal animation clip name to import", cxxopts::value<std::string>());
 
   auto parsedArgs = options.parse(argc, argv);
 
@@ -66,14 +68,15 @@ void MeshToolApplication::execute(int argc, char* argv[]) {
   }
 }
 
-void MeshToolApplication::importMesh(const cxxopts::ParseResult& options) {
+void MeshToolApplication::importMesh(const cxxopts::ParseResult& options)
+{
   spdlog::info("Convertation started");
 
   MeshExportFormat exportFormat = StringUtils::filterValue(options["format"].as<std::string>(), {
-      {"pos3_norm3_uv", MeshExportFormat::Pos3Norm3UV},
-      {"pos3_norm3_uv_skinned", MeshExportFormat::Pos3Norm3UVSkinned},
-      {"pos3_norm3_tan3_uv", MeshExportFormat::Pos3Norm3Tan3UV},
-      {"pos3_norm3_tan3_uv_skinned", MeshExportFormat::Pos3Norm3Tan3UVSkinned},
+    {"pos3_norm3_uv", MeshExportFormat::Pos3Norm3UV},
+    {"pos3_norm3_uv_skinned", MeshExportFormat::Pos3Norm3UVSkinned},
+    {"pos3_norm3_tan3_uv", MeshExportFormat::Pos3Norm3Tan3UV},
+    {"pos3_norm3_tan3_uv_skinned", MeshExportFormat::Pos3Norm3Tan3UVSkinned},
   }, MeshExportFormat::Pos3Norm3UV);
 
   // Import mesh as raw mesh data
@@ -84,7 +87,7 @@ void MeshToolApplication::importMesh(const cxxopts::ParseResult& options) {
   importOptions.joinIdenticalVertices = true;
 
   if (exportFormat == MeshExportFormat::Pos3Norm3UVSkinned
-      || exportFormat == MeshExportFormat::Pos3Norm3Tan3UVSkinned) {
+    || exportFormat == MeshExportFormat::Pos3Norm3Tan3UVSkinned) {
     importOptions.loadSkin = true;
   }
 
@@ -107,7 +110,8 @@ void MeshToolApplication::importMesh(const cxxopts::ParseResult& options) {
   spdlog::info("Convertation finished");
 }
 
-void MeshToolApplication::importSkeleton(const cxxopts::ParseResult& options) {
+void MeshToolApplication::importSkeleton(const cxxopts::ParseResult& options)
+{
   spdlog::info("Convertation started");
 
   // Import mesh as raw mesh data
@@ -129,7 +133,8 @@ void MeshToolApplication::importSkeleton(const cxxopts::ParseResult& options) {
   spdlog::info("Convertation finished");
 }
 
-void MeshToolApplication::importAnimation(const cxxopts::ParseResult& options) {
+void MeshToolApplication::importAnimation(const cxxopts::ParseResult& options)
+{
   ARG_UNUSED(options);
 
   spdlog::info("Convertation started");

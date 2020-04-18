@@ -2,7 +2,8 @@
 
 #include <Engine/Exceptions/exceptions.h>
 
-AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& options) {
+AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& options)
+{
   unsigned int importOptions = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_ImproveCacheLocality;
 
   if (options.flipUV) {
@@ -39,15 +40,18 @@ AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& o
   }
 }
 
-AssimpScene::~AssimpScene() {
+AssimpScene::~AssimpScene()
+{
 
 }
 
-const aiScene& AssimpScene::getScene() const {
+const aiScene& AssimpScene::getScene() const
+{
   return *m_scene;
 }
 
 std::unique_ptr<AssimpScene> AssimpMeshLoader::loadScene(const std::string& path,
-                                                         const AssimpMeshLoadOptions& options) {
+  const AssimpMeshLoadOptions& options)
+{
   return std::make_unique<AssimpScene>(path, options);
 }

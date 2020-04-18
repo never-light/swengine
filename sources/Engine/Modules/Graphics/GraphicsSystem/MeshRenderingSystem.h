@@ -9,7 +9,7 @@
 class MeshRenderingSystem : public RenderingSystem {
  public:
   MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                      std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
 
   ~MeshRenderingSystem() override;
 

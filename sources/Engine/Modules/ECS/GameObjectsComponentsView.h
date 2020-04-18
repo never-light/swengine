@@ -11,7 +11,7 @@ template<class... ComponentsTypes>
 class GameObjectsComponentsView {
  public:
   GameObjectsComponentsView(const GameObjectsComponentsIterator<ComponentsTypes...>& begin,
-                            const GameObjectsComponentsIterator<ComponentsTypes...>& end);
+    const GameObjectsComponentsIterator<ComponentsTypes...>& end);
   ~GameObjectsComponentsView();
 
   /*!

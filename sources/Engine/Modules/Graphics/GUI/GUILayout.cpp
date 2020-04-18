@@ -4,6 +4,7 @@
 
 #include "GUILayout.h"
 
-GUILayout::GUILayout() {
+GUILayout::GUILayout()
+{
 
 }

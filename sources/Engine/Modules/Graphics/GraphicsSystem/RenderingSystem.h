@@ -8,7 +8,7 @@
 class RenderingSystem : public GameSystem {
  public:
   RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                  std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
 
   virtual void renderDeferred(GameWorld* gameWorld);
   virtual void renderForward(GameWorld* gameWorld);

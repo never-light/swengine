@@ -7,23 +7,28 @@
 #include "GameWorld.h"
 
 GameObjectsSequentialIterator::GameObjectsSequentialIterator(GameWorld* world, size_t gameObjectIndex, bool isEnd)
-    : m_gameObjectIndex(gameObjectIndex),
-      m_isEnd(isEnd),
-      m_gameWorld(world) {
+  : m_gameObjectIndex(gameObjectIndex),
+    m_isEnd(isEnd),
+    m_gameWorld(world)
+{
 }
 
-GameObjectsSequentialIterator::~GameObjectsSequentialIterator() {
+GameObjectsSequentialIterator::~GameObjectsSequentialIterator()
+{
 }
 
-bool GameObjectsSequentialIterator::isEnd() const {
+bool GameObjectsSequentialIterator::isEnd() const
+{
   return m_isEnd;
 }
 
-GameWorld* GameObjectsSequentialIterator::getGameWorld() const {
+GameWorld* GameObjectsSequentialIterator::getGameWorld() const
+{
   return m_gameWorld;
 }
 
-GameObject* GameObjectsSequentialIterator::getGameObject() const {
+GameObject* GameObjectsSequentialIterator::getGameObject() const
+{
   if (m_isEnd) {
     return nullptr;
   }
@@ -31,11 +36,13 @@ GameObject* GameObjectsSequentialIterator::getGameObject() const {
   return m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
 }
 
-GameObject* GameObjectsSequentialIterator::operator*() const {
+GameObject* GameObjectsSequentialIterator::operator*() const
+{
   return getGameObject();
 }
 
-bool GameObjectsSequentialIterator::operator==(const GameObjectsSequentialIterator& it) const {
+bool GameObjectsSequentialIterator::operator==(const GameObjectsSequentialIterator& it) const
+{
   if (m_isEnd) {
     return it.m_isEnd;
   }
@@ -43,7 +50,8 @@ bool GameObjectsSequentialIterator::operator==(const GameObjectsSequentialIterat
   return m_gameObjectIndex == it.m_gameObjectIndex;
 }
 
-bool GameObjectsSequentialIterator::operator!=(const GameObjectsSequentialIterator& it) const {
+bool GameObjectsSequentialIterator::operator!=(const GameObjectsSequentialIterator& it) const
+{
   if (m_isEnd) {
     return !it.m_isEnd;
   }
@@ -51,7 +59,8 @@ bool GameObjectsSequentialIterator::operator!=(const GameObjectsSequentialIterat
   return m_gameObjectIndex != it.m_gameObjectIndex;
 }
 
-GameObjectsSequentialIterator& GameObjectsSequentialIterator::operator++() {
+GameObjectsSequentialIterator& GameObjectsSequentialIterator::operator++()
+{
   size_t gameObjectsCount = m_gameWorld->getGameObjectsCount();
 
   m_gameObjectIndex++;

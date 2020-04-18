@@ -23,10 +23,10 @@ class SkeletonResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static std::shared_ptr<Skeleton> loadFromFile(const std::string& path,
-                                                const SkeletonResourceParameters& parameters);
+    const SkeletonResourceParameters& parameters);
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<Skeleton> getSkeleton() const;

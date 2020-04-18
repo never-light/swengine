@@ -7,7 +7,8 @@
 #include <sstream>
 #include <algorithm>
 
-std::vector<std::string> StringUtils::split(const std::string& str, char delimiter) {
+std::vector<std::string> StringUtils::split(const std::string& str, char delimiter)
+{
   std::vector<std::string> entries;
   std::string entry;
 
@@ -20,7 +21,8 @@ std::vector<std::string> StringUtils::split(const std::string& str, char delimit
   return entries;
 }
 
-std::string StringUtils::toLowerCase(const std::string& str) {
+std::string StringUtils::toLowerCase(const std::string& str)
+{
   std::string result;
 
   for (auto ch : str) {
@@ -31,7 +33,8 @@ std::string StringUtils::toLowerCase(const std::string& str) {
 }
 
 std::string StringUtils::regexReplace(const std::string& expression, std::string str,
-                                      std::function<std::string(const std::smatch&)> callback) {
+  std::function<std::string(const std::smatch&)> callback)
+{
   std::regex regexp(expression);
   std::smatch match;
 
@@ -48,8 +51,9 @@ std::string StringUtils::regexReplace(const std::string& expression, std::string
 }
 
 std::string StringUtils::replace(std::string source,
-                                 const std::string& pattern,
-                                 const std::string& replacement) {
+  const std::string& pattern,
+  const std::string& replacement)
+{
   size_t position = source.find(pattern);
 
   while (position != std::string::npos) {

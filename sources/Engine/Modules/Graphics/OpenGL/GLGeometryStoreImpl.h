@@ -4,14 +4,15 @@
 #include "GLDebug.h"
 
 template<class T>
-void GLGeometryStore::createBuffersAndVAO(const std::vector<T>& vertices, const std::vector<uint16_t>& indices) {
+void GLGeometryStore::createBuffersAndVAO(const std::vector<T>& vertices, const std::vector<uint16_t>& indices)
+{
   // Create and fill vertex buffer
   GL_CALL_BLOCK_BEGIN();
 
   glCreateBuffers(1, &m_vertexBuffer);
   glNamedBufferStorage(m_vertexBuffer,
-                       static_cast<GLsizeiptr>(vertices.size() * sizeof(T)),
-                       vertices.data(), 0);
+    static_cast<GLsizeiptr>(vertices.size() * sizeof(T)),
+    vertices.data(), 0);
 
   m_verticesCount = vertices.size();
 
@@ -35,7 +36,8 @@ void GLGeometryStore::createBuffersAndVAO(const std::vector<T>& vertices, const 
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UV>() {
+void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UV>()
+{
   glCreateVertexArrays(1, &m_vertexArrayObject);
 
   glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Norm3UV));
@@ -58,7 +60,8 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UV>() {
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>() {
+void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>()
+{
   glCreateVertexArrays(1, &m_vertexArrayObject);
 
   glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Color4));
@@ -78,7 +81,8 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>() {
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>() {
+void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>()
+{
   glCreateVertexArrays(1, &m_vertexArrayObject);
 
   glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Norm3UVSkinned));
@@ -103,9 +107,9 @@ void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>() {
   glVertexArrayAttribFormat(m_vertexArrayObject, 2, 2, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, uv));
 
   glVertexArrayAttribIFormat(m_vertexArrayObject, 4, 4, GL_UNSIGNED_BYTE,
-                             offsetof(VertexPos3Norm3UVSkinned, bonesIds));
+    offsetof(VertexPos3Norm3UVSkinned, bonesIds));
   glVertexArrayAttribIFormat(m_vertexArrayObject, 5, 4, GL_UNSIGNED_BYTE,
-                             offsetof(VertexPos3Norm3UVSkinned, bonesWeights));
+    offsetof(VertexPos3Norm3UVSkinned, bonesWeights));
 
   glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);
   glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);

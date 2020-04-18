@@ -54,7 +54,7 @@ class MaterialResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<Material> getMaterial() const;

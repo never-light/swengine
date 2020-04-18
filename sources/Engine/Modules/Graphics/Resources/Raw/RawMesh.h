@@ -20,11 +20,13 @@ enum class RawMeshAttributes {
   BonesWeights = 32,
 };
 
-inline RawMeshAttributes operator|(RawMeshAttributes a, RawMeshAttributes b) {
+inline RawMeshAttributes operator|(RawMeshAttributes a, RawMeshAttributes b)
+{
   return static_cast<RawMeshAttributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
 }
 
-inline RawMeshAttributes operator&(RawMeshAttributes a, RawMeshAttributes b) {
+inline RawMeshAttributes operator&(RawMeshAttributes a, RawMeshAttributes b)
+{
   return static_cast<RawMeshAttributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
 }
 

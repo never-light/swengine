@@ -17,20 +17,21 @@ class StringUtils {
 
   template<class T>
   [[nodiscard]] static T filterValue(const std::string& rawValue,
-                       const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
+    const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
 
   [[nodiscard]] static std::string regexReplace(const std::string& expression, std::string str,
-                                  std::function<std::string(const std::smatch&)> callback);
+    std::function<std::string(const std::smatch&)> callback);
 
   [[nodiscard]] static std::string replace(std::string source,
-                             const std::string& pattern,
-                             const std::string& replacement);
+    const std::string& pattern,
+    const std::string& replacement);
 
 };
 
 template<class T>
 T StringUtils::filterValue(const std::string& rawValue,
-                           const std::unordered_map<std::string, T>& allowedValues, T defaultValue) {
+  const std::unordered_map<std::string, T>& allowedValues, T defaultValue)
+{
   T value = defaultValue;
 
   if (!rawValue.empty()) {

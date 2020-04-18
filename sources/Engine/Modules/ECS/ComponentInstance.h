@@ -21,20 +21,24 @@ class ComponentInstance : public BaseComponentInstance {
 
 template<class T>
 inline ComponentInstance<T>::ComponentInstance(GameObject* gameObject, T&& componentData)
-    : BaseComponentInstance(gameObject),
-      m_componentData(std::move(componentData)) {
+  : BaseComponentInstance(gameObject),
+    m_componentData(std::move(componentData))
+{
 }
 
 template<class T>
-inline ComponentInstance<T>::~ComponentInstance() {
+inline ComponentInstance<T>::~ComponentInstance()
+{
 }
 
 template<class T>
-inline T& ComponentInstance<T>::getDataRef() {
+inline T& ComponentInstance<T>::getDataRef()
+{
   return m_componentData;
 }
 
 template<class T>
-inline T* ComponentInstance<T>::getDataPtr() {
+inline T* ComponentInstance<T>::getDataPtr()
+{
   return &m_componentData;
 }

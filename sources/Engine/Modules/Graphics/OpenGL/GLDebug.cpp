@@ -9,13 +9,15 @@
 #include "Exceptions/EngineRuntimeException.h"
 #include "GL.h"
 
-void GLClearErrorStack() {
+void GLClearErrorStack()
+{
   while (glGetError() != GL_NO_ERROR) {
     // Do nothing
   }
 }
 
-void GLCheckNewError(const char* file, size_t line, const char* function) {
+void GLCheckNewError(const char* file, size_t line, const char* function)
+{
   bool isErrorsDetected = false;
 
   std::string errorsMessages = "OpenGL errors:/n";
@@ -25,19 +27,26 @@ void GLCheckNewError(const char* file, size_t line, const char* function) {
     std::string errorType;
 
     switch (errorCode) {
-      case GL_INVALID_ENUM:errorType = "INVALID_ENUM";
+      case GL_INVALID_ENUM:
+        errorType = "INVALID_ENUM";
         break;
-      case GL_INVALID_VALUE:errorType = "INVALID_VALUE";
+      case GL_INVALID_VALUE:
+        errorType = "INVALID_VALUE";
         break;
-      case GL_INVALID_OPERATION:errorType = "INVALID_OPERATION";
+      case GL_INVALID_OPERATION:
+        errorType = "INVALID_OPERATION";
         break;
-      case GL_STACK_OVERFLOW:errorType = "STACK_OVERFLOW";
+      case GL_STACK_OVERFLOW:
+        errorType = "STACK_OVERFLOW";
         break;
-      case GL_STACK_UNDERFLOW:errorType = "STACK_UNDERFLOW";
+      case GL_STACK_UNDERFLOW:
+        errorType = "STACK_UNDERFLOW";
         break;
-      case GL_OUT_OF_MEMORY:errorType = "OUT_OF_MEMORY";
+      case GL_OUT_OF_MEMORY:
+        errorType = "OUT_OF_MEMORY";
         break;
-      case GL_INVALID_FRAMEBUFFER_OPERATION:errorType = "INVALID_FRAMEBUFFER_OPERATION";
+      case GL_INVALID_FRAMEBUFFER_OPERATION:
+        errorType = "INVALID_FRAMEBUFFER_OPERATION";
         break;
     }
 

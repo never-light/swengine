@@ -10,19 +10,23 @@
 #include "Modules/Graphics/Resources/TextureResource.h"
 #include "Utility/files.h"
 
-ResourceManager::ResourceManager() {
+ResourceManager::ResourceManager()
+{
 
 }
 
-ResourceManager::~ResourceManager() {
+ResourceManager::~ResourceManager()
+{
 
 }
 
-const ResourceDeclaration& ResourceManager::getResourceDeclaration(const std::string& resourceId) {
+const ResourceDeclaration& ResourceManager::getResourceDeclaration(const std::string& resourceId)
+{
   return m_resourcesDeclarations.at(resourceId);
 }
 
-std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std::string& resourceId) {
+std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std::string& resourceId)
+{
   auto resourceInstanceIt = m_resourcesInstances.find(resourceId);
 
   if (resourceInstanceIt != m_resourcesInstances.end()) {
@@ -45,7 +49,8 @@ std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std
   return resourceInstance;
 }
 
-void ResourceManager::addResourcesMap(const std::string& path) {
+void ResourceManager::addResourcesMap(const std::string& path)
+{
   pugi::xml_document resourcesMap;
   pugi::xml_parse_result result = resourcesMap.load_file(path.c_str());
 
@@ -81,7 +86,7 @@ void ResourceManager::addResourcesMap(const std::string& path) {
 
       if (parentDeclarationIt == m_resourcesDeclarations.end()) {
         THROW_EXCEPTION(EngineRuntimeException,
-            std::string("Resource declaration has invalid parent id: ") + extendsAttribute.as_string());
+          std::string("Resource declaration has invalid parent id: ") + extendsAttribute.as_string());
       }
 
       parentDeclaration = &parentDeclarationIt->second;

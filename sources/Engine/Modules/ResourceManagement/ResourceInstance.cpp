@@ -6,22 +6,26 @@
 #include "ResourceManager.h"
 
 ResourceInstance::ResourceInstance(const std::string& resourceId,
-                                   std::unique_ptr<Resource> resource,
-                                   std::shared_ptr<ResourceManager> resourceManager)
-    : m_resourceId(resourceId),
-      m_resource(std::move(resource)),
-      m_resourceManager(resourceManager) {
+  std::unique_ptr<Resource> resource,
+  std::shared_ptr<ResourceManager> resourceManager)
+  : m_resourceId(resourceId),
+    m_resource(std::move(resource)),
+    m_resourceManager(resourceManager)
+{
 }
 
-ResourceInstance::~ResourceInstance() {
+ResourceInstance::~ResourceInstance()
+{
 
 }
 
-void ResourceInstance::loadResource() {
+void ResourceInstance::loadResource()
+{
   const ResourceDeclaration& declaration = m_resourceManager->getResourceDeclaration(m_resourceId);
   m_resource->performLoad(declaration, *m_resourceManager.get());
 }
 
-void ResourceInstance::unloadResource() {
+void ResourceInstance::unloadResource()
+{
   m_resource->performUnload();
 }

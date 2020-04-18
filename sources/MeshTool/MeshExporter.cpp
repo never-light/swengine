@@ -7,11 +7,13 @@
 #include <Engine/swdebug.h>
 #include <Engine/Exceptions/exceptions.h>
 
-MeshExporter::MeshExporter() {
+MeshExporter::MeshExporter()
+{
 
 }
 
-void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, const MeshExportOptions& options) {
+void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, const MeshExportOptions& options)
+{
   ARG_UNUSED(options);
 
   // Check mesh and format compatibility
@@ -21,24 +23,24 @@ void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, co
   switch (options.format) {
     case Pos3Norm3UV:
       targetAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-          | RawMeshAttributes::UV;
+        | RawMeshAttributes::UV;
       break;
 
     case Pos3Norm3UVSkinned:
       targetAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-          | RawMeshAttributes::UV | RawMeshAttributes::BonesIDs
-          | RawMeshAttributes::BonesWeights;
+        | RawMeshAttributes::UV | RawMeshAttributes::BonesIDs
+        | RawMeshAttributes::BonesWeights;
       break;
 
     case Pos3Norm3Tan3UV:
       targetAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-          | RawMeshAttributes::UV | RawMeshAttributes::Tangents;
+        | RawMeshAttributes::UV | RawMeshAttributes::Tangents;
       break;
 
     case Pos3Norm3Tan3UVSkinned:
       targetAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-          | RawMeshAttributes::UV | RawMeshAttributes::Tangents
-          | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
+        | RawMeshAttributes::UV | RawMeshAttributes::Tangents
+        | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
       break;
 
     default:

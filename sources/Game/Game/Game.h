@@ -12,10 +12,10 @@
 class Game {
  public:
   Game(std::shared_ptr<GameWorld> gameWorld,
-       std::shared_ptr<InputModule> inputModule,
-       std::shared_ptr<GLGraphicsContext> graphicsContext,
-       std::shared_ptr<SharedGraphicsState> shadredGraphicsState,
-       std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<InputModule> inputModule,
+    std::shared_ptr<GLGraphicsContext> graphicsContext,
+    std::shared_ptr<SharedGraphicsState> shadredGraphicsState,
+    std::shared_ptr<ResourceManager> resourceManager);
 
   ~Game();
 

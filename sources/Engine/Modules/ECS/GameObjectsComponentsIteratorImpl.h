@@ -5,29 +5,34 @@
 
 template<class ...ComponentsTypes>
 inline GameObjectsComponentsIterator<ComponentsTypes...>::GameObjectsComponentsIterator(GameWorld* world,
-                                                                                        size_t gameObjectIndex,
-                                                                                        bool isEnd)
-    : m_gameObjectIndex(gameObjectIndex),
-      m_isEnd(isEnd),
-      m_gameWorld(world) {
+  size_t gameObjectIndex,
+  bool isEnd)
+  : m_gameObjectIndex(gameObjectIndex),
+    m_isEnd(isEnd),
+    m_gameWorld(world)
+{
 }
 
 template<class ...ComponentsTypes>
-inline GameObjectsComponentsIterator<ComponentsTypes...>::~GameObjectsComponentsIterator() {
+inline GameObjectsComponentsIterator<ComponentsTypes...>::~GameObjectsComponentsIterator()
+{
 }
 
 template<class ...ComponentsTypes>
-inline bool GameObjectsComponentsIterator<ComponentsTypes...>::isEnd() const {
+inline bool GameObjectsComponentsIterator<ComponentsTypes...>::isEnd() const
+{
   return m_isEnd;
 }
 
 template<class ...ComponentsTypes>
-inline GameWorld* GameObjectsComponentsIterator<ComponentsTypes...>::getGameWorld() const {
+inline GameWorld* GameObjectsComponentsIterator<ComponentsTypes...>::getGameWorld() const
+{
   return m_gameWorld;
 }
 
 template<class ...ComponentsTypes>
-inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::getGameObject() const {
+inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::getGameObject() const
+{
   if (m_isEnd || !m_gameWorld->hasGameObjectWithIndex(m_gameObjectIndex)) {
     return nullptr;
   }
@@ -36,12 +41,14 @@ inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::getGameObj
 }
 
 template<class ...ComponentsTypes>
-inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::operator*() const {
+inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::operator*() const
+{
   return getGameObject();
 }
 
 template<class ...ComponentsTypes>
-inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator==(const GameObjectsComponentsIterator& it) const {
+inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator==(const GameObjectsComponentsIterator& it) const
+{
   if (m_isEnd) {
     return it.m_isEnd;
   }
@@ -50,7 +57,8 @@ inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator==(const 
 }
 
 template<class ...ComponentsTypes>
-inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator!=(const GameObjectsComponentsIterator& it) const {
+inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator!=(const GameObjectsComponentsIterator& it) const
+{
   if (m_isEnd) {
     return !it.m_isEnd;
   }
@@ -60,13 +68,14 @@ inline bool GameObjectsComponentsIterator<ComponentsTypes...>::operator!=(const 
 
 template<class ...ComponentsTypes>
 inline GameObjectsComponentsIterator<ComponentsTypes...>&
-GameObjectsComponentsIterator<ComponentsTypes...>::operator++() {
+GameObjectsComponentsIterator<ComponentsTypes...>::operator++()
+{
   size_t gameObjectsCount = m_gameWorld->getGameObjectsCount();
 
   m_gameObjectIndex++;
 
   while (m_gameObjectIndex < gameObjectsCount && (getGameObject()->isDestroyed() ||
-      !getGameObject()->template hasComponent<ComponentsTypes...>())) {
+    !getGameObject()->template hasComponent<ComponentsTypes...>())) {
     m_gameObjectIndex++;
   }
 

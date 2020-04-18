@@ -7,20 +7,25 @@ template<class T>
 class ComponentHandle {
  public:
   ComponentHandle()
-      : m_componentPtr(nullptr) {}
+    : m_componentPtr(nullptr)
+  {}
 
   ComponentHandle(T* component)
-      : m_componentPtr(component) {}
+    : m_componentPtr(component)
+  {}
 
-  T* operator->() const {
+  T* operator->() const
+  {
     return m_componentPtr;
   }
 
-  T& getRef() {
+  T& getRef()
+  {
     return *m_componentPtr;
   }
 
-  T* getPtr() {
+  T* getPtr()
+  {
     return m_componentPtr;
   }
 
@@ -29,7 +34,8 @@ class ComponentHandle {
    *
    * \return
    */
-  [[nodiscard]] bool isValid() const {
+  [[nodiscard]] bool isValid() const
+  {
     return m_componentPtr != nullptr;
   }
 

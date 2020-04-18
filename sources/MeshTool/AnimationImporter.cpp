@@ -10,12 +10,14 @@
 #include "AssimpMeshLoader.h"
 #include "SkeletonImporter.h"
 
-AnimationImporter::AnimationImporter() {
+AnimationImporter::AnimationImporter()
+{
 
 }
 
 std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::importFromFile(const std::string& path,
-                                                                            const AnimationImportOptions& options) {
+  const AnimationImportOptions& options)
+{
   spdlog::info("Load source mesh: {}", path);
 
   AssimpMeshLoadOptions assimpOptions;
@@ -31,7 +33,7 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::importFromFile(cons
   spdlog::info("Mesh skeleton is loaded");
 
   std::unique_ptr<RawSkeletalAnimationClip>
-      animation = convertSceneToAnimation(scene->getScene(), skeleton.get(), options);
+    animation = convertSceneToAnimation(scene->getScene(), skeleton.get(), options);
 
   spdlog::info("Animation is parsed");
 
@@ -39,8 +41,9 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::importFromFile(cons
 }
 
 std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnimation(const aiScene& scene,
-                                                                                     const RawSkeleton* skeleton,
-                                                                                     const AnimationImportOptions& options) {
+  const RawSkeleton* skeleton,
+  const AnimationImportOptions& options)
+{
   SW_ASSERT(skeleton != nullptr);
 
   spdlog::info("Start to import animation, available animations: ");
@@ -88,9 +91,9 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
 
       rawChannel.positionFrames[positionKeyIndex].time = static_cast<float>(positionKey.mTime);
       rawChannel.positionFrames[positionKeyIndex].position = {
-          positionKey.mValue.x,
-          positionKey.mValue.y,
-          positionKey.mValue.z,
+        positionKey.mValue.x,
+        positionKey.mValue.y,
+        positionKey.mValue.z,
       };
     }
 
@@ -102,10 +105,10 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
 
       rawChannel.orientationFrames[orientationKeyIndex].time = static_cast<float>(orientationKey.mTime);
       rawChannel.orientationFrames[orientationKeyIndex].orientation = {
-          orientationKey.mValue.x,
-          orientationKey.mValue.y,
-          orientationKey.mValue.z,
-          orientationKey.mValue.w,
+        orientationKey.mValue.x,
+        orientationKey.mValue.y,
+        orientationKey.mValue.z,
+        orientationKey.mValue.w,
       };
     }
 
@@ -120,18 +123,18 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
 
       for (size_t frameIndex = 0; frameIndex < rawChannel.positionFrames.size(); frameIndex++) {
         rawAnimation->bonesAnimationChannels[boneId].positionFrames[frameIndex] =
-            rawChannel.positionFrames[frameIndex];
+          rawChannel.positionFrames[frameIndex];
       }
 
       spdlog::warn("Position frames for bone #{} {} were merged", boneId, std::string(skeleton->bones[boneId].name));
     }
     else if (currentOrientationFramesCount == 1 &&
-        rawChannel.orientationFrames.size() > 1) {
+      rawChannel.orientationFrames.size() > 1) {
       rawAnimation->bonesAnimationChannels[boneId].orientationFrames.resize(rawChannel.orientationFrames.size());
 
       for (size_t frameIndex = 0; frameIndex < rawChannel.orientationFrames.size(); frameIndex++) {
         rawAnimation->bonesAnimationChannels[boneId].orientationFrames[frameIndex] =
-            rawChannel.orientationFrames[frameIndex];
+          rawChannel.orientationFrames[frameIndex];
       }
 
       spdlog::warn("Orientation frames for bone #{} {} were merged", boneId, std::string(skeleton->bones[boneId].name));
@@ -142,13 +145,13 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
           rawAnimation->bonesAnimationChannels[boneId].positionFrames = rawChannel.positionFrames;
 
           spdlog::warn("Position frames for bone #{} {} were replaced",
-                       boneId,
-                       std::string(skeleton->bones[boneId].name));
+            boneId,
+            std::string(skeleton->bones[boneId].name));
         }
         else {
           spdlog::warn("Position frames for bone #{} {} were skipped",
-                       boneId,
-                       std::string(skeleton->bones[boneId].name));
+            boneId,
+            std::string(skeleton->bones[boneId].name));
         }
       }
       else {
@@ -160,13 +163,13 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
           rawAnimation->bonesAnimationChannels[boneId].orientationFrames = rawChannel.orientationFrames;
 
           spdlog::warn("Orientation frames for bone #{} {} were replaced",
-                       boneId,
-                       std::string(skeleton->bones[boneId].name));
+            boneId,
+            std::string(skeleton->bones[boneId].name));
         }
         else {
           spdlog::warn("Orientation frames for bone #{} {} were skipped",
-                       boneId,
-                       std::string(skeleton->bones[boneId].name));
+            boneId,
+            std::string(skeleton->bones[boneId].name));
         }
       }
       else {
@@ -175,10 +178,10 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
     }
 
     rawAnimation->bonesAnimationChannels[boneId].header.positionFramesCount =
-        static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].positionFrames.size());
+      static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].positionFrames.size());
 
     rawAnimation->bonesAnimationChannels[boneId].header.orientationFramesCount =
-        static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].orientationFrames.size());
+      static_cast<uint16_t>(rawAnimation->bonesAnimationChannels[boneId].orientationFrames.size());
   }
 
   // Swap (parent => child) transform to (child => parent)
@@ -199,7 +202,8 @@ std::unique_ptr<RawSkeletalAnimationClip> AnimationImporter::convertSceneToAnima
 }
 
 std::unique_ptr<RawSkeleton> AnimationImporter::getSkeleton(const std::string& path,
-                                                            const AnimationImportOptions& options) const {
+  const AnimationImportOptions& options) const
+{
   SkeletonImporter importer;
   SkeletonImportOptions importOptions;
   importOptions.maxBonexPerVertex = options.maxBonesPerVertex;
@@ -207,7 +211,8 @@ std::unique_ptr<RawSkeleton> AnimationImporter::getSkeleton(const std::string& p
   return importer.importFromFile(path, importOptions);
 }
 
-std::unordered_map<std::string, int> AnimationImporter::getBonesMap(const RawSkeleton& skeleton) const {
+std::unordered_map<std::string, int> AnimationImporter::getBonesMap(const RawSkeleton& skeleton) const
+{
   std::unordered_map<std::string, int> bonesMap;
 
   for (size_t boneIndex = 0; boneIndex < skeleton.bones.size(); boneIndex++) {
@@ -218,7 +223,8 @@ std::unordered_map<std::string, int> AnimationImporter::getBonesMap(const RawSke
   return bonesMap;
 }
 
-const aiAnimation* AnimationImporter::findAnimation(const aiScene& scene, const std::string& animationName) const {
+const aiAnimation* AnimationImporter::findAnimation(const aiScene& scene, const std::string& animationName) const
+{
   for (size_t animationIndex = 0; animationIndex < scene.mNumAnimations; animationIndex++) {
     const aiAnimation* animation = scene.mAnimations[animationIndex];
 

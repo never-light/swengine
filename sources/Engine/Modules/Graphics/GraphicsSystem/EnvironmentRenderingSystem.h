@@ -23,8 +23,8 @@ class EnvironmentComponent {
 class EnvironmentRenderingSystem : public RenderingSystem {
  public:
   EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                             std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-                             std::shared_ptr<Mesh> environmentMesh);
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<Mesh> environmentMesh);
 
   ~EnvironmentRenderingSystem() override;
 

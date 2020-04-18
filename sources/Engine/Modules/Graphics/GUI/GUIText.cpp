@@ -6,60 +6,72 @@
 #include "GUISystem.h"
 
 GUIText::GUIText(std::shared_ptr<BitmapFont> font, const std::string& text)
-    : m_font(font),
-      m_text(text),
-      m_fontSize(font->getBaseSize()) {
+  : m_font(font),
+    m_text(text),
+    m_fontSize(font->getBaseSize())
+{
   /* The widget size should not affect to vertices positions as
    * they are formed in real scale */
   disableScaleTransform();
 }
 
-void GUIText::setFont(std::shared_ptr<BitmapFont> font) {
+void GUIText::setFont(std::shared_ptr<BitmapFont> font)
+{
   m_font = font;
   resetTextGeometryCache();
 }
 
-std::shared_ptr<BitmapFont> GUIText::getFont() const {
+std::shared_ptr<BitmapFont> GUIText::getFont() const
+{
   return m_font;
 }
 
-void GUIText::setText(const std::string& text) {
+void GUIText::setText(const std::string& text)
+{
   m_text = text;
   resetTextGeometryCache();
 }
 
-std::string GUIText::getText() const {
+std::string GUIText::getText() const
+{
   return m_text;
 }
 
-void GUIText::setColor(const glm::vec4& color) {
+void GUIText::setColor(const glm::vec4& color)
+{
   setBackgroundColor(color);
 }
 
-glm::vec4 GUIText::getColor() const {
+glm::vec4 GUIText::getColor() const
+{
   return getBackgroundColor();
 }
 
-void GUIText::setHoverColor(const glm::vec4& color) {
+void GUIText::setHoverColor(const glm::vec4& color)
+{
   setHoverBackgroundColor(color);
 }
 
-glm::vec4 GUIText::getHoverColor() const {
+glm::vec4 GUIText::getHoverColor() const
+{
   return getHoverBackgroundColor();
 }
 
-void GUIText::setFontSize(int size) {
+void GUIText::setFontSize(int size)
+{
   SW_ASSERT(size >= 0);
 
   m_fontSize = size;
   resetTextGeometryCache();
 }
 
-int GUIText::getFontSize() const {
+int GUIText::getFontSize() const
+{
   return m_fontSize;
 }
 
-void GUIText::render(GUISystem& guiSystem) {
+void GUIText::render(GUISystem& guiSystem)
+{
   if (m_text.empty()) {
     return;
   }
@@ -77,11 +89,13 @@ void GUIText::render(GUISystem& guiSystem) {
   guiSystem.getGraphicsContext()->executeRenderTask(task);
 }
 
-bool GUIText::isTextGeometryBufferOutdated() const {
+bool GUIText::isTextGeometryBufferOutdated() const
+{
   return m_needTextGeometryUpdate;
 }
 
-GLGeometryStore* GUIText::updateAndGetGeometryStore() {
+GLGeometryStore* GUIText::updateAndGetGeometryStore()
+{
   if (m_needTextGeometryUpdate) {
     m_textGeometryCache = std::unique_ptr<GLGeometryStore>(createStringGeometryBuffer(m_text));
     m_needTextGeometryUpdate = false;
@@ -90,11 +104,13 @@ GLGeometryStore* GUIText::updateAndGetGeometryStore() {
   return m_textGeometryCache.get();
 }
 
-void GUIText::resetTextGeometryCache() {
+void GUIText::resetTextGeometryCache()
+{
   m_needTextGeometryUpdate = true;
 }
 
-GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str) {
+GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
+{
   SW_ASSERT(str.size() > 0);
 
   std::vector<VertexPos3Norm3UV> vertices;
@@ -127,61 +143,61 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str) {
     uint16_t verticesBaseSize = static_cast<uint16_t>(vertices.size());
 
     VertexPos3Norm3UV topLeftVertex{
-        {
-            originPosition.x + characterDescription.xOffset,
-            originPosition.y + characterDescription.yOffset,
-            0.0f
-        },
-        glm::vec3(0.0f),
-        {
-            static_cast<float>(atlasPosition.x) / bitmapWidth,
-            static_cast<float>(atlasPosition.y) / bitmapHeight
-        }
+      {
+        originPosition.x + characterDescription.xOffset,
+        originPosition.y + characterDescription.yOffset,
+        0.0f
+      },
+      glm::vec3(0.0f),
+      {
+        static_cast<float>(atlasPosition.x) / bitmapWidth,
+        static_cast<float>(atlasPosition.y) / bitmapHeight
+      }
     };
 
     vertices.push_back(topLeftVertex);
 
     VertexPos3Norm3UV topRightVertex{
-        {
-            originPosition.x + characterSize.x + characterDescription.xOffset,
-            originPosition.y + characterDescription.yOffset,
-            0.0f
-        },
-        glm::vec3(0.0f),
-        {
-            static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
-            static_cast<float>(atlasPosition.y) / bitmapHeight
-        }
+      {
+        originPosition.x + characterSize.x + characterDescription.xOffset,
+        originPosition.y + characterDescription.yOffset,
+        0.0f
+      },
+      glm::vec3(0.0f),
+      {
+        static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
+        static_cast<float>(atlasPosition.y) / bitmapHeight
+      }
     };
 
     vertices.push_back(topRightVertex);
 
     VertexPos3Norm3UV bottomRightVertex{
-        {
-            originPosition.x + characterSize.x + characterDescription.xOffset,
-            originPosition.y + characterSize.y + characterDescription.yOffset,
-            0.0f
-        },
-        glm::vec3(0.0f),
-        {
-            static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
-            static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
-        }
+      {
+        originPosition.x + characterSize.x + characterDescription.xOffset,
+        originPosition.y + characterSize.y + characterDescription.yOffset,
+        0.0f
+      },
+      glm::vec3(0.0f),
+      {
+        static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
+        static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
+      }
     };
 
     vertices.push_back(bottomRightVertex);
 
     VertexPos3Norm3UV bottomLeftVertex{
-        {
-            originPosition.x + characterDescription.xOffset,
-            originPosition.y + characterSize.y + characterDescription.yOffset,
-            0.0f
-        },
-        glm::vec3(0.0f),
-        {
-            static_cast<float>(atlasPosition.x) / bitmapWidth,
-            static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
-        }
+      {
+        originPosition.x + characterDescription.xOffset,
+        originPosition.y + characterSize.y + characterDescription.yOffset,
+        0.0f
+      },
+      glm::vec3(0.0f),
+      {
+        static_cast<float>(atlasPosition.x) / bitmapWidth,
+        static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
+      }
     };
 
     vertices.push_back(bottomLeftVertex);

@@ -2,7 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtx/string_cast.hpp>
 
-TEST_CASE("state-machine-variables-get-set", "[animation]") {
+TEST_CASE("state-machine-variables-get-set", "[animation]")
+{
   using tests::MathUtils;
 
   auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
@@ -18,7 +19,8 @@ TEST_CASE("state-machine-variables-get-set", "[animation]") {
   REQUIRE(MathUtils::isEqual(variablesSet.getVariableValue(speedVarId), 15.0f));
 }
 
-TEST_CASE("state-machine-states-clip-pose-node", "[animation]") {
+TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
+{
   using tests::MathUtils;
 
   SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance());
@@ -30,42 +32,43 @@ TEST_CASE("state-machine-states-clip-pose-node", "[animation]") {
 
   // Root bone
   REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).getBoneMatrix(),
-                             MathUtils::getTranslationMatrix({15.0f, 0.0f, 0.0f})));
+    MathUtils::getTranslationMatrix({15.0f, 0.0f, 0.0f})));
 
   // Spin bone
   glm::mat4 spinBoneRotation = glm::mat4_cast(glm::slerp(glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X),
-                                                         glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X), 0.5f));
+    glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X), 0.5f));
 
   glm::mat4 spinBoneTranslation = MathUtils::getTranslationMatrix({0.0f, 15.0f, 0.0f});
 
   REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(1).getBoneMatrix(),
-                             spinBoneTranslation * spinBoneRotation));
+    spinBoneTranslation * spinBoneRotation));
 
 }
 
-TEST_CASE("state-machine-states-blend-pose-node", "[animation]") {
+TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
+{
   using tests::MathUtils;
 
   std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(
-      std::vector<Bone>({Bone("root", Bone::ROOT_BONE_PARENT_ID, MathUtils::IDENTITY_MATRIX4)}));
+    std::vector<Bone>({Bone("root", Bone::ROOT_BONE_PARENT_ID, MathUtils::IDENTITY_MATRIX4)}));
 
   std::shared_ptr<SkeletalAnimationClip> firstAnimationClip =
-      std::make_shared<SkeletalAnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
-          BoneAnimationChannel(BoneAnimationChannel({
-                                                        BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
-                                                        BoneAnimationPositionFrame{30.0f, {30.0f, 0.0f, 0.0f}},
-                                                        BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
-                                                    }, {}))});
+    std::make_shared<SkeletalAnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+      BoneAnimationChannel(BoneAnimationChannel({
+        BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
+        BoneAnimationPositionFrame{30.0f, {30.0f, 0.0f, 0.0f}},
+        BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
+      }, {}))});
 
   SkeletalAnimationClipInstance firstAnimationClipInstance(skeleton, firstAnimationClip);
 
   std::shared_ptr<SkeletalAnimationClip> secondAnimationClip =
-      std::make_shared<SkeletalAnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
-          BoneAnimationChannel(BoneAnimationChannel({
-                                                        BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
-                                                        BoneAnimationPositionFrame{30.0f, {0.0f, 30.0f, 0.0f}},
-                                                        BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
-                                                    }, {}))});
+    std::make_shared<SkeletalAnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+      BoneAnimationChannel(BoneAnimationChannel({
+        BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
+        BoneAnimationPositionFrame{30.0f, {0.0f, 30.0f, 0.0f}},
+        BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
+      }, {}))});
 
   SkeletalAnimationClipInstance secondAnimationClipInstance(skeleton, secondAnimationClip);
 
@@ -74,8 +77,8 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]") {
 
   SECTION("linear-blending") {
     SkeletalAnimationBlendPoseNode
-        poseNode(firstAnimationClipInstance, secondAnimationClipInstance, blendFactorVariableId,
-                 SkeletalAnimationBlendPoseType::Linear, 0);
+      poseNode(firstAnimationClipInstance, secondAnimationClipInstance, blendFactorVariableId,
+      SkeletalAnimationBlendPoseType::Linear, 0);
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
 
@@ -84,15 +87,15 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]") {
     SkeletalAnimationPose animationPose = poseNode.getCurrentPose();
 
     glm::vec3 targetBonePose = (firstAnimationClip->getBoneRelativePose(0, 15.0f).position +
-        secondAnimationClip->getBoneRelativePose(0, 15.0f).position) / 2.0f;
+      secondAnimationClip->getBoneRelativePose(0, 15.0f).position) / 2.0f;
 
     REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).position, targetBonePose));
   }
 
   SECTION("override-blending") {
     SkeletalAnimationBlendPoseNode
-        poseNode(firstAnimationClipInstance, secondAnimationClipInstance, blendFactorVariableId,
-                 SkeletalAnimationBlendPoseType::Override, 0);
+      poseNode(firstAnimationClipInstance, secondAnimationClipInstance, blendFactorVariableId,
+      SkeletalAnimationBlendPoseType::Override, 0);
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
 

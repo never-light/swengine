@@ -37,10 +37,10 @@ class Screen {
 
  private:
   void performInternalInitialization(std::shared_ptr<ScreenManager> screenManager,
-                                     std::shared_ptr<GameWorld> gameWorld,
-                                     std::shared_ptr<GraphicsModule> graphicsModule,
-                                     std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-                                     std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<GameWorld> gameWorld,
+    std::shared_ptr<GraphicsModule> graphicsModule,
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<ResourceManager> resourceManager);
 
   void performActivate();
   void performDeactivate();

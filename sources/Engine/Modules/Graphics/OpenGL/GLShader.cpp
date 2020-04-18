@@ -11,7 +11,8 @@
 
 GLShader::GLShader(GLenum type, const std::string& source)
   : m_shaderProgram(0),
-    m_type(type) {
+    m_type(type)
+{
   GLenum shader = 0;
 
   switch (type) {
@@ -81,64 +82,78 @@ GLShader::GLShader(GLenum type, const std::string& source)
   cacheUniformsLocations();
 }
 
-GLShader::~GLShader() {
+GLShader::~GLShader()
+{
   if (m_shaderProgram != 0) {
     glDeleteProgram(m_shaderProgram);
   }
 }
 
-GLenum GLShader::getType() const {
+GLenum GLShader::getType() const
+{
   return m_type;
 }
 
-void GLShader::setParameter(const std::string& name, bool value) {
+void GLShader::setParameter(const std::string& name, bool value)
+{
   glProgramUniform1i(m_shaderProgram, m_uniformsCache[name].location, value);
 }
 
-void GLShader::setParameter(const std::string& name, int value) {
+void GLShader::setParameter(const std::string& name, int value)
+{
   glProgramUniform1i(m_shaderProgram, m_uniformsCache[name].location, value);
 }
 
-void GLShader::setParameter(const std::string& name, float value) {
+void GLShader::setParameter(const std::string& name, float value)
+{
   glProgramUniform1f(m_shaderProgram, m_uniformsCache[name].location, value);
 }
 
-void GLShader::setParameter(const std::string& name, const glm::vec2& value) {
+void GLShader::setParameter(const std::string& name, const glm::vec2& value)
+{
   glProgramUniform2fv(m_shaderProgram, m_uniformsCache[name].location, 1, &value[0]);
 }
 
-void GLShader::setParameter(const std::string& name, const glm::vec3& value) {
+void GLShader::setParameter(const std::string& name, const glm::vec3& value)
+{
   glProgramUniform3fv(m_shaderProgram, m_uniformsCache[name].location, 1, &value[0]);
 }
 
-void GLShader::setParameter(const std::string& name, const glm::vec4& value) {
+void GLShader::setParameter(const std::string& name, const glm::vec4& value)
+{
   glProgramUniform4fv(m_shaderProgram, m_uniformsCache[name].location, 1, &value[0]);
 }
 
-void GLShader::setParameter(const std::string& name, const glm::mat4x4& value) {
+void GLShader::setParameter(const std::string& name, const glm::mat4x4& value)
+{
   glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);
 }
 
-void GLShader::setParameter(const std::string& name, const GLTexture& texture, size_t unitIndex) {
+void GLShader::setParameter(const std::string& name, const GLTexture& texture, size_t unitIndex)
+{
   glBindTextureUnit(static_cast<GLuint>(unitIndex), texture.m_texture);
   setParameter(name, static_cast<int>(unitIndex));
 }
 
-void GLShader::setArrayParameter(const std::string& name, const std::vector<glm::mat4x4>& array) {
+void GLShader::setArrayParameter(const std::string& name, const std::vector<glm::mat4x4>& array)
+{
   glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name + "[0]"].location,
-                            static_cast<GLsizei>(array.size()), GL_FALSE, glm::value_ptr(array[0]));
+    static_cast<GLsizei>(array.size()), GL_FALSE, glm::value_ptr(array[0]));
 }
 
-void GLShader::setArrayParameter(const std::string& name, size_t valueIndex, const glm::mat4x4& value) {
+void GLShader::setArrayParameter(const std::string& name, size_t valueIndex, const glm::mat4x4& value)
+{
   glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name + "[0]"].location + static_cast<GLint>(valueIndex),
-                            1, GL_FALSE, glm::value_ptr(value));
+    1, GL_FALSE, glm::value_ptr(value));
 }
 
-bool GLShader::hasParameter(const std::string& name) const {
+bool GLShader::hasParameter(const std::string& name) const
+{
   return m_uniformsCache.find(name) != m_uniformsCache.end();
 }
 
-void GLShader::cacheUniformsLocations() {
+void GLShader::cacheUniformsLocations()
+{
   GL_CALL_BLOCK_BEGIN();
 
   GLint uniformsCount = 0;
@@ -156,9 +171,9 @@ void GLShader::cacheUniformsLocations() {
 
     for (GLint uniformIndex = 0; uniformIndex < uniformsCount; uniformIndex++) {
       glGetActiveUniform(m_shaderProgram, static_cast<GLuint>(uniformIndex),
-                         maxNameLength, &length,
-                         &count, &type,
-                         uniformName.data());
+        maxNameLength, &length,
+        &count, &type,
+        uniformName.data());
 
       UniformInfo uniformInfo = {
         glGetUniformLocation(m_shaderProgram, uniformName.data()),
@@ -166,13 +181,14 @@ void GLShader::cacheUniformsLocations() {
       };
 
       m_uniformsCache.insert({std::string(uniformName.data(),
-                                          static_cast<std::string::size_type>(length)), uniformInfo});
+        static_cast<std::string::size_type>(length)), uniformInfo});
     }
   }
 
   GL_CALL_BLOCK_END();
 }
 
-size_t GLShader::getArraySize(const std::string& name) const {
+size_t GLShader::getArraySize(const std::string& name) const
+{
   return static_cast<size_t>(m_uniformsCache.at(name + "[0]").size);
 }

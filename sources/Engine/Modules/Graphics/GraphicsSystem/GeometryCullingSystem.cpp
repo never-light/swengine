@@ -11,29 +11,35 @@
 #include "DebugPainter.h"
 
 GeometryCullingSystem::GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-                                             std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-    : RenderingSystem(graphicsContext, sharedGraphicsState) {
+  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  : RenderingSystem(graphicsContext, sharedGraphicsState)
+{
 
 }
 
-GeometryCullingSystem::~GeometryCullingSystem() {
+GeometryCullingSystem::~GeometryCullingSystem()
+{
 
 }
 
-void GeometryCullingSystem::configure(GameWorld* gameWorld) {
+void GeometryCullingSystem::configure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void GeometryCullingSystem::unconfigure(GameWorld* gameWorld) {
+void GeometryCullingSystem::unconfigure(GameWorld* gameWorld)
+{
   ARG_UNUSED(gameWorld);
 }
 
-void GeometryCullingSystem::update(GameWorld* gameWorld, float delta) {
+void GeometryCullingSystem::update(GameWorld* gameWorld, float delta)
+{
   ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void GeometryCullingSystem::beforeRender(GameWorld* gameWorld) {
+void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
+{
   for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
     const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
 
@@ -43,18 +49,19 @@ void GeometryCullingSystem::beforeRender(GameWorld* gameWorld) {
                              glm::vec4{ 0.0f, 0.0f, 1.0f, 1.0f }, true);*/
 
     bool isMeshFrustumIntersecting = isAABBFrustumIntersecting(meshComponent->getAABB(),
-                                                               m_sharedGraphicsState->getActiveCamera()->getFrustum());
+      m_sharedGraphicsState->getActiveCamera()->getFrustum());
 
     if (!isMeshFrustumIntersecting) {
       meshComponent->cull();
 
       m_sharedGraphicsState->getFrameStats()
-          .increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
+        .increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
     }
   }
 }
 
-void GeometryCullingSystem::afterRender(GameWorld* gameWorld) {
+void GeometryCullingSystem::afterRender(GameWorld* gameWorld)
+{
   for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
     obj->getComponent<MeshRendererComponent>()->cull(false);
   }

@@ -19,11 +19,11 @@ class GLGraphicsContext;
 class GLFramebuffer {
  public:
   GLFramebuffer(int width, int height, size_t colorComponentsCount,
-                GLTextureInternalFormat colorComponentsFormat,
-                bool createDepthStencilComponent);
+    GLTextureInternalFormat colorComponentsFormat,
+    bool createDepthStencilComponent);
 
   GLFramebuffer(int width, int height, const std::vector<std::shared_ptr<GLTexture>>& colorComponents,
-                std::shared_ptr<GLTexture> depthStencilComponent);
+    std::shared_ptr<GLTexture> depthStencilComponent);
 
   GLFramebuffer(const GLFramebuffer& framebuffer) = delete;
 
@@ -40,11 +40,11 @@ class GLFramebuffer {
 
   void copyColor(GLFramebuffer& target, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
   void copyColor(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-                 FramebufferCopyFilter filter, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
+    FramebufferCopyFilter filter, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
 
   void copyDepthStencil(GLFramebuffer& target);
   void copyDepthStencil(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-                        FramebufferCopyFilter filter);
+    FramebufferCopyFilter filter);
 
   [[nodiscard]] GLuint getGLHandle() const;
 
@@ -61,11 +61,11 @@ class GLFramebuffer {
   GLFramebuffer(int width, int height);
 
   void copyTo(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
-              GLbitfield copyMask, FramebufferCopyFilter filter,
-              GLenum sourceAttachment, GLenum targetAttachment);
+    GLbitfield copyMask, FramebufferCopyFilter filter,
+    GLenum sourceAttachment, GLenum targetAttachment);
 
   void performInternalInitialization(const std::vector<std::shared_ptr<GLTexture>>& colorAttachments,
-                                     std::shared_ptr<GLTexture> depthAttachment);
+    std::shared_ptr<GLTexture> depthAttachment);
   void enableWritingToAllBuffers();
 
  private:

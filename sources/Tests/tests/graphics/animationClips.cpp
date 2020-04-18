@@ -1,6 +1,7 @@
 #include "animation.h"
 
-TEST_CASE("bone-pose-matrix", "[animation]") {
+TEST_CASE("bone-pose-matrix", "[animation]")
+{
   using tests::MathUtils;
 
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
@@ -8,10 +9,11 @@ TEST_CASE("bone-pose-matrix", "[animation]") {
   BonePose originPose(originPosition, originOrientation);
 
   REQUIRE(MathUtils::isEqual(originPose.getBoneMatrix(), MathUtils::getTranslationMatrix(originPosition) *
-      glm::mat4_cast(originOrientation)));
+    glm::mat4_cast(originOrientation)));
 }
 
-TEST_CASE("bone-poses-interpolation", "[animation]") {
+TEST_CASE("bone-poses-interpolation", "[animation]")
+{
   using tests::MathUtils;
 
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
@@ -34,12 +36,13 @@ TEST_CASE("bone-poses-interpolation", "[animation]") {
     REQUIRE(MathUtils::isEqual(interpolatedPose.orientation, interpolatedOrientation));
 
     REQUIRE(MathUtils::isEqual(interpolatedPose.getBoneMatrix(),
-                               MathUtils::getTranslationMatrix(interpolatedPosition) *
-                                   glm::mat4_cast(interpolatedOrientation)));
+      MathUtils::getTranslationMatrix(interpolatedPosition) *
+        glm::mat4_cast(interpolatedOrientation)));
   }
 }
 
-TEST_CASE("getting-clip-bones-poses", "[animation]") {
+TEST_CASE("getting-clip-bones-poses", "[animation]")
+{
   using tests::MathUtils;
 
   Skeleton skeleton = generateTestSkeleton();
@@ -56,8 +59,8 @@ TEST_CASE("getting-clip-bones-poses", "[animation]") {
 
   REQUIRE(MathUtils::isEqual(spinBonePose.position, {0.0f, 15.0f, 0.0f}));
   REQUIRE(MathUtils::isEqual(spinBonePose.orientation, glm::slerp(glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X),
-                                                                  glm::angleAxis(glm::radians(90.0f),
-                                                                                 MathUtils::AXIS_X), 0.5f)));
+    glm::angleAxis(glm::radians(90.0f),
+      MathUtils::AXIS_X), 0.5f)));
 
   BonePose spinBonePoseLast = clip.getBoneRelativePose(1, 60.0f);
 
@@ -74,7 +77,8 @@ TEST_CASE("getting-clip-bones-poses", "[animation]") {
   REQUIRE(MathUtils::isEqual(spinEndBonePose.orientation, MathUtils::IDENTITY_QUAT));
 }
 
-TEST_CASE("clip-instance-increasing-time", "[animation]") {
+TEST_CASE("clip-instance-increasing-time", "[animation]")
+{
   using tests::MathUtils;
 
   SkeletalAnimationClipInstance clipInstance = generateTestAnimationClipInstance();
@@ -90,13 +94,13 @@ TEST_CASE("clip-instance-increasing-time", "[animation]") {
     SkeletalAnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[0],
-                               MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(0).getInverseBindPoseMatrix()));
+      MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(0).getInverseBindPoseMatrix()));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[1],
-                               MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(1).getInverseBindPoseMatrix()));
+      MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(1).getInverseBindPoseMatrix()));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[2],
-                               MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(2).getInverseBindPoseMatrix()));
+      MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(2).getInverseBindPoseMatrix()));
   }
 
   SECTION("clip-middle-time") {
@@ -110,21 +114,21 @@ TEST_CASE("clip-instance-increasing-time", "[animation]") {
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(0).getBoneMatrix(), rootBoneTranslation));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[0],
-                               rootBoneTranslation * skeleton->getBone(0).getInverseBindPoseMatrix()));
+      rootBoneTranslation * skeleton->getBone(0).getInverseBindPoseMatrix()));
 
     // Spin bone
     glm::mat4 spinBoneRotation = glm::mat4_cast(glm::slerp(glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X),
-                                                           glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X),
-                                                           0.5f));
+      glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X),
+      0.5f));
 
     glm::mat4 spinBoneTranslation = MathUtils::getTranslationMatrix({0.0f, 15.0f, 0.0f});
 
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(1).getBoneMatrix(),
-                               spinBoneTranslation * spinBoneRotation));
+      spinBoneTranslation * spinBoneRotation));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[1],
-                               spinBoneTranslation * spinBoneRotation * rootBoneTranslation *
-                                   skeleton->getBone(1).getInverseBindPoseMatrix()));
+      spinBoneTranslation * spinBoneRotation * rootBoneTranslation *
+        skeleton->getBone(1).getInverseBindPoseMatrix()));
   }
 
   SECTION("clip-overflow-time") {
@@ -139,20 +143,20 @@ TEST_CASE("clip-instance-increasing-time", "[animation]") {
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(0).getBoneMatrix(), rootBoneTranslation));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[0],
-                               rootBoneTranslation * skeleton->getBone(0).getInverseBindPoseMatrix()));
+      rootBoneTranslation * skeleton->getBone(0).getInverseBindPoseMatrix()));
 
     // Spin bone
     glm::mat4 spinBoneRotation = glm::mat4_cast(glm::slerp(glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X),
-                                                           glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X),
-                                                           0.5f));
+      glm::angleAxis(glm::radians(90.0f), MathUtils::AXIS_X),
+      0.5f));
 
     glm::mat4 spinBoneTranslation = MathUtils::getTranslationMatrix({0.0f, 15.0f, 0.0f});
 
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(1).getBoneMatrix(),
-                               spinBoneTranslation * spinBoneRotation));
+      spinBoneTranslation * spinBoneRotation));
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[1],
-                               spinBoneTranslation * spinBoneRotation * rootBoneTranslation *
-                                   skeleton->getBone(1).getInverseBindPoseMatrix()));
+      spinBoneTranslation * spinBoneRotation * rootBoneTranslation *
+        skeleton->getBone(1).getInverseBindPoseMatrix()));
   }
 }

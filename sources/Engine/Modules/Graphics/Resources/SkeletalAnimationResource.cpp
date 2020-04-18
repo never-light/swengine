@@ -13,15 +13,18 @@
 
 #include "Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h"
 
-SkeletalAnimationResource::SkeletalAnimationResource() {
+SkeletalAnimationResource::SkeletalAnimationResource()
+{
 
 }
 
-SkeletalAnimationResource::~SkeletalAnimationResource() {
+SkeletalAnimationResource::~SkeletalAnimationResource()
+{
   SW_ASSERT(m_clip.use_count() <= 1);
 }
 
-void SkeletalAnimationResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) {
+void SkeletalAnimationResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+{
   ARG_UNUSED(resourceManager);
 
   SW_ASSERT(m_clip == nullptr);
@@ -36,18 +39,21 @@ void SkeletalAnimationResource::load(const ResourceDeclaration& declaration, Res
   }
 }
 
-void SkeletalAnimationResource::unload() {
+void SkeletalAnimationResource::unload()
+{
   SW_ASSERT(m_clip.use_count() == 1);
 
   m_clip.reset();
 }
 
-bool SkeletalAnimationResource::isBusy() const {
+bool SkeletalAnimationResource::isBusy() const
+{
   return m_clip.use_count() > 1;
 }
 
 std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(const std::string& path,
-                                                                               const SkeletalAnimationResourceParameters& parameters) {
+  const SkeletalAnimationResourceParameters& parameters)
+{
   ARG_UNUSED(parameters);
 
   // Read raw mesh
@@ -63,12 +69,12 @@ std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(c
     RawBoneAnimationChannel& channel = rawClip.bonesAnimationChannels[channelIndex];
 
     std::vector<BoneAnimationPositionFrame> positionFrames =
-        MemoryUtils::createBinaryCompatibleVector<RawBonePositionFrame, BoneAnimationPositionFrame>(channel
-                                                                                                        .positionFrames);
+      MemoryUtils::createBinaryCompatibleVector<RawBonePositionFrame, BoneAnimationPositionFrame>(channel
+        .positionFrames);
 
     std::vector<BoneAnimationOrientationFrame> orientationFrames =
-        MemoryUtils::createBinaryCompatibleVector<RawBoneOrientationFrame, BoneAnimationOrientationFrame>(channel
-                                                                                                              .orientationFrames);
+      MemoryUtils::createBinaryCompatibleVector<RawBoneOrientationFrame, BoneAnimationOrientationFrame>(channel
+        .orientationFrames);
 
     animationChannels.push_back(BoneAnimationChannel(positionFrames, orientationFrames));
   }
@@ -78,15 +84,16 @@ std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(c
   float animationRate = rawClip.header.rate;
 
   std::shared_ptr<SkeletalAnimationClip> animationClip = std::make_shared<SkeletalAnimationClip>(animationName,
-                                                                                                 animationDuration,
-                                                                                                 animationRate,
-                                                                                                 animationChannels);
+    animationDuration,
+    animationRate,
+    animationChannels);
 
   return animationClip;
 }
 
 SkeletalAnimationResource::ParametersType SkeletalAnimationResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                                                                const ParametersType& defaultParameters) {
+  const ParametersType& defaultParameters)
+{
   ARG_UNUSED(declarationNode);
 
   ParametersType parameters = defaultParameters;
@@ -94,6 +101,7 @@ SkeletalAnimationResource::ParametersType SkeletalAnimationResource::buildDeclar
   return parameters;
 }
 
-std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::getClip() const {
+std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::getClip() const
+{
   return m_clip;
 }

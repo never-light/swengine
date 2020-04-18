@@ -14,11 +14,12 @@
 #include "Game/PlayerComponent.h"
 
 GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
-                     std::shared_ptr<GLGraphicsContext> graphicsContext,
-                     std::shared_ptr<ResourceManager> resourceManager)
-    : m_gameWorld(gameWorld),
-      m_graphicsContext(graphicsContext),
-      m_resourceManager(resourceManager) {
+  std::shared_ptr<GLGraphicsContext> graphicsContext,
+  std::shared_ptr<ResourceManager> resourceManager)
+  : m_gameWorld(gameWorld),
+    m_graphicsContext(graphicsContext),
+    m_resourceManager(resourceManager)
+{
   m_player = m_gameWorld->createGameObject();
   m_player->addComponent<TransformComponent>();
   m_player->addComponent<CameraComponent>();
@@ -37,8 +38,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   // Game objects
   std::shared_ptr<Material>
-      material = m_resourceManager->getResourceFromInstance<MaterialResource>("deferred_gpass_brick")->
-      getMaterial();
+    material = m_resourceManager->getResourceFromInstance<MaterialResource>("deferred_gpass_brick")->
+    getMaterial();
 
   {
     GameObject* obj = m_gameWorld->createGameObject();
@@ -47,7 +48,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
 
     std::shared_ptr<Mesh>
-        cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+      cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
 
     auto componentHandle = obj->addComponent<MeshRendererComponent>();
     componentHandle->setMeshInstance(cubeGeometry);
@@ -63,7 +64,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
 
     std::shared_ptr<Mesh>
-        cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
+      cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("simple_mesh")->getMesh();
 
     auto componentHandle = obj->addComponent<MeshRendererComponent>();
     componentHandle->setMeshInstance(cubeGeometry);
@@ -79,11 +80,12 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     auto environment = environmentObj->addComponent<EnvironmentComponent>();
 
     environment
-        ->setEnvironmentMaterial(m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")
-                                     ->getMaterial());
+      ->setEnvironmentMaterial(m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")
+        ->getMaterial());
   }
 }
 
-GameObject* GameLevel::getPlayer() const {
+GameObject* GameLevel::getPlayer() const
+{
   return m_player;
 }

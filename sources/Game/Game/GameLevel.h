@@ -7,8 +7,8 @@
 class GameLevel {
  public:
   GameLevel(std::shared_ptr<GameWorld> gameWorld,
-            std::shared_ptr<GLGraphicsContext> graphicsContext,
-            std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<GLGraphicsContext> graphicsContext,
+    std::shared_ptr<ResourceManager> resourceManager);
 
   GameObject* getPlayer() const;
 

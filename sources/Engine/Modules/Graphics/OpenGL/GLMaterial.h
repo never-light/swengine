@@ -42,7 +42,8 @@ class GLMaterial {
  public:
   struct TextureParameter {
     TextureParameter(std::shared_ptr<GLTexture> texture, size_t slotIndex)
-        : texture(texture), slotIndex(slotIndex) {
+      : texture(texture), slotIndex(slotIndex)
+    {
 
     }
 
@@ -53,8 +54,9 @@ class GLMaterial {
   using GenericParameterValue = std::variant<int, float, glm::vec3, glm::vec4, glm::mat3, glm::mat4, TextureParameter>;
 
   struct GenericParameter {
-    GenericParameter(GLenum shaderType, GenericParameterValue  value)
-        : shaderType(shaderType), value(std::move(value)) {
+    GenericParameter(GLenum shaderType, GenericParameterValue value)
+      : shaderType(shaderType), value(std::move(value))
+    {
 
     }
 

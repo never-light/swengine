@@ -5,12 +5,14 @@
 #include "BaseComponentInstance.h"
 
 BaseComponentInstance::BaseComponentInstance(GameObject* gameObject)
-    : m_gameObject(gameObject) {
+  : m_gameObject(gameObject)
+{
 
 }
 
 BaseComponentInstance::~BaseComponentInstance() = default;
 
-GameObject* BaseComponentInstance::getGameObject() const {
+GameObject* BaseComponentInstance::getGameObject() const
+{
   return m_gameObject;
 }

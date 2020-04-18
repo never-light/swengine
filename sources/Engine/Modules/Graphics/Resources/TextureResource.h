@@ -13,16 +13,17 @@ struct TextureResourceParameters : ResourceSourceParameters {
   TextureResourceParameters() = default;
 
   TextureResourceParameters(GLTextureType type, GLTextureInternalFormat internalFormat, bool autoGenerateMipmaps,
-                            GLint minificationFilter, GLint magnificationFilter,
-                            GLint wrapModeU, GLint wrapModeV, GLint wrapModeW)
-      : type(type),
-        internalFormat(internalFormat),
-        autoGenerateMipmaps(autoGenerateMipmaps),
-        minificationFilter(minificationFilter),
-        magnificationFilter(magnificationFilter),
-        wrapModeU(wrapModeU),
-        wrapModeV(wrapModeV),
-        wrapModeW(wrapModeW) {}
+    GLint minificationFilter, GLint magnificationFilter,
+    GLint wrapModeU, GLint wrapModeV, GLint wrapModeW)
+    : type(type),
+      internalFormat(internalFormat),
+      autoGenerateMipmaps(autoGenerateMipmaps),
+      minificationFilter(minificationFilter),
+      magnificationFilter(magnificationFilter),
+      wrapModeU(wrapModeU),
+      wrapModeV(wrapModeV),
+      wrapModeW(wrapModeW)
+  {}
 
   GLTextureType type = GLTextureType::Texture2D;
   GLTextureInternalFormat internalFormat = GLTextureInternalFormat::RGB8;
@@ -48,10 +49,10 @@ class TextureResource : public Resource {
   [[nodiscard]] bool isBusy() const override;
 
   static std::shared_ptr<GLTexture> loadFromFile(const std::string& path,
-                                                 const TextureResourceParameters& parameters);
+    const TextureResourceParameters& parameters);
 
   static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-                                                   const ParametersType& defaultParameters);
+    const ParametersType& defaultParameters);
 
  public:
   [[nodiscard]] std::shared_ptr<GLTexture> getTexture() const;

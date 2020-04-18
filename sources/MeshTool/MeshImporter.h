@@ -38,13 +38,13 @@ class MeshImporter {
 
  private:
   std::unique_ptr<RawMesh> convertSceneToMesh(const aiScene& scene,
-                                              const RawSkeleton* skeleton,
-                                              const MeshImportOptions& options);
+    const RawSkeleton* skeleton,
+    const MeshImportOptions& options);
 
   void collectMeshes(const aiScene& scene,
-                     const aiNode& sceneNode,
-                     std::unordered_map<std::string, ImportMeshData>& meshesList,
-                     const aiMatrix4x4& parentNodeTransform) const;
+    const aiNode& sceneNode,
+    std::unordered_map<std::string, ImportMeshData>& meshesList,
+    const aiMatrix4x4& parentNodeTransform) const;
 
   std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const MeshImportOptions& options) const;
 
