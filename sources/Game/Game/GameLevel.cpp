@@ -64,34 +64,47 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<AnimationClip> playerIdleClip =
     m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_idle")->getClip();
 
-  SkeletalAnimationClipInstance playerRunningClipInstance(playerSkeleton, playerRunningClip);
-  playerRunningClipInstance.setEndBehaviour(SkeletalAnimationClipEndBehaviour::Repeat);
+  std::shared_ptr<AnimationClip> playerWaveClip =
+    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_wave")->getClip();
 
-  SkeletalAnimationClipInstance playerIdleClipInstance(playerSkeleton, playerIdleClip);
-  playerIdleClipInstance.setEndBehaviour(SkeletalAnimationClipEndBehaviour::Repeat);
+  AnimationClipInstance playerRunningClipInstance(playerSkeleton, playerRunningClip);
+  playerRunningClipInstance.setScale(0.7f);
+
+  AnimationClipInstance playerIdleClipInstance(playerSkeleton, playerIdleClip);
+  playerIdleClipInstance.setScale(0.7f);
+
+  AnimationClipInstance playerWaveClipInstance(playerSkeleton, playerWaveClip);
+  playerWaveClipInstance.setScale(0.7f);
 
   auto playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
   auto& statesMachine = playerAnimationComponent->getAnimationStatesMachine();
 
-  auto& playerRunningState =
-    statesMachine.addState("running", std::make_unique<SkeletalAnimationClipPoseNode>(playerRunningClipInstance));
-
-  playerRunningState.setFinalAction(SkeletalAnimationFinalAction::Repeat);
-
+  statesMachine.addState("running", std::make_unique<SkeletalAnimationClipPoseNode>(playerRunningClipInstance));
   uint16_t playerRunningStateId = statesMachine.getStateIdByName("running");
 
-  auto& playerIdleState =
-    statesMachine.addState("idle", std::make_unique<SkeletalAnimationClipPoseNode>(playerIdleClipInstance));
-
-  playerIdleState.setFinalAction(SkeletalAnimationFinalAction::Repeat);
-
+  statesMachine.addState("idle", std::make_unique<SkeletalAnimationClipPoseNode>(playerIdleClipInstance));
   uint16_t playerIdleStateId = statesMachine.getStateIdByName("idle");
 
+  statesMachine.addState("wave", std::make_unique<SkeletalAnimationClipPoseNode>(playerWaveClipInstance));
+  uint16_t playerWaveStateId = statesMachine.getStateIdByName("wave");
+
   statesMachine.setActiveState(playerIdleStateId);
-  statesMachine.addTransition(playerIdleStateId, playerRunningStateId);
+  statesMachine.addTransition(playerIdleStateId, playerWaveStateId);
+  statesMachine.addTransition(playerWaveStateId, playerRunningStateId);
   statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
 
-  statesMachine.switchToNextState(playerRunningStateId);
+  auto& playerRunningState = statesMachine.getState(playerRunningStateId);
+  auto& playerIdleState = statesMachine.getState(playerIdleStateId);
+  auto& playerWaveState = statesMachine.getState(playerWaveStateId);
+
+  playerRunningState.setFinalAction(AnimationFinalAction::SwitchState);
+  playerRunningState.setFinalTransitionStateId(playerIdleStateId);
+
+  playerIdleState.setFinalAction(AnimationFinalAction::SwitchState);
+  playerIdleState.setFinalTransitionStateId(playerWaveStateId);
+
+  playerWaveState.setFinalAction(AnimationFinalAction::SwitchState);
+  playerWaveState.setFinalTransitionStateId(playerRunningStateId);
 
   //m_player->removeComponent<SkeletalAnimationComponent>();
 

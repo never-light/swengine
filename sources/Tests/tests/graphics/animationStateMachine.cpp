@@ -3,6 +3,8 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtx/string_cast.hpp>
 
+#include <Engine/swdebug.h>
+
 TEST_CASE("state-machine-variables-get-set", "[animation]")
 {
   using tests::MathUtils;
@@ -27,9 +29,10 @@ TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
   SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance());
   AnimationStatesMachineVariables variablesSet;
 
+  clipPoseNode.startAnimation();
   clipPoseNode.increaseCurrentTime(0.5f, variablesSet);
 
-  SkeletalAnimationPose animationPose = clipPoseNode.getCurrentPose();
+  AnimationPose animationPose = clipPoseNode.getCurrentPose();
 
   // Root bone
   REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).getBoneMatrix(),
@@ -61,7 +64,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
         BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
       }, {}))});
 
-  SkeletalAnimationClipInstance firstAnimationClipInstance(skeleton, firstAnimationClip);
+  AnimationClipInstance firstAnimationClipInstance(skeleton, firstAnimationClip);
 
   std::shared_ptr<AnimationClip> secondAnimationClip =
     std::make_shared<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
@@ -71,7 +74,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
         BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
       }, {}))});
 
-  SkeletalAnimationClipInstance secondAnimationClipInstance(skeleton, secondAnimationClip);
+  AnimationClipInstance secondAnimationClipInstance(skeleton, secondAnimationClip);
 
   AnimationStatesMachineVariables variablesSet;
   SkeletalAnimationVariableId blendFactorVariableId = variablesSet.registerVariable("blend_factor", 0.0f);
@@ -83,9 +86,10 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
 
+    poseNode.startAnimation();
     poseNode.increaseCurrentTime(0.5f, variablesSet);
 
-    SkeletalAnimationPose animationPose = poseNode.getCurrentPose();
+    AnimationPose animationPose = poseNode.getCurrentPose();
 
     glm::vec3 targetBonePose = (firstAnimationClip->getBoneRelativePose(0, 15.0f).position +
       secondAnimationClip->getBoneRelativePose(0, 15.0f).position) / 2.0f;
@@ -100,9 +104,10 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
 
+    poseNode.startAnimation();
     poseNode.increaseCurrentTime(0.5f, variablesSet);
 
-    SkeletalAnimationPose animationPose = poseNode.getCurrentPose();
+    AnimationPose animationPose = poseNode.getCurrentPose();
 
     glm::vec3 targetBonePose = secondAnimationClip->getBoneRelativePose(0, 15.0f).position;
 

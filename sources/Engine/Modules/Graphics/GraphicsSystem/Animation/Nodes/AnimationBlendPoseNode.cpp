@@ -4,8 +4,8 @@
 
 #include "AnimationBlendPoseNode.h"
 
-AnimationBlendPoseNode::AnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
-  const SkeletalAnimationClipInstance& secondClip,
+AnimationBlendPoseNode::AnimationBlendPoseNode(const AnimationClipInstance& firstClip,
+  const AnimationClipInstance& secondClip,
   SkeletalAnimationVariableId blendParameterVariableId,
   SkeletalAnimationBlendPoseType blendType,
   uint8_t overriddenBone)
@@ -13,7 +13,7 @@ AnimationBlendPoseNode::AnimationBlendPoseNode(const SkeletalAnimationClipInstan
     m_secondClip(secondClip),
     m_blendType(blendType),
     m_blendParameterVariableId(blendParameterVariableId),
-    m_blendedPose(SkeletalAnimationPose(m_firstClip.getSkeletonPtr()))
+    m_blendedPose(AnimationPose(m_firstClip.getSkeletonPtr()))
 {
   SW_ASSERT(&firstClip.getSkeleton() == &secondClip.getSkeleton());
 
@@ -28,7 +28,7 @@ AnimationBlendPoseNode::~AnimationBlendPoseNode()
 
 }
 
-const SkeletalAnimationPose& AnimationBlendPoseNode::getCurrentPose() const
+const AnimationPose& AnimationBlendPoseNode::getCurrentPose() const
 {
   return m_blendedPose;
 }
@@ -38,8 +38,8 @@ void AnimationBlendPoseNode::increaseCurrentTime(float delta,
 {
   ARG_UNUSED(variablesSet);
 
-  m_firstClip.increaseCurrentTime(delta);
-  m_secondClip.increaseCurrentTime(delta);
+  RETURN_VALUE_UNUSED(m_firstClip.increaseCurrentTime(delta));
+  RETURN_VALUE_UNUSED(m_secondClip.increaseCurrentTime(delta));
 
   switch (m_blendType) {
     case SkeletalAnimationBlendPoseType::Linear:
@@ -52,6 +52,14 @@ void AnimationBlendPoseNode::increaseCurrentTime(float delta,
 
     default:
       break;
+  }
+
+  AnimationClipState firstClipState = m_firstClip.getCurrentState();
+  AnimationClipState secondClipState = m_secondClip.getCurrentState();
+
+  if (firstClipState == AnimationClipState::Finished &&
+    secondClipState == AnimationClipState::Finished) {
+    m_state = AnimationPoseNodeState::Finished;
   }
 }
 
@@ -88,8 +96,8 @@ void AnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
 
 void AnimationBlendPoseNode::linearBlendPoses(const AnimationStatesMachineVariables& variablesSet)
 {
-  const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
-  const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+  const AnimationPose& firstClipPose = m_firstClip.getAnimationPose();
+  const AnimationPose& secondClipPose = m_secondClip.getAnimationPose();
 
   for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
     if (m_overrideMask[boneIndex]) {
@@ -110,8 +118,8 @@ void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVa
 {
   ARG_UNUSED(variablesSet);
 
-  const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
-  const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+  const AnimationPose& firstClipPose = m_firstClip.getAnimationPose();
+  const AnimationPose& secondClipPose = m_secondClip.getAnimationPose();
 
   for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
     if (m_overrideMask[boneIndex]) {
@@ -121,4 +129,62 @@ void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVa
       m_blendedPose.setBoneLocalPose(boneIndex, firstClipPose.getBoneLocalPose(boneIndex));
     }
   }
+}
+
+AnimationPoseNodeState AnimationBlendPoseNode::getState() const
+{
+  return m_state;
+}
+
+void AnimationBlendPoseNode::startAnimation()
+{
+  AnimationClipState firstClipState = m_firstClip.getCurrentState();
+  AnimationClipState secondClipState = m_secondClip.getCurrentState();
+
+  SW_ASSERT(firstClipState == AnimationClipState::NotStarted ||
+    firstClipState == AnimationClipState::Paused ||
+    secondClipState == AnimationClipState::NotStarted ||
+    secondClipState == AnimationClipState::Paused);
+
+  m_state = AnimationPoseNodeState::Active;
+
+  m_firstClip.start();
+  m_secondClip.start();
+}
+
+void AnimationBlendPoseNode::pauseAnimation()
+{
+  m_state = AnimationPoseNodeState::Paused;
+}
+
+void AnimationBlendPoseNode::resetAnimation()
+{
+  m_state = AnimationPoseNodeState::NotStarted;
+  m_firstClip.resetClip();
+  m_secondClip.resetClip();
+}
+
+void AnimationBlendPoseNode::setFinalAction(AnimationPoseNodeFinalAction action)
+{
+  m_finalAction = action;
+
+  switch (m_finalAction) {
+    case AnimationPoseNodeFinalAction::Stop:
+      m_firstClip.setEndBehaviour(AnimationClipEndBehaviour::Stop);
+      m_secondClip.setEndBehaviour(AnimationClipEndBehaviour::Stop);
+      break;
+
+    case AnimationPoseNodeFinalAction::Repeat:
+      m_firstClip.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
+      m_secondClip.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
+}
+
+[[nodiscard]] AnimationPoseNodeFinalAction AnimationBlendPoseNode::getFinalAction() const
+{
+  return m_finalAction;
 }

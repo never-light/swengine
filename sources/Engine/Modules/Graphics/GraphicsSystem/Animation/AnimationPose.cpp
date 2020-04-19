@@ -2,9 +2,9 @@
 
 #pragma hdrstop
 
-#include "SkeletalAnimationPose.h"
+#include "AnimationPose.h"
 
-SkeletalAnimationPose::SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton)
+AnimationPose::AnimationPose(std::shared_ptr<Skeleton> skeleton)
   : m_skeleton(skeleton),
     m_bonesLocalPoses(std::vector<BonePose>(skeleton->getBonesCount())),
     m_matrixPalette(std::vector<glm::mat4>(skeleton->getBonesCount(), glm::identity<glm::mat4>()))
@@ -12,7 +12,7 @@ SkeletalAnimationPose::SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton)
 
 }
 
-SkeletalAnimationPose::SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
+AnimationPose::AnimationPose(std::shared_ptr<Skeleton> skeleton,
   const std::vector<BonePose>& bonesPoses)
   : m_skeleton(skeleton),
     m_bonesLocalPoses(bonesPoses),
@@ -21,18 +21,18 @@ SkeletalAnimationPose::SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
 
 }
 
-void SkeletalAnimationPose::setBoneLocalPose(uint8_t boneIndex, const BonePose& pose)
+void AnimationPose::setBoneLocalPose(uint8_t boneIndex, const BonePose& pose)
 {
     m_bonesLocalPoses[boneIndex] = pose;
     m_isMatrixPaletteOutdated = true;
 }
 
-const BonePose& SkeletalAnimationPose::getBoneLocalPose(uint8_t boneIndex) const
+const BonePose& AnimationPose::getBoneLocalPose(uint8_t boneIndex) const
 {
     return m_bonesLocalPoses[boneIndex];
 }
 
-const AnimationMatrixPalette& SkeletalAnimationPose::getMatrixPalette() const
+const AnimationMatrixPalette& AnimationPose::getMatrixPalette() const
 {
     if (m_isMatrixPaletteOutdated) {
         // Update matrix palette hierarchy

@@ -4,9 +4,9 @@
 
 #include <Exceptions/exceptions.h>
 #include "AnimationClipInstance.h"
-#include "SkeletalAnimationPose.h"
+#include "AnimationPose.h"
 
-SkeletalAnimationClipInstance::SkeletalAnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
+AnimationClipInstance::AnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
   std::shared_ptr<AnimationClip> animationClip)
   : m_skeleton(skeleton),
     m_animationClip(animationClip),
@@ -15,96 +15,99 @@ SkeletalAnimationClipInstance::SkeletalAnimationClipInstance(std::shared_ptr<Ske
 
 }
 
-const Skeleton& SkeletalAnimationClipInstance::getSkeleton() const
+const Skeleton& AnimationClipInstance::getSkeleton() const
 {
   return *m_skeleton.get();
 }
 
-std::shared_ptr<Skeleton> SkeletalAnimationClipInstance::getSkeletonPtr() const
+std::shared_ptr<Skeleton> AnimationClipInstance::getSkeletonPtr() const
 {
   return m_skeleton;
 }
 
-void SkeletalAnimationClipInstance::resetAnimationPoseCache()
+void AnimationClipInstance::resetAnimationPoseCache()
 {
   m_isAnimationPoseOutdated = true;
 }
 
-void SkeletalAnimationClipInstance::increaseCurrentTime(float delta)
+AnimationClipTimeIncrementResult AnimationClipInstance::increaseCurrentTime(float delta)
 {
-  if (m_clipState == SkeletalAnimationClipState::Paused) {
-    return;
+  if (m_clipState != AnimationClipState::Active) {
+    return AnimationClipTimeIncrementResult::Ignored;
   }
+
+  AnimationClipTimeIncrementResult incrementResult = AnimationClipTimeIncrementResult::Continued;
 
   m_currentTime += delta * m_animationClip->getRate() * m_scale;
 
   if (m_currentTime > m_animationClip->getDuration()) {
-    if (m_endBehaviour == SkeletalAnimationClipEndBehaviour::Stop) {
-      m_currentTime = m_animationClip->getDuration();
-      m_clipState = SkeletalAnimationClipState::Paused;
-    }
-    else if (m_endBehaviour == SkeletalAnimationClipEndBehaviour::StopAndReset) {
+    if (m_endBehaviour == AnimationClipEndBehaviour::Stop) {
       m_currentTime = 0.0f;
-      m_clipState = SkeletalAnimationClipState::Paused;
+      m_clipState = AnimationClipState::Finished;
+      incrementResult = AnimationClipTimeIncrementResult::Finished;
     }
-    else if (m_endBehaviour == SkeletalAnimationClipEndBehaviour::Repeat) {
+    else if (m_endBehaviour == AnimationClipEndBehaviour::Repeat) {
       int overflowParts = static_cast<int>(m_currentTime / m_animationClip->getDuration());
       m_currentTime -= m_animationClip->getDuration() * static_cast<float>(overflowParts);
+      incrementResult = AnimationClipTimeIncrementResult::Continued;
     }
     else {
-      THROW_EXCEPTION(NotImplementedException, "Clip behaviour is not impelented");
+      SW_ASSERT(false);
     }
   }
 
   resetAnimationPoseCache();
+
+  return incrementResult;
 }
 
-void SkeletalAnimationClipInstance::resetCurrentTime()
+void AnimationClipInstance::resetClip()
 {
   m_currentTime = 0.0f;
+  m_clipState = AnimationClipState::NotStarted;
 }
 
-float SkeletalAnimationClipInstance::getCurrentTime() const
+float AnimationClipInstance::getCurrentTime() const
 {
   return m_currentTime;
 }
 
-void SkeletalAnimationClipInstance::setScale(float scale)
+void AnimationClipInstance::setScale(float scale)
 {
   m_scale = scale;
 }
 
-float SkeletalAnimationClipInstance::getScale() const
+float AnimationClipInstance::getScale() const
 {
   return m_scale;
 }
 
-void SkeletalAnimationClipInstance::start()
+void AnimationClipInstance::start()
 {
-  m_clipState = SkeletalAnimationClipState::Active;
+  m_clipState = AnimationClipState::Active;
 }
 
-void SkeletalAnimationClipInstance::pause()
+void AnimationClipInstance::pause()
 {
-  m_clipState = SkeletalAnimationClipState::Paused;
+  m_clipState = AnimationClipState::Paused;
 }
 
-void SkeletalAnimationClipInstance::setEndBehaviour(SkeletalAnimationClipEndBehaviour behaviour)
+void AnimationClipInstance::setEndBehaviour(AnimationClipEndBehaviour behaviour)
 {
   m_endBehaviour = behaviour;
 }
 
-const AnimationClip& SkeletalAnimationClipInstance::getAnimationClip() const
+const AnimationClip& AnimationClipInstance::getAnimationClip() const
 {
   return *m_animationClip.get();
 }
 
-AnimationClip& SkeletalAnimationClipInstance::getAnimationClip()
+AnimationClip& AnimationClipInstance::getAnimationClip()
 {
   return *m_animationClip.get();
 }
 
-const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() const
+const AnimationPose& AnimationClipInstance::getAnimationPose() const
 {
   if (!m_isAnimationPoseOutdated) {
     return m_animationPose;
@@ -120,4 +123,14 @@ const SkeletalAnimationPose& SkeletalAnimationClipInstance::getAnimationPose() c
 
   m_isAnimationPoseOutdated = false;
   return m_animationPose;
+}
+
+AnimationClipEndBehaviour AnimationClipInstance::getEndBehaviour() const
+{
+  return m_endBehaviour;
+}
+
+AnimationClipState AnimationClipInstance::getCurrentState() const
+{
+  return m_clipState;
 }

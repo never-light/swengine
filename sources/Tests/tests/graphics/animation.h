@@ -10,4 +10,4 @@
 
 Skeleton generateTestSkeleton();
 AnimationClip generateTestAnimationClip();
-SkeletalAnimationClipInstance generateTestAnimationClipInstance();
+AnimationClipInstance generateTestAnimationClipInstance();

@@ -51,12 +51,12 @@ AnimationClip generateTestAnimationClip()
   return animationClip;
 }
 
-SkeletalAnimationClipInstance generateTestAnimationClipInstance()
+AnimationClipInstance generateTestAnimationClipInstance()
 {
   auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
   auto clip = std::make_shared<AnimationClip>(generateTestAnimationClip());
 
-  SkeletalAnimationClipInstance clipInstance(skeleton, clip);
+  AnimationClipInstance clipInstance(skeleton, clip);
 
   return clipInstance;
 }

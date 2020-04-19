@@ -2,32 +2,36 @@
 
 #include "Skeleton.h"
 #include "AnimationClip.h"
-#include "SkeletalAnimationPose.h"
+#include "AnimationPose.h"
 
-enum class SkeletalAnimationClipEndBehaviour {
-  Repeat, Stop, StopAndReset
+enum class AnimationClipEndBehaviour {
+  Repeat, Stop
 };
-enum class SkeletalAnimationClipState {
-  Active, Paused
+enum class AnimationClipState {
+  NotStarted, Active, Paused, Finished
 };
 
-class SkeletalAnimationClipInstance {
+enum class AnimationClipTimeIncrementResult {
+  Continued, Finished, Ignored
+};
+
+class AnimationClipInstance {
  public:
-  SkeletalAnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
+  AnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
     std::shared_ptr<AnimationClip> animationClip);
 
   [[nodiscard]] const AnimationClip& getAnimationClip() const;
   [[nodiscard]] AnimationClip& getAnimationClip();
 
-  [[nodiscard]] const SkeletalAnimationPose& getAnimationPose() const;
+  [[nodiscard]] const AnimationPose& getAnimationPose() const;
   [[nodiscard]] const Skeleton& getSkeleton() const;
 
   [[nodiscard]] std::shared_ptr<Skeleton> getSkeletonPtr() const;
 
   void resetAnimationPoseCache();
 
-  void increaseCurrentTime(float delta);
-  void resetCurrentTime();
+  [[nodiscard]] AnimationClipTimeIncrementResult increaseCurrentTime(float delta);
+  void resetClip();
 
   [[nodiscard]] float getCurrentTime() const;
 
@@ -37,18 +41,21 @@ class SkeletalAnimationClipInstance {
   void start();
   void pause();
 
-  void setEndBehaviour(SkeletalAnimationClipEndBehaviour behaviour);
+  void setEndBehaviour(AnimationClipEndBehaviour behaviour);
+  AnimationClipEndBehaviour getEndBehaviour() const;
+
+  AnimationClipState getCurrentState() const;
 
  private:
   std::shared_ptr<Skeleton> m_skeleton;
 
   std::shared_ptr<AnimationClip> m_animationClip;
-  mutable SkeletalAnimationPose m_animationPose;
+  mutable AnimationPose m_animationPose;
   mutable bool m_isAnimationPoseOutdated = true;
 
   float m_scale = 1.0f;
   float m_currentTime = 0.0f;
 
-  SkeletalAnimationClipEndBehaviour m_endBehaviour = SkeletalAnimationClipEndBehaviour::Stop;
-  SkeletalAnimationClipState m_clipState = SkeletalAnimationClipState::Active;
+  AnimationClipEndBehaviour m_endBehaviour = AnimationClipEndBehaviour::Stop;
+  AnimationClipState m_clipState = AnimationClipState::NotStarted;
 };

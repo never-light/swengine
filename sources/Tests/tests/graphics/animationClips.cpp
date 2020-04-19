@@ -1,4 +1,5 @@
 #include "animation.h"
+#include <Engine/swdebug.h>
 
 TEST_CASE("bone-pose-matrix", "[animation]")
 {
@@ -81,11 +82,11 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
 {
   using tests::MathUtils;
 
-  SkeletalAnimationClipInstance clipInstance = generateTestAnimationClipInstance();
+  AnimationClipInstance clipInstance = generateTestAnimationClipInstance();
   std::shared_ptr<Skeleton> skeleton = clipInstance.getSkeletonPtr();
 
   SECTION("clip-zero-time") {
-    SkeletalAnimationPose pose = clipInstance.getAnimationPose();
+    AnimationPose pose = clipInstance.getAnimationPose();
 
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(0).getBoneMatrix(), MathUtils::IDENTITY_MATRIX4));
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(1).getBoneMatrix(), MathUtils::IDENTITY_MATRIX4));
@@ -104,9 +105,10 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
   }
 
   SECTION("clip-middle-time") {
-    clipInstance.increaseCurrentTime(0.5f);
+    clipInstance.start();
+    RETURN_VALUE_UNUSED(clipInstance.increaseCurrentTime(0.5f));
 
-    SkeletalAnimationPose pose = clipInstance.getAnimationPose();
+    AnimationPose pose = clipInstance.getAnimationPose();
     AnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     // Root bone
@@ -132,10 +134,11 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
   }
 
   SECTION("clip-overflow-time") {
-    clipInstance.setEndBehaviour(SkeletalAnimationClipEndBehaviour::Repeat);
-    clipInstance.increaseCurrentTime(2.5f);
+    clipInstance.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
+    clipInstance.start();
+    RETURN_VALUE_UNUSED(clipInstance.increaseCurrentTime(2.5f));
 
-    SkeletalAnimationPose pose = clipInstance.getAnimationPose();
+    AnimationPose pose = clipInstance.getAnimationPose();
     AnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     // Root bone

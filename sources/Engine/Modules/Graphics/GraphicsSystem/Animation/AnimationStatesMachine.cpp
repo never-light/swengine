@@ -7,7 +7,7 @@
 #include "AnimationStatesMachine.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/Nodes/AnimationPoseNode.h"
 #include "AnimationClipInstance.h"
-#include "SkeletalAnimationPose.h"
+#include "AnimationPose.h"
 
 AnimationStatesMachine::AnimationStatesMachine(std::shared_ptr<Skeleton> skeleton)
   : m_skeleton(skeleton)
@@ -20,39 +20,66 @@ int16_t AnimationStatesMachine::getStateIdByName(const std::string& name) const
   return m_statesNameToIdMap.at(name);
 }
 
-AnimationState& AnimationStatesMachine::addState(const std::string& name,
+AnimationState& AnimationStatesMachine::getState(int16_t stateId)
+{
+  SW_ASSERT(stateId >= 0 && stateId < int16_t(m_states.size()));
+
+  return m_states[stateId];
+}
+
+const AnimationState& AnimationStatesMachine::getState(int16_t stateId) const
+{
+  SW_ASSERT(stateId >= 0 && stateId < int16_t(m_states.size()));
+
+  return m_states[stateId];
+}
+
+void AnimationStatesMachine::addState(const std::string& name,
   std::unique_ptr<AnimationPoseNode> initialPoseNode)
 {
-  int16_t newStateId = static_cast<int16_t>(m_states.size());
+  auto newStateId = static_cast<int16_t>(m_states.size());
 
-  m_states.push_back(AnimationState(name, std::move(initialPoseNode)));
+  m_states.emplace_back(name, std::move(initialPoseNode));
   m_statesNameToIdMap[name] = newStateId;
 
   m_states.rbegin()->m_id = newStateId;
 
-  return *m_states.rbegin();
+  for (auto& transitionsTableEntry : m_transitionsTable) {
+    transitionsTableEntry.push_back(false);
+  }
+
+  m_transitionsTable.emplace_back(m_states.size(), 0);
 }
 
 void AnimationStatesMachine::addTransition(int16_t sourceStateId, int16_t targetStateId)
 {
   SW_ASSERT(sourceStateId >= 0 && sourceStateId < int16_t(m_states.size()) &&
-    !m_states[size_t(sourceStateId)].hasTransition(targetStateId));
+    targetStateId >= 0 && targetStateId <= int16_t(m_states.size()) &&
+    !m_transitionsTable[sourceStateId][targetStateId]);
 
-  m_states[size_t(sourceStateId)].m_nextTransitions.insert(targetStateId);
+  m_transitionsTable[sourceStateId][targetStateId] = true;
 }
 
 void AnimationStatesMachine::switchToNextState(int16_t stateId)
 {
-  SW_ASSERT(m_activeStateId > 0 && m_states[size_t(m_activeStateId)].hasTransition(stateId));
+  SW_ASSERT(m_activeStateId >= 0 && m_transitionsTable[m_activeStateId][stateId]);
+
+  getActiveState().deactivate();
 
   m_activeStateId = stateId;
+  getActiveState().activate();
 }
 
 void AnimationStatesMachine::setActiveState(int16_t stateId)
 {
   SW_ASSERT(stateId >= 0 && stateId < int16_t(m_states.size()));
 
+  if (m_activeStateId != INVALID_STATE_ID) {
+    getActiveState().deactivate();
+  }
+
   m_activeStateId = stateId;
+  getActiveState().activate();
 }
 
 const AnimationState& AnimationStatesMachine::getActiveState() const
@@ -69,7 +96,7 @@ AnimationState& AnimationStatesMachine::getActiveState()
   return m_states[size_t(m_activeStateId)];
 }
 
-const SkeletalAnimationPose& AnimationStatesMachine::getCurrentPose() const
+const AnimationPose& AnimationStatesMachine::getCurrentPose() const
 {
   return getActiveState().getCurrentPose();
 }
@@ -91,5 +118,14 @@ AnimationStatesMachineVariables& AnimationStatesMachine::getVariablesSet()
 
 void AnimationStatesMachine::increaseCurrentTime(float delta)
 {
-  getActiveState().increaseCurrentTime(delta, m_variablesSet);
+  AnimationState& activeState = getActiveState();
+
+  activeState.increaseCurrentTime(delta, m_variablesSet);
+
+  if (activeState.getInitialPoseNode().getState() == AnimationPoseNodeState::Finished) {
+    if (activeState.getFinalAction() == AnimationFinalAction::SwitchState) {
+      switchToNextState(activeState.getFinalTransitionStateId());
+    }
+  }
 }
+

@@ -8,13 +8,13 @@
 #include "AnimationClip.h"
 #include "AnimationStatesMachineVariables.h"
 #include "AnimationClipInstance.h"
-#include "SkeletalAnimationPose.h"
+#include "AnimationPose.h"
 
 #include "Nodes/AnimationClipPoseNode.h"
 #include "Nodes/AnimationClipPoseNode.h"
 #include "Nodes/AnimationBlendPoseNode.h"
 
-enum class SkeletalAnimationFinalAction {
+enum class AnimationFinalAction {
   Repeat, Stop, SwitchState
 };
 
@@ -24,26 +24,27 @@ class AnimationState {
 
   [[nodiscard]] const std::string& getName() const;
 
-  void setFinalAction(SkeletalAnimationFinalAction action);
-  [[nodiscard]] SkeletalAnimationFinalAction getFinalAction() const;
+  void setFinalAction(AnimationFinalAction action);
+  [[nodiscard]] AnimationFinalAction getFinalAction() const;
 
   void setFinalTransitionStateId(int16_t stateId);
   [[nodiscard]] int16_t getFinalTransitionStateId() const;
 
-  [[nodiscard]] bool hasTransition(int16_t nextStateId) const;
-
   void increaseCurrentTime(float delta, const AnimationStatesMachineVariables& variablesSet);
-  void resetCurrentTime();
 
-  [[nodiscard]] const SkeletalAnimationPose& getCurrentPose() const;
+  [[nodiscard]] const AnimationPose& getCurrentPose() const;
+
+  [[nodiscard]] const AnimationPoseNode& getInitialPoseNode() const;
+
+ private:
+  void activate();
+  void deactivate();
 
  private:
   int16_t m_id;
   std::string m_name;
 
-  std::unordered_set<int16_t> m_nextTransitions;
-
-  SkeletalAnimationFinalAction m_finalAction = SkeletalAnimationFinalAction::Stop;
+  AnimationFinalAction m_finalAction = AnimationFinalAction::Stop;
   int16_t m_finalTransitionStateId;
 
   std::unique_ptr<AnimationPoseNode> m_initialPoseNode;

@@ -4,11 +4,11 @@
 #include "Bone.h"
 #include "AnimationClip.h"
 
-class SkeletalAnimationPose {
+class AnimationPose {
  public:
-  explicit SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton);
+  explicit AnimationPose(std::shared_ptr<Skeleton> skeleton);
 
-  SkeletalAnimationPose(std::shared_ptr<Skeleton> skeleton,
+  AnimationPose(std::shared_ptr<Skeleton> skeleton,
     const std::vector<BonePose>& bonesPoses);
 
   void setBoneLocalPose(uint8_t boneIndex, const BonePose& pose);
