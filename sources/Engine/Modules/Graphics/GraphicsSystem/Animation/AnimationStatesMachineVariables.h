@@ -6,9 +6,9 @@
 
 using SkeletalAnimationVariableId = int16_t;
 
-class SkeletalAnimationStatesMachineVariables {
+class AnimationStatesMachineVariables {
  public:
-  SkeletalAnimationStatesMachineVariables();
+  AnimationStatesMachineVariables();
 
   [[nodiscard]] SkeletalAnimationVariableId registerVariable(const std::string& name, float initialValue);
   [[nodiscard]] SkeletalAnimationVariableId getVariableId(const std::string& name) const;

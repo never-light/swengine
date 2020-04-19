@@ -24,7 +24,8 @@ class MeshRendererComponent {
   void cull(bool culled = true);
   [[nodiscard]] bool isCulled() const;
 
-  void updateBounds(Transform& transform);
+  void updateBounds(const glm::mat4& transformation);
+
   [[nodiscard]] const AABB& getAABB() const;
 
  private:

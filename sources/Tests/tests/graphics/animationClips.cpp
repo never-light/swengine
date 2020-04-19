@@ -46,7 +46,7 @@ TEST_CASE("getting-clip-bones-poses", "[animation]")
   using tests::MathUtils;
 
   Skeleton skeleton = generateTestSkeleton();
-  SkeletalAnimationClip clip = generateTestAnimationClip();
+  AnimationClip clip = generateTestAnimationClip();
 
   // Root bone poses
   BonePose rootBonePose = clip.getBoneRelativePose(0, 15.0f);
@@ -91,7 +91,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(1).getBoneMatrix(), MathUtils::IDENTITY_MATRIX4));
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(2).getBoneMatrix(), MathUtils::IDENTITY_MATRIX4));
 
-    SkeletalAnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
+    AnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     REQUIRE(MathUtils::isEqual(matrixPalette.bonesTransforms[0],
       MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(0).getInverseBindPoseMatrix()));
@@ -107,7 +107,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
     clipInstance.increaseCurrentTime(0.5f);
 
     SkeletalAnimationPose pose = clipInstance.getAnimationPose();
-    SkeletalAnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
+    AnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     // Root bone
     glm::mat4 rootBoneTranslation = MathUtils::getTranslationMatrix({15.0f, 0.0f, 0.0f});
@@ -136,7 +136,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
     clipInstance.increaseCurrentTime(2.5f);
 
     SkeletalAnimationPose pose = clipInstance.getAnimationPose();
-    SkeletalAnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
+    AnimationMatrixPalette matrixPalette = pose.getMatrixPalette();
 
     // Root bone
     glm::mat4 rootBoneTranslation = MathUtils::getTranslationMatrix({15.0f, 0.0f, 0.0f});

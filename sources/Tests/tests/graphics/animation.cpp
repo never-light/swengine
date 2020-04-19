@@ -19,7 +19,7 @@ Skeleton generateTestSkeleton()
   return skeleton;
 }
 
-SkeletalAnimationClip generateTestAnimationClip()
+AnimationClip generateTestAnimationClip()
 {
   using tests::MathUtils;
 
@@ -46,7 +46,7 @@ SkeletalAnimationClip generateTestAnimationClip()
 
   bonesAnimationChannels.push_back(BoneAnimationChannel({}, {}));
 
-  SkeletalAnimationClip animationClip = SkeletalAnimationClip("clip", 60.0f, 30.0f, bonesAnimationChannels);
+  AnimationClip animationClip = AnimationClip("clip", 60.0f, 30.0f, bonesAnimationChannels);
 
   return animationClip;
 }
@@ -54,7 +54,7 @@ SkeletalAnimationClip generateTestAnimationClip()
 SkeletalAnimationClipInstance generateTestAnimationClipInstance()
 {
   auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
-  auto clip = std::make_shared<SkeletalAnimationClip>(generateTestAnimationClip());
+  auto clip = std::make_shared<AnimationClip>(generateTestAnimationClip());
 
   SkeletalAnimationClipInstance clipInstance(skeleton, clip);
 

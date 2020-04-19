@@ -5,7 +5,10 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h>
 #include <Engine/swdebug.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
 
 #include "PlayerComponent.h"
 
@@ -15,15 +18,10 @@ PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModul
 
 }
 
-PlayerControlSystem::~PlayerControlSystem()
-{
-
-}
+PlayerControlSystem::~PlayerControlSystem() = default;
 
 void PlayerControlSystem::configure(GameWorld* gameWorld)
 {
-  ARG_UNUSED(gameWorld);
-
   m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
   m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
   m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
@@ -32,6 +30,15 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
   m_inputModule->enableGlobalTracking();
 
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
+
+  if (m_playerObject == nullptr) {
+    const auto& playerObjectsView = gameWorld->allWith<PlayerComponent, CameraComponent, TransformComponent>();
+
+    SW_ASSERT(!playerObjectsView.begin().isEnd());
+
+    m_playerObject = playerObjectsView.begin().getGameObject();
+    m_playerObject->getComponent<TransformComponent>()->getTransform()->move({ 0.0f, 0.35f, 0.0f });
+  }
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
@@ -49,12 +56,6 @@ void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 {
   ARG_UNUSED(delta);
-
-  if (m_playerObject == nullptr) {
-    const auto& playerObjectsView = gameWorld->allWith<PlayerComponent, CameraComponent, TransformComponent>();
-
-    m_playerObject = playerObjectsView.begin().getGameObject();
-  }
 
   const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
   float movementSpeed = playerComponent->getMovementSpeed();
@@ -99,4 +100,11 @@ Transform* PlayerControlSystem::getPlayerTransform() const
 void PlayerControlSystem::move(const glm::vec3& movement)
 {
   getPlayerCamera()->getTransform()->move(movement);
+}
+
+void PlayerControlSystem::render(GameWorld* gameWorld)
+{
+  ARG_UNUSED(gameWorld);
+
+  DebugPainter::renderAABB(m_playerObject->getComponent<MeshRendererComponent>()->getAABB());
 }

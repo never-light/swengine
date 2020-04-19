@@ -51,7 +51,7 @@ bool SkeletalAnimationResource::isBusy() const
   return m_clip.use_count() > 1;
 }
 
-std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(const std::string& path,
+std::shared_ptr<AnimationClip> SkeletalAnimationResource::loadFromFile(const std::string& path,
   const SkeletalAnimationResourceParameters& parameters)
 {
   ARG_UNUSED(parameters);
@@ -83,7 +83,7 @@ std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::loadFromFile(c
   float animationDuration = rawClip.header.duration;
   float animationRate = rawClip.header.rate;
 
-  std::shared_ptr<SkeletalAnimationClip> animationClip = std::make_shared<SkeletalAnimationClip>(animationName,
+  std::shared_ptr<AnimationClip> animationClip = std::make_shared<AnimationClip>(animationName,
     animationDuration,
     animationRate,
     animationChannels);
@@ -101,7 +101,7 @@ SkeletalAnimationResource::ParametersType SkeletalAnimationResource::buildDeclar
   return parameters;
 }
 
-std::shared_ptr<SkeletalAnimationClip> SkeletalAnimationResource::getClip() const
+std::shared_ptr<AnimationClip> SkeletalAnimationResource::getClip() const
 {
   return m_clip;
 }

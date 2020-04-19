@@ -13,6 +13,7 @@ class PlayerControlSystem : public GameSystem {
   void unconfigure(GameWorld* gameWorld) override;
 
   void update(GameWorld* gameWorld, float delta) override;
+  void render(GameWorld* gameWorld) override;
 
  private:
   Camera* getPlayerCamera() const;

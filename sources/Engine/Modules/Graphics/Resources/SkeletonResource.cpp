@@ -12,10 +12,7 @@
 
 #include "Modules/Graphics/Resources/Raw/RawSkeleton.h"
 
-SkeletonResource::SkeletonResource()
-{
-
-}
+SkeletonResource::SkeletonResource() = default;
 
 SkeletonResource::~SkeletonResource()
 {

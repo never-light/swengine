@@ -1,15 +1,18 @@
 #include "GameLevel.h"
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/Animation/Skeleton.h>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h>
+
 #include <Engine/Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h>
 
-#include <Engine/Modules/Graphics/Resources/ShaderResource.h>
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
 #include <Engine/Modules/Graphics/Resources/MaterialResource.h>
+#include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
+#include <Engine/Modules/Graphics/Resources/SkeletalAnimationResource.h>
 
 #include "Game/PlayerComponent.h"
 
@@ -21,8 +24,10 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(resourceManager)
 {
   m_player = m_gameWorld->createGameObject();
-  m_player->addComponent<TransformComponent>();
-  m_player->addComponent<CameraComponent>();
+  auto playerTransformComponent = m_player->addComponent<TransformComponent>();
+  playerTransformComponent->getTransform()->pitchLocal(-90.0f);
+  playerTransformComponent->getTransform()->scale(0.1f, 0.1f, 0.1f);
+
   m_player->addComponent<PlayerComponent>();
 
   std::shared_ptr<Camera> camera = std::make_shared<Camera>();
@@ -34,7 +39,61 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   camera->getTransform()->setPosition(0, 0, 0);
   camera->getTransform()->lookAt(0, 0, 1);
 
-  m_player->getComponent<CameraComponent>()->setCamera(camera);
+  auto playerCameraComponent = m_player->addComponent<CameraComponent>();
+  playerCameraComponent->setCamera(camera);
+
+  std::shared_ptr<Skeleton> playerSkeleton =
+    m_resourceManager->getResourceFromInstance<SkeletonResource>("human_skeleton")->getSkeleton();
+
+  std::shared_ptr<Mesh> playerMesh =
+    m_resourceManager->getResourceFromInstance<MeshResource>("player_mesh")->getMesh();
+
+  playerMesh->setSkeleton(playerSkeleton);
+
+  std::shared_ptr<Material> playerMaterial =
+    m_resourceManager->getResourceFromInstance<MaterialResource>("player_material")->getMaterial();
+
+  auto playerMeshRendererComponent = m_player->addComponent<MeshRendererComponent>();
+  playerMeshRendererComponent->setMeshInstance(playerMesh);
+  playerMeshRendererComponent->setMaterialInstance(0, playerMaterial);
+  playerMeshRendererComponent->updateBounds(playerTransformComponent->getTransform()->getTransformationMatrix());
+
+  std::shared_ptr<AnimationClip> playerRunningClip =
+    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_running")->getClip();
+
+  std::shared_ptr<AnimationClip> playerIdleClip =
+    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_idle")->getClip();
+
+  SkeletalAnimationClipInstance playerRunningClipInstance(playerSkeleton, playerRunningClip);
+  playerRunningClipInstance.setEndBehaviour(SkeletalAnimationClipEndBehaviour::Repeat);
+
+  SkeletalAnimationClipInstance playerIdleClipInstance(playerSkeleton, playerIdleClip);
+  playerIdleClipInstance.setEndBehaviour(SkeletalAnimationClipEndBehaviour::Repeat);
+
+  auto playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
+  auto& statesMachine = playerAnimationComponent->getAnimationStatesMachine();
+
+  auto& playerRunningState =
+    statesMachine.addState("running", std::make_unique<SkeletalAnimationClipPoseNode>(playerRunningClipInstance));
+
+  playerRunningState.setFinalAction(SkeletalAnimationFinalAction::Repeat);
+
+  uint16_t playerRunningStateId = statesMachine.getStateIdByName("running");
+
+  auto& playerIdleState =
+    statesMachine.addState("idle", std::make_unique<SkeletalAnimationClipPoseNode>(playerIdleClipInstance));
+
+  playerIdleState.setFinalAction(SkeletalAnimationFinalAction::Repeat);
+
+  uint16_t playerIdleStateId = statesMachine.getStateIdByName("idle");
+
+  statesMachine.setActiveState(playerIdleStateId);
+  statesMachine.addTransition(playerIdleStateId, playerRunningStateId);
+  statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
+
+  statesMachine.switchToNextState(playerRunningStateId);
+
+  //m_player->removeComponent<SkeletalAnimationComponent>();
 
   // Game objects
   std::shared_ptr<Material>
@@ -54,7 +113,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     componentHandle->setMeshInstance(cubeGeometry);
     componentHandle->setMaterialsInstances({material});
 
-    componentHandle->updateBounds(*transformHandle->getTransform());
+    componentHandle->updateBounds(transformHandle->getTransform()->getTransformationMatrix());
   }
 
   {
@@ -70,7 +129,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     componentHandle->setMeshInstance(cubeGeometry);
     componentHandle->setMaterialsInstances({material});
 
-    componentHandle->updateBounds(*transformHandle->getTransform());
+    componentHandle->updateBounds(transformHandle->getTransform()->getTransformationMatrix());
   }
 
 

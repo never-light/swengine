@@ -10,17 +10,17 @@ SkeletalAnimationComponent::SkeletalAnimationComponent(std::shared_ptr<Skeleton>
 
 }
 
-SkeletalAnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine()
+AnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine()
 {
   return m_animationStatesMachine;
 }
 
-const SkeletalAnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine() const
+const AnimationStatesMachine& SkeletalAnimationComponent::getAnimationStatesMachine() const
 {
   return m_animationStatesMachine;
 }
 
-const SkeletalAnimationMatrixPalette& SkeletalAnimationComponent::getMatrixPalette() const
+const AnimationMatrixPalette& SkeletalAnimationComponent::getMatrixPalette() const
 {
   return m_animationStatesMachine.getCurrentMatrixPalette();
 }

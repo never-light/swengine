@@ -2,18 +2,18 @@
 
 #include <memory>
 
-#include "SkeletalAnimationStatesManager.h"
+#include "AnimationStatesMachine.h"
 
 class SkeletalAnimationComponent {
  public:
   explicit SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton);
 
-  SkeletalAnimationStatesMachine& getAnimationStatesMachine();
-  [[nodiscard]] const SkeletalAnimationStatesMachine& getAnimationStatesMachine() const;
+  AnimationStatesMachine& getAnimationStatesMachine();
+  [[nodiscard]] const AnimationStatesMachine& getAnimationStatesMachine() const;
 
-  [[nodiscard]] const SkeletalAnimationMatrixPalette& getMatrixPalette() const;
+  [[nodiscard]] const AnimationMatrixPalette& getMatrixPalette() const;
 
  private:
-  SkeletalAnimationStatesMachine m_animationStatesMachine;
+  AnimationStatesMachine m_animationStatesMachine;
 };
 

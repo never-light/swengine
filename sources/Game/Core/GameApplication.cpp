@@ -28,6 +28,7 @@ void GameApplication::load()
 {
   auto resourceMgr = m_resourceManagementModule->getResourceManager();
   resourceMgr->addResourcesMap("../resources/resources.xml");
+  resourceMgr->addResourcesMap("../resources/game/resources.xml");
 
   m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule));
   m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));

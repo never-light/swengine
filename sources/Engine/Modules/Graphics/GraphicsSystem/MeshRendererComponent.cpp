@@ -60,15 +60,13 @@ const AABB& MeshRendererComponent::getAABB() const
   return m_aabb;
 }
 
-void MeshRendererComponent::updateBounds(Transform& transform)
+void MeshRendererComponent::updateBounds(const glm::mat4& transformation)
 {
-  const glm::mat4& transformMatrix = transform.getTransformationMatrix();
-
   glm::vec3 newMin(std::numeric_limits<float>::max());
   glm::vec3 newMax(std::numeric_limits<float>::min());
 
-  for (glm::vec3 corner : m_aabb.getCorners()) {
-    glm::vec4 newCorner = transformMatrix * glm::vec4(corner, 1.0f);
+  for (glm::vec3 corner : m_meshInstance->getAABB().getCorners()) {
+    glm::vec4 newCorner = transformation * glm::vec4(corner, 1.0f);
 
     newMin.x = std::fminf(newMin.x, newCorner.x);
     newMin.y = std::fminf(newMin.y, newCorner.y);

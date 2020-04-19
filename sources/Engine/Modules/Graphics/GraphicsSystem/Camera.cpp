@@ -82,8 +82,6 @@ float Camera::getFOVy() const
 #include <boost/stacktrace.hpp>
 #include <boost/exception/error_info.hpp>
 
-typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
-
 glm::mat4x4 Camera::getProjectionMatrix()
 {
   if (m_needProjectionMatrixCacheUpdate) {

@@ -21,10 +21,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
 
 }
 
-Game::~Game()
-{
-
-}
+Game::~Game() = default;
 
 void Game::activate()
 {

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Modules/ECS/ECS.h>
+#include <Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Modules/Graphics/GraphicsSystem/TransformComponent.h>
 
 #include "SkeletalAnimationComponent.h"
 
@@ -15,5 +17,9 @@ class SkeletalAnimationSystem : public GameSystem {
   void update(GameWorld* gameWorld, float delta) override;
 
  private:
-  void updateAnimationStateMachine(SkeletalAnimationStatesMachine& stateMachine, float delta);
+  void updateAnimationStateMachine(AnimationStatesMachine& stateMachine, float delta);
+  void updateObjectBounds(TransformComponent& transformComponent,
+    SkeletalAnimationComponent& skeletalAnimationComponent,
+    MeshRendererComponent& meshRendererComponent,
+    float delta);
 };

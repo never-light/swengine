@@ -126,6 +126,11 @@
 		<type>vertex</type>
 	</resource>
 
+	<resource type="shader" id="deferred_gpass_vertex_shader_skinned" source="../resources/shaders/deferred_gpass_vertex_shader_skinned.glsl" persistent="true" preload="true">
+		<type>vertex</type>
+	</resource>
+
+
 	<resource type="shader" id="deferred_gpass_fragment_shader" source="../resources/shaders/deferred_gpass_fragment_shader.glsl" preload="true" persistent="true">
 		<type>fragment</type>
 	</resource>
@@ -143,6 +148,20 @@
 			<face_culling mode="back" />
 		</gpu_state>
 	</resource>
+	
+	<resource type="material" id="deferred_gpass_base_skinned">		
+		<shaders_pipeline>
+			<vertex id="deferred_gpass_vertex_shader_skinned" />
+			<fragment id="deferred_gpass_fragment_shader" />
+		</shaders_pipeline>
+		
+		<gpu_state>
+			<blending mode="disabled" />
+			<depth write="enabled" testMode="less" />
+			<face_culling mode="back" />
+		</gpu_state>
+	</resource>
+
 	
     <resource type="material" id="deferred_gpass_brick" extends="deferred_gpass_base">
 		<params>

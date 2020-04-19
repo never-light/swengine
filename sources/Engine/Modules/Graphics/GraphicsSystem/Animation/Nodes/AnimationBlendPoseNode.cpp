@@ -2,79 +2,9 @@
 
 #pragma hdrstop
 
-#include "SkeletalAnimationState.h"
+#include "AnimationBlendPoseNode.h"
 
-#include "Exceptions/NotImplementedException.h"
-
-SkeletalAnimationState::SkeletalAnimationState(const std::string& name,
-  std::unique_ptr<SkeletalAnimationPoseNode> initialPoseNode)
-  : m_name(name),
-    m_initialPoseNode(std::move(initialPoseNode))
-{
-
-}
-
-const std::string& SkeletalAnimationState::getName() const
-{
-  return m_name;
-}
-
-void SkeletalAnimationState::setFinalAction(SkeletalAnimationFinalAction action)
-{
-  m_finalAction = action;
-}
-
-SkeletalAnimationFinalAction SkeletalAnimationState::getFinalAction() const
-{
-  return m_finalAction;
-}
-
-void SkeletalAnimationState::setFinalTransitionStateId(int16_t stateId)
-{
-  m_finalTransitionStateId = stateId;
-}
-
-int16_t SkeletalAnimationState::getFinalTransitionStateId() const
-{
-  return m_finalTransitionStateId;
-}
-
-bool SkeletalAnimationState::hasTransition(int16_t nextStateId) const
-{
-  return m_nextTransitions.find(nextStateId) != m_nextTransitions.end();
-}
-
-void SkeletalAnimationState::increaseCurrentTime(float delta,
-  const SkeletalAnimationStatesMachineVariables& variablesSet)
-{
-  m_initialPoseNode->increaseCurrentTime(delta, variablesSet);
-}
-
-const SkeletalAnimationPose& SkeletalAnimationState::getCurrentPose() const
-{
-  return m_initialPoseNode->getCurrentPose();
-}
-
-SkeletalAnimationClipPoseNode::SkeletalAnimationClipPoseNode(const SkeletalAnimationClipInstance& clip)
-  : m_clip(clip)
-{
-
-}
-
-const SkeletalAnimationPose& SkeletalAnimationClipPoseNode::getCurrentPose() const
-{
-  return m_clip.getAnimationPose();
-}
-
-void SkeletalAnimationClipPoseNode::increaseCurrentTime(float delta,
-  const SkeletalAnimationStatesMachineVariables& variablesSet)
-{
-  ARG_UNUSED(variablesSet);
-
-  m_clip.increaseCurrentTime(delta);
-}
-
-SkeletalAnimationBlendPoseNode::SkeletalAnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
+AnimationBlendPoseNode::AnimationBlendPoseNode(const SkeletalAnimationClipInstance& firstClip,
   const SkeletalAnimationClipInstance& secondClip,
   SkeletalAnimationVariableId blendParameterVariableId,
   SkeletalAnimationBlendPoseType blendType,
@@ -93,18 +23,18 @@ SkeletalAnimationBlendPoseNode::SkeletalAnimationBlendPoseNode(const SkeletalAni
   fillOverrideMask(overriddenBone);
 }
 
-SkeletalAnimationBlendPoseNode::~SkeletalAnimationBlendPoseNode()
+AnimationBlendPoseNode::~AnimationBlendPoseNode()
 {
 
 }
 
-const SkeletalAnimationPose& SkeletalAnimationBlendPoseNode::getCurrentPose() const
+const SkeletalAnimationPose& AnimationBlendPoseNode::getCurrentPose() const
 {
   return m_blendedPose;
 }
 
-void SkeletalAnimationBlendPoseNode::increaseCurrentTime(float delta,
-  const SkeletalAnimationStatesMachineVariables& variablesSet)
+void AnimationBlendPoseNode::increaseCurrentTime(float delta,
+  const AnimationStatesMachineVariables& variablesSet)
 {
   ARG_UNUSED(variablesSet);
 
@@ -125,17 +55,17 @@ void SkeletalAnimationBlendPoseNode::increaseCurrentTime(float delta,
   }
 }
 
-void SkeletalAnimationBlendPoseNode::setBlendParameterVariableId(SkeletalAnimationVariableId variableId)
+void AnimationBlendPoseNode::setBlendParameterVariableId(SkeletalAnimationVariableId variableId)
 {
   m_blendParameterVariableId = variableId;
 }
 
-SkeletalAnimationVariableId SkeletalAnimationBlendPoseNode::getBlendParameterVariableId() const
+SkeletalAnimationVariableId AnimationBlendPoseNode::getBlendParameterVariableId() const
 {
   return m_blendParameterVariableId;
 }
 
-void SkeletalAnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
+void AnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
 {
   for (size_t i = 0; i < m_overrideMask.size(); i++) {
     m_overrideMask[i] = false;
@@ -156,7 +86,7 @@ void SkeletalAnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
   }
 }
 
-void SkeletalAnimationBlendPoseNode::linearBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet)
+void AnimationBlendPoseNode::linearBlendPoses(const AnimationStatesMachineVariables& variablesSet)
 {
   const SkeletalAnimationPose& firstClipPose = m_firstClip.getAnimationPose();
   const SkeletalAnimationPose& secondClipPose = m_secondClip.getAnimationPose();
@@ -176,7 +106,7 @@ void SkeletalAnimationBlendPoseNode::linearBlendPoses(const SkeletalAnimationSta
   }
 }
 
-void SkeletalAnimationBlendPoseNode::overriddenBlendPoses(const SkeletalAnimationStatesMachineVariables& variablesSet)
+void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVariables& variablesSet)
 {
   ARG_UNUSED(variablesSet);
 

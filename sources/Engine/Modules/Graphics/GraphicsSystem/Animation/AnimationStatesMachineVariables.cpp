@@ -2,14 +2,11 @@
 
 #pragma hdrstop
 
-#include "SkeletalAnimationStatesMachineVariables.h"
+#include "AnimationStatesMachineVariables.h"
 
-SkeletalAnimationStatesMachineVariables::SkeletalAnimationStatesMachineVariables()
-{
+AnimationStatesMachineVariables::AnimationStatesMachineVariables() = default;
 
-}
-
-SkeletalAnimationVariableId SkeletalAnimationStatesMachineVariables::registerVariable(const std::string& name,
+SkeletalAnimationVariableId AnimationStatesMachineVariables::registerVariable(const std::string& name,
   float initialValue)
 {
   SW_ASSERT(m_variablesNameIdMap.count(name) == 0);
@@ -20,29 +17,29 @@ SkeletalAnimationVariableId SkeletalAnimationStatesMachineVariables::registerVar
   return static_cast<SkeletalAnimationVariableId>(m_variablesValues.size()) - 1;
 }
 
-SkeletalAnimationVariableId SkeletalAnimationStatesMachineVariables::getVariableId(const std::string& name) const
+SkeletalAnimationVariableId AnimationStatesMachineVariables::getVariableId(const std::string& name) const
 {
   return m_variablesNameIdMap.at(name);
 }
 
-void SkeletalAnimationStatesMachineVariables::setVariableValue(const std::string& name, float value)
+void AnimationStatesMachineVariables::setVariableValue(const std::string& name, float value)
 {
   m_variablesValues[static_cast<size_t>(getVariableId(name))] = value;
 }
 
-float SkeletalAnimationStatesMachineVariables::getVariableValue(const std::string& name) const
+float AnimationStatesMachineVariables::getVariableValue(const std::string& name) const
 {
   return m_variablesValues[static_cast<size_t>(getVariableId(name))];
 }
 
-float SkeletalAnimationStatesMachineVariables::getVariableValue(SkeletalAnimationVariableId id) const
+float AnimationStatesMachineVariables::getVariableValue(SkeletalAnimationVariableId id) const
 {
   SW_ASSERT(id < SkeletalAnimationVariableId(m_variablesValues.size()));
 
   return m_variablesValues[static_cast<size_t>(id)];
 }
 
-void SkeletalAnimationStatesMachineVariables::setVariableValue(SkeletalAnimationVariableId id, float value)
+void AnimationStatesMachineVariables::setVariableValue(SkeletalAnimationVariableId id, float value)
 {
   SW_ASSERT(id < SkeletalAnimationVariableId(m_variablesValues.size()));
 
