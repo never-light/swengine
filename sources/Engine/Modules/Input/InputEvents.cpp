@@ -23,3 +23,8 @@ void InputEventsListener::processMouseButtonEvent(const MouseButtonEvent& event)
 {
   ARG_UNUSED(event);
 }
+
+void InputEventsListener::processMouseWheelEvent(const MouseWheelEvent& event)
+{
+  ARG_UNUSED(event);
+}

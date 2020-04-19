@@ -45,3 +45,8 @@ void InputSystem::processMouseButtonEvent(const MouseButtonEvent& event)
 {
   m_gameWorld->emitEvent(event);
 }
+
+void InputSystem::processMouseWheelEvent(const MouseWheelEvent& event)
+{
+  m_gameWorld->emitEvent(event);
+}

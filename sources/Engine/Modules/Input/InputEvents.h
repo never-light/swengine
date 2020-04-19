@@ -10,14 +10,6 @@ struct InputActionToggleEvent {
   InputActionState newState;
 };
 
-struct MouseMoveEvent {
-  int x;
-  int y;
-
-  int deltaX;
-  int deltaY;
-};
-
 enum class KeyboardEventType {
   KeyDown, KeyUp
 };
@@ -29,6 +21,14 @@ struct KeyboardEvent {
   SDL_Keymod keyModifiers;
 };
 
+struct MouseMoveEvent {
+  int x;
+  int y;
+
+  int deltaX;
+  int deltaY;
+};
+
 enum class MouseButtonEventType {
   ButtonDown, ButtonUp
 };
@@ -36,6 +36,10 @@ enum class MouseButtonEventType {
 struct MouseButtonEvent {
   MouseButtonEventType type;
   uint8_t button;
+};
+
+struct MouseWheelEvent {
+  int32_t wheelDelta;
 };
 
 class InputEventsListener {
@@ -47,4 +51,5 @@ class InputEventsListener {
   virtual void processMouseMoveEvent(const MouseMoveEvent& event);
   virtual void processKeyboardEvent(const KeyboardEvent& event);
   virtual void processMouseButtonEvent(const MouseButtonEvent& event);
+  virtual void processMouseWheelEvent(const MouseWheelEvent& event);
 };

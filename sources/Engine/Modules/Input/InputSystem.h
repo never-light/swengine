@@ -17,6 +17,7 @@ class InputSystem : public GameSystem, public InputEventsListener, public std::e
   void processMouseMoveEvent(const MouseMoveEvent& event) override;
   void processKeyboardEvent(const KeyboardEvent& event) override;
   void processMouseButtonEvent(const MouseButtonEvent& event) override;
+  void processMouseWheelEvent(const MouseWheelEvent& event) override;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

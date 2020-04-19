@@ -7,8 +7,8 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h>
-#include <Engine/swdebug.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
+#include <Engine/swdebug.h>
 
 #include "PlayerComponent.h"
 
@@ -37,13 +37,27 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
     SW_ASSERT(!playerObjectsView.begin().isEnd());
 
     m_playerObject = playerObjectsView.begin().getGameObject();
-    m_playerObject->getComponent<TransformComponent>()->getTransform()->move({ 0.0f, 0.35f, 0.0f });
+    m_playerObject->getComponent<TransformComponent>()->getTransform()->move({0.0f, 0.35f, 0.0f});
+
+    const auto& skeletalAnimationComponent = m_playerObject->getComponent<SkeletalAnimationComponent>();
+
+    m_runningAnimationStateId =
+      skeletalAnimationComponent->getAnimationStatesMachine().getStateIdByName("running");
+
+    m_idleAnimationStateId =
+      skeletalAnimationComponent->getAnimationStatesMachine().getStateIdByName("idle");
+
+    skeletalAnimationComponent->getAnimationStatesMachine().setActiveState(m_idleAnimationStateId);
   }
+
+  gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
+
+  gameWorld->unsubscribeEventsListener<MouseWheelEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
@@ -57,34 +71,36 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 {
   ARG_UNUSED(delta);
 
-  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
-  float movementSpeed = playerComponent->getMovementSpeed();
-
-  Camera* playerCamera = getPlayerCamera();
-
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
   glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
 
   mouseDelta *= -0.25;
 
-  playerCamera->getTransform()->pitchLocal(mouseDelta.y);
-  playerCamera->getTransform()->yawGlobal(mouseDelta.x);
+  updateViewParameters(mouseDelta, delta);
+  updatePlayerAndCameraPosition(delta);
 
-  if (m_inputModule->isActionActive("forward")) {
-    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * delta);
-  }
+//  playerCamera->getTransform()->pitchLocal(mouseDelta.y);
+//  playerCamera->getTransform()->yawGlobal(mouseDelta.x);
+//
+//  if (m_inputModule->isActionActive("forward")) {
+//    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * delta);
+//  }
+//
+//  if (m_inputModule->isActionActive("backward")) {
+//    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * (-1.0f) * delta);
+//  }
+//
+//  if (m_inputModule->isActionActive("right")) {
+//    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * delta);
+//  }
+//
+//  if (m_inputModule->isActionActive("left")) {
+//    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f) * delta);
+//  }
+//
+  // playerCamera->getTransform()->lookAt(0.0f, 0.0f, 0.0f);
+  // playerTransform.lookAt(playerCamera->getTransform()->getPosition());
 
-  if (m_inputModule->isActionActive("backward")) {
-    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * (-1.0f) * delta);
-  }
-
-  if (m_inputModule->isActionActive("right")) {
-    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * delta);
-  }
-
-  if (m_inputModule->isActionActive("left")) {
-    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f) * delta);
-  }
 }
 
 Camera* PlayerControlSystem::getPlayerCamera() const
@@ -97,14 +113,101 @@ Transform* PlayerControlSystem::getPlayerTransform() const
   return m_playerObject->getComponent<TransformComponent>()->getTransform();
 }
 
-void PlayerControlSystem::move(const glm::vec3& movement)
-{
-  getPlayerCamera()->getTransform()->move(movement);
-}
-
 void PlayerControlSystem::render(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
 
   DebugPainter::renderAABB(m_playerObject->getComponent<MeshRendererComponent>()->getAABB());
+}
+
+EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event)
+{
+  ARG_UNUSED(gameWorld);
+
+  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  playerComponent->increaseDistanceToPlayer(event.wheelDelta * 0.2f);
+
+  return EventProcessStatus::Processed;
+}
+
+void PlayerControlSystem::updateViewParameters(const glm::vec2& mouseDelta, float delta)
+{
+  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+
+  //if (m_inputModule->isMouseButtonPressed(SDL_BUTTON_LEFT)) {
+  playerComponent->increaseThirdPersonViewPitch(mouseDelta.y * 6.0f * delta);
+  //}
+
+  //if (m_inputModule->isMouseButtonPressed(SDL_BUTTON_RIGHT)) {
+  playerComponent->increaseThirdPersonViewYaw(mouseDelta.x * 6.0f * delta);
+  //}
+}
+
+void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
+{
+  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  auto& playerCameraTransform = *getPlayerCamera()->getTransform();
+  auto& playerTransform = *m_playerObject->getComponent<TransformComponent>()->getTransform();
+
+  float cameraYawAngle = playerComponent->getThirdPersonViewYaw();
+
+  float horizontalOffset = playerComponent->getDistanceToPlayer() *
+    glm::cos(glm::radians(playerComponent->getThirdPersonViewPitch()));
+
+  float horizontalOffsetX = horizontalOffset * glm::sin(glm::radians(cameraYawAngle));
+  float horizontalOffsetZ = horizontalOffset * glm::cos(glm::radians(cameraYawAngle));
+
+  float verticalOffset = playerComponent->getDistanceToPlayer() *
+    glm::sin(glm::radians(playerComponent->getThirdPersonViewPitch()));
+
+  playerCameraTransform.setPosition(playerTransform.getPosition().x - horizontalOffsetX,
+    playerTransform.getPosition().y + verticalOffset,
+    playerTransform.getPosition().z - horizontalOffsetZ);
+
+  glm::vec3 playerCameraFrontDirection = playerCameraTransform.getFrontDirection() *
+    glm::vec3{1.0f, 0.0f, 1.0f};
+  glm::vec3 playerCameraRightDirection = playerCameraTransform.getRightDirection() *
+    glm::vec3{1.0f, 0.0f, 1.0f};
+
+  float playerMovementSpeed = playerComponent->getMovementSpeed();
+
+  bool playerIsRunning = m_inputModule->isActionActive("forward") ||
+    m_inputModule->isActionActive("backward") ||
+    m_inputModule->isActionActive("right") ||
+    m_inputModule->isActionActive("left");
+
+  if (m_inputModule->isActionActive("forward")) {
+    playerTransform.move(playerCameraFrontDirection * playerMovementSpeed * delta);
+  }
+
+  if (m_inputModule->isActionActive("backward")) {
+    playerTransform.move(playerCameraFrontDirection * playerMovementSpeed * (-1.0f) * delta);
+  }
+
+  if (m_inputModule->isActionActive("right")) {
+    playerTransform.move(playerCameraRightDirection * playerMovementSpeed * delta);
+  }
+
+  if (m_inputModule->isActionActive("left")) {
+    playerTransform.move(playerCameraRightDirection * playerMovementSpeed * (-1.0f) * delta);
+  }
+
+  auto& animationStatesMachine =
+    m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+
+  if (playerIsRunning) {
+    playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
+    playerTransform.pitchLocal(-90.0f);
+
+    if (animationStatesMachine.getActiveStateId() != m_runningAnimationStateId) {
+      animationStatesMachine.setActiveState(m_runningAnimationStateId);
+    }
+  }
+  else {
+    if (animationStatesMachine.getActiveStateId() == m_runningAnimationStateId) {
+      animationStatesMachine.setActiveState(m_idleAnimationStateId);
+    }
+  }
+
+  playerCameraTransform.lookAt(playerTransform.getPosition());
 }

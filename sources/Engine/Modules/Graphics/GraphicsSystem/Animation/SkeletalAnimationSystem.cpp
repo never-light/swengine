@@ -31,13 +31,15 @@ void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
     auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>().getRef();
     auto& statesMachine = animationComponent.getAnimationStatesMachine();
 
-    updateAnimationStateMachine(statesMachine, delta);
+    if (statesMachine.isActive()) {
+      updateAnimationStateMachine(statesMachine, delta);
 
-    if (obj->hasComponent<MeshRendererComponent>()) {
-      updateObjectBounds(obj->getComponent<TransformComponent>().getRef(),
-        animationComponent,
-        obj->getComponent<MeshRendererComponent>().getRef(),
-        delta);
+      if (obj->hasComponent<MeshRendererComponent>()) {
+        updateObjectBounds(obj->getComponent<TransformComponent>().getRef(),
+          animationComponent,
+          obj->getComponent<MeshRendererComponent>().getRef(),
+          delta);
+      }
     }
   }
 }

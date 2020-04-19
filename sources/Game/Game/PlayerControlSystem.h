@@ -4,9 +4,12 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Input/InputModule.h>
 
-class PlayerControlSystem : public GameSystem {
+#include "PlayerComponent.h"
+
+class PlayerControlSystem : public GameSystem,
+                            public EventsListener<MouseWheelEvent> {
  public:
-  PlayerControlSystem(std::shared_ptr<InputModule> inputModule);
+  explicit PlayerControlSystem(std::shared_ptr<InputModule> inputModule);
   ~PlayerControlSystem() override;
 
   void configure(GameWorld* gameWorld) override;
@@ -15,14 +18,19 @@ class PlayerControlSystem : public GameSystem {
   void update(GameWorld* gameWorld, float delta) override;
   void render(GameWorld* gameWorld) override;
 
- private:
-  Camera* getPlayerCamera() const;
-  Transform* getPlayerTransform() const;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
 
-  void move(const glm::vec3& movement);
+ private:
+  [[nodiscard]] Camera* getPlayerCamera() const;
+  [[nodiscard]] Transform* getPlayerTransform() const;
+
+  void updateViewParameters(const glm::vec2& mouseDelta, float delta);
+  void updatePlayerAndCameraPosition(float delta);
 
  private:
   GameObject* m_playerObject = nullptr;
+  int16_t m_runningAnimationStateId = -1;
+  int16_t m_idleAnimationStateId = -1;
 
   std::shared_ptr<InputModule> m_inputModule;
 

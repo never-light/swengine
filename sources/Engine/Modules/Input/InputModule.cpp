@@ -151,6 +151,14 @@ void InputModule::processRawSDLEvent(const SDL_Event& ev)
       eventsListener->processMouseMoveEvent(event);
     }
   }
+  else if (ev.type == SDL_MOUSEWHEEL) {
+    MouseWheelEvent event{};
+    event.wheelDelta = ev.wheel.y;
+
+    for (const auto& eventsListener : m_eventsListeners) {
+      eventsListener->processMouseWheelEvent(event);
+    }
+  }
 }
 
 void InputModule::registerEventsListener(std::shared_ptr<InputEventsListener> listener)
@@ -179,6 +187,11 @@ void InputModule::toggleActionState(const InputAction& action, InputActionState 
       }
     }
   }
+}
+
+bool InputModule::isMouseButtonPressed(uint8_t button) const
+{
+  return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(button);
 }
 
 InputAction::InputAction() = default;

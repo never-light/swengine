@@ -129,3 +129,13 @@ void AnimationStatesMachine::increaseCurrentTime(float delta)
   }
 }
 
+int16_t AnimationStatesMachine::getActiveStateId() const
+{
+  return m_activeStateId;
+}
+
+bool AnimationStatesMachine::isActive() const
+{
+  return m_activeStateId != INVALID_STATE_ID;
+}
+

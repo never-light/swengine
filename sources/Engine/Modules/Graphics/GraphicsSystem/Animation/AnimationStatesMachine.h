@@ -33,6 +33,9 @@ class AnimationStatesMachine {
   [[nodiscard]] const AnimationState& getActiveState() const;
   [[nodiscard]] AnimationState& getActiveState();
 
+  [[nodiscard]] int16_t getActiveStateId() const;
+  [[nodiscard]] bool isActive() const;
+
   [[nodiscard]] const AnimationPose& getCurrentPose() const;
   [[nodiscard]] const AnimationMatrixPalette& getCurrentMatrixPalette() const;
 

@@ -46,6 +46,8 @@ class InputModule {
 
   [[nodiscard]] MousePosition getMouseDelta() const;
 
+  [[nodiscard]] bool isMouseButtonPressed(uint8_t button) const;
+
   void processRawSDLEvent(const SDL_Event& ev);
 
   void registerEventsListener(std::shared_ptr<InputEventsListener> listener);

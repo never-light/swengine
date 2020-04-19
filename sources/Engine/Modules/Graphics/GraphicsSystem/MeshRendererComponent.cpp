@@ -63,7 +63,7 @@ const AABB& MeshRendererComponent::getAABB() const
 void MeshRendererComponent::updateBounds(const glm::mat4& transformation)
 {
   glm::vec3 newMin(std::numeric_limits<float>::max());
-  glm::vec3 newMax(std::numeric_limits<float>::min());
+  glm::vec3 newMax(std::numeric_limits<float>::lowest());
 
   for (glm::vec3 corner : m_meshInstance->getAABB().getCorners()) {
     glm::vec4 newCorner = transformation * glm::vec4(corner, 1.0f);

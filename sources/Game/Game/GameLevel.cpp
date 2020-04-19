@@ -88,23 +88,22 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   statesMachine.addState("wave", std::make_unique<SkeletalAnimationClipPoseNode>(playerWaveClipInstance));
   uint16_t playerWaveStateId = statesMachine.getStateIdByName("wave");
 
-  statesMachine.setActiveState(playerIdleStateId);
+  // statesMachine.setActiveState(playerIdleStateId);
   statesMachine.addTransition(playerIdleStateId, playerWaveStateId);
-  statesMachine.addTransition(playerWaveStateId, playerRunningStateId);
-  statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
+  statesMachine.addTransition(playerWaveStateId, playerIdleStateId);
+  // statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
 
   auto& playerRunningState = statesMachine.getState(playerRunningStateId);
   auto& playerIdleState = statesMachine.getState(playerIdleStateId);
   auto& playerWaveState = statesMachine.getState(playerWaveStateId);
 
-  playerRunningState.setFinalAction(AnimationFinalAction::SwitchState);
-  playerRunningState.setFinalTransitionStateId(playerIdleStateId);
+  playerRunningState.setFinalAction(AnimationFinalAction::Repeat);
 
   playerIdleState.setFinalAction(AnimationFinalAction::SwitchState);
   playerIdleState.setFinalTransitionStateId(playerWaveStateId);
 
   playerWaveState.setFinalAction(AnimationFinalAction::SwitchState);
-  playerWaveState.setFinalTransitionStateId(playerRunningStateId);
+  playerWaveState.setFinalTransitionStateId(playerIdleStateId);
 
   //m_player->removeComponent<SkeletalAnimationComponent>();
 
