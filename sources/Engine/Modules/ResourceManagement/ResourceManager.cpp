@@ -98,7 +98,8 @@ void ResourceManager::addResourcesMap(const std::string& path)
       std::string sourcePath = declarationNode.attribute("source").as_string();
 
       if (!FileUtils::isFileExists(sourcePath)) {
-        THROW_EXCEPTION(EngineRuntimeException, "Resource file does not exist " + sourcePath);
+        THROW_EXCEPTION(EngineRuntimeException,
+          "Resource file does not exist: resource " + resourceName + ", path " + sourcePath);
       }
 
       source = ResourceSourceFile{sourcePath};
