@@ -7,7 +7,8 @@
 #include "PlayerComponent.h"
 
 class PlayerControlSystem : public GameSystem,
-                            public EventsListener<MouseWheelEvent> {
+                            public EventsListener<MouseWheelEvent>,
+                            public EventsListener<InputActionToggleEvent> {
  public:
   explicit PlayerControlSystem(std::shared_ptr<InputModule> inputModule);
   ~PlayerControlSystem() override;
@@ -19,6 +20,7 @@ class PlayerControlSystem : public GameSystem,
   void render(GameWorld* gameWorld) override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
 
  private:
   [[nodiscard]] Camera* getPlayerCamera() const;

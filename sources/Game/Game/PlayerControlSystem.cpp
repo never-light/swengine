@@ -26,6 +26,9 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
   m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
   m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
   m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+  m_inputModule->registerAction("look_around", KeyboardInputAction(SDLK_f));
+  m_inputModule->registerAction("look_around_left", KeyboardInputAction(SDLK_l));
+  m_inputModule->registerAction("look_around_right", KeyboardInputAction(SDLK_k));
 
   m_inputModule->enableGlobalTracking();
 
@@ -51,18 +54,23 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
   }
 
   gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
+  gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
 
+  gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
   gameWorld->unsubscribeEventsListener<MouseWheelEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
   m_inputModule->unregisterAction("left");
   m_inputModule->unregisterAction("right");
+  m_inputModule->unregisterAction("look_around");
+  m_inputModule->unregisterAction("look_around_left");
+  m_inputModule->unregisterAction("look_around_right");
 
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
@@ -195,6 +203,19 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
   auto& animationStatesMachine =
     m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
 
+  auto& animationVariablesSet = animationStatesMachine.getVariablesSet();
+  float lookAroundFactor = animationVariablesSet.getVariableValue("look-around-factor");
+
+  if (m_inputModule->isActionActive("look_around_left")) {
+    lookAroundFactor = glm::clamp(lookAroundFactor - 1.0f * delta, 0.0f, 1.0f);
+  }
+
+  if (m_inputModule->isActionActive("look_around_right")) {
+    lookAroundFactor = glm::clamp(lookAroundFactor + 1.0f * delta, 0.0f, 1.0f);
+  }
+
+  animationStatesMachine.getVariablesSet().setVariableValue("look-around-factor", lookAroundFactor);
+
   if (playerIsRunning) {
     playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
     playerTransform.pitchLocal(-90.0f);
@@ -210,4 +231,16 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
   }
 
   playerCameraTransform.lookAt(playerTransform.getPosition());
+}
+
+EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+{
+  if (event.actionName == "look_around") {
+    auto& animationStatesMachine =
+      m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+
+    animationStatesMachine.setActiveState(animationStatesMachine.getStateIdByName("look-around"));
+  }
+
+  return EventProcessStatus::Processed;
 }

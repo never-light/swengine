@@ -67,6 +67,12 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<AnimationClip> playerWaveClip =
     m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_wave")->getClip();
 
+  std::shared_ptr<AnimationClip> playerLookRightClip =
+    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_look_right")->getClip();
+
+  std::shared_ptr<AnimationClip> playerLookLeftClip =
+    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_look_left")->getClip();
+
   AnimationClipInstance playerRunningClipInstance(playerSkeleton, playerRunningClip);
   playerRunningClipInstance.setScale(0.7f);
 
@@ -75,6 +81,12 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   AnimationClipInstance playerWaveClipInstance(playerSkeleton, playerWaveClip);
   playerWaveClipInstance.setScale(0.7f);
+
+  AnimationClipInstance playerLookRightClipInstance(playerSkeleton, playerLookRightClip);
+  playerLookRightClipInstance.setScale(0.7f);
+
+  AnimationClipInstance playerLookLeftClipInstance(playerSkeleton, playerLookLeftClip);
+  playerLookLeftClipInstance.setScale(0.7f);
 
   auto playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
   auto& statesMachine = playerAnimationComponent->getAnimationStatesMachine();
@@ -88,6 +100,15 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   statesMachine.addState("wave", std::make_unique<SkeletalAnimationClipPoseNode>(playerWaveClipInstance));
   uint16_t playerWaveStateId = statesMachine.getStateIdByName("wave");
 
+  SkeletalAnimationVariableId lookAroundInterpolationFactorVariableId =
+    statesMachine.getVariablesSet().registerVariable("look-around-factor", 0.0f);
+
+  statesMachine.addState("look-around", std::make_unique<AnimationBlendPoseNode>(playerLookLeftClipInstance,
+    playerLookRightClipInstance,
+    lookAroundInterpolationFactorVariableId));
+
+  uint16_t playerLookAroundStateId = statesMachine.getStateIdByName("look-around");
+
   // statesMachine.setActiveState(playerIdleStateId);
   statesMachine.addTransition(playerIdleStateId, playerWaveStateId);
   statesMachine.addTransition(playerWaveStateId, playerIdleStateId);
@@ -96,6 +117,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerRunningState = statesMachine.getState(playerRunningStateId);
   auto& playerIdleState = statesMachine.getState(playerIdleStateId);
   auto& playerWaveState = statesMachine.getState(playerWaveStateId);
+  auto& playerLookAroundState = statesMachine.getState(playerLookAroundStateId);
 
   playerRunningState.setFinalAction(AnimationFinalAction::Repeat);
 
@@ -104,6 +126,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   playerWaveState.setFinalAction(AnimationFinalAction::SwitchState);
   playerWaveState.setFinalTransitionStateId(playerIdleStateId);
+
+  playerLookAroundState.setFinalAction(AnimationFinalAction::Repeat);
 
   //m_player->removeComponent<SkeletalAnimationComponent>();
 
