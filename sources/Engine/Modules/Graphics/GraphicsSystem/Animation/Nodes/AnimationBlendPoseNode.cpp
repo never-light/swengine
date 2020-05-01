@@ -84,8 +84,8 @@ void AnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
   for (size_t boneIndex = 1; boneIndex < m_overrideMask.size(); boneIndex++) {
     uint8_t parentId = m_firstClip.getSkeleton().getBoneParentId(uint8_t(boneIndex));
 
-    while (parentId != 0) {
-      if (parentId == overriddenBoneId) {
+    while (parentId != Bone::ROOT_BONE_PARENT_ID) {
+      if (m_overrideMask[parentId]) {
         m_overrideMask[boneIndex] = true;
       }
 
