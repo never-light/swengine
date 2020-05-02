@@ -16,6 +16,15 @@ class AnimationPose {
 
   [[nodiscard]] const AnimationMatrixPalette& getMatrixPalette() const;
 
+  [[nodiscrd]] uint8_t getBonesCount() const;
+
+ public:
+  static void interpolate(const AnimationPose& first,
+    const AnimationPose& second, float factor, AnimationPose& result);
+
+  static void interpolate(const AnimationPose& first,
+    const AnimationPose& second, float factor, const std::vector<uint8_t> affectedBonesMask, AnimationPose& result);
+
  private:
   std::shared_ptr<Skeleton> m_skeleton;
 

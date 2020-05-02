@@ -11,6 +11,7 @@
 #include "AnimationStatesMachineVariables.h"
 #include "AnimationClipInstance.h"
 #include "AnimationPose.h"
+#include "AnimationTransition.h"
 
 class AnimationStatesMachine {
  public:
@@ -24,8 +25,8 @@ class AnimationStatesMachine {
   void addState(const std::string& name,
     std::unique_ptr<AnimationPoseNode> initialPoseNode);
 
-  void addTransition(int16_t sourceStateId, int16_t targetStateId);
-  [[nodiscard]] bool hasTransition(int16_t sourceStateId, int16_t targetStateId) const;
+  void setTransition(int16_t sourceStateId, int16_t targetStateId, AnimationTransition transition);
+  [[nodiscard]] bool hasActiveTransition(int16_t sourceStateId, int16_t targetStateId) const;
 
   void switchToNextState(int16_t stateId);
 
@@ -45,6 +46,10 @@ class AnimationStatesMachine {
   void increaseCurrentTime(float delta);
 
  private:
+  bool isTransitionActive() const;
+  void finishActiveTransition();
+
+ private:
   static constexpr int16_t INVALID_STATE_ID = -1;
 
  private:
@@ -52,9 +57,13 @@ class AnimationStatesMachine {
 
   std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
   std::vector<AnimationState> m_states;
-  std::vector<std::vector<uint8_t>> m_transitionsTable;
+  std::vector<std::vector<AnimationTransition>> m_transitionsTable;
 
   AnimationStatesMachineVariables m_variablesSet;
 
   int16_t m_activeStateId = INVALID_STATE_ID;
+
+  AnimationPose m_fadingPose;
+  mutable AnimationPose m_smoothedPose;
+  AnimationTransition* m_activeTransition = nullptr;
 };

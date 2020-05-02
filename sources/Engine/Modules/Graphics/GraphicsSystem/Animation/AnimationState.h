@@ -36,6 +36,8 @@ class AnimationState {
 
   [[nodiscard]] const AnimationPoseNode& getInitialPoseNode() const;
 
+  [[nodiscard]] float getCurrentTime() const;
+
  private:
   void activate();
   void deactivate();
@@ -48,6 +50,8 @@ class AnimationState {
   int16_t m_finalTransitionStateId;
 
   std::unique_ptr<AnimationPoseNode> m_initialPoseNode;
+
+  float m_currentTime = 0.0f;
 
  private:
   friend class AnimationStatesMachine;

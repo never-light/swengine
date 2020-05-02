@@ -110,8 +110,30 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   uint16_t playerLookAroundStateId = statesMachine.getStateIdByName("look-around");
 
   // statesMachine.setActiveState(playerIdleStateId);
-  statesMachine.addTransition(playerIdleStateId, playerWaveStateId);
-  statesMachine.addTransition(playerWaveStateId, playerIdleStateId);
+  statesMachine.setTransition(playerIdleStateId, playerRunningStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerRunningStateId, playerIdleStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerIdleStateId, playerWaveStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerWaveStateId, playerIdleStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerWaveStateId, playerLookAroundStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerIdleStateId, playerLookAroundStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerRunningStateId, playerLookAroundStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
+  statesMachine.setTransition(playerLookAroundStateId, playerRunningStateId,
+    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
+
   // statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
 
   auto& playerRunningState = statesMachine.getState(playerRunningStateId);
@@ -123,6 +145,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   playerIdleState.setFinalAction(AnimationFinalAction::SwitchState);
   playerIdleState.setFinalTransitionStateId(playerWaveStateId);
+  playerIdleState.setFinalAction(AnimationFinalAction::Repeat);
 
   playerWaveState.setFinalAction(AnimationFinalAction::SwitchState);
   playerWaveState.setFinalTransitionStateId(playerIdleStateId);

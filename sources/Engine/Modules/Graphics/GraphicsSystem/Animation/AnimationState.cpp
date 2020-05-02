@@ -64,6 +64,10 @@ void AnimationState::increaseCurrentTime(float delta,
   const AnimationStatesMachineVariables& variablesSet)
 {
   m_initialPoseNode->increaseCurrentTime(delta, variablesSet);
+
+  if (m_initialPoseNode->getState() == AnimationPoseNodeState::Active) {
+    m_currentTime += delta;
+  }
 }
 
 const AnimationPose& AnimationState::getCurrentPose() const
@@ -74,6 +78,7 @@ const AnimationPose& AnimationState::getCurrentPose() const
 void AnimationState::activate()
 {
   m_initialPoseNode->startAnimation();
+  m_currentTime = 0.0f;
 }
 
 void AnimationState::deactivate()
@@ -84,4 +89,9 @@ void AnimationState::deactivate()
 const AnimationPoseNode& AnimationState::getInitialPoseNode() const
 {
   return *m_initialPoseNode;
+}
+
+float AnimationState::getCurrentTime() const
+{
+  return m_currentTime;
 }

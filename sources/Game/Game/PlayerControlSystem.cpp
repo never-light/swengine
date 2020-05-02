@@ -50,7 +50,7 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
     m_idleAnimationStateId =
       skeletalAnimationComponent->getAnimationStatesMachine().getStateIdByName("idle");
 
-    skeletalAnimationComponent->getAnimationStatesMachine().setActiveState(m_idleAnimationStateId);
+    skeletalAnimationComponent->getAnimationStatesMachine().setActiveState(m_runningAnimationStateId);
   }
 
   gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
@@ -214,19 +214,19 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
     lookAroundFactor = glm::clamp(lookAroundFactor + 1.0f * delta, 0.0f, 1.0f);
   }
 
-  animationStatesMachine.getVariablesSet().setVariableValue("look-around-factor", lookAroundFactor);
+  animationVariablesSet.setVariableValue("look-around-factor", lookAroundFactor);
 
   if (playerIsRunning) {
     playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
     playerTransform.pitchLocal(-90.0f);
 
     if (animationStatesMachine.getActiveStateId() != m_runningAnimationStateId) {
-      animationStatesMachine.setActiveState(m_runningAnimationStateId);
+      animationStatesMachine.switchToNextState(m_runningAnimationStateId);
     }
   }
   else {
     if (animationStatesMachine.getActiveStateId() == m_runningAnimationStateId) {
-      animationStatesMachine.setActiveState(m_idleAnimationStateId);
+      animationStatesMachine.switchToNextState(m_idleAnimationStateId);
     }
   }
 
@@ -235,11 +235,15 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
 
 EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
 {
-  if (event.actionName == "look_around") {
+  if (event.actionName == "look_around" && event.newState == InputActionState::Active) {
     auto& animationStatesMachine =
       m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
 
-    animationStatesMachine.setActiveState(animationStatesMachine.getStateIdByName("look-around"));
+    int16_t lookAroundStateId = animationStatesMachine.getStateIdByName("look-around");
+
+    if (animationStatesMachine.getActiveStateId() != lookAroundStateId) {
+      animationStatesMachine.switchToNextState(lookAroundStateId);
+    }
   }
 
   return EventProcessStatus::Processed;

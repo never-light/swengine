@@ -96,22 +96,8 @@ void AnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
 
 void AnimationBlendPoseNode::linearBlendPoses(const AnimationStatesMachineVariables& variablesSet)
 {
-  const AnimationPose& firstClipPose = m_firstClip.getAnimationPose();
-  const AnimationPose& secondClipPose = m_secondClip.getAnimationPose();
-
-  for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
-    if (m_overrideMask[boneIndex]) {
-      float blendParameterValue = variablesSet.getVariableValue(m_blendParameterVariableId);
-      BonePose interpolatedBonePose = BonePose::interpolate(firstClipPose.getBoneLocalPose(boneIndex),
-        secondClipPose.getBoneLocalPose(boneIndex),
-        blendParameterValue);
-
-      m_blendedPose.setBoneLocalPose(boneIndex, interpolatedBonePose);
-    }
-    else {
-      m_blendedPose.setBoneLocalPose(boneIndex, firstClipPose.getBoneLocalPose(boneIndex));
-    }
-  }
+  AnimationPose::interpolate(m_firstClip.getAnimationPose(), m_secondClip.getAnimationPose(),
+    variablesSet.getVariableValue(m_blendParameterVariableId), m_overrideMask, m_blendedPose);
 }
 
 void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVariables& variablesSet)

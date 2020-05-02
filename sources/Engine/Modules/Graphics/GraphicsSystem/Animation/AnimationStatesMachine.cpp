@@ -10,7 +10,9 @@
 #include "AnimationPose.h"
 
 AnimationStatesMachine::AnimationStatesMachine(std::shared_ptr<Skeleton> skeleton)
-  : m_skeleton(skeleton)
+  : m_skeleton(skeleton),
+    m_fadingPose(skeleton),
+    m_smoothedPose(skeleton)
 {
 
 }
@@ -45,27 +47,36 @@ void AnimationStatesMachine::addState(const std::string& name,
   m_states.rbegin()->m_id = newStateId;
 
   for (auto& transitionsTableEntry : m_transitionsTable) {
-    transitionsTableEntry.push_back(false);
+    transitionsTableEntry.push_back(AnimationTransition(AnimationStatesTransitionType::Straight,
+      0.0f, false));
   }
 
-  m_transitionsTable.emplace_back(m_states.size(), 0);
+  m_transitionsTable.emplace_back(m_states.size(), AnimationTransition(AnimationStatesTransitionType::Straight,
+    0.0f, false));
+
+  m_activeTransition = nullptr;
 }
 
-void AnimationStatesMachine::addTransition(int16_t sourceStateId, int16_t targetStateId)
+void AnimationStatesMachine::setTransition(int16_t sourceStateId, int16_t targetStateId, AnimationTransition transition)
 {
   SW_ASSERT(sourceStateId >= 0 && sourceStateId < int16_t(m_states.size()) &&
-    targetStateId >= 0 && targetStateId <= int16_t(m_states.size()) &&
-    !m_transitionsTable[sourceStateId][targetStateId]);
+    targetStateId >= 0 && targetStateId <= int16_t(m_states.size()));
 
-  m_transitionsTable[sourceStateId][targetStateId] = true;
+  m_transitionsTable[sourceStateId][targetStateId] = transition;
 }
 
 void AnimationStatesMachine::switchToNextState(int16_t stateId)
 {
-  SW_ASSERT(m_activeStateId >= 0 && m_transitionsTable[m_activeStateId][stateId]);
+  SW_ASSERT(m_activeStateId >= 0 && m_transitionsTable[m_activeStateId][stateId].isActive());
+
+  AnimationTransition& transition = m_transitionsTable[m_activeStateId][stateId];
+
+  if (transition.getType() == AnimationStatesTransitionType::SmoothLinear) {
+    m_fadingPose = getCurrentPose();
+    m_activeTransition = &transition;
+  }
 
   getActiveState().deactivate();
-
   m_activeStateId = stateId;
   getActiveState().activate();
 }
@@ -98,7 +109,12 @@ AnimationState& AnimationStatesMachine::getActiveState()
 
 const AnimationPose& AnimationStatesMachine::getCurrentPose() const
 {
-  return getActiveState().getCurrentPose();
+  if (isTransitionActive()) {
+    return m_smoothedPose;
+  }
+  else {
+    return getActiveState().getCurrentPose();
+  }
 }
 
 const AnimationMatrixPalette& AnimationStatesMachine::getCurrentMatrixPalette() const
@@ -122,6 +138,19 @@ void AnimationStatesMachine::increaseCurrentTime(float delta)
 
   activeState.increaseCurrentTime(delta, m_variablesSet);
 
+  if (isTransitionActive()) {
+    if (activeState.getCurrentTime() > m_activeTransition->getDuration()) {
+      finishActiveTransition();
+    }
+    else {
+      float transitionBlendFactor = glm::clamp(getActiveState().getCurrentTime() / m_activeTransition->getDuration(),
+        0.0f, 1.0f);
+
+      AnimationPose::interpolate(m_fadingPose,
+        getActiveState().getCurrentPose(), transitionBlendFactor, m_smoothedPose);
+    }
+  }
+
   if (activeState.getInitialPoseNode().getState() == AnimationPoseNodeState::Finished) {
     if (activeState.getFinalAction() == AnimationFinalAction::SwitchState) {
       switchToNextState(activeState.getFinalTransitionStateId());
@@ -139,3 +168,20 @@ bool AnimationStatesMachine::isActive() const
   return m_activeStateId != INVALID_STATE_ID;
 }
 
+bool AnimationStatesMachine::hasActiveTransition(int16_t sourceStateId, int16_t targetStateId) const
+{
+  SW_ASSERT(sourceStateId >= 0 && sourceStateId < int16_t(m_states.size()) &&
+    targetStateId >= 0 && targetStateId <= int16_t(m_states.size()));
+
+  return m_transitionsTable[sourceStateId][targetStateId].isActive();
+}
+
+void AnimationStatesMachine::finishActiveTransition()
+{
+  m_activeTransition = nullptr;
+}
+
+bool AnimationStatesMachine::isTransitionActive() const
+{
+  return m_activeTransition != nullptr;
+}
