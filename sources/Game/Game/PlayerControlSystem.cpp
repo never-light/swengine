@@ -45,12 +45,12 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
     const auto& skeletalAnimationComponent = m_playerObject->getComponent<SkeletalAnimationComponent>();
 
     m_runningAnimationStateId =
-      skeletalAnimationComponent->getAnimationStatesMachine().getStateIdByName("running");
+      skeletalAnimationComponent->getAnimationStatesMachineRef().getStateIdByName("running");
 
     m_idleAnimationStateId =
-      skeletalAnimationComponent->getAnimationStatesMachine().getStateIdByName("idle");
+      skeletalAnimationComponent->getAnimationStatesMachineRef().getStateIdByName("idle");
 
-    skeletalAnimationComponent->getAnimationStatesMachine().setActiveState(m_runningAnimationStateId);
+    skeletalAnimationComponent->getAnimationStatesMachineRef().setActiveState(m_runningAnimationStateId);
   }
 
   gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
@@ -201,10 +201,10 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
   }
 
   auto& animationStatesMachine =
-    m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+    m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
 
   auto& animationVariablesSet = animationStatesMachine.getVariablesSet();
-  float lookAroundFactor = animationVariablesSet.getVariableValue("look-around-factor");
+  float lookAroundFactor = animationVariablesSet.getVariableValue("look_around_factor");
 
   if (m_inputModule->isActionActive("look_around_left")) {
     lookAroundFactor = glm::clamp(lookAroundFactor - 1.0f * delta, 0.0f, 1.0f);
@@ -214,7 +214,7 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
     lookAroundFactor = glm::clamp(lookAroundFactor + 1.0f * delta, 0.0f, 1.0f);
   }
 
-  animationVariablesSet.setVariableValue("look-around-factor", lookAroundFactor);
+  animationVariablesSet.setVariableValue("look_around_factor", lookAroundFactor);
 
   if (playerIsRunning) {
     playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
@@ -237,9 +237,9 @@ EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const
 {
   if (event.actionName == "look_around" && event.newState == InputActionState::Active) {
     auto& animationStatesMachine =
-      m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+      m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
 
-    int16_t lookAroundStateId = animationStatesMachine.getStateIdByName("look-around");
+    int16_t lookAroundStateId = animationStatesMachine.getStateIdByName("look_around");
 
     if (animationStatesMachine.getActiveStateId() != lookAroundStateId) {
       animationStatesMachine.switchToNextState(lookAroundStateId);

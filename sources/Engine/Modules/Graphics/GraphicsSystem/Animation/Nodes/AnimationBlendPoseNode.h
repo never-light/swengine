@@ -9,8 +9,8 @@ enum class SkeletalAnimationBlendPoseType {
 
 class AnimationBlendPoseNode : public AnimationPoseNode {
  public:
-  AnimationBlendPoseNode(const AnimationClipInstance& firstClip,
-    const AnimationClipInstance& secondClip,
+  AnimationBlendPoseNode(std::shared_ptr<AnimationPoseNode> firstNode,
+    std::shared_ptr<AnimationPoseNode> secondNode,
     SkeletalAnimationVariableId blendParameterVariableId,
     SkeletalAnimationBlendPoseType blendType = SkeletalAnimationBlendPoseType::Linear,
     uint8_t overriddenBone = 0);
@@ -41,8 +41,8 @@ class AnimationBlendPoseNode : public AnimationPoseNode {
   void overriddenBlendPoses(const AnimationStatesMachineVariables& variablesSet);
 
  private:
-  AnimationClipInstance m_firstClip;
-  AnimationClipInstance m_secondClip;
+  std::shared_ptr<AnimationPoseNode> m_firstNode;
+  std::shared_ptr<AnimationPoseNode> m_secondNode;
 
   SkeletalAnimationBlendPoseType m_blendType;
   SkeletalAnimationVariableId m_blendParameterVariableId;

@@ -20,7 +20,7 @@ enum class AnimationFinalAction {
 
 class AnimationState {
  public:
-  AnimationState(const std::string& name, std::unique_ptr<AnimationPoseNode> initialPoseNode);
+  AnimationState(const std::string& name, std::shared_ptr<AnimationPoseNode> initialPoseNode);
 
   [[nodiscard]] const std::string& getName() const;
 
@@ -49,7 +49,7 @@ class AnimationState {
   AnimationFinalAction m_finalAction = AnimationFinalAction::Stop;
   int16_t m_finalTransitionStateId;
 
-  std::unique_ptr<AnimationPoseNode> m_initialPoseNode;
+  std::shared_ptr<AnimationPoseNode> m_initialPoseNode;
 
   float m_currentTime = 0.0f;
 

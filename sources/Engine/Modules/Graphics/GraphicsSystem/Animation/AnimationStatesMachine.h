@@ -22,8 +22,11 @@ class AnimationStatesMachine {
   [[nodiscard]] AnimationState& getState(int16_t stateId);
   [[nodiscard]] const AnimationState& getState(int16_t stateId) const;
 
+  [[nodiscard]] AnimationState& getState(const std::string& name);
+  [[nodiscard]] const AnimationState& getState(const std::string& name) const;
+
   void addState(const std::string& name,
-    std::unique_ptr<AnimationPoseNode> initialPoseNode);
+    std::shared_ptr<AnimationPoseNode> initialPoseNode);
 
   void setTransition(int16_t sourceStateId, int16_t targetStateId, AnimationTransition transition);
   [[nodiscard]] bool hasActiveTransition(int16_t sourceStateId, int16_t targetStateId) const;

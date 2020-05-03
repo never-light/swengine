@@ -4,29 +4,26 @@
 
 #include "AnimationBlendPoseNode.h"
 
-AnimationBlendPoseNode::AnimationBlendPoseNode(const AnimationClipInstance& firstClip,
-  const AnimationClipInstance& secondClip,
+AnimationBlendPoseNode::AnimationBlendPoseNode(std::shared_ptr<AnimationPoseNode> firstNode,
+  std::shared_ptr<AnimationPoseNode> secondNode,
   SkeletalAnimationVariableId blendParameterVariableId,
   SkeletalAnimationBlendPoseType blendType,
   uint8_t overriddenBone)
-  : m_firstClip(firstClip),
-    m_secondClip(secondClip),
+  : m_firstNode(firstNode),
+    m_secondNode(secondNode),
     m_blendType(blendType),
     m_blendParameterVariableId(blendParameterVariableId),
-    m_blendedPose(AnimationPose(m_firstClip.getSkeletonPtr()))
+    m_blendedPose(AnimationPose(m_firstNode->getCurrentPose()))
 {
-  SW_ASSERT(&firstClip.getSkeleton() == &secondClip.getSkeleton());
+  SW_ASSERT(firstNode->getCurrentPose().getSkeleton() == secondNode->getCurrentPose().getSkeleton());
 
-  uint8_t bonesCount = firstClip.getSkeleton().getBonesCount();
+  uint8_t bonesCount = m_blendedPose.getBonesCount();
   m_overrideMask.resize(bonesCount);
 
   fillOverrideMask(overriddenBone);
 }
 
-AnimationBlendPoseNode::~AnimationBlendPoseNode()
-{
-
-}
+AnimationBlendPoseNode::~AnimationBlendPoseNode() = default;
 
 const AnimationPose& AnimationBlendPoseNode::getCurrentPose() const
 {
@@ -38,8 +35,8 @@ void AnimationBlendPoseNode::increaseCurrentTime(float delta,
 {
   ARG_UNUSED(variablesSet);
 
-  RETURN_VALUE_UNUSED(m_firstClip.increaseCurrentTime(delta));
-  RETURN_VALUE_UNUSED(m_secondClip.increaseCurrentTime(delta));
+  m_firstNode->increaseCurrentTime(delta, variablesSet);
+  m_secondNode->increaseCurrentTime(delta, variablesSet);
 
   switch (m_blendType) {
     case SkeletalAnimationBlendPoseType::Linear:
@@ -54,11 +51,11 @@ void AnimationBlendPoseNode::increaseCurrentTime(float delta,
       break;
   }
 
-  AnimationClipState firstClipState = m_firstClip.getCurrentState();
-  AnimationClipState secondClipState = m_secondClip.getCurrentState();
+  AnimationPoseNodeState firstClipState = m_firstNode->getState();
+  AnimationPoseNodeState secondClipState = m_secondNode->getState();
 
-  if (firstClipState == AnimationClipState::Finished &&
-    secondClipState == AnimationClipState::Finished) {
+  if (firstClipState == AnimationPoseNodeState::Finished &&
+    secondClipState == AnimationPoseNodeState::Finished) {
     m_state = AnimationPoseNodeState::Finished;
   }
 }
@@ -82,21 +79,21 @@ void AnimationBlendPoseNode::fillOverrideMask(uint8_t overriddenBoneId)
   m_overrideMask[overriddenBoneId] = true;
 
   for (size_t boneIndex = 1; boneIndex < m_overrideMask.size(); boneIndex++) {
-    uint8_t parentId = m_firstClip.getSkeleton().getBoneParentId(uint8_t(boneIndex));
+    uint8_t parentId = m_blendedPose.getSkeleton()->getBoneParentId(uint8_t(boneIndex));
 
     while (parentId != Bone::ROOT_BONE_PARENT_ID) {
       if (m_overrideMask[parentId]) {
         m_overrideMask[boneIndex] = true;
       }
 
-      parentId = m_firstClip.getSkeleton().getBoneParentId(parentId);
+      parentId = m_blendedPose.getSkeleton()->getBoneParentId(parentId);
     }
   }
 }
 
 void AnimationBlendPoseNode::linearBlendPoses(const AnimationStatesMachineVariables& variablesSet)
 {
-  AnimationPose::interpolate(m_firstClip.getAnimationPose(), m_secondClip.getAnimationPose(),
+  AnimationPose::interpolate(m_firstNode->getCurrentPose(), m_secondNode->getCurrentPose(),
     variablesSet.getVariableValue(m_blendParameterVariableId), m_overrideMask, m_blendedPose);
 }
 
@@ -104,8 +101,8 @@ void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVa
 {
   ARG_UNUSED(variablesSet);
 
-  const AnimationPose& firstClipPose = m_firstClip.getAnimationPose();
-  const AnimationPose& secondClipPose = m_secondClip.getAnimationPose();
+  const AnimationPose& firstClipPose = m_firstNode->getCurrentPose();
+  const AnimationPose& secondClipPose = m_secondNode->getCurrentPose();
 
   for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
     if (m_overrideMask[boneIndex]) {
@@ -124,18 +121,18 @@ AnimationPoseNodeState AnimationBlendPoseNode::getState() const
 
 void AnimationBlendPoseNode::startAnimation()
 {
-  AnimationClipState firstClipState = m_firstClip.getCurrentState();
-  AnimationClipState secondClipState = m_secondClip.getCurrentState();
+  AnimationPoseNodeState firstClipState = m_firstNode->getState();
+  AnimationPoseNodeState secondClipState = m_secondNode->getState();
 
-  SW_ASSERT(firstClipState == AnimationClipState::NotStarted ||
-    firstClipState == AnimationClipState::Paused ||
-    secondClipState == AnimationClipState::NotStarted ||
-    secondClipState == AnimationClipState::Paused);
+  SW_ASSERT(firstClipState == AnimationPoseNodeState::NotStarted ||
+    firstClipState == AnimationPoseNodeState::Paused ||
+    secondClipState == AnimationPoseNodeState::NotStarted ||
+    secondClipState == AnimationPoseNodeState::Paused);
 
   m_state = AnimationPoseNodeState::Active;
 
-  m_firstClip.start();
-  m_secondClip.start();
+  m_firstNode->startAnimation();
+  m_secondNode->startAnimation();
 }
 
 void AnimationBlendPoseNode::pauseAnimation()
@@ -146,28 +143,16 @@ void AnimationBlendPoseNode::pauseAnimation()
 void AnimationBlendPoseNode::resetAnimation()
 {
   m_state = AnimationPoseNodeState::NotStarted;
-  m_firstClip.resetClip();
-  m_secondClip.resetClip();
+  m_firstNode->resetAnimation();
+  m_secondNode->resetAnimation();
 }
 
 void AnimationBlendPoseNode::setFinalAction(AnimationPoseNodeFinalAction action)
 {
   m_finalAction = action;
 
-  switch (m_finalAction) {
-    case AnimationPoseNodeFinalAction::Stop:
-      m_firstClip.setEndBehaviour(AnimationClipEndBehaviour::Stop);
-      m_secondClip.setEndBehaviour(AnimationClipEndBehaviour::Stop);
-      break;
-
-    case AnimationPoseNodeFinalAction::Repeat:
-      m_firstClip.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
-      m_secondClip.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
-      break;
-
-    default:
-      SW_ASSERT(false);
-  }
+  m_firstNode->setFinalAction(action);
+  m_secondNode->setFinalAction(action);
 }
 
 [[nodiscard]] AnimationPoseNodeFinalAction AnimationBlendPoseNode::getFinalAction() const

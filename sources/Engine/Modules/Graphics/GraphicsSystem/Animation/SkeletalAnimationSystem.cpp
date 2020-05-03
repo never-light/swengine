@@ -5,15 +5,9 @@
 #include "SkeletalAnimationSystem.h"
 #include "Bone.h"
 
-SkeletalAnimationSystem::SkeletalAnimationSystem()
-{
+SkeletalAnimationSystem::SkeletalAnimationSystem() = default;
 
-}
-
-SkeletalAnimationSystem::~SkeletalAnimationSystem()
-{
-
-}
+SkeletalAnimationSystem::~SkeletalAnimationSystem() = default;
 
 void SkeletalAnimationSystem::configure(GameWorld* gameWorld)
 {
@@ -29,7 +23,7 @@ void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
 {
   for (const GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
     auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>().getRef();
-    auto& statesMachine = animationComponent.getAnimationStatesMachine();
+    auto& statesMachine = animationComponent.getAnimationStatesMachineRef();
 
     if (statesMachine.isActive()) {
       updateAnimationStateMachine(statesMachine, delta);

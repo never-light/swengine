@@ -92,10 +92,10 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
 
       if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
         if (obj->hasComponent<SkeletalAnimationComponent>() &&
-          obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine().isActive()) {
+          obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef().isActive()) {
           // Set animation data for shader
           const AnimationStatesMachine& animationStatesMachine =
-            obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachine();
+            obj->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
           const AnimationMatrixPalette& currentMatrixPalette =
             animationStatesMachine.getCurrentMatrixPalette();
 

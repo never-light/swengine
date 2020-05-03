@@ -16,6 +16,7 @@
 #include "Modules/Graphics/Resources/MaterialResource.h"
 #include "Modules/Graphics/Resources/SkeletonResource.h"
 #include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
+#include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
 
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
@@ -217,6 +218,7 @@ void BaseGameApplication::initializeEngine()
   resourceManager->declareResourceType<MaterialResource>("material");
   resourceManager->declareResourceType<SkeletonResource>("skeleton");
   resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
+  resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
 
   resourceManager->addResourcesMap("../resources/engine_resources.xml");
 

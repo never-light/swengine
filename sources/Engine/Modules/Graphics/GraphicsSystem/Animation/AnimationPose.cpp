@@ -97,3 +97,8 @@ void AnimationPose::interpolate(const AnimationPose& first,
   }
 
 }
+
+std::shared_ptr<Skeleton> AnimationPose::getSkeleton() const
+{
+  return m_skeleton;
+}

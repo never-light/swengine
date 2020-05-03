@@ -13,7 +13,7 @@
 #include "AnimationPose.h"
 
 AnimationState::AnimationState(const std::string& name,
-  std::unique_ptr<AnimationPoseNode> initialPoseNode)
+  std::shared_ptr<AnimationPoseNode> initialPoseNode)
   : m_name(name),
     m_initialPoseNode(std::move(initialPoseNode))
 {

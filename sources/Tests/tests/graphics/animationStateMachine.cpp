@@ -80,8 +80,9 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
   SkeletalAnimationVariableId blendFactorVariableId = variablesSet.registerVariable("blend_factor", 0.0f);
 
   SECTION("linear-blending") {
-    AnimationBlendPoseNode poseNode(firstAnimationClipInstance,
-      secondAnimationClipInstance, blendFactorVariableId,
+    AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(firstAnimationClipInstance),
+    std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
+      blendFactorVariableId,
       SkeletalAnimationBlendPoseType::Linear, 0);
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
@@ -98,8 +99,9 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
   }
 
   SECTION("override-blending") {
-    AnimationBlendPoseNode poseNode(firstAnimationClipInstance,
-      secondAnimationClipInstance, blendFactorVariableId,
+    AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(firstAnimationClipInstance),
+      std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
+      blendFactorVariableId,
       SkeletalAnimationBlendPoseType::Override, 0);
 
     variablesSet.setVariableValue(blendFactorVariableId, 0.5f);

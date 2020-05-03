@@ -13,6 +13,7 @@
 #include <Engine/Modules/Graphics/Resources/MaterialResource.h>
 #include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
 #include <Engine/Modules/Graphics/Resources/SkeletalAnimationResource.h>
+#include <Engine/Modules/Graphics/Resources/AnimationStatesMachineResource.h>
 
 #include "Game/PlayerComponent.h"
 
@@ -58,102 +59,13 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   playerMeshRendererComponent->setMaterialInstance(0, playerMaterial);
   playerMeshRendererComponent->updateBounds(playerTransformComponent->getTransform()->getTransformationMatrix());
 
-  std::shared_ptr<AnimationClip> playerRunningClip =
-    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_running")->getClip();
-
-  std::shared_ptr<AnimationClip> playerIdleClip =
-    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_idle")->getClip();
-
-  std::shared_ptr<AnimationClip> playerWaveClip =
-    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_wave")->getClip();
-
-  std::shared_ptr<AnimationClip> playerLookRightClip =
-    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_look_right")->getClip();
-
-  std::shared_ptr<AnimationClip> playerLookLeftClip =
-    m_resourceManager->getResourceFromInstance<SkeletalAnimationResource>("human_look_left")->getClip();
-
-  AnimationClipInstance playerRunningClipInstance(playerSkeleton, playerRunningClip);
-  playerRunningClipInstance.setScale(0.7f);
-
-  AnimationClipInstance playerIdleClipInstance(playerSkeleton, playerIdleClip);
-  playerIdleClipInstance.setScale(0.7f);
-
-  AnimationClipInstance playerWaveClipInstance(playerSkeleton, playerWaveClip);
-  playerWaveClipInstance.setScale(0.7f);
-
-  AnimationClipInstance playerLookRightClipInstance(playerSkeleton, playerLookRightClip);
-  playerLookRightClipInstance.setScale(0.7f);
-
-  AnimationClipInstance playerLookLeftClipInstance(playerSkeleton, playerLookLeftClip);
-  playerLookLeftClipInstance.setScale(0.7f);
+  auto playerAnimationStatesMachine =
+    m_resourceManager->getResourceFromInstance<AnimationStatesMachineResource>("player_animation_machine")->
+      getMachine();
 
   auto playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
-  auto& statesMachine = playerAnimationComponent->getAnimationStatesMachine();
-
-  statesMachine.addState("running", std::make_unique<SkeletalAnimationClipPoseNode>(playerRunningClipInstance));
-  uint16_t playerRunningStateId = statesMachine.getStateIdByName("running");
-
-  statesMachine.addState("idle", std::make_unique<SkeletalAnimationClipPoseNode>(playerIdleClipInstance));
-  uint16_t playerIdleStateId = statesMachine.getStateIdByName("idle");
-
-  statesMachine.addState("wave", std::make_unique<SkeletalAnimationClipPoseNode>(playerWaveClipInstance));
-  uint16_t playerWaveStateId = statesMachine.getStateIdByName("wave");
-
-  SkeletalAnimationVariableId lookAroundInterpolationFactorVariableId =
-    statesMachine.getVariablesSet().registerVariable("look-around-factor", 0.0f);
-
-  statesMachine.addState("look-around", std::make_unique<AnimationBlendPoseNode>(playerLookLeftClipInstance,
-    playerLookRightClipInstance,
-    lookAroundInterpolationFactorVariableId));
-
-  uint16_t playerLookAroundStateId = statesMachine.getStateIdByName("look-around");
-
-  // statesMachine.setActiveState(playerIdleStateId);
-  statesMachine.setTransition(playerIdleStateId, playerRunningStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerRunningStateId, playerIdleStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerIdleStateId, playerWaveStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerWaveStateId, playerIdleStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerWaveStateId, playerLookAroundStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerIdleStateId, playerLookAroundStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerRunningStateId, playerLookAroundStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  statesMachine.setTransition(playerLookAroundStateId, playerRunningStateId,
-    AnimationTransition(AnimationStatesTransitionType::SmoothLinear, 0.5f));
-
-  // statesMachine.addTransition(playerRunningStateId, playerIdleStateId);
-
-  auto& playerRunningState = statesMachine.getState(playerRunningStateId);
-  auto& playerIdleState = statesMachine.getState(playerIdleStateId);
-  auto& playerWaveState = statesMachine.getState(playerWaveStateId);
-  auto& playerLookAroundState = statesMachine.getState(playerLookAroundStateId);
-
-  playerRunningState.setFinalAction(AnimationFinalAction::Repeat);
-
-  playerIdleState.setFinalAction(AnimationFinalAction::SwitchState);
-  playerIdleState.setFinalTransitionStateId(playerWaveStateId);
-  playerIdleState.setFinalAction(AnimationFinalAction::Repeat);
-
-  playerWaveState.setFinalAction(AnimationFinalAction::SwitchState);
-  playerWaveState.setFinalTransitionStateId(playerIdleStateId);
-
-  playerLookAroundState.setFinalAction(AnimationFinalAction::Repeat);
-
-  //m_player->removeComponent<SkeletalAnimationComponent>();
-
+  playerAnimationComponent->setAnimationStatesMachine(playerAnimationStatesMachine);
+  
   // Game objects
   std::shared_ptr<Material>
     material = m_resourceManager->getResourceFromInstance<MaterialResource>("deferred_gpass_brick")->

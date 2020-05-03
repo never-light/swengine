@@ -37,11 +37,11 @@ const AnimationState& AnimationStatesMachine::getState(int16_t stateId) const
 }
 
 void AnimationStatesMachine::addState(const std::string& name,
-  std::unique_ptr<AnimationPoseNode> initialPoseNode)
+  std::shared_ptr<AnimationPoseNode> initialPoseNode)
 {
   auto newStateId = static_cast<int16_t>(m_states.size());
 
-  m_states.emplace_back(name, std::move(initialPoseNode));
+  m_states.emplace_back(name, initialPoseNode);
   m_statesNameToIdMap[name] = newStateId;
 
   m_states.rbegin()->m_id = newStateId;
@@ -72,6 +72,8 @@ void AnimationStatesMachine::switchToNextState(int16_t stateId)
   AnimationTransition& transition = m_transitionsTable[m_activeStateId][stateId];
 
   if (transition.getType() == AnimationStatesTransitionType::SmoothLinear) {
+    spdlog::debug("Switch to state {}", stateId);
+
     m_fadingPose = getCurrentPose();
     m_activeTransition = &transition;
   }
@@ -184,4 +186,14 @@ void AnimationStatesMachine::finishActiveTransition()
 bool AnimationStatesMachine::isTransitionActive() const
 {
   return m_activeTransition != nullptr;
+}
+
+AnimationState& AnimationStatesMachine::getState(const std::string& name)
+{
+  return getState(getStateIdByName(name));
+}
+
+const AnimationState& AnimationStatesMachine::getState(const std::string& name) const
+{
+  return getState(getStateIdByName(name));
 }
