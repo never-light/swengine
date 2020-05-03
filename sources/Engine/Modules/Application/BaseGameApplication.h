@@ -45,6 +45,9 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   void shutdown();
 
+ protected:
+  [[nodiscard]] std::shared_ptr<GameSystemsGroup> getGameApplicationSystemsGroup() const;
+
  private:
   void initializePlatform(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
   void initializeEngine();
@@ -70,6 +73,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
+  std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
 
   std::shared_ptr<ScreenManager> m_screenManager;
 

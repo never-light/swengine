@@ -12,9 +12,10 @@
 class Game {
  public:
   Game(std::shared_ptr<GameWorld> gameWorld,
+    std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<SharedGraphicsState> shadredGraphicsState,
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
     std::shared_ptr<ResourceManager> resourceManager);
 
   ~Game();
@@ -31,7 +32,8 @@ class Game {
 
   std::shared_ptr<GameLevel> m_level;
 
-  std::shared_ptr<GameSystemsGroup> m_gameSystems;
+  std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
+  std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
 };
 

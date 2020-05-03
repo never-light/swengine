@@ -172,10 +172,10 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
     playerTransform.getPosition().y + verticalOffset,
     playerTransform.getPosition().z - horizontalOffsetZ);
 
-  glm::vec3 playerCameraFrontDirection = playerCameraTransform.getFrontDirection() *
-    glm::vec3{1.0f, 0.0f, 1.0f};
-  glm::vec3 playerCameraRightDirection = playerCameraTransform.getRightDirection() *
-    glm::vec3{1.0f, 0.0f, 1.0f};
+  glm::vec3 playerCameraFrontDirection = glm::normalize(playerCameraTransform.getFrontDirection() *
+    glm::vec3{1.0f, 0.0f, 1.0f});
+  glm::vec3 playerCameraRightDirection = glm::normalize(playerCameraTransform.getRightDirection() *
+    glm::vec3{1.0f, 0.0f, 1.0f});
 
   float playerMovementSpeed = playerComponent->getMovementSpeed();
 

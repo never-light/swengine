@@ -30,7 +30,9 @@ void GameApplication::load()
   resourceMgr->addResourcesMap("../resources/resources.xml");
   resourceMgr->addResourcesMap("../resources/game/resources.xml");
 
-  m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule));
+  m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule,
+    getGameApplicationSystemsGroup()));
+
   m_screenManager->registerScreen(std::make_shared<MainMenuScreen>(m_inputModule, m_gameConsole));
 
   m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));

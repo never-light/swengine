@@ -243,6 +243,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 
+  // Game application systems
+  m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+  engineGameSystems->addGameSystem(m_gameApplicationSystems);
+
   // Skeletal animation system
   auto skeletalAnimationSystem = std::make_shared<SkeletalAnimationSystem>();
   engineGameSystems->addGameSystem(skeletalAnimationSystem);
@@ -380,4 +384,9 @@ void BaseGameApplication::handleAppTerminate()
   spdlog::debug(traceRepresentation);
 
   std::abort();
+}
+
+std::shared_ptr<GameSystemsGroup> BaseGameApplication::getGameApplicationSystemsGroup() const
+{
+  return m_gameApplicationSystems;
 }

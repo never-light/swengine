@@ -18,9 +18,11 @@
 
 #include "Game/PlayerComponent.h"
 
-GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule)
+GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule,
+  std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup)
   : BaseGameScreen(GameScreenType::Game),
-    m_inputModule(inputModule)
+    m_inputModule(inputModule),
+    m_gameApplicationSystemsGroup(gameApplicationSystemsGroup)
 {
 }
 
@@ -92,7 +94,9 @@ void GameScreen::initializeGame()
 {
   spdlog::info("Load game...");
 
-  m_game = std::make_unique<Game>(m_gameWorld, m_inputModule,
+  m_game = std::make_unique<Game>(m_gameWorld,
+    m_gameApplicationSystemsGroup,
+    m_inputModule,
     m_graphicsModule->getGraphicsContext(),
     m_sharedGraphicsState, m_resourceManager);
 

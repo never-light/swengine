@@ -49,13 +49,13 @@ void RenderingSystemsPipeline::render(GameWorld* gameWorld)
   const GLFramebuffer& deferredFramebuffer = m_sharedGraphicsState->getDeferredFramebuffer();
 
   accumulationFragmentShader->setParameter("gBuffer.albedo",
-    *deferredFramebuffer.getColorComponent(0).get(), 0);
+    *deferredFramebuffer.getColorComponent(0), 0);
 
   accumulationFragmentShader->setParameter("gBuffer.normals",
-    *deferredFramebuffer.getColorComponent(1).get(), 1);
+    *deferredFramebuffer.getColorComponent(1), 1);
 
   accumulationFragmentShader->setParameter("gBuffer.positions",
-    *deferredFramebuffer.getColorComponent(2).get(), 2);
+    *deferredFramebuffer.getColorComponent(2), 2);
 
   m_graphicsContext->executeRenderTask(RenderTask{
     &m_deferredAccumulationMaterial->getGpuMaterial(),
@@ -74,6 +74,9 @@ void RenderingSystemsPipeline::render(GameWorld* gameWorld)
     RenderingSystem* renderingSystem = dynamic_cast<RenderingSystem*>(system.get());
     renderingSystem->renderPostProcess(gameWorld);
   }
+
+  m_graphicsContext->getDefaultFramebuffer().clearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+  m_graphicsContext->getDefaultFramebuffer().clearDepthStencil(0.0f, 0);
 
   m_sharedGraphicsState->getForwardFramebuffer().copyColor(m_graphicsContext->getDefaultFramebuffer());
   m_sharedGraphicsState->getForwardFramebuffer().copyDepthStencil(m_graphicsContext->getDefaultFramebuffer());

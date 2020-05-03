@@ -6,7 +6,8 @@
 
 class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggleEvent> {
  public:
-  GameScreen(std::shared_ptr<InputModule> inputModule);
+  GameScreen(std::shared_ptr<InputModule> inputModule,
+    std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup);
   ~GameScreen() override;
 
   void activate() override;
@@ -29,6 +30,7 @@ class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggl
 
  private:
   std::shared_ptr<InputModule> m_inputModule;
+  std::shared_ptr<GameSystemsGroup> m_gameApplicationSystemsGroup;
   std::unique_ptr<Game> m_game;
 
   std::shared_ptr<GUILayout> m_debugGUILayout;
