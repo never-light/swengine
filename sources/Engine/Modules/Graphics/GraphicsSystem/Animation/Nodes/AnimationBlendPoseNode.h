@@ -4,7 +4,7 @@
 #include "Modules/Graphics/GraphicsSystem/Animation/AnimationClipInstance.h"
 
 enum class SkeletalAnimationBlendPoseType {
-  Linear, Override
+  Linear, Additive, Override
 };
 
 class AnimationBlendPoseNode : public AnimationPoseNode {
@@ -39,6 +39,7 @@ class AnimationBlendPoseNode : public AnimationPoseNode {
 
   void linearBlendPoses(const AnimationStatesMachineVariables& variablesSet);
   void overriddenBlendPoses(const AnimationStatesMachineVariables& variablesSet);
+  void additiveBlendPoses(const AnimationStatesMachineVariables& variablesSet);
 
  private:
   std::shared_ptr<AnimationPoseNode> m_firstNode;

@@ -47,6 +47,10 @@ void AnimationBlendPoseNode::increaseCurrentTime(float delta,
       overriddenBlendPoses(variablesSet);
       break;
 
+    case SkeletalAnimationBlendPoseType::Additive:
+      additiveBlendPoses(variablesSet);
+      break;
+
     default:
       break;
   }
@@ -113,6 +117,25 @@ void AnimationBlendPoseNode::overriddenBlendPoses(const AnimationStatesMachineVa
     }
   }
 }
+
+void AnimationBlendPoseNode::additiveBlendPoses(const AnimationStatesMachineVariables& variablesSet)
+{
+  ARG_UNUSED(variablesSet);
+
+  float blendFactor = variablesSet.getVariableValue(m_blendParameterVariableId);
+
+  const AnimationPose& mainClipPose = m_firstNode->getCurrentPose();
+  const AnimationPose& additiveClipPose = m_secondNode->getCurrentPose();
+
+  for (uint8_t boneIndex = 0; boneIndex < m_overrideMask.size(); boneIndex++) {
+    const BonePose& mainBonePose = mainClipPose.getBoneLocalPose(boneIndex);
+    const BonePose& additiveBonePose = additiveClipPose.getBoneLocalPose(boneIndex);
+
+    m_blendedPose.setBoneLocalPose(boneIndex, BonePose::interpolate(mainBonePose, additiveBonePose * mainBonePose,
+      blendFactor));
+  }
+}
+
 
 AnimationPoseNodeState AnimationBlendPoseNode::getState() const
 {

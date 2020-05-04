@@ -229,13 +229,25 @@ std::shared_ptr<AnimationStatesMachineParameters::Node> AnimationStatesMachineRe
     return std::make_shared<AnimationStatesMachineParameters::ClipNode>(
       AnimationStatesMachineParameters::Clip(clipName, clipScale));
   }
-  else if (nodeType == "linear_blend") {
+  else if (nodeType == "linear_blend" || nodeType == "additive_blend") {
     auto firstNode = createAnimationNode(node.child("first").child("node"));
     auto secondNode = createAnimationNode(node.child("second").child("node"));
     std::string blendFactorVariableName = node.child("blend_factor_variable").attribute("name").as_string();
 
+    SkeletalAnimationBlendPoseType blendType = SkeletalAnimationBlendPoseType::Additive;
+
+    if (nodeType == "linear_blend") {
+      blendType = SkeletalAnimationBlendPoseType::Linear;
+    }
+    else if (nodeType == "additive_blend") {
+      blendType = SkeletalAnimationBlendPoseType::Additive;
+    }
+    else {
+      THROW_EXCEPTION(NotImplementedException, "Blend type is not supported: " + nodeType);
+    }
+
     return std::make_shared<AnimationStatesMachineParameters::BlendClipsNode>(
-      std::move(firstNode), std::move(secondNode), blendFactorVariableName);
+      std::move(firstNode), std::move(secondNode), blendFactorVariableName, blendType);
   }
   else {
     THROW_EXCEPTION(EngineRuntimeException, "Invalid animation node type: " + nodeType);
@@ -254,7 +266,8 @@ std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::BlendClipsN
 {
   return std::make_shared<AnimationBlendPoseNode>(first->getPoseNode(skeleton, variablesSet, resourceManager),
     second->getPoseNode(skeleton, variablesSet, resourceManager),
-    variablesSet.getVariableId(blendFactorVariableName));
+    variablesSet.getVariableId(blendFactorVariableName),
+    blendType);
 }
 
 std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::ClipNode::getPoseNode(

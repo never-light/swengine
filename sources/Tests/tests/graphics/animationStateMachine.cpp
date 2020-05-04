@@ -58,21 +58,21 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
   std::shared_ptr<AnimationClip> firstAnimationClip =
     std::make_shared<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
-      BoneAnimationChannel(BoneAnimationChannel({
+      BoneAnimationChannel({
         BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
         BoneAnimationPositionFrame{30.0f, {30.0f, 0.0f, 0.0f}},
         BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
-      }, {}))});
+      }, {})});
 
   AnimationClipInstance firstAnimationClipInstance(skeleton, firstAnimationClip);
 
   std::shared_ptr<AnimationClip> secondAnimationClip =
     std::make_shared<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
-      BoneAnimationChannel(BoneAnimationChannel({
+      BoneAnimationChannel({
         BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
         BoneAnimationPositionFrame{30.0f, {0.0f, 30.0f, 0.0f}},
         BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
-      }, {}))});
+      }, {})});
 
   AnimationClipInstance secondAnimationClipInstance(skeleton, secondAnimationClip);
 
@@ -81,7 +81,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
   SECTION("linear-blending") {
     AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(firstAnimationClipInstance),
-    std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
+      std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
       blendFactorVariableId,
       SkeletalAnimationBlendPoseType::Linear, 0);
 
@@ -114,6 +114,59 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
     glm::vec3 targetBonePose = secondAnimationClip->getBoneRelativePose(0, 15.0f).position;
 
     REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).position, targetBonePose));
+  }
+
+  SECTION("additive-blending") {
+    std::shared_ptr<AnimationClip> mainAnimationClip =
+      std::make_shared<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+        BoneAnimationChannel({
+          BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
+          BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
+        }, {
+          BoneAnimationOrientationFrame{0.0f, glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_Y)},
+          BoneAnimationOrientationFrame{0.0f, glm::angleAxis(glm::radians(30.0f), MathUtils::AXIS_Y)},
+        })});
+
+    AnimationClipInstance mainAnimationClipInstance(skeleton, mainAnimationClip);
+
+    std::shared_ptr<AnimationClip> additiveAnimationClip =
+      std::make_shared<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+        BoneAnimationChannel({
+          BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
+          BoneAnimationPositionFrame{30.0f, {10.0f, 20.0f, 30.0f}},
+          BoneAnimationPositionFrame{60.0f, {20.0f, 40.0f, 60.0f}}
+        }, {
+          BoneAnimationOrientationFrame{0.0f, glm::angleAxis(glm::radians(0.0f), MathUtils::AXIS_X)},
+          BoneAnimationOrientationFrame{0.0f, glm::angleAxis(glm::radians(30.0f), MathUtils::AXIS_X)},
+        })});
+
+    AnimationClipInstance additiveAnimationClipInstance(skeleton, additiveAnimationClip);
+
+    AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(mainAnimationClipInstance),
+      std::make_shared<SkeletalAnimationClipPoseNode>(additiveAnimationClipInstance),
+      blendFactorVariableId,
+      SkeletalAnimationBlendPoseType::Additive, 0);
+
+    variablesSet.setVariableValue(blendFactorVariableId, 0.5f);
+
+    poseNode.startAnimation();
+    poseNode.increaseCurrentTime(2.0f, variablesSet);
+
+    AnimationPose animationPose = poseNode.getCurrentPose();
+
+    glm::vec3 targetBonePose = mainAnimationClip->getBoneRelativePose(0, 60.0f).position +
+      additiveAnimationClip->getBoneRelativePose(0, 60.0f).position * 0.5f;
+
+    glm::quat targetBoneOrientation = glm::slerp(
+      mainAnimationClip->getBoneRelativePose(0, 60.0f).orientation,
+      additiveAnimationClip->getBoneRelativePose(0, 60.0f).orientation *
+        mainAnimationClip->getBoneRelativePose(0, 60.0f).orientation,
+      0.5f);
+
+    auto pts = animationPose.getBoneLocalPose(0).position;
+
+    REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).position, targetBonePose));
+    REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).orientation, targetBoneOrientation));
   }
 
 }

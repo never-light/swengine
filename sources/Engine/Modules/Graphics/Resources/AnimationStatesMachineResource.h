@@ -51,9 +51,11 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
   struct BlendClipsNode : Node {
     BlendClipsNode(std::shared_ptr<Node> first,
       std::shared_ptr<Node> second,
-      std::string blendFactorVariableName) : Node(), first(std::move(first)),
-                                             second(std::move(second)),
-                                             blendFactorVariableName(std::move(blendFactorVariableName))
+      std::string blendFactorVariableName,
+      SkeletalAnimationBlendPoseType blendType) : Node(), first(std::move(first)),
+                                                  second(std::move(second)),
+                                                  blendFactorVariableName(std::move(blendFactorVariableName)),
+                                                  blendType(blendType)
     {};
 
     ~BlendClipsNode() override = default;
@@ -66,6 +68,8 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
     std::shared_ptr<Node> first;
     std::shared_ptr<Node> second;
     std::string blendFactorVariableName;
+    SkeletalAnimationBlendPoseType blendType;
+
   };
 
   struct FinalAction {
