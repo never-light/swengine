@@ -78,12 +78,12 @@ void GUIWidget::removeChildren()
 
 void GUIWidget::show()
 {
-  m_isShown = true;
+  showChildren(this);
 }
 
 void GUIWidget::hide()
 {
-  m_isShown = false;
+  hideChildren(this);
 }
 
 bool GUIWidget::isShown() const
@@ -357,4 +357,22 @@ RectI GUIWidget::getRect() const
 bool GUIWidget::isPointInside(const glm::ivec2& point) const
 {
   return getRect().isPointInRect(point);
+}
+
+void GUIWidget::hideChildren(GUIWidget* parent)
+{
+  parent->m_isShown = false;
+
+  for (auto& childWidget : parent->getChildrenWidgets()) {
+    hideChildren(childWidget.get());
+  }
+}
+
+void GUIWidget::showChildren(GUIWidget* parent)
+{
+  parent->m_isShown = true;
+
+  for (auto& childWidget : parent->getChildrenWidgets()) {
+    showChildren(childWidget.get());
+  }
 }

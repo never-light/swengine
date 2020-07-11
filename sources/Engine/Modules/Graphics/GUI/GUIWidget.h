@@ -148,6 +148,9 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   void setFocus();
   void resetFocus();
 
+  void showChildren(GUIWidget* parent);
+  void hideChildren(GUIWidget* parent);
+
   void orderChildrenByZIndex();
 
  private:
@@ -171,6 +174,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   bool m_isScaleTransformEnabled = true;
 
   bool m_isShown = true;
+
   bool m_isHovered = false;
   bool m_hasFocus = false;
 
