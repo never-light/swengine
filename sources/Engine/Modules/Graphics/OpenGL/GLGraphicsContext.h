@@ -36,7 +36,7 @@ class GLGraphicsContext {
   void enableScissorTest();
   void disableScissorTest();
 
-  void setScissorRectangle(const Rect& rectangle);
+  void setScissorRectangle(const RectI& rectangle);
 
   void swapBuffers();
 

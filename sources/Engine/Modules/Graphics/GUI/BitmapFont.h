@@ -10,7 +10,7 @@
 
 struct BitmapCharacter {
  public:
-  Rect bitmapArea;
+  RectI bitmapArea;
 
   int xOffset;
   int yOffset;

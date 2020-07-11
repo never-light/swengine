@@ -123,7 +123,9 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   void setKeyboardEventCallback(EventCallback<GUIKeyboardEvent> callback);
 
   [[nodiscard]] std::shared_ptr<GUIWidget> getParent() const;
-  [[nodiscard]] Rect getRect() const;
+  [[nodiscard]] RectI getRect() const;
+
+  [[nodiscard]] bool isPointInside(const glm::ivec2& point) const;
 
  protected:
   void enableScaleTransform();

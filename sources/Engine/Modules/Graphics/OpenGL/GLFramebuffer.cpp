@@ -62,9 +62,9 @@ GLFramebuffer::~GLFramebuffer()
   }
 }
 
-Rect GLFramebuffer::getBounds() const
+RectI GLFramebuffer::getBounds() const
 {
-  return Rect(0, 0, m_width, m_height);
+  return RectI(0, 0, m_width, m_height);
 }
 
 float GLFramebuffer::getAspectRatio() const
@@ -101,7 +101,7 @@ void GLFramebuffer::copyColor(GLFramebuffer& target, size_t sourceComponentIndex
     sourceComponentIndex, targetComponentIndex);
 }
 
-void GLFramebuffer::copyColor(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+void GLFramebuffer::copyColor(GLFramebuffer& target, const RectI& sourceRect, const RectI& targetRect,
   FramebufferCopyFilter filter, size_t sourceComponentIndex, size_t targetComponentIndex)
 {
   SW_ASSERT(sourceComponentIndex < m_colorComponentsCount &&
@@ -120,7 +120,7 @@ void GLFramebuffer::copyDepthStencil(GLFramebuffer& target)
   copyDepthStencil(target, getBounds(), target.getBounds(), FramebufferCopyFilter::Nearest);
 }
 
-void GLFramebuffer::copyDepthStencil(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+void GLFramebuffer::copyDepthStencil(GLFramebuffer& target, const RectI& sourceRect, const RectI& targetRect,
   FramebufferCopyFilter filter)
 {
   copyTo(target, sourceRect, targetRect,
@@ -128,8 +128,8 @@ void GLFramebuffer::copyDepthStencil(GLFramebuffer& target, const Rect& sourceRe
 }
 
 void GLFramebuffer::copyTo(GLFramebuffer& target,
-  const Rect& sourceRect,
-  const Rect& targetRect,
+  const RectI& sourceRect,
+  const RectI& targetRect,
   GLbitfield copyMask,
   FramebufferCopyFilter filter,
   GLenum sourceAttachment,

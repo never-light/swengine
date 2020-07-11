@@ -349,7 +349,12 @@ std::shared_ptr<GUIWidget> GUIWidget::getParent() const
   return m_parent.lock();
 }
 
-Rect GUIWidget::getRect() const
+RectI GUIWidget::getRect() const
 {
-  return Rect(getAbsoluteOrigin(), m_size);
+  return RectI(getAbsoluteOrigin(), m_size);
+}
+
+bool GUIWidget::isPointInside(const glm::ivec2& point) const
+{
+  return getRect().isPointInRect(point);
 }

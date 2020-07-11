@@ -280,12 +280,7 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
 bool GUISystem::isMouseInWidgetArea(const GUIWidget* widget) const
 {
   MousePosition mousePosition = m_inputModule->getMousePosition();
-  return isPointInWidgetArea({mousePosition.x, mousePosition.y}, widget);
-}
-
-bool GUISystem::isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const
-{
-  return widget->getRect().isPointInRect(point);
+  return widget->isPointInside({mousePosition.x, mousePosition.y});
 }
 
 void GUISystem::renderGUIWidget(GUIWidget* widget)
@@ -296,7 +291,7 @@ void GUISystem::renderGUIWidget(GUIWidget* widget)
 
   widget->render(*this);
 
-  for (auto childWidget : widget->getChildrenWidgets()) {
+  for (const auto& childWidget : widget->getChildrenWidgets()) {
     renderGUIWidget(childWidget.get());
   }
 }

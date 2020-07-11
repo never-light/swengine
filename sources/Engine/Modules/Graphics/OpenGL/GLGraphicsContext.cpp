@@ -76,7 +76,7 @@ void GLGraphicsContext::disableScissorTest()
   applyContextChange();
 }
 
-void GLGraphicsContext::setScissorRectangle(const Rect& rectangle)
+void GLGraphicsContext::setScissorRectangle(const RectI& rectangle)
 {
   glScissor(rectangle.getOriginX(),
     m_defaultFramebuffer->getWidth() - rectangle.getOriginY() - rectangle.getHeight(),

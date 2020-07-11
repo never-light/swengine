@@ -29,7 +29,7 @@ class GLFramebuffer {
 
   ~GLFramebuffer();
 
-  Rect getBounds() const;
+  RectI getBounds() const;
   float getAspectRatio() const;
 
   int getWidth() const;
@@ -39,11 +39,11 @@ class GLFramebuffer {
   void clearDepthStencil(float depthValue, int stencilValue);
 
   void copyColor(GLFramebuffer& target, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
-  void copyColor(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+  void copyColor(GLFramebuffer& target, const RectI& sourceRect, const RectI& targetRect,
     FramebufferCopyFilter filter, size_t sourceComponentIndex = 0, size_t targetComponentIndex = 0);
 
   void copyDepthStencil(GLFramebuffer& target);
-  void copyDepthStencil(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+  void copyDepthStencil(GLFramebuffer& target, const RectI& sourceRect, const RectI& targetRect,
     FramebufferCopyFilter filter);
 
   [[nodiscard]] GLuint getGLHandle() const;
@@ -60,7 +60,7 @@ class GLFramebuffer {
    */
   GLFramebuffer(int width, int height);
 
-  void copyTo(GLFramebuffer& target, const Rect& sourceRect, const Rect& targetRect,
+  void copyTo(GLFramebuffer& target, const RectI& sourceRect, const RectI& targetRect,
     GLbitfield copyMask, FramebufferCopyFilter filter,
     GLenum sourceAttachment, GLenum targetAttachment);
 

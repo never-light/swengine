@@ -1,26 +1,74 @@
 #pragma once
 
+#include <type_traits>
 #include <glm/vec2.hpp>
 
+template<class T>
 class Rect {
  public:
-  Rect();
-  Rect(const Rect& rect);
-  Rect(const glm::ivec2& origin, const glm::ivec2& size);
-  Rect(int originX, int originY, int width, int height);
+  static_assert(std::is_same_v<T, int> || std::is_same_v<T, float>);
+  using Vec = typename std::conditional<std::is_same_v<T, int>, glm::ivec2, glm::vec2>::type;
 
-  bool isPointInRect(const glm::ivec2& point) const;
+ public:
+  Rect() : m_origin(), m_size()
+  {
 
-  int getWidth() const;
-  int getHeight() const;
-  const glm::ivec2& getSize() const;
+  }
 
-  int getOriginX() const;
-  int getOriginY() const;
-  const glm::ivec2& getOrigin() const;
+  Rect(const Vec& origin, const Vec& size)
+    : m_origin(origin),
+      m_size(size)
+  {
+
+  };
+
+  Rect(T originX, T originY, T width, T height)
+    : m_origin(originX, originY),
+      m_size(width, height)
+  {
+
+  }
+
+  [[nodiscard]] bool isPointInRect(const Vec& point) const
+  {
+    return m_origin.x <= point.x && point.x <= (m_origin.x + m_size.x) &&
+      m_origin.y <= point.y && point.y <= (m_origin.y + m_size.y);
+  }
+
+  [[nodiscard]] T getWidth() const
+  {
+    return m_size.x;
+  }
+
+  [[nodiscard]] T getHeight() const
+  {
+    return m_size.y;
+  }
+
+  [[nodiscard]] const Vec& getSize() const
+  {
+    return m_size;
+  }
+
+  [[nodiscard]] T getOriginX() const
+  {
+    return m_origin.x;
+  }
+
+  [[nodiscard]] T getOriginY() const
+  {
+    return m_origin.y;
+  }
+
+  [[nodiscard]] const Vec& getOrigin() const
+  {
+    return m_origin;
+  }
 
  private:
-  glm::ivec2 m_origin;
-  glm::ivec2 m_size;
+  Vec m_origin;
+  Vec m_size;
 };
 
+using RectI = Rect<int>;
+using RectF = Rect<float>;

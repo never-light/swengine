@@ -51,7 +51,6 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
   void processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event);
 
   bool isMouseInWidgetArea(const GUIWidget* widget) const;
-  bool isPointInWidgetArea(const glm::ivec2& point, const GUIWidget* widget) const;
 
   void renderGUIWidget(GUIWidget* widget);
 
