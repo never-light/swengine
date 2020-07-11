@@ -31,7 +31,6 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
   m_inputModule->registerAction("look_around_right", KeyboardInputAction(SDLK_k));
 
   m_inputModule->enableGlobalTracking();
-
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
   if (m_playerObject == nullptr) {

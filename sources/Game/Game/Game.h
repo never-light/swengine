@@ -23,6 +23,9 @@ class Game {
   void activate();
   void deactivate();
 
+  void enterConsoleMode();
+  void leaveConsoleMode();
+
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<InputModule> m_inputModule;
@@ -35,5 +38,7 @@ class Game {
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
   std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
+
+  bool m_needRestorePlayerControl = false;
 };
 

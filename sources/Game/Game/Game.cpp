@@ -33,3 +33,18 @@ void Game::deactivate()
 {
   m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
 }
+
+void Game::enterConsoleMode()
+{
+  if (m_gameModeSystems->getGameSystem<PlayerControlSystem>() != nullptr) {
+    m_needRestorePlayerControl = true;
+    m_gameModeSystems->removeGameSystem(m_playerControlSystem);
+  }
+}
+
+void Game::leaveConsoleMode()
+{
+  if (m_needRestorePlayerControl) {
+    m_gameModeSystems->addGameSystem(m_playerControlSystem);
+  }
+}

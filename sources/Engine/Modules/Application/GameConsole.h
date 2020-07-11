@@ -26,4 +26,3 @@ class GameConsole : public GUIConsoleCommandsExecutor {
   std::shared_ptr<GameWorld> m_gameWorld;
   std::weak_ptr<GUIConsole> m_guiConsole;
 };
-

@@ -149,9 +149,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   if (event.actionName == "console" && event.newState == InputActionState::Active) {
     if (m_gameConsole->getGUIConsole()->isShown()) {
       m_gameConsole->getGUIConsole()->hide();
+      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{ false });
     }
     else {
       m_gameConsole->getGUIConsole()->show();
+      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{ true });
     }
   }
 

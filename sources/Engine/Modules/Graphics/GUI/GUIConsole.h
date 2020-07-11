@@ -11,6 +11,10 @@
 
 class GUIConsole;
 
+struct GameConsoleChangeVisibilityEvent {
+  bool isVisible;
+};
+
 class GUIConsoleCommandsExecutor {
  public:
   GUIConsoleCommandsExecutor() = default;

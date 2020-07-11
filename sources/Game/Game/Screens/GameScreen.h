@@ -1,10 +1,13 @@
 #pragma once
 
+#include <Engine/Modules/Graphics/GUI/GUIConsole.h>
 #include "BaseGameScreen.h"
 #include "Game/PlayerControlSystem.h"
 #include "Game/Game.h"
 
-class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggleEvent> {
+class GameScreen : public BaseGameScreen,
+  public EventsListener<InputActionToggleEvent>,
+  public EventsListener<GameConsoleChangeVisibilityEvent> {
  public:
   GameScreen(std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup);
@@ -20,6 +23,7 @@ class GameScreen : public BaseGameScreen, public EventsListener<InputActionToggl
   void render() override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleChangeVisibilityEvent& event) override;
 
  private:
   void initializeGame();

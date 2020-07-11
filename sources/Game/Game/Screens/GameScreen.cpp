@@ -35,10 +35,12 @@ void GameScreen::activate()
   m_inputModule->registerAction("toggle_menu", KeyboardInputAction(SDLK_ESCAPE));
 
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+  m_gameWorld->subscribeEventsListener<GameConsoleChangeVisibilityEvent>(this);
 }
 
 void GameScreen::deactivate()
 {
+  m_gameWorld->subscribeEventsListener<GameConsoleChangeVisibilityEvent>(this);
   m_gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
 
   m_inputModule->unregisterAction("toggle_menu");
@@ -85,6 +87,20 @@ EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputAct
 
   if (event.actionName == "toggle_menu" && event.newState == InputActionState::Active) {
     activateNextScreen(GameScreenType::MainMenu);
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const GameConsoleChangeVisibilityEvent& event)
+{
+  ARG_UNUSED(gameWorld);
+
+  if (event.isVisible) {
+    m_game->enterConsoleMode();
+  }
+  else {
+    m_game->leaveConsoleMode();
   }
 
   return EventProcessStatus::Processed;
