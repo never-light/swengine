@@ -90,7 +90,7 @@ void GUITextBox::processKeyboardEvent(const GUIKeyboardEvent& event)
       m_text->setText(text);
     }
   }
-  else if (isprint(character)) {
+  else if (isprint((unsigned char)character)) {
     char printedCharacter = character;
 
     if (event.keyModifiers & KMOD_SHIFT) {
