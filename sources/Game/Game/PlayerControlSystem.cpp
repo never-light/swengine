@@ -184,20 +184,30 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
     m_inputModule->isActionActive("right") ||
     m_inputModule->isActionActive("left");
 
+  glm::vec3 playerMovementDirection{};
+
   if (m_inputModule->isActionActive("forward")) {
-    playerTransform.move(playerCameraFrontDirection * playerMovementSpeed * delta);
+    playerMovementDirection += playerCameraFrontDirection;
   }
 
   if (m_inputModule->isActionActive("backward")) {
-    playerTransform.move(playerCameraFrontDirection * playerMovementSpeed * (-1.0f) * delta);
+    playerMovementDirection += playerCameraFrontDirection * (-1.0f);
   }
 
   if (m_inputModule->isActionActive("right")) {
-    playerTransform.move(playerCameraRightDirection * playerMovementSpeed * delta);
+    playerMovementDirection += playerCameraRightDirection;
   }
 
   if (m_inputModule->isActionActive("left")) {
-    playerTransform.move(playerCameraRightDirection * playerMovementSpeed * (-1.0f) * delta);
+    playerMovementDirection += playerCameraRightDirection * (-1.0f);
+  }
+
+  if (playerIsRunning) {
+    if (glm::length(playerMovementDirection) >= 1.0f) {
+      playerMovementDirection = glm::normalize(playerMovementDirection);
+    }
+
+    playerTransform.move(playerMovementDirection * playerMovementSpeed * delta);
   }
 
   auto& animationStatesMachine =
