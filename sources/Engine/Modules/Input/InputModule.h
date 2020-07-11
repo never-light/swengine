@@ -31,6 +31,8 @@ class InputModule {
 
   void unregisterAction(const std::string& actionName);
 
+  // TODO: Probably, it would be better to use integer identifiers for performance reasons here
+  // This method could be called often from update methods
   [[nodiscard]] bool isActionActive(const std::string& actionName) const;
 
   void enableGlobalTracking();

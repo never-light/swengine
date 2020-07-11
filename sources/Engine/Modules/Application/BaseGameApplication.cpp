@@ -136,10 +136,10 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   if (event.command == "exit") {
     shutdown();
 
-    return EventProcessStatus::Prevented;
+    return EventProcessStatus::Processed;
   }
 
-  return EventProcessStatus::Processed;
+  return EventProcessStatus::Skipped;
 }
 
 EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)

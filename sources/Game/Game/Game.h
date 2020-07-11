@@ -8,8 +8,9 @@
 
 #include "GameLevel.h"
 #include "PlayerControlSystem.h"
+#include "FreeCameraControlSystem.h"
 
-class Game {
+class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
   Game(std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
@@ -18,13 +19,15 @@ class Game {
     std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
     std::shared_ptr<ResourceManager> resourceManager);
 
-  ~Game();
+  ~Game() = default;
 
   void activate();
   void deactivate();
 
   void enterConsoleMode();
   void leaveConsoleMode();
+
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event) override;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -38,7 +41,8 @@ class Game {
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
   std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
+  std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
-  bool m_needRestorePlayerControl = false;
+  std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
+  std::shared_ptr<GameSystem> m_activeCameraControlSystem;
 };
-

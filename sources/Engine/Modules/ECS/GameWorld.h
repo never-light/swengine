@@ -277,6 +277,7 @@ inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener)
 template<class T>
 inline EventProcessStatus GameWorld::emitEvent(const T& event)
 {
+  bool processed = false;
   std::type_index typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
@@ -289,8 +290,11 @@ inline EventProcessStatus GameWorld::emitEvent(const T& event)
       if (processStatus == EventProcessStatus::Prevented) {
         return EventProcessStatus::Prevented;
       }
+      else if (processStatus == EventProcessStatus::Processed) {
+        processed = true;
+      }
     }
   }
 
-  return EventProcessStatus::Processed;
+  return (processed) ? EventProcessStatus::Processed : EventProcessStatus::Skipped;
 }

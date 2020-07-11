@@ -16,35 +16,61 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_level(std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager)),
     m_gameApplicationSystems(gameApplicationSystemsGroup),
     m_gameModeSystems(std::make_shared<GameSystemsGroup>(gameWorld)),
-    m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule))
+    m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule, sharedGraphicsState)),
+    m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, sharedGraphicsState))
 {
   m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>()->getCamera());
+  m_activeCameraControlSystem = m_playerControlSystem;
   m_gameModeSystems->addGameSystem(m_playerControlSystem);
 }
-
-Game::~Game() = default;
 
 void Game::activate()
 {
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
+  m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
 }
 
 void Game::deactivate()
 {
+  m_gameWorld->unsubscribeEventsListener<GameConsoleCommandEvent>(this);
   m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
 }
 
 void Game::enterConsoleMode()
 {
-  if (m_gameModeSystems->getGameSystem<PlayerControlSystem>() != nullptr) {
-    m_needRestorePlayerControl = true;
+  m_preservedCameraControlSystem = m_activeCameraControlSystem;
+
+  if (m_activeCameraControlSystem == m_playerControlSystem) {
     m_gameModeSystems->removeGameSystem(m_playerControlSystem);
   }
+  else if (m_activeCameraControlSystem == m_freeCameraControlSystem) {
+    m_gameModeSystems->removeGameSystem(m_freeCameraControlSystem);
+  }
+
+  m_activeCameraControlSystem = nullptr;
 }
 
 void Game::leaveConsoleMode()
 {
-  if (m_needRestorePlayerControl) {
-    m_gameModeSystems->addGameSystem(m_playerControlSystem);
+  if (m_preservedCameraControlSystem != nullptr) {
+    m_gameModeSystems->addGameSystem(m_preservedCameraControlSystem);
+    m_activeCameraControlSystem = m_preservedCameraControlSystem;
+    m_preservedCameraControlSystem = nullptr;
   }
+}
+
+EventProcessStatus Game::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
+{
+  if (event.command == "free-camera") {
+    m_preservedCameraControlSystem = m_freeCameraControlSystem;
+
+    return EventProcessStatus::Processed;
+  }
+  else if (event.command == "player-camera") {
+    m_preservedCameraControlSystem = m_playerControlSystem;
+
+    return EventProcessStatus::Processed;
+  }
+
+  return EventProcessStatus::Skipped;
 }

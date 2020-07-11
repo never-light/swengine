@@ -19,8 +19,25 @@ void GameConsole::print(const std::string& command)
 
 void GameConsole::executeCommand(const std::string& command)
 {
-  m_gameWorld->emitEvent<GameConsoleCommandEvent>({command});
   m_guiConsole.lock()->print(command);
+
+  EventProcessStatus executionStatus = m_gameWorld->emitEvent<GameConsoleCommandEvent>({command});
+
+  switch (executionStatus) {
+    case EventProcessStatus::Prevented:
+      SW_ASSERT(false);
+      break;
+
+    case EventProcessStatus::Skipped:
+      m_guiConsole.lock()->print("Unknown command");
+      break;
+
+    case EventProcessStatus::Processed:
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
 }
 
 void GameConsole::executeCommand(const std::string& command, GUIConsole& console)

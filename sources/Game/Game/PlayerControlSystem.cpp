@@ -1,9 +1,5 @@
 #include "PlayerControlSystem.h"
-#include <Engine/Modules/ECS/GameWorld.h>
 
-#include <spdlog/spdlog.h>
-
-#include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h>
@@ -12,13 +8,13 @@
 
 #include "PlayerComponent.h"
 
-PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule)
-  : m_inputModule(inputModule)
+PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
+  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  : m_inputModule(inputModule),
+    m_sharedGraphicsState(sharedGraphicsState)
 {
 
 }
-
-PlayerControlSystem::~PlayerControlSystem() = default;
 
 void PlayerControlSystem::configure(GameWorld* gameWorld)
 {
@@ -54,11 +50,16 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
 
   gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
   gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+
+  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>()->getCamera());
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
+
+  // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
+  // m_sharedGraphicsState->setActiveCamera(nullptr);
 
   gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
   gameWorld->unsubscribeEventsListener<MouseWheelEvent>(this);
@@ -85,29 +86,6 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 
   updateViewParameters(mouseDelta, delta);
   updatePlayerAndCameraPosition(delta);
-
-//  playerCamera->getTransform()->pitchLocal(mouseDelta.y);
-//  playerCamera->getTransform()->yawGlobal(mouseDelta.x);
-//
-//  if (m_inputModule->isActionActive("forward")) {
-//    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * delta);
-//  }
-//
-//  if (m_inputModule->isActionActive("backward")) {
-//    move(playerCamera->getTransform()->getFrontDirection() * movementSpeed * (-1.0f) * delta);
-//  }
-//
-//  if (m_inputModule->isActionActive("right")) {
-//    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * delta);
-//  }
-//
-//  if (m_inputModule->isActionActive("left")) {
-//    move(playerCamera->getTransform()->getRightDirection() * movementSpeed * (-1.0f) * delta);
-//  }
-//
-  // playerCamera->getTransform()->lookAt(0.0f, 0.0f, 0.0f);
-  // playerTransform.lookAt(playerCamera->getTransform()->getPosition());
-
 }
 
 Camera* PlayerControlSystem::getPlayerCamera() const
@@ -141,13 +119,8 @@ void PlayerControlSystem::updateViewParameters(const glm::vec2& mouseDelta, floa
 {
   const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
 
-  //if (m_inputModule->isMouseButtonPressed(SDL_BUTTON_LEFT)) {
   playerComponent->increaseThirdPersonViewPitch(mouseDelta.y * 6.0f * delta);
-  //}
-
-  //if (m_inputModule->isMouseButtonPressed(SDL_BUTTON_RIGHT)) {
   playerComponent->increaseThirdPersonViewYaw(mouseDelta.x * 6.0f * delta);
-  //}
 }
 
 void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
@@ -209,6 +182,7 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
     playerTransform.move(playerMovementDirection * playerMovementSpeed * delta);
   }
 
+  // TODO: that's code for animation demo, remove it and implement real player animations
   auto& animationStatesMachine =
     m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
 
@@ -244,6 +218,7 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
 
 EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
 {
+  // TODO: that's code for animation demo, remove it and implement real player animations
   if (event.actionName == "look_around" && event.newState == InputActionState::Active) {
     auto& animationStatesMachine =
       m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();

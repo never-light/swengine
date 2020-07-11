@@ -6,7 +6,8 @@ class GameWorld;
 
 enum class EventProcessStatus {
   Processed,
-  Prevented
+  Prevented,
+  Skipped
 };
 
 /*!
