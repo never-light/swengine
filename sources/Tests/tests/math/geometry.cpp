@@ -1,17 +1,13 @@
 #include <catch2/catch.hpp>
 
-#include <Engine/Modules/Math/matrices.h>
-#include <Engine/Modules/Math/geometry.h>
-
-#include "utils/utils.h"
-
-#include <iostream>
 #include <glm/gtx/string_cast.hpp>
+
+#include <Engine/Modules/Math/geometry.h>
+#include <Engine/Modules/Math/MathUtils.h>
+
 
 TEST_CASE("Distances", "[geometry]")
 {
-  using tests::MathUtils;
-
   SECTION("Points") {
     glm::vec3 pointA = {10.0f, 0.0f, 0.0f};
     glm::vec3 pointB = {20.0f, 0.0f, 0.0f};

@@ -7,8 +7,6 @@
 
 TEST_CASE("state-machine-variables-get-set", "[animation]")
 {
-  using tests::MathUtils;
-
   auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
   AnimationStatesMachine stateMachine(skeleton);
 
@@ -24,8 +22,6 @@ TEST_CASE("state-machine-variables-get-set", "[animation]")
 
 TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
 {
-  using tests::MathUtils;
-
   SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance());
   AnimationStatesMachineVariables variablesSet;
 
@@ -50,8 +46,6 @@ TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
 
 TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 {
-  using tests::MathUtils;
-
   std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(
     std::vector<Bone>({Bone("root", Bone::ROOT_BONE_PARENT_ID, MathUtils::IDENTITY_MATRIX4)}));
 
@@ -172,8 +166,6 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
 TEST_CASE("state-machine-conditional-transitions", "[animation]")
 {
-  using tests::MathUtils;
-
   auto clipInstance = generateTestAnimationClipInstance();
 
   AnimationStatesMachine statesMachine(clipInstance.getSkeletonPtr());

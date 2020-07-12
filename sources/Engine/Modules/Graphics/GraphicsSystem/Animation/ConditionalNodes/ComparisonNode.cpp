@@ -3,6 +3,8 @@
 #pragma hdrstop
 
 #include "ComparisonNode.h"
+
+#include "Modules/Math/MathUtils.h"
 #include "swdebug.h"
 
 ComparisonNode::ComparisonNode(std::unique_ptr<ConditionalNode> firstOperand,
@@ -34,14 +36,13 @@ ConditionalExpressionResult ComparisonNode::evaluate(const AnimationStatesMachin
 
   switch (m_operation) {
     case ComparisonOperation::Equal:
-      // TODO: replace floats comparison with utility function
       return ConditionalExpressionResult{
-        std::fabs(std::get<float>(firstValue) - std::get<float>(secondValue)) <= 1e-5};
+        MathUtils::isEqual(std::get<float>(firstValue), std::get<float>(secondValue))};
       break;
 
     case ComparisonOperation::NotEqual:
       return ConditionalExpressionResult{
-        std::fabs(std::get<float>(firstValue) - std::get<float>(secondValue)) > 1e-5};
+        !MathUtils::isEqual(std::get<float>(firstValue), std::get<float>(secondValue))};
       break;
 
     case ComparisonOperation::Less:

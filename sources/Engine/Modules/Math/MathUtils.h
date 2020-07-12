@@ -5,7 +5,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace tests {
 
 class MathUtils {
  public:
@@ -14,7 +13,8 @@ class MathUtils {
   static bool isEqual(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f);
   static bool isEqual(float a, float b, float eps = 1e-6f);
 
- public:
+  static bool isMatrixIdentity(const glm::mat4& matrix, const float eps = 1e-6f);
+
   static glm::mat4 getTranslationMatrix(const glm::vec3& translation);
   static glm::mat4 getRotationMatrix(const glm::vec3& axis, float angle);
   static glm::mat4 getRotationMatrixFromYawPitchRoll(float yaw, float pitch, float roll);
@@ -23,7 +23,7 @@ class MathUtils {
   static glm::mat4 getYawMatrix(float angle);
   static glm::mat4 getPitchMatrix(float angle);
   static glm::mat4 getRollMatrix(float angle);
-
+  
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};
   static constexpr glm::vec3 AXIS_Y = {0.0f, 1.0f, 0.0f};
@@ -35,4 +35,16 @@ class MathUtils {
   static constexpr glm::vec3 ZERO_VEC3 = {0.0f, 0.0f, 0.0f};
 };
 
+template<class T>
+bool isVectorsEqual(const T& a, const T& b, float eps = 1e-6f)
+{
+  using vector_length_type = typename T::length_type;
+
+  for (vector_length_type coordinateIndex = 0; coordinateIndex < a.length(); coordinateIndex++) {
+    if (glm::abs(a[coordinateIndex] - b[coordinateIndex]) > eps) {
+      return false;
+    }
+  }
+
+  return true;
 }

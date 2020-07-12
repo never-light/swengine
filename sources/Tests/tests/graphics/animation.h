@@ -6,7 +6,7 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/AnimationClip.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/AnimationStatesMachine.h>
 
-#include "utils/utils.h"
+#include <Engine/Modules/Math/MathUtils.h>
 
 Skeleton generateTestSkeleton();
 AnimationClip generateTestAnimationClip();

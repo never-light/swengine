@@ -1,14 +1,10 @@
 #include <catch2/catch.hpp>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Transform.h>
-#include <Engine/Modules/Math/matrices.h>
-
-#include "utils/utils.h"
+#include <Engine/Modules/Math/MathUtils.h>
 
 TEST_CASE("Test affine transformations", "[transform]")
 {
-  using tests::MathUtils;
-
   Transform transform;
 
   SECTION("Default transform") {

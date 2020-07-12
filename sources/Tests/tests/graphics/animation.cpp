@@ -5,8 +5,6 @@
 
 Skeleton generateTestSkeleton()
 {
-  using tests::MathUtils;
-
   std::vector<Bone> bones;
 
   bones.push_back(Bone("root", Bone::ROOT_BONE_PARENT_ID,
@@ -21,8 +19,6 @@ Skeleton generateTestSkeleton()
 
 AnimationClip generateTestAnimationClip()
 {
-  using tests::MathUtils;
-
   std::vector<BoneAnimationChannel> bonesAnimationChannels;
 
   bonesAnimationChannels.push_back(BoneAnimationChannel({

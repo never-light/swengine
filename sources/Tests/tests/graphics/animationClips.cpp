@@ -3,8 +3,6 @@
 
 TEST_CASE("bone-pose-matrix", "[animation]")
 {
-  using tests::MathUtils;
-
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
   glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
   BonePose originPose(originPosition, originOrientation);
@@ -15,8 +13,6 @@ TEST_CASE("bone-pose-matrix", "[animation]")
 
 TEST_CASE("bone-poses-interpolation", "[animation]")
 {
-  using tests::MathUtils;
-
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
   glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
   BonePose originPose(originPosition, originOrientation);
@@ -44,8 +40,6 @@ TEST_CASE("bone-poses-interpolation", "[animation]")
 
 TEST_CASE("getting-clip-bones-poses", "[animation]")
 {
-  using tests::MathUtils;
-
   Skeleton skeleton = generateTestSkeleton();
   AnimationClip clip = generateTestAnimationClip();
 
@@ -80,8 +74,6 @@ TEST_CASE("getting-clip-bones-poses", "[animation]")
 
 TEST_CASE("clip-instance-increasing-time", "[animation]")
 {
-  using tests::MathUtils;
-
   AnimationClipInstance clipInstance = generateTestAnimationClipInstance();
   std::shared_ptr<Skeleton> skeleton = clipInstance.getSkeletonPtr();
 

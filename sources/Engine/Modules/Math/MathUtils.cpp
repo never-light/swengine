@@ -1,12 +1,8 @@
-#include "utils.h"
+#include "MathUtils.h"
 
 #include <glm/matrix.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
-
-#include <Engine/Modules/Math/matrices.h>
-
-namespace tests {
 
 glm::mat4 MathUtils::getTranslationMatrix(const glm::vec3& translation)
 {
@@ -45,12 +41,22 @@ glm::mat4 MathUtils::getRollMatrix(float angle)
 
 bool MathUtils::isEqual(const glm::mat4& a, const glm::mat4& b, float eps)
 {
-  return isMatricesEqual(a, b, eps);
+  using matrix_length_type = glm::mat4::length_type;
+
+  for (matrix_length_type c = 0; c < 4; c++) {
+    for (matrix_length_type r = 0; r < 4; r++) {
+      if (glm::abs(a[c][r] - b[c][r]) > eps) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool MathUtils::isEqual(const glm::quat& a, const glm::quat& b, float eps)
 {
-  return isQuatsEqual(a, b, eps);
+  return glm::abs(glm::dot(a, b)) > 1 - eps;
 }
 
 bool MathUtils::isEqual(const glm::vec3& a, const glm::vec3& b, float eps)
@@ -63,4 +69,7 @@ bool MathUtils::isEqual(float a, float b, float eps)
   return glm::abs(a - b) <= eps;
 }
 
+bool MathUtils::isMatrixIdentity(const glm::mat4& matrix, const float eps)
+{
+  return isEqual(matrix, glm::identity<glm::mat4>(), eps);
 }
