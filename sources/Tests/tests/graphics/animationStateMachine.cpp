@@ -46,7 +46,6 @@ TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
 
   REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(1).getBoneMatrix(),
     spinBoneTranslation * spinBoneRotation));
-
 }
 
 TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
@@ -169,4 +168,44 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
     REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).orientation, targetBoneOrientation));
   }
 
+}
+
+TEST_CASE("state-machine-conditional-transitions", "[animation]")
+{
+  using tests::MathUtils;
+
+  auto clipInstance = generateTestAnimationClipInstance();
+
+  AnimationStatesMachine statesMachine(clipInstance.getSkeletonPtr());
+
+  auto switchVariableId = statesMachine.getVariablesSet().registerVariable("need_to_switch", 0.0f);
+
+  statesMachine.addState("first", std::make_shared<SkeletalAnimationClipPoseNode>(clipInstance));
+  auto firstStateId = statesMachine.getStateIdByName("first");
+
+  statesMachine.addState("second", std::make_shared<SkeletalAnimationClipPoseNode>(clipInstance));
+  auto secondStateId = statesMachine.getStateIdByName("second");
+
+  AnimationTransition transition = AnimationTransition(AnimationStatesTransitionType::Straight);
+  transition.setCondition(std::make_shared<ComparisonNode>(
+    std::make_unique<VariableReferenceNode>(switchVariableId),
+    std::make_unique<ConstantNode>(1.0f),
+    ComparisonOperation::Equal));
+
+  statesMachine.setTransition(firstStateId,secondStateId, transition);
+
+  statesMachine.setActiveState(firstStateId);
+
+  REQUIRE(statesMachine.getActiveStateId() == firstStateId);
+
+  statesMachine.increaseCurrentTime(0.1f);
+  REQUIRE(statesMachine.getActiveStateId() == firstStateId);
+
+  statesMachine.getVariablesSet().setVariableValue(switchVariableId, 0.5f);
+  statesMachine.increaseCurrentTime(0.1f);
+  REQUIRE(statesMachine.getActiveStateId() == firstStateId);
+
+  statesMachine.getVariablesSet().setVariableValue(switchVariableId, 1.0f);
+  statesMachine.increaseCurrentTime(0.1f);
+  REQUIRE(statesMachine.getActiveStateId() == secondStateId);
 }
