@@ -16,6 +16,17 @@
 
 #include "EventsListener.h"
 
+// TODO: replace raw GameObject pointers with shared pointers or something like that to allow store owning references
+
+// TODO: check whether the game object alive before any actions with it
+
+// TODO: remove proxy object for game objects' components, forbid ability to store owning references to components
+
+// TODO: replace raw EventListener pointers with shared pointers to avoid memory leaks or usage of invalid pointers
+
+// TODO: add ability to subscribe to events not only objects but also callbacks, probably replace
+// polymorphic objects with std::function objects, but foresee deleting of them (for example, by unique identifies)
+
 /*!
  * \brief Class for representing the game world
  * 
@@ -53,12 +64,6 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   void afterRender();
 
   /*!
-   * \brief setGameSystemsGroup Sets main game systems group
-   * \param group group to set
-   */
-  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group);
-
-  /*!
    * \brief getGameSystemsGroup Returns main game systems group
    * \return the main game systems group
    */
@@ -88,52 +93,11 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   GameObject* findGameObject(std::function<bool(GameObject*)> predicate) const;
 
   /*!
-   * \brief Gets the game object by it's index
-   *
-   * \param index index of the game object
-   * \return the object pointer
-   */
-  GameObject* getGameObjectByIndex(size_t index) const;
-
-  /*!
-   * \brief Checks whether the game object exists by it's index
-   *
-   * \param index index of the game object
-   * \return the existing status
-   */
-  bool hasGameObjectWithIndex(size_t index) const;
-
-  /*!
-   * \brief Gets the number of game objects
-   *
-   * \return the number of game objects
-   */
-  size_t getGameObjectsCount() const;
-
-  /*!
    * \brief Removes the game objects
    *
    * \param gameObject removed game object
    */
   void removeGameObject(GameObject* gameObject);
-
-  /*!
-   * \brief Adds the new component to the game object
-   *
-   * \param gameObject game object to add the component
-   * \param ...args args for the component constructor
-   * \return ComponentHandle object
-   */
-  template<class T, class... Args>
-  ComponentHandle<T> assignComponent(GameObject* gameObject, Args&& ... args);
-
-  /*!
-   * \brief Removes the component from the game object
-   *
-   * \param gameObject game object to remove the component
-   */
-  template<class T>
-  void removeComponent(GameObject* gameObject);
 
   /*!
    * \brief Performs specified action for each existing game object
@@ -197,6 +161,54 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 
   void removeDestroyedObjects();
 
+  /*!
+ * \brief setGameSystemsGroup Sets main game systems group
+ * \param group group to set
+ */
+  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group);
+
+ private:
+  /*!
+ * \brief Adds the new component to the game object
+ *
+ * \param gameObject game object to add the component
+ * \param ...args args for the component constructor
+ * \return ComponentHandle object
+ */
+  template<class T, class... Args>
+  ComponentHandle<T> assignComponent(GameObject* gameObject, Args&& ... args);
+
+  /*!
+   * \brief Removes the component from the game object
+   *
+   * \param gameObject game object to remove the component
+   */
+  template<class T>
+  void removeComponent(GameObject* gameObject);
+
+  /*!
+   * \brief Gets the game object by it's index
+   *
+   * \param index index of the game object
+   * \return the object pointer
+   */
+  GameObject* getGameObjectByIndex(size_t index) const;
+
+  /*!
+   * \brief Checks whether the game object exists by it's index
+   *
+   * \param index index of the game object
+   * \return the existing status
+   */
+  bool hasGameObjectWithIndex(size_t index) const;
+
+  /*!
+   * \brief Gets the number of game objects
+   *
+   * \return the number of game objects
+   */
+  size_t getGameObjectsCount() const;
+
  private:
   GameObjectId m_lastGameObjectId = -1;
 
@@ -205,6 +217,14 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   std::vector<GameObject*> m_gameObjects;
 
   std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
+
+ private:
+  friend class GameObject;
+
+  template<class... ComponentsTypes>
+  friend class GameObjectsComponentsIterator;
+
+  friend class GameObjectsSequentialIterator;
 };
 
 template<class T, class ...Args>
