@@ -153,7 +153,24 @@ void AnimationStatesMachine::increaseCurrentTime(float delta)
     }
   }
 
-  if (activeState.getInitialPoseNode().getState() == AnimationPoseNodeState::Finished) {
+  // Check conditional transitions and switch to next state if any condition is fulfilled
+  bool isTransitionActivated = false;
+
+  for (size_t targetIndex = 0; targetIndex < m_transitionsTable[m_activeStateId].size(); targetIndex++) {
+    auto& transition = m_transitionsTable[m_activeStateId][targetIndex];
+
+    if (transition.isActive()) {
+      std::shared_ptr<ConditionalNode> conditionalNode = transition.getCondition();
+
+      if (conditionalNode != nullptr && std::get<bool>(conditionalNode->evaluate(m_variablesSet))) {
+        switchToNextState(targetIndex);
+        isTransitionActivated = true;
+      }
+    }
+  }
+
+  // Check whether animation state is finished and switch to next state if it is needed
+  if (!isTransitionActivated && activeState.getInitialPoseNode().getState() == AnimationPoseNodeState::Finished) {
     if (activeState.getFinalAction() == AnimationFinalAction::SwitchState) {
       switchToNextState(activeState.getFinalTransitionStateId());
     }

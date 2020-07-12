@@ -30,6 +30,8 @@ class AnimationClip {
   void setDuration(float duration);
   [[nodiscard]] float getDuration() const;
 
+  [[nodiscard]] float getDurationInSeconds() const;
+
   void setRate(float rate);
   [[nodiscard]] float getRate() const;
 
@@ -52,7 +54,14 @@ class AnimationClip {
   std::string m_name;
   std::vector<BoneAnimationChannel> m_bonesAnimationChannels;
 
+  /**
+   * @brief Animation clip duration in frames
+   */
   float m_duration = 0.0f;
+
+  /**
+   * @brief Animation clip frame rate
+   */
   float m_rate = 0.0f;
 };
 

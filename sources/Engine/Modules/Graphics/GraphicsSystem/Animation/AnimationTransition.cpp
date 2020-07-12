@@ -47,3 +47,13 @@ void AnimationTransition::deactivate()
 {
   m_isActive = false;
 }
+
+void AnimationTransition::setCondition(std::shared_ptr<ConditionalNode> condition)
+{
+  m_condition = std::move(condition);
+}
+
+std::shared_ptr<ConditionalNode> AnimationTransition::getCondition() const
+{
+  return m_condition;
+}

@@ -98,6 +98,11 @@ glm::vec3 AnimationClip::getIdentity() const
     return glm::vec3(0.0f);
 }
 
+float AnimationClip::getDurationInSeconds() const
+{
+  return m_duration / m_rate;
+}
+
 template<>
 glm::quat AnimationClip::getIdentity() const
 {
