@@ -147,3 +147,11 @@ GameObject* GameWorld::findGameObject(GameObjectId id) const
 
   return nullptr;
 }
+
+std::shared_ptr<GameWorld> GameWorld::createInstance()
+{
+  std::shared_ptr<GameWorld> gameWorld(new GameWorld());
+  gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld));
+
+  return gameWorld;
+}

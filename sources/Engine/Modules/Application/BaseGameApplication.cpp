@@ -224,7 +224,7 @@ void BaseGameApplication::initializeEngine()
 
   resourceManager->addResourcesMap("../resources/engine_resources.xml");
 
-  m_gameWorld = std::make_shared<GameWorld>();
+  m_gameWorld = GameWorld::createInstance();
   m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
     m_sharedGraphicsState, resourceManager);
 
@@ -234,8 +234,6 @@ void BaseGameApplication::initializeEngine()
 void BaseGameApplication::initializeEngineSystems()
 {
   std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
-
-  m_gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(m_gameWorld));
 
   std::shared_ptr<GameSystemsGroup> engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
   m_gameWorld->getGameSystemsGroup()->addGameSystem(engineGameSystems);

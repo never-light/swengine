@@ -25,7 +25,6 @@
  */
 class GameWorld : public std::enable_shared_from_this<GameWorld> {
  public:
-  GameWorld();
   ~GameWorld();
 
   /*!
@@ -189,13 +188,19 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   template<class T>
   EventProcessStatus emitEvent(const T& event);
 
- protected:
+ public:
+  static std::shared_ptr<GameWorld> createInstance();
+
+ private:
+  GameWorld();
+  GameWorld(const GameWorld& gameWorld) = delete;
+
   void removeDestroyedObjects();
 
- protected:
+ private:
   GameObjectId m_lastGameObjectId = -1;
 
- protected:
+ private:
   std::unique_ptr<GameSystemsGroup> m_gameSystemsGroup;
   std::vector<GameObject*> m_gameObjects;
 
