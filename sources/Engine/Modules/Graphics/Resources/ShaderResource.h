@@ -12,6 +12,7 @@ struct ShaderResourceParameters : ResourceSourceParameters {
   explicit ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType)
   {}
 
+  // TODO: replace GLenum with abstract enum here. GL data types should be used only inside GL layer
   GLenum shaderType;
 };
 

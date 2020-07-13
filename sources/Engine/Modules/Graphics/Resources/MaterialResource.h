@@ -18,6 +18,7 @@ struct MaterialResourceParameters : ResourceSourceParameters {
   };
 
   struct ShaderParam {
+    // TODO: replace GLenum with abstract enum here. GL data types should be used only inside GL layer
     GLenum shaderType;
     std::string name;
     ShaderParamType type;

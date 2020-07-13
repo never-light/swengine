@@ -222,7 +222,7 @@ void BaseGameApplication::initializeEngine()
   resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
   resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
 
-  resourceManager->addResourcesMap("../resources/engine_resources.xml");
+  resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
   m_gameWorld = GameWorld::createInstance();
   m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,

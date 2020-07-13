@@ -37,7 +37,12 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
   [[nodiscard]] const ResourceDeclaration& getResourceDeclaration(const std::string& resourceId);
   [[nodiscard]] std::shared_ptr<ResourceInstance> getResourceInstance(const std::string& resourceId);
 
-  void addResourcesMap(const std::string& path);
+  void loadResourcesMap(const std::string& content);
+  void loadResourcesMapFile(const std::string& path);
+
+ private:
+  void loadResourcesMap(const pugi::xml_node& declarationsList);
+
 
  private:
   std::unordered_map<std::string, ResourceDeclaration> m_resourcesDeclarations;

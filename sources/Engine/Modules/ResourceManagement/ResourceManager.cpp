@@ -49,7 +49,20 @@ std::shared_ptr<ResourceInstance> ResourceManager::getResourceInstance(const std
   return resourceInstance;
 }
 
-void ResourceManager::addResourcesMap(const std::string& path)
+void ResourceManager::loadResourcesMap(const std::string& content)
+{
+  pugi::xml_document resourcesMap;
+  pugi::xml_parse_result result = resourcesMap.load_string(content.c_str());
+
+  if (!result) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load resources map from invalid source");
+  }
+
+  pugi::xml_node declarationsList = resourcesMap.child("resources");
+  loadResourcesMap(declarationsList);
+}
+
+void ResourceManager::loadResourcesMapFile(const std::string& path)
 {
   pugi::xml_document resourcesMap;
   pugi::xml_parse_result result = resourcesMap.load_file(path.c_str());
@@ -59,7 +72,11 @@ void ResourceManager::addResourcesMap(const std::string& path)
   }
 
   pugi::xml_node declarationsList = resourcesMap.child("resources");
+  loadResourcesMap(declarationsList);
+}
 
+void ResourceManager::loadResourcesMap(const pugi::xml_node& declarationsList)
+{
   for (pugi::xml_node declarationNode : declarationsList.children("resource")) {
     std::string resourceName = declarationNode.attribute("id").as_string();
 
@@ -134,4 +151,5 @@ void ResourceManager::addResourcesMap(const std::string& path)
       }
     }
   }
+
 }
