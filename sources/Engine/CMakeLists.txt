@@ -18,7 +18,7 @@ target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 
 target_link_libraries(engine ${ENGINE_LIBS})
 
-target_precompile_headers(engine PRIVATE precompiled.h)
+target_precompile_headers(engine PUBLIC precompiled.h)
 
 install(TARGETS engine DESTINATION lib)
 install(FILES ${ENGINE_INCLUDES} DESTINATION include/engine)

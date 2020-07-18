@@ -222,26 +222,26 @@ void GLGraphicsContext::applyMaterial(const GLMaterial& material)
 
     const auto& rawValue = genericValue.value;
 
-    if (auto pval = std::get_if<int>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    if (auto intVal = std::get_if<int>(&rawValue)) {
+      shader->setParameter(parameterName, *intVal);
     }
-    else if (auto pval = std::get_if<float>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    else if (auto floatVal = std::get_if<float>(&rawValue)) {
+      shader->setParameter(parameterName, *floatVal);
     }
-    else if (auto pval = std::get_if<glm::vec3>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    else if (auto vec3Val = std::get_if<glm::vec3>(&rawValue)) {
+      shader->setParameter(parameterName, *vec3Val);
     }
-    else if (auto pval = std::get_if<glm::vec4>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    else if (auto vec4Val = std::get_if<glm::vec4>(&rawValue)) {
+      shader->setParameter(parameterName, *vec4Val);
     }
-    else if (auto pval = std::get_if<glm::mat3>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    else if (auto mat3Val = std::get_if<glm::mat3>(&rawValue)) {
+      shader->setParameter(parameterName, *mat3Val);
     }
-    else if (auto pval = std::get_if<glm::mat4>(&rawValue)) {
-      shader->setParameter(parameterName, *pval);
+    else if (auto mat4Val = std::get_if<glm::mat4>(&rawValue)) {
+      shader->setParameter(parameterName, *mat4Val);
     }
-    else if (auto pval = std::get_if<GLMaterial::TextureParameter>(&rawValue)) {
-      shader->setParameter(parameterName, *(*pval).texture.get(), (*pval).slotIndex);
+    else if (auto textureVal = std::get_if<GLMaterial::TextureParameter>(&rawValue)) {
+      shader->setParameter(parameterName, *(textureVal->texture), textureVal->slotIndex);
     }
     else {
       THROW_EXCEPTION(EngineRuntimeException, "Failed to set generic material parameter");

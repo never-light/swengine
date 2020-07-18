@@ -54,6 +54,8 @@ void FreeCameraControlSystem::unconfigure(GameWorld* gameWorld)
 
 void FreeCameraControlSystem::update(GameWorld* gameWorld, float delta)
 {
+  ARG_UNUSED(gameWorld);
+
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
   glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
 

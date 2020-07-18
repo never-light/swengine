@@ -275,6 +275,8 @@ std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::ClipNode::g
   AnimationStatesMachineVariables& variablesSet,
   ResourceManager& resourceManager) const
 {
+  ARG_UNUSED(variablesSet);
+
   std::shared_ptr<AnimationClip> animationClip =
     resourceManager.getResourceFromInstance<SkeletalAnimationResource>(clip.name)->getClip();
 

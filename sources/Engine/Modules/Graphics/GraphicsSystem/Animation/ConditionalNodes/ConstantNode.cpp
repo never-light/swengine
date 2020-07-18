@@ -22,5 +22,7 @@ void ConstantNode::setConstant(float constant)
 
 ConditionalExpressionResult ConstantNode::evaluate(const AnimationStatesMachineVariables& variables)
 {
+  ARG_UNUSED(variables);
+
   return ConditionalExpressionResult{m_constant};
 }

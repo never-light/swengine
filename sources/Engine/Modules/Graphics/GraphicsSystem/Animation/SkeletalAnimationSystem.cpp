@@ -48,6 +48,8 @@ void SkeletalAnimationSystem::updateObjectBounds(TransformComponent& transformCo
   MeshRendererComponent& meshRendererComponent,
   float delta)
 {
+  ARG_UNUSED(delta);
+
   glm::mat4 boundTransformation = transformComponent.getTransform()->getTransformationMatrix() *
     skeletalAnimationComponent.getMatrixPalette().bonesTransforms[0];
 

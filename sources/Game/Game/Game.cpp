@@ -61,6 +61,8 @@ void Game::leaveConsoleMode()
 
 EventProcessStatus Game::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
 {
+  ARG_UNUSED(gameWorld);
+
   if (event.command == "free-camera") {
     m_preservedCameraControlSystem = m_freeCameraControlSystem;
 

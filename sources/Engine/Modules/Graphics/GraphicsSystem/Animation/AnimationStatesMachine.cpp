@@ -163,7 +163,7 @@ void AnimationStatesMachine::increaseCurrentTime(float delta)
       std::shared_ptr<ConditionalNode> conditionalNode = transition.getCondition();
 
       if (conditionalNode != nullptr && std::get<bool>(conditionalNode->evaluate(m_variablesSet))) {
-        switchToNextState(targetIndex);
+        switchToNextState(static_cast<int16_t>(targetIndex));
         isTransitionActivated = true;
       }
     }

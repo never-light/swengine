@@ -77,6 +77,7 @@ void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 
 void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 {
+  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
@@ -218,6 +219,8 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
 
 EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
 {
+  ARG_UNUSED(gameWorld);
+
   // TODO: that's code for animation demo, remove it and implement real player animations
   if (event.actionName == "look_around" && event.newState == InputActionState::Active) {
     auto& animationStatesMachine =
