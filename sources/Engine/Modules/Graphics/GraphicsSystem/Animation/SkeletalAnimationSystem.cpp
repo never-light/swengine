@@ -21,17 +21,17 @@ void SkeletalAnimationSystem::unconfigure(GameWorld* gameWorld)
 
 void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
 {
-  for (const GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
-    auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>().getRef();
+  for (GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
+    auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>();
     auto& statesMachine = animationComponent.getAnimationStatesMachineRef();
 
     if (statesMachine.isActive()) {
       updateAnimationStateMachine(statesMachine, delta);
 
       if (obj->hasComponent<MeshRendererComponent>()) {
-        updateObjectBounds(obj->getComponent<TransformComponent>().getRef(),
+        updateObjectBounds(obj->getComponent<TransformComponent>(),
           animationComponent,
-          obj->getComponent<MeshRendererComponent>().getRef(),
+          obj->getComponent<MeshRendererComponent>(),
           delta);
       }
     }
@@ -50,7 +50,7 @@ void SkeletalAnimationSystem::updateObjectBounds(TransformComponent& transformCo
 {
   ARG_UNUSED(delta);
 
-  glm::mat4 boundTransformation = transformComponent.getTransform()->getTransformationMatrix() *
+  glm::mat4 boundTransformation = transformComponent.getTransform().getTransformationMatrix() *
     skeletalAnimationComponent.getMatrixPalette().bonesTransforms[0];
 
   meshRendererComponent.updateBounds(boundTransformation);

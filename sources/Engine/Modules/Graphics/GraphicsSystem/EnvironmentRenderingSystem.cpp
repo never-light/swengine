@@ -58,7 +58,7 @@ void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
 
   SW_ASSERT(environmentObject != nullptr);
 
-  Material* material = environmentObject->getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
+  Material* material = environmentObject->getComponent<EnvironmentComponent>().getEnvironmentMaterial();
 
   Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
 

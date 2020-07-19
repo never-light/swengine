@@ -5,12 +5,18 @@
 #include "TransformComponent.h"
 
 TransformComponent::TransformComponent()
-  : m_transform(std::make_unique<Transform>())
+  : m_transform(std::make_shared<Transform>())
 {
 
 }
 
-Transform* TransformComponent::getTransform() const
+Transform& TransformComponent::getTransform()
 {
-  return m_transform.get();
+  return *m_transform;
 }
+
+const Transform& TransformComponent::getTransform() const
+{
+  return *m_transform;
+}
+

@@ -1,10 +1,8 @@
 #pragma once
 
+#include <any>
 #include <unordered_map>
 #include <typeindex>
-
-#include "ComponentInstance.h"
-#include "ComponentHandle.h"
 
 using GameObjectId = int;
 
@@ -24,7 +22,7 @@ class GameObject {
   virtual ~GameObject();
 
   template<class T, class... Args>
-  ComponentHandle<T> addComponent(Args&& ... args);
+  T& addComponent(Args&& ... args);
 
   template<class T>
   void removeComponent();
@@ -35,7 +33,15 @@ class GameObject {
    * \return the specified component handle
    */
   template<class T>
-  ComponentHandle<T> getComponent() const;
+  T& getComponent();
+
+  /*!
+ * \brief Gets the specified component
+ *
+ * \return the specified component handle
+ */
+  template<class T>
+  const T& getComponent() const;
 
   /*!
   * \brief Checks existing of the component
@@ -69,7 +75,7 @@ class GameObject {
 
  protected:
   GameObjectId m_id;
-  std::unordered_map<std::type_index, BaseComponentInstance*> m_components;
+  std::unordered_map<std::type_index, std::any> m_components;
 
   bool m_isDestroyed;
 

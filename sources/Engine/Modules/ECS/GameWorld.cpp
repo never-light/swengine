@@ -123,10 +123,6 @@ void GameWorld::removeDestroyedObjects()
 {
   std::for_each(m_gameObjects.begin(), m_gameObjects.end(), [](std::shared_ptr<GameObject>& obj) {
     if (!obj->isAlive()) {
-      for (auto& it : obj->m_components) {
-        delete it.second;
-      }
-
       obj = nullptr;
     }
   });

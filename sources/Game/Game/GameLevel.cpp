@@ -25,9 +25,9 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(resourceManager)
 {
   m_player = m_gameWorld->createGameObject();
-  auto playerTransformComponent = m_player->addComponent<TransformComponent>();
-  playerTransformComponent->getTransform()->pitchLocal(-90.0f);
-  playerTransformComponent->getTransform()->scale(0.1f, 0.1f, 0.1f);
+  auto& playerTransformComponent = m_player->addComponent<TransformComponent>();
+  playerTransformComponent.getTransform().pitchLocal(-90.0f);
+  playerTransformComponent.getTransform().scale(0.1f, 0.1f, 0.1f);
 
   m_player->addComponent<PlayerComponent>();
 
@@ -40,8 +40,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   camera->getTransform()->setPosition(0, 0, 0);
   camera->getTransform()->lookAt(0, 0, 1);
 
-  auto playerCameraComponent = m_player->addComponent<CameraComponent>();
-  playerCameraComponent->setCamera(camera);
+  auto& playerCameraComponent = m_player->addComponent<CameraComponent>();
+  playerCameraComponent.setCamera(camera);
 
   std::shared_ptr<Skeleton> playerSkeleton =
     m_resourceManager->getResourceFromInstance<SkeletonResource>("human_skeleton")->getSkeleton();
@@ -54,17 +54,17 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<Material> playerMaterial =
     m_resourceManager->getResourceFromInstance<MaterialResource>("player_material")->getMaterial();
 
-  auto playerMeshRendererComponent = m_player->addComponent<MeshRendererComponent>();
-  playerMeshRendererComponent->setMeshInstance(playerMesh);
-  playerMeshRendererComponent->setMaterialInstance(0, playerMaterial);
-  playerMeshRendererComponent->updateBounds(playerTransformComponent->getTransform()->getTransformationMatrix());
+  auto& playerMeshRendererComponent = m_player->addComponent<MeshRendererComponent>();
+  playerMeshRendererComponent.setMeshInstance(playerMesh);
+  playerMeshRendererComponent.setMaterialInstance(0, playerMaterial);
+  playerMeshRendererComponent.updateBounds(playerTransformComponent.getTransform().getTransformationMatrix());
 
   auto playerAnimationStatesMachine =
     m_resourceManager->getResourceFromInstance<AnimationStatesMachineResource>("player_animation_machine")->
       getMachine();
 
-  auto playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
-  playerAnimationComponent->setAnimationStatesMachine(playerAnimationStatesMachine);
+  auto& playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
+  playerAnimationComponent.setAnimationStatesMachine(playerAnimationStatesMachine);
   
   // Game objects
   std::shared_ptr<Material>
@@ -73,28 +73,27 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   {
     std::shared_ptr<GameObject> obj = m_gameWorld->createGameObject();
-    auto transformHandle = obj->addComponent<TransformComponent>();
+    auto& transformHandle = obj->addComponent<TransformComponent>();
 
-    transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
+    transformHandle.getTransform().move(0.0f, 0.0f, 0.0f);
 
     std::shared_ptr<Mesh>
       cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("ground_mesh")->getMesh();
 
-    auto componentHandle = obj->addComponent<MeshRendererComponent>();
-    componentHandle->setMeshInstance(cubeGeometry);
-    componentHandle->setMaterialsInstances({material});
+    auto& componentHandle = obj->addComponent<MeshRendererComponent>();
+    componentHandle.setMeshInstance(cubeGeometry);
+    componentHandle.setMaterialsInstances({material});
 
-    componentHandle->updateBounds(transformHandle->getTransform()->getTransformationMatrix());
+    componentHandle.updateBounds(transformHandle.getTransform().getTransformationMatrix());
   }
 
   // Environment
   {
     std::shared_ptr<GameObject> environmentObj = m_gameWorld->createGameObject();
-    auto environment = environmentObj->addComponent<EnvironmentComponent>();
+    auto& environment = environmentObj->addComponent<EnvironmentComponent>();
 
-    environment
-      ->setEnvironmentMaterial(m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")
-        ->getMaterial());
+    environment.setEnvironmentMaterial(
+      m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")->getMaterial());
   }
 }
 

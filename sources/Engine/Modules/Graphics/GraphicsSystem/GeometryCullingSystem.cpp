@@ -40,26 +40,26 @@ void GeometryCullingSystem::update(GameWorld* gameWorld, float delta)
 
 void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
 {
-  for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-    const auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+  for (GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
+    auto& meshComponent = obj->getComponent<MeshRendererComponent>();
 
     std::shared_ptr<Camera> activeCamera = m_sharedGraphicsState->getActiveCamera();
 
-    bool isCulled = !isAABBFrustumIntersecting(meshComponent->getAABB(), activeCamera->getFrustum());
+    bool isCulled = !isAABBFrustumIntersecting(meshComponent.getAABB(), activeCamera->getFrustum());
 
     if (isCulled) {
-      meshComponent->cull();
+      meshComponent.cull();
 
       m_sharedGraphicsState->getFrameStats()
-        .increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
+        .increaseCulledSubMeshesCount(meshComponent.getMeshInstance()->getSubMeshesCount());
     }
   }
 }
 
 void GeometryCullingSystem::afterRender(GameWorld* gameWorld)
 {
-  for (const GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-    obj->getComponent<MeshRendererComponent>()->cull(false);
+  for (GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
+    obj->getComponent<MeshRendererComponent>().cull(false);
   }
 }
 

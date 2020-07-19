@@ -9,7 +9,6 @@
 
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
-#include "ComponentInstance.h"
 
 #include "GameObjectsSequentialView.h"
 #include "GameObjectsComponentsView.h"
@@ -19,8 +18,6 @@
 // TODO: declare and use type alias like GameObjectRef instead of std::shared_ptr<GameObject>
 
 // TODO: check whether the game object alive before any actions with it
-
-// TODO: remove proxy object for game objects' components, forbid ability to store owning references to components
 
 // TODO: replace raw EventListener pointers with shared pointers to avoid memory leaks or usage of invalid pointers
 
@@ -36,6 +33,7 @@
  */
 class GameWorld : public std::enable_shared_from_this<GameWorld> {
  public:
+  GameWorld(const GameWorld& gameWorld) = delete;
   ~GameWorld();
 
   /*!
@@ -157,7 +155,6 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 
  private:
   GameWorld();
-  GameWorld(const GameWorld& gameWorld) = delete;
 
   void removeDestroyedObjects();
 
@@ -176,7 +173,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  * \return ComponentHandle object
  */
   template<class T, class... Args>
-  ComponentHandle<T> assignComponent(GameObject& gameObject, Args&& ... args);
+  T& assignComponent(GameObject& gameObject, Args&& ... args);
 
   /*!
    * \brief Removes the component from the game object
@@ -228,35 +225,28 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 };
 
 template<class T, class ...Args>
-inline ComponentHandle<T> GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
+inline T& GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
 {
-  std::type_index typeId = std::type_index(typeid(T));
+  auto typeId = std::type_index(typeid(T));
 
-  T component(std::forward<Args>(args)...);
+  T rawComponentObj = T(std::forward<Args>(args)...);
+  std::any component = rawComponentObj;
 
-  ComponentInstance<T>* instance = new ComponentInstance<T>(&gameObject, std::move(component));
+  gameObject.m_components[typeId] = component;
 
-  gameObject.m_components[typeId] = instance;
-
-  return ComponentHandle<T>(instance->getDataPtr());
+  return *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
 }
 
 template<class T>
 inline void GameWorld::removeComponent(GameObject& gameObject)
 {
-  std::type_index typeId = std::type_index(typeid(T));
+  auto typeId = std::type_index(typeid(T));
 
   auto componentIterator = gameObject.m_components.find(typeId);
 
-  if (componentIterator == gameObject.m_components.end()) {
-    return;
-  }
-
-  BaseComponentInstance* instance = componentIterator->second;
+  SW_ASSERT(componentIterator != gameObject.m_components.end());
 
   gameObject.m_components.erase(componentIterator);
-
-  delete instance;
 }
 
 template<class ...ComponentsTypes>
@@ -271,7 +261,7 @@ inline GameObjectsComponentsView<ComponentsTypes...> GameWorld::allWith()
 template<class T>
 inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener)
 {
-  std::type_index typeId = std::type_index(typeid(T));
+  auto typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
 
@@ -286,7 +276,7 @@ inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener)
 template<class T>
 inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener)
 {
-  std::type_index typeId = std::type_index(typeid(T));
+  auto typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
 
@@ -303,13 +293,13 @@ template<class T>
 inline EventProcessStatus GameWorld::emitEvent(const T& event)
 {
   bool processed = false;
-  std::type_index typeId = std::type_index(typeid(T));
+  auto typeId = std::type_index(typeid(T));
 
   auto eventListenersListIt = m_eventsListeners.find(typeId);
 
   if (eventListenersListIt != m_eventsListeners.end()) {
     for (BaseEventsListener* baseListener : eventListenersListIt->second) {
-      EventsListener<T>* listener = reinterpret_cast<EventsListener<T>*>(baseListener);
+      auto* listener = reinterpret_cast<EventsListener<T>*>(baseListener);
       EventProcessStatus processStatus = listener->receiveEvent(this, event);
 
       if (processStatus == EventProcessStatus::Prevented) {

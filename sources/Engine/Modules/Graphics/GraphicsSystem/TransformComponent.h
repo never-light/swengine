@@ -8,9 +8,10 @@ class TransformComponent {
  public:
   TransformComponent();
 
-  [[nodiscard]] Transform* getTransform() const;
+  [[nodiscard]] Transform& getTransform();
+  [[nodiscard]] const Transform& getTransform() const;
 
  private:
-  std::unique_ptr<Transform> m_transform;
+  std::shared_ptr<Transform> m_transform;
 };
 

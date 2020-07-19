@@ -26,8 +26,7 @@ class PlayerControlSystem : public GameSystem,
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
 
  private:
-  [[nodiscard]] Camera* getPlayerCamera() const;
-  [[nodiscard]] Transform* getPlayerTransform() const;
+  [[nodiscard]] Camera& getPlayerCamera() const;
 
   void updateViewParameters(const glm::vec2& mouseDelta, float delta);
   void updatePlayerAndCameraPosition(float delta);

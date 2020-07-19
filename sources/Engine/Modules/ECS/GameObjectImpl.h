@@ -7,7 +7,7 @@
 #include "swdebug.h"
 
 template<class T, class ...Args>
-inline ComponentHandle<T> GameObject::addComponent(Args&& ...args)
+inline T& GameObject::addComponent(Args&& ...args)
 {
   SW_ASSERT(!hasComponent<T>());
 
@@ -23,10 +23,23 @@ inline void GameObject::removeComponent()
 }
 
 template<class T>
-inline ComponentHandle<T> GameObject::getComponent() const
+inline T& GameObject::getComponent()
 {
-  BaseComponentInstance* baseInstance = m_components.at(std::type_index(typeid(T)));
-  return ComponentHandle<T>(reinterpret_cast<ComponentInstance<T>*>(baseInstance)->getDataPtr());
+  auto componentIt = m_components.find(std::type_index(typeid(T)));
+
+  SW_ASSERT(componentIt != m_components.end());
+
+  return *std::any_cast<T>(&componentIt->second);
+}
+
+template<class T>
+inline const T& GameObject::getComponent() const
+{
+  auto componentIt = m_components.find(std::type_index(typeid(T)));
+
+  SW_ASSERT(componentIt != m_components.end());
+
+  return *std::any_cast<T>(&componentIt->second);
 }
 
 template<class T>

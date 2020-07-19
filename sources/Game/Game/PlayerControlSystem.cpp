@@ -35,23 +35,23 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
     SW_ASSERT(!playerObjectsView.begin().isEnd());
 
     m_playerObject = playerObjectsView.begin().getGameObject();
-    m_playerObject->getComponent<TransformComponent>()->getTransform()->move({0.0f, 0.35f, 0.0f});
+    m_playerObject->getComponent<TransformComponent>().getTransform().move({0.0f, 0.35f, 0.0f});
 
-    const auto& skeletalAnimationComponent = m_playerObject->getComponent<SkeletalAnimationComponent>();
+    auto& skeletalAnimationComponent = m_playerObject->getComponent<SkeletalAnimationComponent>();
 
     m_runningAnimationStateId =
-      skeletalAnimationComponent->getAnimationStatesMachineRef().getStateIdByName("running");
+      skeletalAnimationComponent.getAnimationStatesMachineRef().getStateIdByName("running");
 
     m_idleAnimationStateId =
-      skeletalAnimationComponent->getAnimationStatesMachineRef().getStateIdByName("idle");
+      skeletalAnimationComponent.getAnimationStatesMachineRef().getStateIdByName("idle");
 
-    skeletalAnimationComponent->getAnimationStatesMachineRef().setActiveState(m_runningAnimationStateId);
+    skeletalAnimationComponent.getAnimationStatesMachineRef().setActiveState(m_runningAnimationStateId);
   }
 
   gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
   gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 
-  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>()->getCamera());
+  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>().getCamera());
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
@@ -89,57 +89,52 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
   updatePlayerAndCameraPosition(delta);
 }
 
-Camera* PlayerControlSystem::getPlayerCamera() const
+Camera& PlayerControlSystem::getPlayerCamera() const
 {
-  return m_playerObject->getComponent<CameraComponent>()->getCamera().get();
-}
-
-Transform* PlayerControlSystem::getPlayerTransform() const
-{
-  return m_playerObject->getComponent<TransformComponent>()->getTransform();
+  return *m_playerObject->getComponent<CameraComponent>().getCamera();
 }
 
 void PlayerControlSystem::render(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
 
-  DebugPainter::renderAABB(m_playerObject->getComponent<MeshRendererComponent>()->getAABB());
+  DebugPainter::renderAABB(m_playerObject->getComponent<MeshRendererComponent>().getAABB());
 }
 
 EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event)
 {
   ARG_UNUSED(gameWorld);
 
-  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
-  playerComponent->increaseDistanceToPlayer(event.wheelDelta * 0.2f);
+  auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  playerComponent.increaseDistanceToPlayer(event.wheelDelta * 0.2f);
 
   return EventProcessStatus::Processed;
 }
 
 void PlayerControlSystem::updateViewParameters(const glm::vec2& mouseDelta, float delta)
 {
-  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
 
-  playerComponent->increaseThirdPersonViewPitch(mouseDelta.y * 6.0f * delta);
-  playerComponent->increaseThirdPersonViewYaw(mouseDelta.x * 6.0f * delta);
+  playerComponent.increaseThirdPersonViewPitch(mouseDelta.y * 6.0f * delta);
+  playerComponent.increaseThirdPersonViewYaw(mouseDelta.x * 6.0f * delta);
 }
 
 void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
 {
   const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
-  auto& playerCameraTransform = *getPlayerCamera()->getTransform();
-  auto& playerTransform = *m_playerObject->getComponent<TransformComponent>()->getTransform();
+  auto& playerCameraTransform = *getPlayerCamera().getTransform();
+  auto& playerTransform = m_playerObject->getComponent<TransformComponent>().getTransform();
 
-  float cameraYawAngle = playerComponent->getThirdPersonViewYaw();
+  float cameraYawAngle = playerComponent.getThirdPersonViewYaw();
 
-  float horizontalOffset = playerComponent->getDistanceToPlayer() *
-    glm::cos(glm::radians(playerComponent->getThirdPersonViewPitch()));
+  float horizontalOffset = playerComponent.getDistanceToPlayer() *
+    glm::cos(glm::radians(playerComponent.getThirdPersonViewPitch()));
 
   float horizontalOffsetX = horizontalOffset * glm::sin(glm::radians(cameraYawAngle));
   float horizontalOffsetZ = horizontalOffset * glm::cos(glm::radians(cameraYawAngle));
 
-  float verticalOffset = playerComponent->getDistanceToPlayer() *
-    glm::sin(glm::radians(playerComponent->getThirdPersonViewPitch()));
+  float verticalOffset = playerComponent.getDistanceToPlayer() *
+    glm::sin(glm::radians(playerComponent.getThirdPersonViewPitch()));
 
   playerCameraTransform.setPosition(playerTransform.getPosition().x - horizontalOffsetX,
     playerTransform.getPosition().y + verticalOffset,
@@ -150,7 +145,7 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
   glm::vec3 playerCameraRightDirection = glm::normalize(playerCameraTransform.getRightDirection() *
     glm::vec3{1.0f, 0.0f, 1.0f});
 
-  float playerMovementSpeed = playerComponent->getMovementSpeed();
+  float playerMovementSpeed = playerComponent.getMovementSpeed();
 
   bool playerIsRunning = m_inputModule->isActionActive("forward") ||
     m_inputModule->isActionActive("backward") ||
@@ -185,7 +180,7 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
 
   // TODO: that's code for animation demo, remove it and implement real player animations
   auto& animationStatesMachine =
-    m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
+    m_playerObject->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef();
 
   auto& animationVariablesSet = animationStatesMachine.getVariablesSet();
   float lookAroundFactor = animationVariablesSet.getVariableValue("look_around_factor");
@@ -224,7 +219,7 @@ EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const
   // TODO: that's code for animation demo, remove it and implement real player animations
   if (event.actionName == "look_around" && event.newState == InputActionState::Active) {
     auto& animationStatesMachine =
-      m_playerObject->getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
+      m_playerObject->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef();
 
     int16_t lookAroundStateId = animationStatesMachine.getStateIdByName("look_around");
 

@@ -29,18 +29,18 @@ class TestGameSystem : public GameSystem {
     ARG_UNUSED(delta);
 
     for (auto object : gameWorld->allWith<TestSpeedComponent>()) {
-      object->getComponent<TestSpeedComponent>()->speed += 5;
+      object->getComponent<TestSpeedComponent>().speed += 5;
     }
 
     for (auto object : gameWorld->allWith<TestMeshComponent>()) {
-      object->getComponent<TestMeshComponent>()->isDrawn = false;
+      object->getComponent<TestMeshComponent>().isDrawn = false;
     }
   }
 
   void render(GameWorld* gameWorld) override
   {
     for (auto object : gameWorld->allWith<TestMeshComponent>()) {
-      object->getComponent<TestMeshComponent>()->isDrawn = true;
+      object->getComponent<TestMeshComponent>().isDrawn = true;
     }
   }
 };
@@ -77,16 +77,16 @@ TEST_CASE("game_objects_creation", "[ecs]")
   firstObject->addComponent<TestSpeedComponent>(TestSpeedComponent{10});
 
   REQUIRE(firstObject->hasComponent<TestHealthComponent>());
-  REQUIRE(firstObject->getComponent<TestHealthComponent>()->health == 0);
+  REQUIRE(firstObject->getComponent<TestHealthComponent>().health == 0);
 
   REQUIRE(firstObject->hasComponent<TestSpeedComponent>());
-  REQUIRE(firstObject->getComponent<TestSpeedComponent>()->speed == 10);
+  REQUIRE(firstObject->getComponent<TestSpeedComponent>().speed == 10);
 
   std::shared_ptr<GameObject> secondObject = gameWorld->createGameObject();
   secondObject->addComponent<TestSpeedComponent>(TestSpeedComponent{20});
 
   REQUIRE(secondObject->hasComponent<TestSpeedComponent>());
-  REQUIRE(secondObject->getComponent<TestSpeedComponent>()->speed == 20);
+  REQUIRE(secondObject->getComponent<TestSpeedComponent>().speed == 20);
 
   REQUIRE(gameWorld->findGameObject(firstObject->getId()) == firstObject);
   REQUIRE(gameWorld->findGameObject(secondObject->getId()) == secondObject);
@@ -101,10 +101,10 @@ TEST_CASE("game_objects_components_management", "[ecs]")
   object->addComponent<TestSpeedComponent>(TestSpeedComponent{15});
 
   REQUIRE(object->hasComponent<TestHealthComponent>());
-  REQUIRE(object->getComponent<TestHealthComponent>()->health == 10);
+  REQUIRE(object->getComponent<TestHealthComponent>().health == 10);
 
   REQUIRE(object->hasComponent<TestSpeedComponent>());
-  REQUIRE(object->getComponent<TestSpeedComponent>()->speed == 15);
+  REQUIRE(object->getComponent<TestSpeedComponent>().speed == 15);
 
   object->removeComponent<TestHealthComponent>();
 
@@ -114,7 +114,7 @@ TEST_CASE("game_objects_components_management", "[ecs]")
   object->addComponent<TestHealthComponent>(TestHealthComponent{50});
 
   REQUIRE(object->hasComponent<TestHealthComponent>());
-  REQUIRE(object->getComponent<TestHealthComponent>()->health == 50);
+  REQUIRE(object->getComponent<TestHealthComponent>().health == 50);
 }
 
 TEST_CASE("game_objects_management", "[ecs]")
@@ -190,17 +190,17 @@ TEST_CASE("game_systems_usage", "[ecs]")
 
   gameWorld->update(1.0f);
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>()->speed == 15);
+  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 15);
 
   gameWorld->render();
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>()->speed == 15);
-  REQUIRE(gameObject->getComponent<TestMeshComponent>()->isDrawn);
+  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 15);
+  REQUIRE(gameObject->getComponent<TestMeshComponent>().isDrawn);
 
   gameWorld->update(1.0f);
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>()->speed == 20);
-  REQUIRE_FALSE(gameObject->getComponent<TestMeshComponent>()->isDrawn);
+  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 20);
+  REQUIRE_FALSE(gameObject->getComponent<TestMeshComponent>().isDrawn);
 
   defaultGameSystemsGroup->removeGameSystem(testSystem);
 
@@ -210,7 +210,7 @@ TEST_CASE("game_systems_usage", "[ecs]")
   gameWorld->update(1.0f);
   gameWorld->render();
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>()->speed == 20);
+  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 20);
 }
 
 TEST_CASE("game_events_handling", "[ecs]")
