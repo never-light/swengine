@@ -33,7 +33,7 @@ GameObject* GameObjectsSequentialIterator::getGameObject() const
     return nullptr;
   }
 
-  return m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
+  return &m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
 }
 
 GameObject* GameObjectsSequentialIterator::operator*() const
@@ -65,7 +65,7 @@ GameObjectsSequentialIterator& GameObjectsSequentialIterator::operator++()
 
   m_gameObjectIndex++;
 
-  while (m_gameObjectIndex < gameObjectsCount && m_gameWorld->getGameObjectByIndex(m_gameObjectIndex)->isDestroyed()) {
+  while (m_gameObjectIndex < gameObjectsCount && !m_gameWorld->getGameObjectByIndex(m_gameObjectIndex).isAlive()) {
     m_gameObjectIndex++;
   }
 

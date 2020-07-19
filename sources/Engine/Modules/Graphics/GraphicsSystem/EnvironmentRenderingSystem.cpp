@@ -52,8 +52,8 @@ void EnvironmentRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
 {
-  GameObject* environmentObject = gameWorld->findGameObject([](GameObject* obj) {
-    return obj->hasComponent<EnvironmentComponent>();
+  std::shared_ptr<GameObject> environmentObject = gameWorld->findGameObject([](const GameObject& obj) {
+    return obj.hasComponent<EnvironmentComponent>();
   });
 
   SW_ASSERT(environmentObject != nullptr);

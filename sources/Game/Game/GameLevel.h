@@ -10,13 +10,13 @@ class GameLevel {
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<ResourceManager> resourceManager);
 
-  GameObject* getPlayer() const;
+  std::shared_ptr<GameObject> getPlayer() const;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<ResourceManager> m_resourceManager;
 
-  GameObject* m_player;
+  std::shared_ptr<GameObject> m_player;
 };
 

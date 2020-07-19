@@ -72,7 +72,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     getMaterial();
 
   {
-    GameObject* obj = m_gameWorld->createGameObject();
+    std::shared_ptr<GameObject> obj = m_gameWorld->createGameObject();
     auto transformHandle = obj->addComponent<TransformComponent>();
 
     transformHandle->getTransform()->move(0.0f, 0.0f, 0.0f);
@@ -89,7 +89,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   // Environment
   {
-    GameObject* environmentObj = m_gameWorld->createGameObject();
+    std::shared_ptr<GameObject> environmentObj = m_gameWorld->createGameObject();
     auto environment = environmentObj->addComponent<EnvironmentComponent>();
 
     environment
@@ -98,7 +98,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   }
 }
 
-GameObject* GameLevel::getPlayer() const
+std::shared_ptr<GameObject> GameLevel::getPlayer() const
 {
   return m_player;
 }

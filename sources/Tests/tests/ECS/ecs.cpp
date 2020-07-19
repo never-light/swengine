@@ -71,7 +71,7 @@ TEST_CASE("game_objects_creation", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
 
-  GameObject* firstObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> firstObject = gameWorld->createGameObject();
 
   firstObject->addComponent<TestHealthComponent>();
   firstObject->addComponent<TestSpeedComponent>(TestSpeedComponent{10});
@@ -82,7 +82,7 @@ TEST_CASE("game_objects_creation", "[ecs]")
   REQUIRE(firstObject->hasComponent<TestSpeedComponent>());
   REQUIRE(firstObject->getComponent<TestSpeedComponent>()->speed == 10);
 
-  GameObject* secondObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> secondObject = gameWorld->createGameObject();
   secondObject->addComponent<TestSpeedComponent>(TestSpeedComponent{20});
 
   REQUIRE(secondObject->hasComponent<TestSpeedComponent>());
@@ -95,7 +95,7 @@ TEST_CASE("game_objects_creation", "[ecs]")
 TEST_CASE("game_objects_components_management", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
-  GameObject* object = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> object = gameWorld->createGameObject();
 
   object->addComponent<TestHealthComponent>(TestHealthComponent{10});
   object->addComponent<TestSpeedComponent>(TestSpeedComponent{15});
@@ -121,32 +121,32 @@ TEST_CASE("game_objects_management", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
 
-  GameObject* firstObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> firstObject = gameWorld->createGameObject();
   GameObjectId firstObjectId = firstObject->getId();
 
   firstObject->addComponent<TestHealthComponent>();
 
-  GameObject* secondObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> secondObject = gameWorld->createGameObject();
   GameObjectId secondObjectId = secondObject->getId();
 
   secondObject->addComponent<TestHealthComponent>();
 
   gameWorld->removeGameObject(secondObject);
 
-  GameObject* thirdObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> thirdObject = gameWorld->createGameObject();
   GameObjectId thirdObjectId = thirdObject->getId();
 
   thirdObject->addComponent<TestHealthComponent>();
 
   REQUIRE(gameWorld->findGameObject(secondObjectId) == nullptr);
-  REQUIRE(gameWorld->findGameObject([secondObjectId](GameObject* obj) {
-    return obj->getId() == secondObjectId;
+  REQUIRE(gameWorld->findGameObject([secondObjectId](const GameObject& obj) {
+    return obj.getId() == secondObjectId;
   }) == nullptr);
 
   std::unordered_set<GameObjectId> objectsFoundByForEach;
 
-  gameWorld->forEach([&objectsFoundByForEach](GameObject* obj) {
-    objectsFoundByForEach.insert(obj->getId());
+  gameWorld->forEach([&objectsFoundByForEach](GameObject& obj) {
+    objectsFoundByForEach.insert(obj.getId());
   });
 
   REQUIRE(objectsFoundByForEach.contains(firstObjectId));
@@ -184,7 +184,7 @@ TEST_CASE("game_systems_usage", "[ecs]")
 
   REQUIRE(defaultGameSystemsGroup->getGameSystem<TestGameSystem>() == testSystem);
 
-  GameObject* gameObject = gameWorld->createGameObject();
+  std::shared_ptr<GameObject> gameObject = gameWorld->createGameObject();
   gameObject->addComponent<TestSpeedComponent>(TestSpeedComponent{10});
   gameObject->addComponent<TestMeshComponent>(TestMeshComponent{false});
 

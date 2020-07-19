@@ -16,7 +16,7 @@
 
 #include "EventsListener.h"
 
-// TODO: replace raw GameObject pointers with shared pointers or something like that to allow store owning references
+// TODO: declare and use type alias like GameObjectRef instead of std::shared_ptr<GameObject>
 
 // TODO: check whether the game object alive before any actions with it
 
@@ -74,7 +74,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    *
    * \return the object pointer
    */
-  GameObject* createGameObject();
+  std::shared_ptr<GameObject> createGameObject();
 
   /*!
    * \brief Finds the game object by ID
@@ -82,7 +82,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param id Identifier of the game object
    * \return the object pointer
    */
-  GameObject* findGameObject(GameObjectId id) const;
+  std::shared_ptr<GameObject> findGameObject(GameObjectId id) const;
 
   /*!
    * \brief Finds the game object by predicate
@@ -90,21 +90,21 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param predicate predicate for the object determination
    * \return the object pointer
    */
-  GameObject* findGameObject(std::function<bool(GameObject*)> predicate) const;
+  std::shared_ptr<GameObject> findGameObject(std::function<bool(const GameObject&)> predicate) const;
 
   /*!
    * \brief Removes the game objects
    *
    * \param gameObject removed game object
    */
-  void removeGameObject(GameObject* gameObject);
+  void removeGameObject(std::shared_ptr<GameObject> gameObject);
 
   /*!
    * \brief Performs specified action for each existing game object
    *
    * \param action action to perform
    */
-  void forEach(std::function<void(GameObject*)> action);
+  void forEach(std::function<void(GameObject&)> action);
 
   /*!
    * \brief Returns view for iterate over all game objects
@@ -176,7 +176,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  * \return ComponentHandle object
  */
   template<class T, class... Args>
-  ComponentHandle<T> assignComponent(GameObject* gameObject, Args&& ... args);
+  ComponentHandle<T> assignComponent(GameObject& gameObject, Args&& ... args);
 
   /*!
    * \brief Removes the component from the game object
@@ -184,7 +184,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param gameObject game object to remove the component
    */
   template<class T>
-  void removeComponent(GameObject* gameObject);
+  void removeComponent(GameObject& gameObject);
 
   /*!
    * \brief Gets the game object by it's index
@@ -192,7 +192,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param index index of the game object
    * \return the object pointer
    */
-  GameObject* getGameObjectByIndex(size_t index) const;
+  GameObject& getGameObjectByIndex(size_t index) const;
 
   /*!
    * \brief Checks whether the game object exists by it's index
@@ -214,7 +214,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 
  private:
   std::unique_ptr<GameSystemsGroup> m_gameSystemsGroup;
-  std::vector<GameObject*> m_gameObjects;
+  std::vector<std::shared_ptr<GameObject>> m_gameObjects;
 
   std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
 
@@ -228,33 +228,33 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
 };
 
 template<class T, class ...Args>
-inline ComponentHandle<T> GameWorld::assignComponent(GameObject* gameObject, Args&& ...args)
+inline ComponentHandle<T> GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
 {
   std::type_index typeId = std::type_index(typeid(T));
 
   T component(std::forward<Args>(args)...);
 
-  ComponentInstance<T>* instance = new ComponentInstance<T>(gameObject, std::move(component));
+  ComponentInstance<T>* instance = new ComponentInstance<T>(&gameObject, std::move(component));
 
-  gameObject->m_components[typeId] = instance;
+  gameObject.m_components[typeId] = instance;
 
   return ComponentHandle<T>(instance->getDataPtr());
 }
 
 template<class T>
-inline void GameWorld::removeComponent(GameObject* gameObject)
+inline void GameWorld::removeComponent(GameObject& gameObject)
 {
   std::type_index typeId = std::type_index(typeid(T));
 
-  auto componentIterator = gameObject->m_components.find(typeId);
+  auto componentIterator = gameObject.m_components.find(typeId);
 
-  if (componentIterator == gameObject->m_components.end()) {
+  if (componentIterator == gameObject.m_components.end()) {
     return;
   }
 
   BaseComponentInstance* instance = componentIterator->second;
 
-  gameObject->m_components.erase(componentIterator);
+  gameObject.m_components.erase(componentIterator);
 
   delete instance;
 }

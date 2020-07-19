@@ -17,7 +17,7 @@ GameObjectId GameObject::getId() const
   return m_id;
 }
 
-bool GameObject::isDestroyed() const
+bool GameObject::isAlive() const
 {
-  return m_isDestroyed;
+  return !m_isDestroyed;
 }

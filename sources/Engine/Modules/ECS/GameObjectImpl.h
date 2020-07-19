@@ -11,7 +11,7 @@ inline ComponentHandle<T> GameObject::addComponent(Args&& ...args)
 {
   SW_ASSERT(!hasComponent<T>());
 
-  return m_gameWorld->assignComponent<T, Args...>(this, std::forward<Args>(args) ...);
+  return m_gameWorld->assignComponent<T, Args...>(*this, std::forward<Args>(args) ...);
 }
 
 template<class T>
@@ -19,7 +19,7 @@ inline void GameObject::removeComponent()
 {
   SW_ASSERT(hasComponent<T>());
 
-  m_gameWorld->removeComponent<T>(this);
+  m_gameWorld->removeComponent<T>(*this);
 }
 
 template<class T>

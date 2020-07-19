@@ -13,15 +13,13 @@ GameWorld::~GameWorld()
 {
   m_gameSystemsGroup->unconfigure(this);
 
-  for (GameObject* object : m_gameObjects) {
-    for (auto& it : object->m_components) {
-      delete it.second;
-    }
-
-    object->m_isDestroyed = true;
-
-    delete object;
+  for (auto object : m_gameObjects) {
+    removeGameObject(object);
   }
+
+  removeDestroyedObjects();
+
+  SW_ASSERT(m_gameObjects.empty());
 }
 
 void GameWorld::update(float delta)
@@ -57,20 +55,20 @@ GameSystemsGroup* GameWorld::getGameSystemsGroup() const
   return m_gameSystemsGroup.get();
 }
 
-GameObject* GameWorld::createGameObject()
+std::shared_ptr<GameObject> GameWorld::createGameObject()
 {
   m_lastGameObjectId++;
-  GameObject* gameObject = new GameObject(m_lastGameObjectId, this);
+  auto gameObject = std::make_shared<GameObject>(m_lastGameObjectId, this);
 
   m_gameObjects.push_back(gameObject);
 
   return gameObject;
 }
 
-GameObject* GameWorld::findGameObject(const std::function<bool(GameObject*)> predicate) const
+std::shared_ptr<GameObject> GameWorld::findGameObject(const std::function<bool(const GameObject&)> predicate) const
 {
-  for (GameObject* object : m_gameObjects) {
-    if (!object->isDestroyed() && predicate(object)) {
+  for (auto object : m_gameObjects) {
+    if (object->isAlive() && predicate(*object)) {
       return object;
     }
   }
@@ -78,9 +76,9 @@ GameObject* GameWorld::findGameObject(const std::function<bool(GameObject*)> pre
   return nullptr;
 }
 
-GameObject* GameWorld::getGameObjectByIndex(size_t index) const
+GameObject& GameWorld::getGameObjectByIndex(size_t index) const
 {
-  return m_gameObjects[index];
+  return *m_gameObjects[index];
 }
 
 bool GameWorld::hasGameObjectWithIndex(size_t index) const
@@ -93,15 +91,15 @@ size_t GameWorld::getGameObjectsCount() const
   return m_gameObjects.size();
 }
 
-void GameWorld::removeGameObject(GameObject* gameObject)
+void GameWorld::removeGameObject(std::shared_ptr<GameObject> gameObject)
 {
   gameObject->m_isDestroyed = true;
 }
 
-void GameWorld::forEach(std::function<void(GameObject*)> action)
+void GameWorld::forEach(std::function<void(GameObject&)> action)
 {
   for (GameObject* gameObject : this->all()) {
-    action(gameObject);
+    action(*gameObject);
   }
 }
 
@@ -123,24 +121,24 @@ void GameWorld::cancelEventsListening(BaseEventsListener* listener)
 
 void GameWorld::removeDestroyedObjects()
 {
-  std::for_each(m_gameObjects.begin(), m_gameObjects.end(), [](GameObject*& obj) {
-    if (obj->isDestroyed()) {
+  std::for_each(m_gameObjects.begin(), m_gameObjects.end(), [](std::shared_ptr<GameObject>& obj) {
+    if (!obj->isAlive()) {
       for (auto& it : obj->m_components) {
         delete it.second;
       }
 
-      delete obj;
       obj = nullptr;
     }
   });
 
-  m_gameObjects.erase(std::remove(m_gameObjects.begin(), m_gameObjects.end(), nullptr), m_gameObjects.end());
+  m_gameObjects.erase(std::remove(m_gameObjects.begin(), m_gameObjects.end(), nullptr),
+    m_gameObjects.end());
 }
 
-GameObject* GameWorld::findGameObject(GameObjectId id) const
+std::shared_ptr<GameObject> GameWorld::findGameObject(GameObjectId id) const
 {
-  for (GameObject* object : m_gameObjects) {
-    if (!object->isDestroyed() && object->getId() == id) {
+  for (auto object : m_gameObjects) {
+    if (object->isAlive() && object->getId() == id) {
       return object;
     }
   }

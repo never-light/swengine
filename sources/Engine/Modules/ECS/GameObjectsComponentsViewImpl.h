@@ -13,7 +13,7 @@ inline GameObjectsComponentsView<ComponentsTypes...>
   GameObject* gameObject = m_begin.getGameObject();
 
   // Prevent invalid iterator initialization
-  if (gameObject == nullptr || gameObject->isDestroyed() || !gameObject->hasComponent<ComponentsTypes...>()) {
+  if (gameObject == nullptr || !gameObject->isAlive() || !gameObject->hasComponent<ComponentsTypes...>()) {
     ++m_begin;
   }
 }

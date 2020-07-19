@@ -11,7 +11,7 @@ GameObjectsSequentialView::GameObjectsSequentialView(const GameObjectsSequential
     m_end(end)
 {
   // Prevent invalid iterator init
-  if (m_begin.getGameObject() == nullptr || m_begin.getGameObject()->isDestroyed()) {
+  if (m_begin.getGameObject() == nullptr || !m_begin.getGameObject()->isAlive()) {
     ++m_begin;
   }
 }

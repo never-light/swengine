@@ -37,7 +37,7 @@ inline GameObject* GameObjectsComponentsIterator<ComponentsTypes...>::getGameObj
     return nullptr;
   }
 
-  return m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
+  return &m_gameWorld->getGameObjectByIndex(m_gameObjectIndex);
 }
 
 template<class ...ComponentsTypes>
@@ -74,7 +74,7 @@ GameObjectsComponentsIterator<ComponentsTypes...>::operator++()
 
   m_gameObjectIndex++;
 
-  while (m_gameObjectIndex < gameObjectsCount && (getGameObject()->isDestroyed() ||
+  while (m_gameObjectIndex < gameObjectsCount && (!getGameObject()->isAlive() ||
     !getGameObject()->template hasComponent<ComponentsTypes...>())) {
     m_gameObjectIndex++;
   }

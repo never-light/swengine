@@ -65,7 +65,7 @@ class GameObject {
    *
    * \return
    */
-  [[nodiscard]] bool isDestroyed() const;
+  [[nodiscard]] bool isAlive() const;
 
  protected:
   GameObjectId m_id;
