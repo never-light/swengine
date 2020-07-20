@@ -97,16 +97,16 @@ void Frustum::setPlane(FrustumPlane planeType, const Plane& plane)
 std::array<glm::vec3, 8> Frustum::getCorners() const
 {
   return {
-    getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
-    getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
-    getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
-    getPlanesIntersection(getPlane(FrustumPlane::Near),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near),
       getPlane(FrustumPlane::Right),
       getPlane(FrustumPlane::Bottom)),
-    getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
-    getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
-    getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
-    getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
   };
 }
 
@@ -190,22 +190,22 @@ float Sphere::getRadius() const
   return m_radius;
 }
 
-float calculateDistance(const glm::vec3& v1, const glm::vec3& v2)
+float GeometryUtils::calculateDistance(const glm::vec3& v1, const glm::vec3& v2)
 {
   return glm::distance(v1, v2);
 }
 
-float calculateDistance(const glm::vec3& point, const Plane& plane)
+float GeometryUtils::calculateDistance(const glm::vec3& point, const Plane& plane)
 {
-  return abs(calculateSignedDistance(point, plane));
+  return abs(GeometryUtils::calculateSignedDistance(point, plane));
 }
 
-float calculateSignedDistance(const glm::vec3& point, const Plane& plane)
+float GeometryUtils::calculateSignedDistance(const glm::vec3& point, const Plane& plane)
 {
   return glm::dot(plane.getNormal(), point) + plane.getDistance();
 }
 
-bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum)
+bool GeometryUtils::isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum)
 {
   for (size_t sideIndex = 0; sideIndex < 6; sideIndex++) {
     const Plane& plane = frustum.getPlane(sideIndex);
@@ -218,7 +218,7 @@ bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum)
   return true;
 }
 
-glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3)
+glm::vec3 GeometryUtils::getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3)
 {
   glm::mat3 normalMatrix(p1.getNormal(), p2.getNormal(), p3.getNormal());
   glm::mat3 inversedNormalMatrix(glm::inverse(normalMatrix));
@@ -288,7 +288,7 @@ std::array<glm::vec3, 8> AABB::getCorners() const
   };
 }
 
-bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
+bool GeometryUtils::isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
 {
   const auto& corners = aabb.getCorners();
 

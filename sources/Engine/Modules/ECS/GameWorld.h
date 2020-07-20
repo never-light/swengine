@@ -24,6 +24,78 @@
 // TODO: add ability to subscribe to events not only objects but also callbacks, probably replace
 // polymorphic objects with std::function objects, but foresee deleting of them (for example, by unique identifies)
 
+struct GameObjectAddEvent {
+ public:
+  GameObjectAddEvent(std::shared_ptr<GameObject> object) : m_object(object) {
+
+  }
+
+  std::shared_ptr<GameObject> getObject() const {
+    return m_object;
+  }
+
+ private:
+  std::shared_ptr<GameObject> m_object;
+};
+
+struct GameObjectRemoveEvent {
+ public:
+  GameObjectRemoveEvent(std::shared_ptr<GameObject> object) : m_object(object) {
+
+  }
+
+  std::shared_ptr<GameObject> getObject() const {
+    return m_object;
+  }
+
+ private:
+  std::shared_ptr<GameObject> m_object;
+};
+
+template<class T>
+struct GameObjectAddComponentEvent {
+ public:
+  GameObjectAddComponentEvent(GameObject& gameObject, T& componentReference)
+    : m_gameObject(gameObject),
+      m_component(componentReference) {
+
+  }
+
+  T& getComponent() const {
+    return m_component;
+  }
+
+  GameObject& getGameObject() const {
+    return m_gameObject;
+  }
+
+ private:
+  GameObject& m_gameObject;
+  T& m_component;
+};
+
+template<class T>
+struct GameObjectRemoveComponentEvent {
+ public:
+  GameObjectRemoveComponentEvent(GameObject& gameObject, T& componentReference)
+    : m_gameObject(gameObject),
+      m_component(componentReference) {
+
+  }
+
+  T& getComponent() const {
+    return m_component;
+  }
+
+  GameObject& getGameObject() const {
+    return m_gameObject;
+  }
+
+ private:
+  GameObject& m_gameObject;
+  T& m_component;
+};
+
 /*!
  * \brief Class for representing the game world
  * 
@@ -234,7 +306,10 @@ inline T& GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
 
   gameObject.m_components[typeId] = component;
 
-  return *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
+  T& componentReference = *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
+
+  emitEvent(GameObjectAddComponentEvent<T>(gameObject, componentReference));
+  return componentReference;
 }
 
 template<class T>
@@ -245,6 +320,9 @@ inline void GameWorld::removeComponent(GameObject& gameObject)
   auto componentIterator = gameObject.m_components.find(typeId);
 
   SW_ASSERT(componentIterator != gameObject.m_components.end());
+
+  T& componentReference = *std::any_cast<T>(&componentIterator->second);
+  emitEvent(GameObjectRemoveComponentEvent<T>(gameObject, componentReference));
 
   gameObject.m_components.erase(componentIterator);
 }

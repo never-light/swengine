@@ -27,3 +27,7 @@ class Bitmask {
   std::bitset<sizeof(T)> m_bits;
 };
 
+using Bitmask8 = Bitmask<uint8_t>;
+using Bitmask16 = Bitmask<uint16_t>;
+using Bitmask32 = Bitmask<uint32_t>;
+using Bitmask64 = Bitmask<uint64_t>;

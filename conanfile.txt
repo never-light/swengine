@@ -8,6 +8,7 @@ spdlog/1.5.0
 stb/20200203
 cxxopts/2.2.0@jinncrafters/stable
 boost/1.72.0
+bullet3/2.89
 
 [generators]
 cmake
