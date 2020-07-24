@@ -69,6 +69,10 @@ bool MathUtils::isEqual(float a, float b, float eps)
   return glm::abs(a - b) <= eps;
 }
 
+bool MathUtils::isEqual(const Plane &a, const Plane &b) {
+    return isEqual(a.getNormal(), b.getNormal()) && isEqual(a.getDistance(), b.getDistance());
+}
+
 bool MathUtils::isMatrixIdentity(const glm::mat4& matrix, const float eps)
 {
   return isEqual(matrix, glm::identity<glm::mat4>(), eps);

@@ -308,3 +308,14 @@ bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
 
   return true;
 }
+
+Plane getPlaneBy3Points(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C) {
+    glm::vec3 AB = B - A;
+    glm::vec3 AC = C - A;
+
+    glm::vec3 normal = glm::cross(AB, AC);
+
+    float d = - (normal.x * A.x + normal.y * A.y + normal.z * A.z);
+
+    return Plane::fromUnnormalized(normal, d);
+}
