@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "geometry.h"
 
 
 class MathUtils {
@@ -12,6 +13,7 @@ class MathUtils {
   static bool isEqual(const glm::quat& a, const glm::quat& b, float eps = 1e-6f);
   static bool isEqual(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f);
   static bool isEqual(float a, float b, float eps = 1e-6f);
+  static bool isEqual(const Plane& a, const Plane& b);
 
   static bool isMatrixIdentity(const glm::mat4& matrix, const float eps = 1e-6f);
 

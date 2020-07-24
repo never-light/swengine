@@ -105,3 +105,5 @@ glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p
 
 bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
 bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum);
+
+Plane getPlaneBy3Points(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C);
