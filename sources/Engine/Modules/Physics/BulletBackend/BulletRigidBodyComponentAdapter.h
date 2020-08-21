@@ -12,16 +12,18 @@ class BulletRigidBodyComponentAdapter {
   ~BulletRigidBodyComponentAdapter();
 
   void setMass(float mass);
-  float getMass() const;
+  [[nodiscard]] float getMass() const;
 
-  const CollisionShape& getCollisionShape() const;
-
-  btCollisionShape* getBtCollisionShape() const;
+  [[nodiscard]] btCollisionShape* getBtCollisionShape() const;
 
   void setTransform(const Transform& transform);
+  void requestTransform(Transform& transform) const;
 
  private:
-  std::shared_ptr<CollisionShape> m_collisionShape = nullptr;
+  [[nodiscard]] static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);
+
+ private:
+  btCollisionShape* m_collisionShape = nullptr;
 
   btDefaultMotionState* m_motionState = nullptr;
   btRigidBody* m_rigidBodyInstance = nullptr;

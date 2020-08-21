@@ -10,25 +10,40 @@ struct CollisionShape {
 
 struct CollisionShapeSphere : public CollisionShape {
  public:
-  CollisionShapeSphere() = default;
+  explicit CollisionShapeSphere(float radius);
   ~CollisionShapeSphere() override = default;
 
-  [[nodiscard]] virtual float getRadius() const = 0;
+  void setRadius(float radius);
+  [[nodiscard]] float getRadius() const;
+
+ private:
+  float m_radius = 0.0f;
 };
 
 struct CollisionShapeBox : public CollisionShape {
  public:
-  CollisionShapeBox() = default;
+  explicit CollisionShapeBox(const glm::vec3& halfExtents);
   ~CollisionShapeBox() override = default;
 
-  [[nodiscard]] virtual glm::vec3 getHalfExtents() const = 0;
+  void setHalfExtents(const glm::vec3& halfExtents);
+  [[nodiscard]] glm::vec3 getHalfExtents() const;
+
+ private:
+  glm::vec3 m_halfExtents = glm::vec3(0.0f);
 };
 
 struct CollisionShapeCapsule : public CollisionShape {
  public:
-  CollisionShapeCapsule() = default;
+  CollisionShapeCapsule(float radius, float height);
   ~CollisionShapeCapsule() override = default;
 
-  [[nodiscard]] virtual float getRadius() const = 0;
-  [[nodiscard]] virtual float getHeight() const = 0;
+  void setRadius(float radius);
+  [[nodiscard]] float getRadius() const;
+
+  void setHeight(float height);
+  [[nodiscard]] float getHeight() const;
+
+ private:
+  float m_radius = 0.0f;
+  float m_height = 0.0f;
 };

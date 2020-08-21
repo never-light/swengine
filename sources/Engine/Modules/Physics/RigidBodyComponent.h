@@ -10,11 +10,10 @@ struct RigidBodyComponent {
   RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
 
   void setMass(float mass);
-  float getMass() const;
+  [[nodiscard]] float getMass() const;
 
   void setTransform(const Transform& transform);
-
-  const CollisionShape& getCollisionShape() const;
+  void requestTransform(Transform& transform) const;
 
  private:
   std::shared_ptr<RigidBodyComponentAdapter> m_backendAdapter;

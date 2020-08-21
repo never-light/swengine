@@ -7,13 +7,18 @@
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Physics/RigidBodyComponent.h"
 
-BulletPhysicsAdapter::BulletPhysicsAdapter(std::weak_ptr<GameWorld> gameWorld)
+BulletPhysicsAdapter::BulletPhysicsAdapter(std::shared_ptr<GameWorld> gameWorld)
   : m_gameWorld(gameWorld)
 {
 }
 
 BulletPhysicsAdapter::~BulletPhysicsAdapter()
 {
+  SW_ASSERT(m_dynamicsWorld == nullptr &&
+    m_constraintSolver == nullptr &&
+    m_broadphaseInterface == nullptr &&
+    m_collisionDispatcher == nullptr &&
+    m_collisionConfiguration == nullptr);
 }
 
 glm::vec3 BulletPhysicsAdapter::getGravity() const
@@ -31,6 +36,13 @@ void BulletPhysicsAdapter::setGravity(const glm::vec3& gravity)
 void BulletPhysicsAdapter::update(float delta)
 {
   m_dynamicsWorld->stepSimulation(delta);
+
+  // Update game objects transforms after the simulation
+  // TODO: override Bullet Motion State and move synchronization logic into the inheritor
+  for (auto gameObject : m_gameWorld->allWith<RigidBodyComponent>()) {
+    auto& transform = gameObject->getComponent<TransformComponent>().getTransform();
+    gameObject->getComponent<RigidBodyComponent>().requestTransform(transform);
+  }
 }
 
 void BulletPhysicsAdapter::configure()
@@ -43,10 +55,17 @@ void BulletPhysicsAdapter::configure()
   m_dynamicsWorld = new btDiscreteDynamicsWorld(m_collisionDispatcher,
     m_broadphaseInterface, m_constraintSolver, m_collisionConfiguration);
 
+  m_gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>(this);
+  m_gameWorld->subscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
+  m_gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
 void BulletPhysicsAdapter::unconfigure()
 {
+  m_gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
+  m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
+  m_gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>(this);
+
   delete m_dynamicsWorld;
   m_dynamicsWorld = nullptr;
 

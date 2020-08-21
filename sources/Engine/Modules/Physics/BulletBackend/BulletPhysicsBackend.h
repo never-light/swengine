@@ -4,4 +4,4 @@
 #include "BulletPhysicsAdapter.h"
 
 using RigidBodyComponentAdapter = BulletRigidBodyComponentAdapter;
-using PhysicsSystemAdapter = BulletPhysicsAdapter;
+using PhysicsBackend = BulletPhysicsAdapter;

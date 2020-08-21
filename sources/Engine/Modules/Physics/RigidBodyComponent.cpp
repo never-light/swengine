@@ -20,12 +20,12 @@ float RigidBodyComponent::getMass() const
   return m_backendAdapter->getMass();
 }
 
-const CollisionShape& RigidBodyComponent::getCollisionShape() const
-{
-  return m_backendAdapter->getCollisionShape();
-}
-
 void RigidBodyComponent::setTransform(const Transform& transform)
 {
   m_backendAdapter->setTransform(transform);
+}
+
+void RigidBodyComponent::requestTransform(Transform& transform) const
+{
+  m_backendAdapter->requestTransform(transform);
 }

@@ -3,7 +3,7 @@
 #include <glm/vec3.hpp>
 #include <btBulletDynamicsCommon.h>
 
-#include "Modules/ECS/GameWorld.h"
+#include "Modules/ECS/ECS.h"
 
 // TODO: create adapters interfaces and break cyclic-dependency, do not use forward declarations here
 struct RigidBodyComponent;
@@ -13,8 +13,8 @@ class BulletPhysicsAdapter : public std::enable_shared_from_this<BulletPhysicsAd
                              public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
                              public EventsListener<GameObjectRemoveEvent> {
  public:
-  BulletPhysicsAdapter(std::weak_ptr<GameWorld> gameWorld);
-  ~BulletPhysicsAdapter();
+  explicit BulletPhysicsAdapter(std::shared_ptr<GameWorld> gameWorld);
+  ~BulletPhysicsAdapter() override;
 
   void configure();
   void unconfigure();
@@ -36,7 +36,7 @@ class BulletPhysicsAdapter : public std::enable_shared_from_this<BulletPhysicsAd
   bool isConfigured() const;
 
  private:
-  std::weak_ptr<GameWorld> m_gameWorld;
+  std::shared_ptr<GameWorld> m_gameWorld;
 
   btDefaultCollisionConfiguration* m_collisionConfiguration = nullptr;
   btCollisionDispatcher* m_collisionDispatcher = nullptr;
