@@ -7,23 +7,21 @@
 #include "BulletRigidBodyComponentAdapter.h"
 
 BulletRigidBodyComponentAdapter::BulletRigidBodyComponentAdapter(float mass,
-  std::shared_ptr<CollisionShape> collisionShape)
+  std::shared_ptr<CollisionShape> collisionShape,
+  std::shared_ptr<Transform> gameTransform)
   : m_collisionShape(convertCollisionShapeToBulletShape(*collisionShape))
 {
   btTransform defaultTransform;
   defaultTransform.setIdentity();
 
   btCollisionShape* btShape = getBtCollisionShape();
-  auto t = btShape->getShapeType();
-  LOCAL_VALUE_UNUSED(t);
-
   btVector3 localInertia(0, 0, 0);
 
   if (!MathUtils::isEqual(mass, 0.0f)) {
     btShape->calculateLocalInertia(mass, localInertia);
   }
 
-  m_motionState = new btDefaultMotionState(defaultTransform);
+  m_motionState = new BulletMotionState(defaultTransform, gameTransform);
 
   btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_motionState, btShape, localInertia);
   m_rigidBodyInstance = new btRigidBody(rbInfo);
@@ -68,6 +66,7 @@ void BulletRigidBodyComponentAdapter::setTransform(const Transform& transform)
   internalTransform.setRotation({orientation.x, orientation.y, orientation.z, orientation.w});
 
   m_motionState->setWorldTransform(internalTransform);
+  m_rigidBodyInstance->setWorldTransform(internalTransform);
 }
 
 btCollisionShape* BulletRigidBodyComponentAdapter::convertCollisionShapeToBulletShape(
@@ -79,7 +78,7 @@ btCollisionShape* BulletRigidBodyComponentAdapter::convertCollisionShapeToBullet
   else if (auto boxShape = dynamic_cast<const CollisionShapeBox*>(&shape)) {
     glm::vec3 boxExtents = boxShape->getHalfExtents();
 
-    return new btBoxShape({ boxExtents.x, boxExtents.y, boxExtents.z });
+    return new btBoxShape({boxExtents.x, boxExtents.y, boxExtents.z});
   }
   else if (auto capsuleShape = dynamic_cast<const CollisionShapeCapsule*>(&shape)) {
     return new btCapsuleShape(capsuleShape->getRadius(), capsuleShape->getHeight());
@@ -91,14 +90,14 @@ btCollisionShape* BulletRigidBodyComponentAdapter::convertCollisionShapeToBullet
   return nullptr;
 }
 
-void BulletRigidBodyComponentAdapter::requestTransform(Transform& transform) const
+void BulletRigidBodyComponentAdapter::setLinearVelocity(const glm::vec3& velocity)
 {
-  btTransform bodyTransform;
-  m_rigidBodyInstance->getMotionState()->getWorldTransform(bodyTransform);
+  m_rigidBodyInstance->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+}
 
-  const btVector3& origin = bodyTransform.getOrigin();
-  const btQuaternion& orientation = bodyTransform.getRotation();
+glm::vec3 BulletRigidBodyComponentAdapter::getLinearVelocity() const
+{
+  const btVector3& velocity = m_rigidBodyInstance->getLinearVelocity();
 
-  transform.setPosition(origin.x(), origin.y(), origin.z());
-  transform.setOrientation({ orientation.w(), orientation.x(), orientation.y(), orientation.z() });
+  return glm::vec3(velocity.x(), velocity.y(), velocity.z());
 }

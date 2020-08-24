@@ -11,7 +11,7 @@ std::shared_ptr<GameWorld> createPhysicsGameWorld() {
   auto physicsSystem = std::make_shared<PhysicsSystem>();
 
   gameWorld->getGameSystemsGroup()->addGameSystem(physicsSystem);
-  physicsSystem->setGravity({ 0.0f, -1.0f, 0.0f });
+  physicsSystem->setGravity({ 0.0f, -10.0f, 0.0f });
 
   return gameWorld;
 }
@@ -25,7 +25,8 @@ TEST_CASE("rigid_body_creation", "[physics]")
   transformComponent.getTransform().setPosition(0.0f, 10.0f, 0.0f);
 
   rigidBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(10.0f)));
+    CollisionShapesFactory::createSphere(10.0f),
+    transformComponent.getTransformPtr()));
 
   REQUIRE(MathUtils::isEqual(rigidBody->getComponent<RigidBodyComponent>().getMass(), 1.0f));
 }
@@ -36,14 +37,19 @@ TEST_CASE("rigid_body_gravity_affection", "[physics]")
   std::shared_ptr<GameObject> rigidBody = gameWorld->createGameObject();
 
   auto& transform = rigidBody->addComponent<TransformComponent>().getTransform();
-  transform.setPosition(30.0f, 10.0f, 0.0f);
+  transform.setPosition(0.0f, 10.0f, 0.0f);
 
-  rigidBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(10.0f)));
+  auto& rigidBodyComponent = rigidBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
+    CollisionShapesFactory::createSphere(1.0f),
+    rigidBody->getComponent<TransformComponent>().getTransformPtr()));
 
-  gameWorld->update(1.0f);
+  gameWorld->update(0.5f);
+  gameWorld->update(0.5f);
+  gameWorld->update(0.4142f);
 
-  spdlog::debug("Pos: ({}, {}, {})", transform.getPosition().x, transform.getPosition().y, transform.getPosition().z);
+  glm::vec3 vel = rigidBodyComponent.getLinearVelocity();
 
-  REQUIRE(MathUtils::isEqual(transform.getPosition(), { 0.0f, 0.0f, 0.0f }));
+  // TODO: probably, this precision is low. Check its reason and try to fix
+  REQUIRE(MathUtils::isEqual(transform.getPosition(), { 0.0f, 0.0f, 0.0f }, 0.25f));
+  REQUIRE(MathUtils::isEqual(rigidBodyComponent.getLinearVelocity(), { 0.0f, -14.1421f, 0.0f }, 0.25f));
 }

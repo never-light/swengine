@@ -35,14 +35,15 @@ void BulletPhysicsAdapter::setGravity(const glm::vec3& gravity)
 
 void BulletPhysicsAdapter::update(float delta)
 {
-  m_dynamicsWorld->stepSimulation(delta);
+  m_dynamicsWorld->stepSimulation(delta, 60);
 
   // Update game objects transforms after the simulation
   // TODO: override Bullet Motion State and move synchronization logic into the inheritor
-  for (auto gameObject : m_gameWorld->allWith<RigidBodyComponent>()) {
-    auto& transform = gameObject->getComponent<TransformComponent>().getTransform();
-    gameObject->getComponent<RigidBodyComponent>().requestTransform(transform);
-  }
+
+  //  for (auto gameObject : m_gameWorld->allWith<RigidBodyComponent>()) {
+  //    auto& transform = gameObject->getComponent<TransformComponent>().getTransform();
+  //    gameObject->getComponent<RigidBodyComponent>().requestTransform(transform);
+  //  }
 }
 
 void BulletPhysicsAdapter::configure()
