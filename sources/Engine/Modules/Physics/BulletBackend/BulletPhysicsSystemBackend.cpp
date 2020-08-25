@@ -2,17 +2,19 @@
 
 #pragma hdrstop
 
-#include "BulletPhysicsAdapter.h"
+#include "BulletPhysicsSystemBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Physics/RigidBodyComponent.h"
 
-BulletPhysicsAdapter::BulletPhysicsAdapter(std::shared_ptr<GameWorld> gameWorld)
+#include "BulletRigidBodyComponent.h"
+
+BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld)
   : m_gameWorld(gameWorld)
 {
 }
 
-BulletPhysicsAdapter::~BulletPhysicsAdapter()
+BulletPhysicsSystemBackend::~BulletPhysicsSystemBackend()
 {
   SW_ASSERT(m_dynamicsWorld == nullptr &&
     m_constraintSolver == nullptr &&
@@ -21,19 +23,19 @@ BulletPhysicsAdapter::~BulletPhysicsAdapter()
     m_collisionConfiguration == nullptr);
 }
 
-glm::vec3 BulletPhysicsAdapter::getGravity() const
+glm::vec3 BulletPhysicsSystemBackend::getGravity() const
 {
   btVector3 gravity = m_dynamicsWorld->getGravity();
 
-  return { gravity.x(), gravity.y(), gravity.z() };
+  return {gravity.x(), gravity.y(), gravity.z()};
 }
 
-void BulletPhysicsAdapter::setGravity(const glm::vec3& gravity)
+void BulletPhysicsSystemBackend::setGravity(const glm::vec3& gravity)
 {
-  m_dynamicsWorld->setGravity({ gravity.x, gravity.y, gravity.z });
+  m_dynamicsWorld->setGravity({gravity.x, gravity.y, gravity.z});
 }
 
-void BulletPhysicsAdapter::update(float delta)
+void BulletPhysicsSystemBackend::update(float delta)
 {
   m_dynamicsWorld->stepSimulation(delta, 60);
 
@@ -46,7 +48,7 @@ void BulletPhysicsAdapter::update(float delta)
   //  }
 }
 
-void BulletPhysicsAdapter::configure()
+void BulletPhysicsSystemBackend::configure()
 {
   m_collisionConfiguration = new btDefaultCollisionConfiguration();
   m_collisionDispatcher = new btCollisionDispatcher(m_collisionConfiguration);
@@ -61,7 +63,7 @@ void BulletPhysicsAdapter::configure()
   m_gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
-void BulletPhysicsAdapter::unconfigure()
+void BulletPhysicsSystemBackend::unconfigure()
 {
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
@@ -83,7 +85,7 @@ void BulletPhysicsAdapter::unconfigure()
   m_collisionConfiguration = nullptr;
 }
 
-EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
   const GameObjectRemoveComponentEvent<RigidBodyComponent>& event)
 {
   ARG_UNUSED(gameWorld);
@@ -92,13 +94,16 @@ EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld,
     return EventProcessStatus::Skipped;
   }
 
-  m_dynamicsWorld->removeRigidBody(event.getComponent().m_backendAdapter->m_rigidBodyInstance);
+  const auto* bulletRigidBodyComponent =
+    dynamic_cast<const BulletRigidBodyComponent*>(event.getComponent().m_backendAdapter.get());
+
+  m_dynamicsWorld->removeRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
   event.getComponent().m_backendAdapter = nullptr;
 
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event)
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event)
 {
   ARG_UNUSED(gameWorld);
 
@@ -113,7 +118,7 @@ EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld, cons
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
   const GameObjectAddComponentEvent<RigidBodyComponent>& event)
 {
   ARG_UNUSED(gameWorld);
@@ -126,12 +131,15 @@ EventProcessStatus BulletPhysicsAdapter::receiveEvent(GameWorld* gameWorld,
 
   event.getComponent().setTransform(event.getGameObject().getComponent<TransformComponent>().getTransform());
 
-  m_dynamicsWorld->addRigidBody(event.getComponent().m_backendAdapter->m_rigidBodyInstance);
+  const auto* bulletRigidBodyComponent =
+    dynamic_cast<const BulletRigidBodyComponent*>(event.getComponent().m_backendAdapter.get());
+
+  m_dynamicsWorld->addRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
 
   return EventProcessStatus::Processed;
 }
 
-bool BulletPhysicsAdapter::isConfigured() const
+bool BulletPhysicsSystemBackend::isConfigured() const
 {
   return m_dynamicsWorld != nullptr;
 }

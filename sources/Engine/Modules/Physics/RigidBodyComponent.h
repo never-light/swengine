@@ -5,7 +5,7 @@
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 
 #include "CollisionShapes.h"
-#include "BulletBackend/BulletPhysicsBackend.h"
+#include "BaseBackend/RigidBodyComponentBackend.h"
 
 
 struct RigidBodyComponent {
@@ -19,11 +19,11 @@ struct RigidBodyComponent {
   void setTransform(const Transform& transform);
 
   void setLinearVelocity(const glm::vec3& velocity);
-  glm::vec3 getLinearVelocity() const;
+  [[nodiscard]] glm::vec3 getLinearVelocity() const;
 
  private:
-  std::shared_ptr<RigidBodyComponentAdapter> m_backendAdapter;
+  std::shared_ptr<RigidBodyComponentBackend> m_backendAdapter;
 
  private:
-  friend class BulletPhysicsAdapter;
+  friend class BulletPhysicsSystemBackend;
 };

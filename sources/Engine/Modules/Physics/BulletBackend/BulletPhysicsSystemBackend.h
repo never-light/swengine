@@ -5,24 +5,26 @@
 
 #include "Modules/ECS/ECS.h"
 
-// TODO: create adapters interfaces and break cyclic-dependency, do not use forward declarations here
-struct RigidBodyComponent;
+#include "Modules/Physics/BaseBackend/PhysicsSystemBackend.h"
+#include "Modules/Physics/RigidBodyComponent.h"
 
-class BulletPhysicsAdapter : public std::enable_shared_from_this<BulletPhysicsAdapter>,
-                             public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
-                             public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
-                             public EventsListener<GameObjectRemoveEvent> {
+class BulletPhysicsSystemBackend :
+  public PhysicsSystemBackend,
+  public std::enable_shared_from_this<BulletPhysicsSystemBackend>,
+  public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
+  public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
+  public EventsListener<GameObjectRemoveEvent> {
  public:
-  explicit BulletPhysicsAdapter(std::shared_ptr<GameWorld> gameWorld);
-  ~BulletPhysicsAdapter() override;
+  explicit BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld);
+  ~BulletPhysicsSystemBackend() override;
 
-  void configure();
-  void unconfigure();
+  void configure() override;
+  void unconfigure() override;
 
-  void setGravity(const glm::vec3& gravity);
-  glm::vec3 getGravity() const;
+  void setGravity(const glm::vec3& gravity) override;
+  glm::vec3 getGravity() const override;
 
-  void update(float delta);
+  void update(float delta) override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld,
     const GameObjectAddComponentEvent<RigidBodyComponent>& event) override;

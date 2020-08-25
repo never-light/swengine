@@ -3,10 +3,11 @@
 #pragma hdrstop
 
 #include "RigidBodyComponent.h"
+#include "PhysicsBackendFactory.h"
 
 RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
   std::shared_ptr<Transform> gameTransform)
-  : m_backendAdapter(std::make_shared<BulletRigidBodyComponentAdapter>(mass, collisionShape, gameTransform))
+  : m_backendAdapter(PhysicsBackendFactory::createRigidBodyComponent(mass, collisionShape, gameTransform))
 {
 
 }

@@ -4,9 +4,9 @@
 
 #include "Modules/Math/MathUtils.h"
 
-#include "BulletRigidBodyComponentAdapter.h"
+#include "BulletRigidBodyComponent.h"
 
-BulletRigidBodyComponentAdapter::BulletRigidBodyComponentAdapter(float mass,
+BulletRigidBodyComponent::BulletRigidBodyComponent(float mass,
   std::shared_ptr<CollisionShape> collisionShape,
   std::shared_ptr<Transform> gameTransform)
   : m_collisionShape(convertCollisionShapeToBulletShape(*collisionShape))
@@ -27,18 +27,18 @@ BulletRigidBodyComponentAdapter::BulletRigidBodyComponentAdapter(float mass,
   m_rigidBodyInstance = new btRigidBody(rbInfo);
 }
 
-BulletRigidBodyComponentAdapter::~BulletRigidBodyComponentAdapter()
+BulletRigidBodyComponent::~BulletRigidBodyComponent()
 {
   delete m_rigidBodyInstance;
   delete m_motionState;
 }
 
-btCollisionShape* BulletRigidBodyComponentAdapter::getBtCollisionShape() const
+btCollisionShape* BulletRigidBodyComponent::getBtCollisionShape() const
 {
   return m_collisionShape;
 }
 
-void BulletRigidBodyComponentAdapter::setMass(float mass)
+void BulletRigidBodyComponent::setMass(float mass)
 {
   btVector3 localInertia(0, 0, 0);
 
@@ -49,12 +49,12 @@ void BulletRigidBodyComponentAdapter::setMass(float mass)
   m_rigidBodyInstance->setMassProps(mass, localInertia);
 }
 
-float BulletRigidBodyComponentAdapter::getMass() const
+float BulletRigidBodyComponent::getMass() const
 {
   return m_rigidBodyInstance->getMass();
 }
 
-void BulletRigidBodyComponentAdapter::setTransform(const Transform& transform)
+void BulletRigidBodyComponent::setTransform(const Transform& transform)
 {
   btTransform internalTransform;
   internalTransform.setIdentity();
@@ -69,7 +69,7 @@ void BulletRigidBodyComponentAdapter::setTransform(const Transform& transform)
   m_rigidBodyInstance->setWorldTransform(internalTransform);
 }
 
-btCollisionShape* BulletRigidBodyComponentAdapter::convertCollisionShapeToBulletShape(
+btCollisionShape* BulletRigidBodyComponent::convertCollisionShapeToBulletShape(
   const CollisionShape& shape)
 {
   if (auto sphereShape = dynamic_cast<const CollisionShapeSphere*>(&shape)) {
@@ -90,12 +90,12 @@ btCollisionShape* BulletRigidBodyComponentAdapter::convertCollisionShapeToBullet
   return nullptr;
 }
 
-void BulletRigidBodyComponentAdapter::setLinearVelocity(const glm::vec3& velocity)
+void BulletRigidBodyComponent::setLinearVelocity(const glm::vec3& velocity)
 {
   m_rigidBodyInstance->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
 }
 
-glm::vec3 BulletRigidBodyComponentAdapter::getLinearVelocity() const
+glm::vec3 BulletRigidBodyComponent::getLinearVelocity() const
 {
   const btVector3& velocity = m_rigidBodyInstance->getLinearVelocity();
 

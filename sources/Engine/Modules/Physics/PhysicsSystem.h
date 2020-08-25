@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Modules/ECS/ECS.h"
-#include "BulletBackend/BulletPhysicsBackend.h"
+
+#include "BaseBackend/PhysicsSystemBackend.h"
 
 #include "RigidBodyComponent.h"
 #include "CollisionShapesFactory.h"
@@ -21,5 +22,5 @@ class PhysicsSystem : public GameSystem {
   [[nodiscard]] glm::vec3 getGravity() const;
 
  private:
-  std::unique_ptr<PhysicsBackend> m_physicsBackend;
+  std::unique_ptr<PhysicsSystemBackend> m_physicsBackend;
 };

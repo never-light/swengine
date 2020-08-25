@@ -3,6 +3,7 @@
 #pragma hdrstop
 
 #include "PhysicsSystem.h"
+#include "PhysicsBackendFactory.h"
 
 PhysicsSystem::PhysicsSystem()
 {
@@ -16,7 +17,7 @@ PhysicsSystem::~PhysicsSystem()
 
 void PhysicsSystem::configure(GameWorld* gameWorld)
 {
-  m_physicsBackend = std::make_unique<PhysicsBackend>(gameWorld->shared_from_this());
+  m_physicsBackend = PhysicsBackendFactory::createPhysicsSystem(gameWorld->shared_from_this());
   m_physicsBackend->configure();
 }
 
