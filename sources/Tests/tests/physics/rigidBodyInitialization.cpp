@@ -6,12 +6,13 @@
 #include <Engine/Modules/Math/MathUtils.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 
-std::shared_ptr<GameWorld> createPhysicsGameWorld() {
+std::shared_ptr<GameWorld> createPhysicsGameWorld()
+{
   auto gameWorld = GameWorld::createInstance();
   auto physicsSystem = std::make_shared<PhysicsSystem>();
 
   gameWorld->getGameSystemsGroup()->addGameSystem(physicsSystem);
-  physicsSystem->setGravity({ 0.0f, -10.0f, 0.0f });
+  physicsSystem->setGravity({0.0f, -10.0f, 0.0f});
 
   return gameWorld;
 }
@@ -50,6 +51,6 @@ TEST_CASE("rigid_body_gravity_affection", "[physics]")
   glm::vec3 vel = rigidBodyComponent.getLinearVelocity();
 
   // TODO: probably, this precision is low. Check its reason and try to fix
-  REQUIRE(MathUtils::isEqual(transform.getPosition(), { 0.0f, 0.0f, 0.0f }, 0.25f));
-  REQUIRE(MathUtils::isEqual(rigidBodyComponent.getLinearVelocity(), { 0.0f, -14.1421f, 0.0f }, 0.25f));
+  REQUIRE(MathUtils::isEqual(transform.getPosition(), {0.0f, 0.0f, 0.0f}, 0.25f));
+  REQUIRE(MathUtils::isEqual(rigidBodyComponent.getLinearVelocity(), {0.0f, -14.1421f, 0.0f}, 0.25f));
 }

@@ -107,5 +107,9 @@ class GeometryUtils {
 
   static bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
   static bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum);
-};
 
+  static Plane getPlaneBy3Points(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C);
+
+  static AABB restoreAABBByVerticesList(const std::vector<glm::vec3>& vertices);
+  static Sphere restoreSphereByVerticesList(const std::vector<glm::vec3>& vertices);
+};
