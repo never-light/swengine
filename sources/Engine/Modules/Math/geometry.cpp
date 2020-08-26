@@ -308,3 +308,55 @@ bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
 
   return true;
 }
+
+Plane getPlaneBy3Points(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C) {
+    glm::vec3 AB = B - A;
+    glm::vec3 AC = C - A;
+
+    glm::vec3 normal = glm::cross(AB, AC);
+
+    float d = - (normal.x * A.x + normal.y * A.y + normal.z * A.z);
+
+    return Plane::fromUnnormalized(normal, d);
+}
+
+AABB restoreAABBByVerticesList(const std::vector<glm::vec3>& vertices) {
+    SW_ASSERT(vertices.size() > 1);
+
+    glm::vec3 min = vertices[0];
+    glm::vec3 max = vertices[0];
+
+    for (const auto& vertex : vertices) {
+        min.x = glm::min(min.x, vertex.x);
+        max.x = glm::max(max.x, vertex.x);
+
+        min.y = glm::min(min.y, vertex.y);
+        max.y = glm::max(max.y, vertex.y);
+
+        min.z = glm::min(min.z, vertex.z);
+        max.z = glm::max(max.z, vertex.z);
+    }
+
+    return AABB(min, max);
+}
+
+Sphere restoreSphereByVerticesList(const std::vector<glm::vec3>& vertices) {
+    SW_ASSERT(vertices.size() > 1);
+
+    size_t index = 1;
+    float distance = glm::distance(vertices[0], vertices[index]);
+
+    for (size_t vertex_index = 2; vertex_index< vertices.size(); vertex_index++) {
+        float current_distance = glm::distance(vertices[0], vertices[vertex_index]);
+
+        if(current_distance > distance) {
+            distance = current_distance;
+            index = vertex_index;
+        }
+    }
+
+    glm::vec3 origin = (vertices[0] + vertices[index]) / 2.0f;
+    float radius = distance / 2.0f;
+
+    return Sphere(origin, radius);
+}
