@@ -22,5 +22,5 @@ class PhysicsSystem : public GameSystem {
   [[nodiscard]] glm::vec3 getGravity() const;
 
  private:
-  std::unique_ptr<PhysicsSystemBackend> m_physicsBackend;
+  std::shared_ptr<PhysicsSystemBackend> m_physicsBackend;
 };

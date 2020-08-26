@@ -7,6 +7,18 @@
 #include "CollisionShapes.h"
 #include "BaseBackend/RigidBodyComponentBackend.h"
 
+enum class RigidBodyCollisionProcessingStatus {
+  Processed,
+  ObservedOnly,
+  Skipped
+};
+
+struct CollisionInfo {
+  GameObject& selfGameObject;
+  GameObject& gameObject;
+};
+
+using CollisionCallback = std::function<RigidBodyCollisionProcessingStatus(CollisionInfo&)>;
 
 struct RigidBodyComponent {
  public:
@@ -21,9 +33,13 @@ struct RigidBodyComponent {
   void setLinearVelocity(const glm::vec3& velocity);
   [[nodiscard]] glm::vec3 getLinearVelocity() const;
 
- private:
-  std::shared_ptr<RigidBodyComponentBackend> m_backendAdapter;
+  void setCollisionCallback(CollisionCallback callback);
+  [[nodiscard]] CollisionCallback getCollisionCallback() const;
+
+  [[nodiscard]] const RigidBodyComponentBackend& getBackend() const;
+  void resetBackend();
 
  private:
-  friend class BulletPhysicsSystemBackend;
+  std::shared_ptr<RigidBodyComponentBackend> m_backend;
+  CollisionCallback m_collisionCallback;
 };

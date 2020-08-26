@@ -5,8 +5,6 @@
 #include "BulletPhysicsSystemBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
-#include "Modules/Physics/RigidBodyComponent.h"
-
 #include "BulletRigidBodyComponent.h"
 
 BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld)
@@ -38,22 +36,17 @@ void BulletPhysicsSystemBackend::setGravity(const glm::vec3& gravity)
 void BulletPhysicsSystemBackend::update(float delta)
 {
   m_dynamicsWorld->stepSimulation(delta, 60);
-
-  // Update game objects transforms after the simulation
-  // TODO: override Bullet Motion State and move synchronization logic into the inheritor
-
-  //  for (auto gameObject : m_gameWorld->allWith<RigidBodyComponent>()) {
-  //    auto& transform = gameObject->getComponent<TransformComponent>().getTransform();
-  //    gameObject->getComponent<RigidBodyComponent>().requestTransform(transform);
-  //  }
 }
 
 void BulletPhysicsSystemBackend::configure()
 {
   m_collisionConfiguration = new btDefaultCollisionConfiguration();
-  m_collisionDispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+  m_collisionDispatcher = new BulletCollisionDispatcher(m_collisionConfiguration, shared_from_this());
   m_broadphaseInterface = new btDbvtBroadphase();
   m_constraintSolver = new btSequentialImpulseConstraintSolver();
+
+  m_collisionDispatcher
+    ->setNearCallback(reinterpret_cast<btNearCallback>(BulletPhysicsSystemBackend::physicsNearCallback));
 
   m_dynamicsWorld = new btDiscreteDynamicsWorld(m_collisionDispatcher,
     m_broadphaseInterface, m_constraintSolver, m_collisionConfiguration);
@@ -95,10 +88,10 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   }
 
   const auto* bulletRigidBodyComponent =
-    dynamic_cast<const BulletRigidBodyComponent*>(event.getComponent().m_backendAdapter.get());
+    dynamic_cast<const BulletRigidBodyComponent*>(&event.getComponent().getBackend());
 
   m_dynamicsWorld->removeRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
-  event.getComponent().m_backendAdapter = nullptr;
+  event.getComponent().resetBackend();
 
   return EventProcessStatus::Processed;
 }
@@ -132,7 +125,9 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   event.getComponent().setTransform(event.getGameObject().getComponent<TransformComponent>().getTransform());
 
   const auto* bulletRigidBodyComponent =
-    dynamic_cast<const BulletRigidBodyComponent*>(event.getComponent().m_backendAdapter.get());
+    dynamic_cast<const BulletRigidBodyComponent*>(&event.getComponent().getBackend());
+
+  bulletRigidBodyComponent->m_rigidBodyInstance->setUserPointer(static_cast<void*>(&event.getGameObject()));
 
   m_dynamicsWorld->addRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
 
@@ -142,4 +137,44 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
 bool BulletPhysicsSystemBackend::isConfigured() const
 {
   return m_dynamicsWorld != nullptr;
+}
+
+void BulletPhysicsSystemBackend::physicsNearCallback(btBroadphasePair& collisionPair,
+  btCollisionDispatcher& dispatcher,
+  btDispatcherInfo& dispatchInfo)
+{
+  dynamic_cast<const BulletCollisionDispatcher&>(dispatcher).getPhysicsSystemBackend().nearCallback(collisionPair,
+    dispatcher, dispatchInfo);
+}
+
+void BulletPhysicsSystemBackend::nearCallback(btBroadphasePair& collisionPair,
+  btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo)
+{
+  auto* client1 = static_cast<btCollisionObject*>(collisionPair.m_pProxy0->m_clientObject);
+  auto* client2 = static_cast<btCollisionObject*>(collisionPair.m_pProxy1->m_clientObject);
+
+  RigidBodyCollisionProcessingStatus processingStatus = RigidBodyCollisionProcessingStatus::Skipped;
+
+  if (client1->getUserPointer() != nullptr && client2->getUserPointer() != nullptr) {
+    auto gameObject1 = static_cast<GameObject*>(client1->getUserPointer());
+    auto collisionCallback1 = gameObject1->getComponent<RigidBodyComponent>().getCollisionCallback();
+
+    auto gameObject2 = static_cast<GameObject*>(client2->getUserPointer());
+    auto collisionCallback2 = gameObject2->getComponent<RigidBodyComponent>().getCollisionCallback();
+
+    CollisionInfo collisionInfo = { .selfGameObject = *gameObject1, .gameObject = *gameObject2 };
+
+    if (collisionCallback1 != nullptr) {
+      processingStatus = collisionCallback1(collisionInfo);
+    }
+
+    if (collisionCallback2 != nullptr && processingStatus != RigidBodyCollisionProcessingStatus::Processed) {
+      std::swap(collisionInfo.gameObject, collisionInfo.selfGameObject);
+      processingStatus = collisionCallback2(collisionInfo);
+    }
+  }
+
+  if (processingStatus != RigidBodyCollisionProcessingStatus::Processed) {
+    btCollisionDispatcher::defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
+  }
 }
