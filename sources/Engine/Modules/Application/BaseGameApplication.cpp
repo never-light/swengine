@@ -302,6 +302,11 @@ void BaseGameApplication::initializeEngineSystems()
 
   engineGameSystems->addGameSystem(guiSystem);
 
+  // Physics system
+  m_physicsSystem = std::make_shared<PhysicsSystem>();
+
+  engineGameSystems->addGameSystem(m_physicsSystem);
+
   // Game console
   m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
 

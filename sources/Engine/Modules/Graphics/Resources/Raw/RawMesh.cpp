@@ -5,8 +5,14 @@
 #include "RawMesh.h"
 #include "Exceptions/exceptions.h"
 
+#include "Utility/files.h"
+
 RawMesh RawMesh::readFromFile(const std::string& path)
 {
+  if (!FileUtils::isFileExists(path)) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to read not existing mesh file " + path);
+  }
+
   RawMesh rawMesh;
 
   std::ifstream meshFile(path, std::ios::binary);
@@ -72,6 +78,12 @@ RawMesh RawMesh::readFromFile(const std::string& path)
     sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
 
   meshFile.read(reinterpret_cast<char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+
+  const uint16_t collisionShapesCount = rawMesh.header.collisionShapesCount;
+
+  rawMesh.collisionShapes.resize(collisionShapesCount);
+  meshFile.read(reinterpret_cast<char*>(rawMesh.collisionShapes.data()),
+    sizeof(*rawMesh.collisionShapes.begin()) * collisionShapesCount);
 
   meshFile.close();
 
@@ -146,6 +158,11 @@ void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
     sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
 
   meshFile.write(reinterpret_cast<const char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+
+  const uint16_t collisionShapesCount = rawMesh.header.collisionShapesCount;
+
+  meshFile.write(reinterpret_cast<const char*>(rawMesh.collisionShapes.data()),
+    sizeof(*rawMesh.collisionShapes.begin()) * collisionShapesCount);
 
   meshFile.close();
 }

@@ -26,6 +26,7 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
   assimpOptions.calculateTangents = options.calculateTangents;
   assimpOptions.joinIdenticalVertices = options.joinIdenticalVertices;
   assimpOptions.maxBonexPerVertex = options.maxBonesPerVertex;
+  assimpOptions.loadRiggingData = options.loadSkin;
 
   std::unique_ptr<AssimpScene> scene = AssimpMeshLoader::loadScene(path, assimpOptions);
 
@@ -44,8 +45,11 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
 
   std::unique_ptr<RawMesh> mesh = convertSceneToMesh(scene->getScene(), skeleton.get(), options);
 
-  spdlog::info("Mesh is parsed ({} vertices, {} indices, {} submeshes)",
-    mesh->header.verticesCount, mesh->header.indicesCount, mesh->header.subMeshesIndicesOffsetsCount);
+  spdlog::info("Mesh is parsed ({} vertices, {} indices, {} submeshes, {} colliders)",
+    mesh->header.verticesCount,
+    mesh->header.indicesCount,
+    mesh->header.subMeshesIndicesOffsetsCount,
+    mesh->header.collisionShapesCount);
 
   return mesh;
 }
@@ -75,6 +79,8 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
   std::vector<std::vector<std::uint16_t>> subMeshesIndices;
 
+  std::vector<RawMeshCollisionShape> collisionShapes;
+
   glm::vec3 aabbMin(std::numeric_limits<float>::max());
   glm::vec3 aabbMax(std::numeric_limits<float>::min());
 
@@ -89,9 +95,21 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     THROW_EXCEPTION(EngineRuntimeException, "Failed to import mesh, geometry is not found");
   }
 
+  // TODO: this loop is so long and complex, decompose and simplify it
   for (auto[subMeshName, subMeshPtr] : meshesList) {
     const aiMesh& subMesh = *subMeshPtr.mesh;
     size_t subMeshIndex = subMeshesIndices.size() - 1;
+
+    if (subMeshName.starts_with("collider")) {
+      spdlog::info("Import collider {}", subMeshName);
+
+      RawMeshCollisionShape collisionShape = importCollisionShape(subMeshName, subMeshPtr);
+      collisionShapes.push_back(collisionShape);
+
+      continue;
+    }
+
+    spdlog::info("Import submesh {}", subMeshName);
 
     bool requiredAttributesFound = subMesh.HasPositions() && subMesh.HasNormals()
       && subMesh.HasTextureCoords(0) && subMesh.HasFaces() && subMesh.HasTangentsAndBitangents();
@@ -128,8 +146,6 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
       bonesWeights.push_back({0.0f, 0.0f, 0.0f, 0.0f});
       convertedBonesWeights.push_back({0, 0, 0, 0});
       bonesFreeDataPosition.push_back(0);
-
-      // TODO: implement tangents, bitangents, bones import
     }
 
     // Indices
@@ -203,7 +219,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
       for (size_t weightComponentIndex = 0; weightComponentIndex < 4; weightComponentIndex++) {
         float sourceWeight = weight[static_cast<int>(weightComponentIndex)];
-        std::uint8_t convertedWeight = static_cast<std::uint8_t>(std::round(sourceWeight * 255));
+        auto convertedWeight = static_cast<std::uint8_t>(std::round(sourceWeight * 255));
 
         if (convertedWeight > remainingSum || weightComponentIndex == 3) {
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = remainingSum;
@@ -230,6 +246,14 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
   // Mesh formation
   SW_ASSERT(positions.size() == normals.size() && positions.size() == uv.size());
 
+  bool triangleMeshColliderFound = std::find_if(collisionShapes.begin(), collisionShapes.end(),
+    [](const auto& shape) { return shape.type == RawMeshCollisionShapeType::TriangleMesh; }) != collisionShapes.end();
+
+  if (triangleMeshColliderFound && collisionShapes.size() > 1) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      "Triangle mesh collider options can not be used for meshes with another colliders");
+  }
+
   std::unique_ptr<RawMesh> mesh = std::make_unique<RawMesh>();
 
   mesh->positions = positions;
@@ -238,6 +262,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
   mesh->uv = uv;
   mesh->bonesIds = bonesIDs;
   mesh->bonesWeights = convertedBonesWeights;
+  mesh->collisionShapes = collisionShapes;
 
   for (const auto& subMeshIndices : subMeshesIndices) {
     mesh->subMeshesIndicesOffsets.push_back(static_cast<uint16_t>(mesh->indices.size()));
@@ -246,16 +271,13 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
   mesh->aabb = AABB(aabbMin, aabbMax);
 
-  const uint16_t verticesCount = static_cast<uint16_t>(mesh->positions.size());
-  const uint16_t indicesCount = static_cast<uint16_t>(mesh->indices.size());
-
   mesh->header.formatVersion = MESH_FORMAT_VERSION;
-  mesh->header.verticesCount = verticesCount;
-  mesh->header.indicesCount = indicesCount;
+  mesh->header.verticesCount = static_cast<uint16_t>(mesh->positions.size());
+  mesh->header.indicesCount = static_cast<uint16_t>(mesh->indices.size());
   mesh->header.subMeshesIndicesOffsetsCount = static_cast<uint16_t>(subMeshesIndices.size());
+  mesh->header.collisionShapesCount = static_cast<uint16_t>(mesh->collisionShapes.size());
 
-  RawMeshAttributes storedAttributesMask = RawMeshAttributes::Empty;
-  storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
+  RawMeshAttributes storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
     RawMeshAttributes::UV | RawMeshAttributes::Tangents;
 
   if (options.loadSkin) {
@@ -293,7 +315,7 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 
     if (!currentNodeTransform.IsIdentity()) {
       spdlog::warn("The mesh {} node {} has non-identity transform, "
-                   "vertices will be convertex to scene space", meshName, currentNodeName);
+                   "vertices will be converted to scene space", meshName, currentNodeName);
     }
 
     meshesList.insert({meshName, {mesh, currentNodeTransform}});
@@ -307,7 +329,7 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 }
 
 std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
-  const MeshImportOptions& options) const
+  const MeshImportOptions& options)
 {
   SkeletonImporter importer;
   SkeletonImportOptions importOptions;
@@ -316,7 +338,7 @@ std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
   return importer.importFromFile(path, importOptions);
 }
 
-std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton) const
+std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton)
 {
   std::unordered_map<std::string, int> bonesMap;
 
@@ -326,4 +348,94 @@ std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton
   }
 
   return bonesMap;
+}
+
+RawMeshCollisionShape MeshImporter::importCollisionShape(const std::string& meshName, const ImportMeshData& meshData)
+{
+  const aiMesh& subMesh = *meshData.mesh;
+
+  if (!subMesh.HasPositions()) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      "Collider " + meshName + " does not have positions data");
+  }
+
+  if (meshName.starts_with("collider_sphere_")) {
+    return importCollisionSphereShape(meshData);
+  }
+  else if (meshName.starts_with("collider_aabb_")) {
+    return importCollisionAABBShape(meshData);
+  }
+  else if (meshName.starts_with("collider_triangle_mesh_")) {
+    return importCollisionTriangleMeshShape(meshData);
+  }
+  else {
+    THROW_EXCEPTION(EngineRuntimeException,
+      "Collider " + meshName + " has unsupported type");
+  }
+}
+
+RawMeshCollisionShape MeshImporter::importCollisionSphereShape(const ImportMeshData& meshData)
+{
+  auto vertices = getAiMeshVertices(meshData);
+
+  Sphere sphere = GeometryUtils::restoreSphereByVerticesList(vertices);
+
+  float radius = sphere.getRadius();
+  glm::vec3 origin = sphere.getOrigin();
+
+  RawMeshCollisionShape rawShape{};
+  rawShape.type = RawMeshCollisionShapeType::Sphere;
+  rawShape.shape.sphere.radius = radius;
+  rawShape.shape.sphere.origin = {origin.x, origin.y, origin.z};
+
+  return rawShape;
+}
+
+RawMeshCollisionShape MeshImporter::importCollisionAABBShape(const ImportMeshData& meshData)
+{
+  auto vertices = getAiMeshVertices(meshData);
+
+  AABB aabb = GeometryUtils::restoreAABBByVerticesList(vertices);
+
+  glm::vec3 min = aabb.getMin();
+  glm::vec3 max = aabb.getMax();
+
+  RawMeshCollisionShape rawShape{};
+  rawShape.type = RawMeshCollisionShapeType::AABB;
+  rawShape.shape.aabb.min = {min.x, min.y, min.z};
+  rawShape.shape.aabb.max = {max.x, max.y, max.z};
+
+  return rawShape;
+}
+
+RawMeshCollisionShape MeshImporter::importCollisionTriangleMeshShape(const ImportMeshData& meshData)
+{
+  ARG_UNUSED(meshData);
+
+  // Assume that engine will use already stored mesh vertices,
+  // so do not store them twice and return only shape type
+
+  RawMeshCollisionShape rawShape{};
+  rawShape.type = RawMeshCollisionShapeType::TriangleMesh;
+
+  return rawShape;
+}
+
+std::vector<glm::vec3> MeshImporter::getAiMeshVertices(const ImportMeshData& meshData)
+{
+  const aiMesh& subMesh = *meshData.mesh;
+
+  SW_ASSERT(subMesh.HasPositions());
+
+  std::vector<glm::vec3> positions;
+  positions.reserve(subMesh.mNumVertices);
+
+  for (size_t vertexIndex = 0; vertexIndex < subMesh.mNumVertices; vertexIndex++) {
+    RawVector3 position = getTransformedRawVector(subMesh.mVertices[vertexIndex],
+      meshData.sceneTransfromationMatrix, true);
+
+    positions.emplace_back(position.x, position.y, position.z);
+  }
+
+  return positions;
 }

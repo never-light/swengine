@@ -25,12 +25,15 @@ AssimpScene::AssimpScene(const std::string& path, const AssimpMeshLoadOptions& o
   importOptions |= aiProcess_LimitBoneWeights;
   importOptions |= aiProcess_ValidateDataStructure;
   //importOptions |= aiProcess_PreTransformVertices;
-  importOptions |= aiProcess_PopulateArmatureData;
 
-  m_sceneImporter.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, static_cast<int>(options.maxBonexPerVertex));
+  if (options.loadRiggingData) {
+    importOptions |= aiProcess_PopulateArmatureData;
 
-  if (importOptions & aiProcess_LimitBoneWeights) {
     m_sceneImporter.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, static_cast<int>(options.maxBonexPerVertex));
+
+    if (importOptions & aiProcess_LimitBoneWeights) {
+      m_sceneImporter.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, static_cast<int>(options.maxBonexPerVertex));
+    }
   }
 
   m_scene = m_sceneImporter.ReadFile(path, importOptions);
