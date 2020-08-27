@@ -4,6 +4,8 @@
 
 #include "CollisionShapes.h"
 
+#include <utility>
+
 void CollisionShapeSphere::setRadius(float radius)
 {
   m_radius = radius;
@@ -61,4 +63,38 @@ CollisionShapeCapsule::CollisionShapeCapsule(float radius, float height)
   m_height(height)
 {
 
+}
+
+CollisionShapeCompound::CollisionShapeCompound(std::vector<CollisionShapeCompoundChild> children)
+  : m_children(std::move(children))
+{
+
+}
+
+void CollisionShapeCompound::setChildren(const std::vector<CollisionShapeCompoundChild>& children)
+{
+  m_children = children;
+}
+
+const std::vector<CollisionShapeCompoundChild>& CollisionShapeCompound::getChildren() const
+{
+  return m_children;
+}
+
+CollisionShapeTriangleMesh::CollisionShapeTriangleMesh(std::vector<glm::vec3> vertices)
+  : m_vertices(std::move(vertices))
+{
+  SW_ASSERT(!m_vertices.empty() && m_vertices.size() % 3 == 0);
+}
+
+void CollisionShapeTriangleMesh::setVertices(const std::vector<glm::vec3>& vertices)
+{
+  SW_ASSERT(!vertices.empty() && vertices.size() % 3 == 0);
+
+  m_vertices = vertices;
+}
+
+const std::vector<glm::vec3>& CollisionShapeTriangleMesh::getVertices() const
+{
+  return m_vertices;
 }

@@ -47,3 +47,33 @@ struct CollisionShapeCapsule : public CollisionShape {
   float m_radius = 0.0f;
   float m_height = 0.0f;
 };
+
+struct CollisionShapeTriangleMesh : public CollisionShape {
+ public:
+  explicit CollisionShapeTriangleMesh(std::vector<glm::vec3> vertices);
+  ~CollisionShapeTriangleMesh() override = default;
+
+  void setVertices(const std::vector<glm::vec3>& vertices);
+  [[nodiscard]] const std::vector<glm::vec3>& getVertices() const;
+
+ private:
+  std::vector<glm::vec3> m_vertices;
+};
+
+
+struct CollisionShapeCompoundChild {
+  std::shared_ptr<CollisionShape> shape;
+  glm::vec3 origin;
+};
+
+struct CollisionShapeCompound : public CollisionShape {
+ public:
+  explicit CollisionShapeCompound(std::vector<CollisionShapeCompoundChild> children);
+  ~CollisionShapeCompound() override = default;
+
+  void setChildren(const std::vector<CollisionShapeCompoundChild>& children);
+  [[nodiscard]] const std::vector<CollisionShapeCompoundChild>& getChildren() const;
+
+ private:
+  std::vector<CollisionShapeCompoundChild> m_children;
+};

@@ -14,6 +14,9 @@
 #include "AnimationImporter.h"
 #include "AnimationExporter.h"
 
+#include "CollisionsImporter.h"
+#include "CollisionsExporter.h"
+
 MeshToolApplication::MeshToolApplication()
 {
 
@@ -27,7 +30,8 @@ void MeshToolApplication::execute(int argc, char* argv[])
     ("i,input", "Input file", cxxopts::value<std::string>())
     ("o,output", "Output file", cxxopts::value<std::string>())
     ("a,action", "Action (import)", cxxopts::value<std::string>()->default_value("import"))
-    ("t,type", "Import type (mesh, skeleton, animation)", cxxopts::value<std::string>()->default_value("mesh"))
+    ("t,type", "Import type (mesh, skeleton, animation, collisions)",
+        cxxopts::value<std::string>()->default_value("mesh"))
     ("format", "Output mesh format (pos3_norm3_uv, pos3_norm3_uv_skinned,"
                "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned)",
       cxxopts::value<std::string>()->default_value("pos3_norm3_uv"))
@@ -41,6 +45,7 @@ void MeshToolApplication::execute(int argc, char* argv[])
     std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t mesh --format pos3_norm3_uv" << std::endl;
     std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t skeleton" << std::endl;
     std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t animation --clip-name idle" << std::endl;
+    std::cout << "./MeshTool -i mesh.dae -o mesh.collision -a import -t collisions" << std::endl;
 
     return;
   }
@@ -59,6 +64,9 @@ void MeshToolApplication::execute(int argc, char* argv[])
     else if (importType == "animation") {
       importAnimation(parsedArgs);
     }
+    else if (importType == "collisions") {
+      importCollisions(parsedArgs);
+    }
     else {
       THROW_EXCEPTION(EngineRuntimeException, "Unknown import type");
     }
@@ -70,7 +78,7 @@ void MeshToolApplication::execute(int argc, char* argv[])
 
 void MeshToolApplication::importMesh(const cxxopts::ParseResult& options)
 {
-  spdlog::info("Convertation started");
+  spdlog::info("Conversion started");
 
   MeshExportFormat exportFormat = StringUtils::filterValue(options["format"].as<std::string>(), {
     {"pos3_norm3_uv", MeshExportFormat::Pos3Norm3UV},
@@ -107,12 +115,12 @@ void MeshToolApplication::importMesh(const cxxopts::ParseResult& options)
   const std::string outputPath = options["output"].as<std::string>();
   exporter.exportToFile(outputPath, *mesh.get(), exportOptions);
 
-  spdlog::info("Convertation finished");
+  spdlog::info("Conversion finished");
 }
 
 void MeshToolApplication::importSkeleton(const cxxopts::ParseResult& options)
 {
-  spdlog::info("Convertation started");
+  spdlog::info("Conversion started");
 
   // Import mesh as raw mesh data
   SkeletonImportOptions importOptions;
@@ -128,16 +136,16 @@ void MeshToolApplication::importSkeleton(const cxxopts::ParseResult& options)
   SkeletonExporter exporter;
 
   const std::string outputPath = options["output"].as<std::string>();
-  exporter.exportToFile(outputPath, *skeleton.get(), exportOptions);
+  exporter.exportToFile(outputPath, *skeleton, exportOptions);
 
-  spdlog::info("Convertation finished");
+  spdlog::info("Conversion finished");
 }
 
 void MeshToolApplication::importAnimation(const cxxopts::ParseResult& options)
 {
   ARG_UNUSED(options);
 
-  spdlog::info("Convertation started");
+  spdlog::info("Conversion started");
 
   // Import animation clip as raw animation clip data
   AnimationImportOptions importOptions;
@@ -153,7 +161,30 @@ void MeshToolApplication::importAnimation(const cxxopts::ParseResult& options)
   AnimationExporter exporter;
 
   const std::string outputPath = options["output"].as<std::string>();
-  exporter.exportToFile(outputPath, *animation.get(), exportOptions);
+  exporter.exportToFile(outputPath, *animation, exportOptions);
 
-  spdlog::info("Convertation finished");
+  spdlog::info("Conversion finished");
+}
+
+void MeshToolApplication::importCollisions(const cxxopts::ParseResult& options)
+{
+  ARG_UNUSED(options);
+
+  spdlog::info("Conversion started");
+
+  CollisionsImportOptions importOptions{};
+
+  CollisionsImporter importer;
+
+  const std::string inputPath = options["input"].as<std::string>();
+  std::unique_ptr<RawMeshCollisionData> collisionData = importer.importFromFile(inputPath, importOptions);
+
+  // Save raw animation clip data
+  CollisionsExportOptions exportOptions{};
+  CollisionsExporter exporter;
+
+  const std::string outputPath = options["output"].as<std::string>();
+  exporter.exportToFile(outputPath, *collisionData, exportOptions);
+
+  spdlog::info("Conversion finished");
 }

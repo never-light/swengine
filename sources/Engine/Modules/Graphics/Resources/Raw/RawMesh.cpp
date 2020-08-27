@@ -19,11 +19,13 @@ RawMesh RawMesh::readFromFile(const std::string& path)
   meshFile.read(reinterpret_cast<char*>(&rawMesh.header), sizeof(rawMesh.header));
 
   if (rawMesh.header.formatVersion != MESH_FORMAT_VERSION) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with incompatible format version: " +
+      path);
   }
 
   if (rawMesh.header.verticesCount == 0) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with zero vertices count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with zero vertices count: " +
+      path);
   }
 
   const uint16_t verticesCount = rawMesh.header.verticesCount;
@@ -78,12 +80,6 @@ RawMesh RawMesh::readFromFile(const std::string& path)
     sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
 
   meshFile.read(reinterpret_cast<char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
-
-  const uint16_t collisionShapesCount = rawMesh.header.collisionShapesCount;
-
-  rawMesh.collisionShapes.resize(collisionShapesCount);
-  meshFile.read(reinterpret_cast<char*>(rawMesh.collisionShapes.data()),
-    sizeof(*rawMesh.collisionShapes.begin()) * collisionShapesCount);
 
   meshFile.close();
 
@@ -158,11 +154,6 @@ void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
     sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
 
   meshFile.write(reinterpret_cast<const char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
-
-  const uint16_t collisionShapesCount = rawMesh.header.collisionShapesCount;
-
-  meshFile.write(reinterpret_cast<const char*>(rawMesh.collisionShapes.data()),
-    sizeof(*rawMesh.collisionShapes.begin()) * collisionShapesCount);
 
   meshFile.close();
 }

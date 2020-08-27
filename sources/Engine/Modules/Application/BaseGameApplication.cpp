@@ -18,6 +18,8 @@
 #include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
 #include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
 
+#include "Modules/Physics/Resources/CollisionDataResource.h"
+
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
   const std::string& windowTitle,
@@ -221,6 +223,8 @@ void BaseGameApplication::initializeEngine()
   resourceManager->declareResourceType<SkeletonResource>("skeleton");
   resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
   resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
+
+  resourceManager->declareResourceType<CollisionDataResource>("collision");
 
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 

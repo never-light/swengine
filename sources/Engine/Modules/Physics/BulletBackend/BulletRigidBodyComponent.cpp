@@ -3,8 +3,8 @@
 #pragma hdrstop
 
 #include "Modules/Math/MathUtils.h"
-
 #include "BulletRigidBodyComponent.h"
+#include "BulletHelpers.h"
 
 BulletRigidBodyComponent::BulletRigidBodyComponent(float mass,
   std::shared_ptr<CollisionShape> collisionShape,
@@ -82,6 +82,33 @@ btCollisionShape* BulletRigidBodyComponent::convertCollisionShapeToBulletShape(
   }
   else if (auto capsuleShape = dynamic_cast<const CollisionShapeCapsule*>(&shape)) {
     return new btCapsuleShape(capsuleShape->getRadius(), capsuleShape->getHeight());
+  }
+  else if (auto triangleMeshShape = dynamic_cast<const CollisionShapeTriangleMesh*>(&shape)) {
+    // TODO: optimize it, use indices instead of duplicated vertices
+
+    auto* btTriangleMeshShape = new btTriangleMesh();
+
+    const auto& vertices = triangleMeshShape->getVertices();
+
+    for (size_t vertexIndex = 0; vertexIndex < vertices.size(); vertexIndex += 3) {
+      btTriangleMeshShape->addTriangle(glmVec3ToBt(vertices[vertexIndex]),
+        glmVec3ToBt(vertices[vertexIndex + 1]),
+        glmVec3ToBt(vertices[vertexIndex + 2]));
+    }
+
+    return new btBvhTriangleMeshShape(btTriangleMeshShape, true);
+  }
+  else if (auto compoundShape = dynamic_cast<const CollisionShapeCompound*>(&shape)) {
+    auto* btCompound = new btCompoundShape();
+
+    for (const auto& childShape : compoundShape->getChildren()) {
+      btTransform transform;
+      transform.setOrigin(glmVec3ToBt(childShape.origin));
+
+      btCompound->addChildShape(transform, convertCollisionShapeToBulletShape(*childShape.shape));
+    }
+
+    return btCompound;
   }
   else {
     SW_ASSERT(false);

@@ -38,23 +38,16 @@ class MeshImporter {
 
   std::unique_ptr<RawMesh> importFromFile(const std::string& path, const MeshImportOptions& options);
 
+ public:
+  static void collectMeshes(const aiScene& scene,
+    const aiNode& sceneNode,
+    std::unordered_map<std::string, ImportMeshData>& meshesList,
+    const aiMatrix4x4& parentNodeTransform);
+
  private:
   [[nodiscard]] std::unique_ptr<RawMesh> convertSceneToMesh(const aiScene& scene,
     const RawSkeleton* skeleton,
     const MeshImportOptions& options);
-
-  [[nodiscard]] static RawMeshCollisionShape importCollisionShape(const std::string& meshName, const ImportMeshData& meshData);
-
-  [[nodiscard]] static RawMeshCollisionShape importCollisionSphereShape(const ImportMeshData& meshData);
-  [[nodiscard]] static RawMeshCollisionShape importCollisionAABBShape(const ImportMeshData& meshData);
-  [[nodiscard]] static RawMeshCollisionShape importCollisionTriangleMeshShape(const ImportMeshData& meshData);
-
-  [[nodiscard]] static std::vector<glm::vec3> getAiMeshVertices(const ImportMeshData& meshData);
-
-  void collectMeshes(const aiScene& scene,
-    const aiNode& sceneNode,
-    std::unordered_map<std::string, ImportMeshData>& meshesList,
-    const aiMatrix4x4& parentNodeTransform) const;
 
   [[nodiscard]] static std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const MeshImportOptions& options) ;
 
