@@ -36,6 +36,9 @@ struct RigidBodyComponent {
   void setCollisionCallback(CollisionCallback callback);
   [[nodiscard]] CollisionCallback getCollisionCallback() const;
 
+  void setAngularFactor(const glm::vec3& factor);
+  [[nodiscard]] glm::vec3 getAngularFactor() const;
+
   [[nodiscard]] const RigidBodyComponentBackend& getBackend() const;
   void resetBackend();
 

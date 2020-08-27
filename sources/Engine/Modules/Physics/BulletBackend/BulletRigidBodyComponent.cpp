@@ -119,7 +119,7 @@ btCollisionShape* BulletRigidBodyComponent::convertCollisionShapeToBulletShape(
 
 void BulletRigidBodyComponent::setLinearVelocity(const glm::vec3& velocity)
 {
-  m_rigidBodyInstance->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+  m_rigidBodyInstance->setLinearVelocity(glmVec3ToBt(velocity));
 }
 
 glm::vec3 BulletRigidBodyComponent::getLinearVelocity() const
@@ -127,4 +127,14 @@ glm::vec3 BulletRigidBodyComponent::getLinearVelocity() const
   const btVector3& velocity = m_rigidBodyInstance->getLinearVelocity();
 
   return glm::vec3(velocity.x(), velocity.y(), velocity.z());
+}
+
+void BulletRigidBodyComponent::setAngularFactor(const glm::vec3& factor)
+{
+  m_rigidBodyInstance->setAngularFactor(glmVec3ToBt(factor));
+}
+
+glm::vec3 BulletRigidBodyComponent::getAngularFactor() const
+{
+  return btVec3ToGlm(m_rigidBodyInstance->getAngularFactor());
 }

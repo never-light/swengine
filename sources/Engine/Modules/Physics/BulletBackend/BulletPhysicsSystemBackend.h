@@ -9,6 +9,7 @@
 #include "Modules/Physics/RigidBodyComponent.h"
 
 #include "BulletCollisionDispatcher.h"
+#include "BulletDebugPainter.h"
 
 // TODO: fix possible circular dependency here, replace shared_ptr to GameWorld with weak_ptr
 
@@ -29,6 +30,7 @@ class BulletPhysicsSystemBackend :
   glm::vec3 getGravity() const override;
 
   void update(float delta) override;
+  void render() override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld,
     const GameObjectAddComponentEvent<RigidBodyComponent>& event) override;
@@ -37,6 +39,9 @@ class BulletPhysicsSystemBackend :
     const GameObjectRemoveComponentEvent<RigidBodyComponent>& event) override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event) override;
+
+  void enableDebugDrawing(bool enable) override;
+  bool isDebugDrawingEnabled() override;
 
  private:
   bool isConfigured() const;
@@ -56,4 +61,7 @@ class BulletPhysicsSystemBackend :
   btBroadphaseInterface* m_broadphaseInterface = nullptr;
   btSequentialImpulseConstraintSolver* m_constraintSolver = nullptr;
   btDiscreteDynamicsWorld* m_dynamicsWorld = nullptr;
+  BulletDebugPainter* m_physicsDebugPainter = nullptr;
+
+  bool m_isDebugDrawingEnabled = false;
 };

@@ -45,3 +45,20 @@ glm::vec3 PhysicsSystem::getGravity() const
 {
   return m_physicsBackend->getGravity();
 }
+
+void PhysicsSystem::enableDebugDrawing(bool enable)
+{
+  m_physicsBackend->enableDebugDrawing(enable);
+}
+
+bool PhysicsSystem::isDebugDrawingEnabled()
+{
+  return m_physicsBackend->isDebugDrawingEnabled();
+}
+
+void PhysicsSystem::render(GameWorld* gameWorld)
+{
+  ARG_UNUSED(gameWorld);
+
+  m_physicsBackend->render();
+}

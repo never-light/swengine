@@ -56,3 +56,13 @@ CollisionCallback RigidBodyComponent::getCollisionCallback() const
 {
   return m_collisionCallback;
 }
+
+void RigidBodyComponent::setAngularFactor(const glm::vec3& factor)
+{
+  m_backend->setAngularFactor(factor);
+}
+
+[[nodiscard]] glm::vec3 RigidBodyComponent::getAngularFactor() const
+{
+  return m_backend->getAngularFactor();
+}

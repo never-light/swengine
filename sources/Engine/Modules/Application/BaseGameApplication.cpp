@@ -140,6 +140,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "physics-debug-draw") {
+    m_physicsSystem->enableDebugDrawing(!m_physicsSystem->isDebugDrawingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
 
   return EventProcessStatus::Skipped;
 }

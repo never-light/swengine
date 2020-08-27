@@ -51,6 +51,8 @@ void BulletPhysicsSystemBackend::configure()
   m_dynamicsWorld = new btDiscreteDynamicsWorld(m_collisionDispatcher,
     m_broadphaseInterface, m_constraintSolver, m_collisionConfiguration);
 
+  m_physicsDebugPainter = new BulletDebugPainter();
+
   m_gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>(this);
   m_gameWorld->subscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
   m_gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
@@ -61,6 +63,9 @@ void BulletPhysicsSystemBackend::unconfigure()
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>(this);
+
+  delete m_physicsDebugPainter;
+  m_physicsDebugPainter = nullptr;
 
   delete m_dynamicsWorld;
   m_dynamicsWorld = nullptr;
@@ -176,5 +181,29 @@ void BulletPhysicsSystemBackend::nearCallback(btBroadphasePair& collisionPair,
 
   if (processingStatus != RigidBodyCollisionProcessingStatus::Processed) {
     btCollisionDispatcher::defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
+  }
+}
+
+void BulletPhysicsSystemBackend::enableDebugDrawing(bool enable)
+{
+  m_isDebugDrawingEnabled = enable;
+
+  if (enable) {
+    m_dynamicsWorld->setDebugDrawer(m_physicsDebugPainter);
+  }
+  else {
+    m_dynamicsWorld->setDebugDrawer(nullptr);
+  }
+}
+
+bool BulletPhysicsSystemBackend::isDebugDrawingEnabled()
+{
+  return m_isDebugDrawingEnabled;
+}
+
+void BulletPhysicsSystemBackend::render()
+{
+  if (isDebugDrawingEnabled()) {
+    m_dynamicsWorld->debugDrawWorld();
   }
 }

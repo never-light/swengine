@@ -27,6 +27,9 @@ class BulletRigidBodyComponent : public RigidBodyComponentBackend {
   void setLinearVelocity(const glm::vec3& velocity) override;
   [[nodiscard]] glm::vec3 getLinearVelocity() const override;
 
+  void setAngularFactor(const glm::vec3& factor) override;
+  [[nodiscard]] glm::vec3 getAngularFactor() const override;
+
  private:
   [[nodiscard]] static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);
 

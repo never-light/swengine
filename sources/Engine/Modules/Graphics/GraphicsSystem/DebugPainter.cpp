@@ -209,3 +209,17 @@ GLGeometryStore* DebugPainter::createGeometryStore(const std::vector<glm::vec3>&
 
   return new GLGeometryStore(vertices, indices);
 }
+
+void DebugPainter::renderTriangle(const glm::vec3& v1,
+  const glm::vec3& v2,
+  const glm::vec3& v3,
+  const glm::vec4& color,
+  bool wireframe)
+{
+  s_primitivesGeometry.push_back(std::unique_ptr<GLGeometryStore>(createGeometryStore({
+    v1, v2, v3
+  })));
+
+  s_debugRenderQueue.push_back({(*s_primitivesGeometry.rbegin()).get(), glm::identity<glm::mat4>(),
+    color, wireframe, GL_TRIANGLES});
+}

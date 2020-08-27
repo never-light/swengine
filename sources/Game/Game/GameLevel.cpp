@@ -70,8 +70,10 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
   playerAnimationComponent.setAnimationStatesMachine(playerAnimationStatesMachine);
 
-  m_player->addComponent<RigidBodyComponent>(60.0f,
-    CollisionShapesFactory::createCapsule(1.0f, 0.6f), playerTransformComponent.getTransformPtr());
+  auto& playerRigidBodyComponent = m_player->addComponent<RigidBodyComponent>(60.0f,
+    CollisionShapesFactory::createCapsule(0.2f, 0.4f), playerTransformComponent.getTransformPtr());
+
+  playerRigidBodyComponent.setAngularFactor({0.0f, 1.0f, 0.0f});
 
   // Game objects
   std::shared_ptr<Material>
