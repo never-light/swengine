@@ -77,15 +77,15 @@ std::unique_ptr<RawSkeleton> SkeletonImporter::convertSceneToSkeleton(const aiSc
   skeleton->header.bonesCount = static_cast<uint8_t>(rawBonesList.size());
   skeleton->bones = std::move(rawBonesList);
 
-  for (auto bone : skeleton->bones) {
-    auto translation = rawMatrix4ToGLMMatrix4(bone.inverseBindPoseMatrix);
-    auto translation2 = aiMatrix4x4ToGlm(&usedBonesList[std::string(bone.name)]->mOffsetMatrix);
-
-    auto t1 = aiVec3ToGlm(usedBonesList[std::string(bone.name)]->mOffsetMatrix * aiVector3D(0.0f, 0.0f, 0.0f));
-
-    spdlog::warn("Skeleton: {}", glm::to_string(translation));
-    spdlog::warn("Orig: {} {}", glm::to_string(translation2), glm::to_string(t1));
-  }
+//  for (auto bone : skeleton->bones) {
+//    auto translation = rawMatrix4ToGLMMatrix4(bone.inverseBindPoseMatrix);
+//    auto translation2 = aiMatrix4x4ToGlm(&usedBonesList[std::string(bone.name)]->mOffsetMatrix);
+//
+//    auto t1 = aiVec3ToGlm(usedBonesList[std::string(bone.name)]->mOffsetMatrix * aiVector3D(0.0f, 0.0f, 0.0f));
+//
+//    spdlog::warn("Skeleton: {}", glm::to_string(translation));
+//    spdlog::warn("Orig: {} {}", glm::to_string(translation2), glm::to_string(t1));
+//  }
 
   return skeleton;
 }
@@ -130,15 +130,11 @@ void SkeletonImporter::traverseSkeletonHierarchy(const aiNode* sceneNode,
   if (usedBoneIt != usedBones.end()) {
     //aiMatrix4x4 tempInvMatrixs = currentNodeTransform.Inverse() * usedBoneIt->second->mOffsetMatrix;
 
-    aiMatrix4x4 m = usedBoneIt->second->mOffsetMatrix;
+    aiMatrix4x4 offsetMatrix = usedBoneIt->second->mOffsetMatrix;
 
-    auto itt = aiMatrix4x4ToGlm(&m);
+    offsetMatrix.Inverse();
 
-    m.Inverse();
-
-    spdlog::info("MTTT: {}", glm::to_string(glm::inverse(itt) * glm::vec4(0.0f, 0.0f, 1.5f, 1.0f)));
-
-    bonesData[currentNodeName] = {usedBoneIt->second, m};
+    bonesData[currentNodeName] = {usedBoneIt->second, offsetMatrix};
   }
 
   for (size_t childIndex = 0; childIndex < sceneNode->mNumChildren; childIndex++) {

@@ -5,8 +5,14 @@
 #include "RawSkeleton.h"
 #include "Exceptions/exceptions.h"
 
+#include "Utility/files.h"
+
 RawSkeleton RawSkeleton::readFromFile(const std::string& path)
 {
+  if (!FileUtils::isFileExists(path)) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to read not existing skeleton file " + path);
+  }
+
   std::ifstream skeletonFile(path, std::ios::binary);
 
   RawSkeleton rawSkeleton;
@@ -14,11 +20,12 @@ RawSkeleton RawSkeleton::readFromFile(const std::string& path)
   skeletonFile.read(reinterpret_cast<char*>(&rawSkeleton.header), sizeof(rawSkeleton.header));
 
   if (rawSkeleton.header.formatVersion != SKELETON_FORMAT_VERSION) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with incompatible format version: " +
+      path);
   }
 
   if (rawSkeleton.header.bonesCount == 0) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with zero bones count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton with zero bones count: " + path);
   }
 
   const uint16_t bonesCount = rawSkeleton.header.bonesCount;

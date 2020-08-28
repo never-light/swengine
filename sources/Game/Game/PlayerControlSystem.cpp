@@ -6,6 +6,9 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
 #include <Engine/swdebug.h>
 
+#include <Engine/Modules/Physics/PhysicsSystem.h>
+#include <Engine/Modules/Physics/RigidBodyComponent.h>
+
 #include "PlayerComponent.h"
 
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
@@ -175,7 +178,8 @@ void PlayerControlSystem::updatePlayerAndCameraPosition(float delta)
       playerMovementDirection = glm::normalize(playerMovementDirection);
     }
 
-    playerTransform.move(playerMovementDirection * playerMovementSpeed * delta);
+    m_playerObject->getComponent<RigidBodyComponent>().setLinearVelocity(playerMovementDirection * playerMovementSpeed * delta);
+    //playerTransform.move(playerMovementDirection * playerMovementSpeed * delta);
   }
 
   // TODO: that's code for animation demo, remove it and implement real player animations

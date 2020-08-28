@@ -18,6 +18,8 @@
 #include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
 #include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
 
+#include "Modules/Physics/Resources/CollisionDataResource.h"
+
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
   const std::string& windowTitle,
@@ -138,6 +140,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "physics-debug-draw") {
+    m_physicsSystem->enableDebugDrawing(!m_physicsSystem->isDebugDrawingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
 
   return EventProcessStatus::Skipped;
 }
@@ -222,6 +229,8 @@ void BaseGameApplication::initializeEngine()
   resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
   resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
 
+  resourceManager->declareResourceType<CollisionDataResource>("collision");
+
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
   m_gameWorld = GameWorld::createInstance();
@@ -301,6 +310,11 @@ void BaseGameApplication::initializeEngineSystems()
   guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
   engineGameSystems->addGameSystem(guiSystem);
+
+  // Physics system
+  m_physicsSystem = std::make_shared<PhysicsSystem>();
+
+  engineGameSystems->addGameSystem(m_physicsSystem);
 
   // Game console
   m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);

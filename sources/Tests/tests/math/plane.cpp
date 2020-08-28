@@ -11,5 +11,6 @@ TEST_CASE("plane_by_3_points", "[plane]") {
     float d = -6.0f * glm::inversesqrt(35.0f);
     Plane plane = Plane(normal, d);
 
-    REQUIRE(MathUtils::isEqual(getPlaneBy3Points({1.0f, 2.0f, 1.0f}, {2.0f, 3.0f, 3.0f}, {4.0f, 4.0f, 2.0f}), plane));
+    REQUIRE(MathUtils::isEqual(
+      GeometryUtils::getPlaneBy3Points({1.0f, 2.0f, 1.0f}, {2.0f, 3.0f, 3.0f}, {4.0f, 4.0f, 2.0f}), plane));
 }

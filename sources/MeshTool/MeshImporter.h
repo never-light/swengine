@@ -11,6 +11,8 @@
 #include <Engine/Modules/Graphics/Resources/Raw/RawMesh.h>
 #include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
 
+#include <Engine/Modules/Math/geometry.h>
+
 struct MeshImportOptions {
   bool flipUV = false;
   bool joinIdenticalVertices = false;
@@ -36,17 +38,18 @@ class MeshImporter {
 
   std::unique_ptr<RawMesh> importFromFile(const std::string& path, const MeshImportOptions& options);
 
+ public:
+  static void collectMeshes(const aiScene& scene,
+    const aiNode& sceneNode,
+    std::unordered_map<std::string, ImportMeshData>& meshesList,
+    const aiMatrix4x4& parentNodeTransform);
+
  private:
-  std::unique_ptr<RawMesh> convertSceneToMesh(const aiScene& scene,
+  [[nodiscard]] std::unique_ptr<RawMesh> convertSceneToMesh(const aiScene& scene,
     const RawSkeleton* skeleton,
     const MeshImportOptions& options);
 
-  void collectMeshes(const aiScene& scene,
-    const aiNode& sceneNode,
-    std::unordered_map<std::string, ImportMeshData>& meshesList,
-    const aiMatrix4x4& parentNodeTransform) const;
+  [[nodiscard]] static std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const MeshImportOptions& options) ;
 
-  std::unique_ptr<RawSkeleton> getSkeleton(const std::string& path, const MeshImportOptions& options) const;
-
-  std::unordered_map<std::string, int> getBonesMap(const RawSkeleton& skeleton) const;
+  [[nodiscard]] static std::unordered_map<std::string, int> getBonesMap(const RawSkeleton& skeleton) ;
 };

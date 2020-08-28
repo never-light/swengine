@@ -64,6 +64,10 @@ void ResourceManager::loadResourcesMap(const std::string& content)
 
 void ResourceManager::loadResourcesMapFile(const std::string& path)
 {
+  if (!FileUtils::isFileExists(path)) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to read not existing resource map file " + path);
+  }
+
   pugi::xml_document resourcesMap;
   pugi::xml_parse_result result = resourcesMap.load_file(path.c_str());
 

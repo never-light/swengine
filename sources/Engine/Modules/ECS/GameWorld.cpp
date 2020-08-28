@@ -62,6 +62,8 @@ std::shared_ptr<GameObject> GameWorld::createGameObject()
 
   m_gameObjects.push_back(gameObject);
 
+  emitEvent(GameObjectAddEvent(gameObject));
+
   return gameObject;
 }
 
@@ -94,6 +96,8 @@ size_t GameWorld::getGameObjectsCount() const
 void GameWorld::removeGameObject(std::shared_ptr<GameObject> gameObject)
 {
   gameObject->m_isDestroyed = true;
+
+  emitEvent(GameObjectRemoveEvent(gameObject));
 }
 
 void GameWorld::forEach(std::function<void(GameObject&)> action)

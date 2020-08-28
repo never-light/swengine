@@ -13,6 +13,7 @@ struct AssimpMeshLoadOptions {
   bool calculateTangents = false;
   bool glueByMaterials = false;
   int maxBonexPerVertex = 4;
+  bool loadRiggingData = false;
 };
 
 class AssimpScene {

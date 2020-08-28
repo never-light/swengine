@@ -5,8 +5,14 @@
 #include "RawSkeletalAnimationClip.h"
 #include "Exceptions/exceptions.h"
 
+#include "Utility/files.h"
+
 RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::string& path)
 {
+  if (!FileUtils::isFileExists(path)) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to read not existing animation clip file " + path);
+  }
+
   std::ifstream clipFile(path, std::ios::binary);
 
   RawSkeletalAnimationClip rawClip;
@@ -14,11 +20,13 @@ RawSkeletalAnimationClip RawSkeletalAnimationClip::readFromFile(const std::strin
   clipFile.read(reinterpret_cast<char*>(&rawClip.header), sizeof(rawClip.header));
 
   if (rawClip.header.formatVersion != ANIMATION_FORMAT_VERSION) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with incompatible format version: " +
+      path);
   }
 
   if (rawClip.header.skeletonBonesCount == 0) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with zero bones count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation clip with zero bones count: " +
+      path);
   }
 
   const uint16_t skeletonBonesCount = rawClip.header.skeletonBonesCount;

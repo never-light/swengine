@@ -15,6 +15,9 @@
 #include <Engine/Modules/Graphics/Resources/SkeletalAnimationResource.h>
 #include <Engine/Modules/Graphics/Resources/AnimationStatesMachineResource.h>
 
+#include <Engine/Modules/Physics/PhysicsSystem.h>
+#include <Engine/Modules/Physics/Resources/CollisionDataResource.h>
+
 #include "Game/PlayerComponent.h"
 
 GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
@@ -28,6 +31,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerTransformComponent = m_player->addComponent<TransformComponent>();
   playerTransformComponent.getTransform().pitchLocal(-90.0f);
   playerTransformComponent.getTransform().scale(0.1f, 0.1f, 0.1f);
+  playerTransformComponent.getTransform().move(0.0f, 80.0f, 0.0f);
 
   m_player->addComponent<PlayerComponent>();
 
@@ -65,7 +69,12 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   auto& playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
   playerAnimationComponent.setAnimationStatesMachine(playerAnimationStatesMachine);
-  
+
+  auto& playerRigidBodyComponent = m_player->addComponent<RigidBodyComponent>(60.0f,
+    CollisionShapesFactory::createCapsule(0.2f, 0.4f), playerTransformComponent.getTransformPtr());
+
+  playerRigidBodyComponent.setAngularFactor({0.0f, 1.0f, 0.0f});
+
   // Game objects
   std::shared_ptr<Material>
     material = m_resourceManager->getResourceFromInstance<MaterialResource>("deferred_gpass_brick")->
@@ -85,6 +94,13 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     componentHandle.setMaterialsInstances({material});
 
     componentHandle.updateBounds(transformHandle.getTransform().getTransformationMatrix());
+
+    std::shared_ptr<CollisionShape> groundCollisionShape =
+      m_resourceManager->getResourceFromInstance<CollisionDataResource>("ground_mesh_collision")->getCollisionShape();
+
+    obj->addComponent<RigidBodyComponent>(0.0f,
+      groundCollisionShape,
+      playerTransformComponent.getTransformPtr());
   }
 
   // Environment
