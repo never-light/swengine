@@ -26,6 +26,7 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
   assimpOptions.calculateTangents = options.calculateTangents;
   assimpOptions.joinIdenticalVertices = options.joinIdenticalVertices;
   assimpOptions.maxBonexPerVertex = options.maxBonesPerVertex;
+  assimpOptions.loadRiggingData = options.loadSkin;
 
   std::unique_ptr<AssimpScene> scene = AssimpMeshLoader::loadScene(path, assimpOptions);
 
@@ -45,7 +46,9 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
   std::unique_ptr<RawMesh> mesh = convertSceneToMesh(scene->getScene(), skeleton.get(), options);
 
   spdlog::info("Mesh is parsed ({} vertices, {} indices, {} submeshes)",
-    mesh->header.verticesCount, mesh->header.indicesCount, mesh->header.subMeshesIndicesOffsetsCount);
+    mesh->header.verticesCount,
+    mesh->header.indicesCount,
+    mesh->header.subMeshesIndicesOffsetsCount);
 
   return mesh;
 }
@@ -89,9 +92,18 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     THROW_EXCEPTION(EngineRuntimeException, "Failed to import mesh, geometry is not found");
   }
 
+  // TODO: this loop is so long and complex, decompose and simplify it
   for (auto[subMeshName, subMeshPtr] : meshesList) {
     const aiMesh& subMesh = *subMeshPtr.mesh;
     size_t subMeshIndex = subMeshesIndices.size() - 1;
+
+    if (subMeshName.starts_with("collider")) {
+      spdlog::info("Skip collider {}", subMeshName);
+
+      continue;
+    }
+
+    spdlog::info("Import submesh {}", subMeshName);
 
     bool requiredAttributesFound = subMesh.HasPositions() && subMesh.HasNormals()
       && subMesh.HasTextureCoords(0) && subMesh.HasFaces() && subMesh.HasTangentsAndBitangents();
@@ -128,8 +140,6 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
       bonesWeights.push_back({0.0f, 0.0f, 0.0f, 0.0f});
       convertedBonesWeights.push_back({0, 0, 0, 0});
       bonesFreeDataPosition.push_back(0);
-
-      // TODO: implement tangents, bitangents, bones import
     }
 
     // Indices
@@ -203,7 +213,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
       for (size_t weightComponentIndex = 0; weightComponentIndex < 4; weightComponentIndex++) {
         float sourceWeight = weight[static_cast<int>(weightComponentIndex)];
-        std::uint8_t convertedWeight = static_cast<std::uint8_t>(std::round(sourceWeight * 255));
+        auto convertedWeight = static_cast<std::uint8_t>(std::round(sourceWeight * 255));
 
         if (convertedWeight > remainingSum || weightComponentIndex == 3) {
           convertedBonesWeights[weightIndex].data[weightComponentIndex] = remainingSum;
@@ -246,16 +256,12 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 
   mesh->aabb = AABB(aabbMin, aabbMax);
 
-  const uint16_t verticesCount = static_cast<uint16_t>(mesh->positions.size());
-  const uint16_t indicesCount = static_cast<uint16_t>(mesh->indices.size());
-
   mesh->header.formatVersion = MESH_FORMAT_VERSION;
-  mesh->header.verticesCount = verticesCount;
-  mesh->header.indicesCount = indicesCount;
+  mesh->header.verticesCount = static_cast<uint16_t>(mesh->positions.size());
+  mesh->header.indicesCount = static_cast<uint16_t>(mesh->indices.size());
   mesh->header.subMeshesIndicesOffsetsCount = static_cast<uint16_t>(subMeshesIndices.size());
 
-  RawMeshAttributes storedAttributesMask = RawMeshAttributes::Empty;
-  storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
+  RawMeshAttributes storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
     RawMeshAttributes::UV | RawMeshAttributes::Tangents;
 
   if (options.loadSkin) {
@@ -270,7 +276,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
 void MeshImporter::collectMeshes(const aiScene& scene,
   const aiNode& sceneNode,
   std::unordered_map<std::string, ImportMeshData>& meshesList,
-  const aiMatrix4x4& parentNodeTransform) const
+  const aiMatrix4x4& parentNodeTransform)
 {
   std::string currentNodeName = sceneNode.mName.C_Str();
   aiMatrix4x4 currentNodeTransform = parentNodeTransform * sceneNode.mTransformation;
@@ -293,7 +299,7 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 
     if (!currentNodeTransform.IsIdentity()) {
       spdlog::warn("The mesh {} node {} has non-identity transform, "
-                   "vertices will be convertex to scene space", meshName, currentNodeName);
+                   "vertices will be converted to scene space", meshName, currentNodeName);
     }
 
     meshesList.insert({meshName, {mesh, currentNodeTransform}});
@@ -307,7 +313,7 @@ void MeshImporter::collectMeshes(const aiScene& scene,
 }
 
 std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
-  const MeshImportOptions& options) const
+  const MeshImportOptions& options)
 {
   SkeletonImporter importer;
   SkeletonImportOptions importOptions;
@@ -316,7 +322,7 @@ std::unique_ptr<RawSkeleton> MeshImporter::getSkeleton(const std::string& path,
   return importer.importFromFile(path, importOptions);
 }
 
-std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton) const
+std::unordered_map<std::string, int> MeshImporter::getBonesMap(const RawSkeleton& skeleton)
 {
   std::unordered_map<std::string, int> bonesMap;
 

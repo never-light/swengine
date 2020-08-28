@@ -24,6 +24,8 @@
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/ScreenManagement/ScreenManager.h"
 
+#include "Modules/Physics/PhysicsSystem.h"
+
 #include "GameConsole.h"
 
 class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
@@ -73,6 +75,9 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
+
+  std::shared_ptr<PhysicsSystem> m_physicsSystem;
+
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
 
   std::shared_ptr<ScreenManager> m_screenManager;

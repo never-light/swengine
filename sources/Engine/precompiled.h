@@ -43,6 +43,8 @@
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 
+#include <btBulletDynamicsCommon.h>
+
 // Engine headers to precompile
 #include "Utility/helpers.h"
 #include "swdebug.h"

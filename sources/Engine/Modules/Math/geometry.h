@@ -97,11 +97,19 @@ struct AABB {
   glm::vec3 m_max;
 };
 
-float calculateDistance(const glm::vec3& v1, const glm::vec3& v2);
-float calculateDistance(const glm::vec3& point, const Plane& plane);
-float calculateSignedDistance(const glm::vec3& point, const Plane& plane);
+class GeometryUtils {
+ public:
+  static float calculateDistance(const glm::vec3& v1, const glm::vec3& v2);
+  static float calculateDistance(const glm::vec3& point, const Plane& plane);
+  static float calculateSignedDistance(const glm::vec3& point, const Plane& plane);
 
-glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3);
+  static glm::vec3 getPlanesIntersection(const Plane& p1, const Plane& p2, const Plane& p3);
 
-bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
-bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum);
+  static bool isSphereFrustumIntersecting(const Sphere& sphere, const Frustum& frustum);
+  static bool isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum);
+
+  static Plane getPlaneBy3Points(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C);
+
+  static AABB restoreAABBByVerticesList(const std::vector<glm::vec3>& vertices);
+  static Sphere restoreSphereByVerticesList(const std::vector<glm::vec3>& vertices);
+};

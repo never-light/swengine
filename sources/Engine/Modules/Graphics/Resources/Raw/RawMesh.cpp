@@ -5,19 +5,27 @@
 #include "RawMesh.h"
 #include "Exceptions/exceptions.h"
 
+#include "Utility/files.h"
+
 RawMesh RawMesh::readFromFile(const std::string& path)
 {
+  if (!FileUtils::isFileExists(path)) {
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to read not existing mesh file " + path);
+  }
+
   RawMesh rawMesh;
 
   std::ifstream meshFile(path, std::ios::binary);
   meshFile.read(reinterpret_cast<char*>(&rawMesh.header), sizeof(rawMesh.header));
 
   if (rawMesh.header.formatVersion != MESH_FORMAT_VERSION) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with incompatible format version");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with incompatible format version: " +
+      path);
   }
 
   if (rawMesh.header.verticesCount == 0) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with zero vertices count");
+    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh with zero vertices count: " +
+      path);
   }
 
   const uint16_t verticesCount = rawMesh.header.verticesCount;

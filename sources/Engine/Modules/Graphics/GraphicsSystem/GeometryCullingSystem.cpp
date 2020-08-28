@@ -45,7 +45,7 @@ void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
 
     std::shared_ptr<Camera> activeCamera = m_sharedGraphicsState->getActiveCamera();
 
-    bool isCulled = !isAABBFrustumIntersecting(meshComponent.getAABB(), activeCamera->getFrustum());
+    bool isCulled = !GeometryUtils::isAABBFrustumIntersecting(meshComponent.getAABB(), activeCamera->getFrustum());
 
     if (isCulled) {
       meshComponent.cull();

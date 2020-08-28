@@ -20,3 +20,8 @@ const Transform& TransformComponent::getTransform() const
   return *m_transform;
 }
 
+std::shared_ptr<Transform> TransformComponent::getTransformPtr() const
+{
+  return m_transform;
+}
+

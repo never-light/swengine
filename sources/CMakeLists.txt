@@ -6,8 +6,9 @@ elseif(MSVC)
     add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/WX>)
 
     # Suppress "nonstandard extension used: nameless struct/union",
-    # "nonstandard extension used : translation unit is empty" warnings
-    add_definitions(/wd4206 /wd4201)
+    # "nonstandard extension used : translation unit is empty",
+    # "conditional expression is constant" warnings
+    add_definitions(/wd4206 /wd4201 /wd4127)
 
     # Suppress "PDB was not found" linking warning
     add_link_options(/ignore:4099)
