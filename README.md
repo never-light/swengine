@@ -21,22 +21,40 @@ StarWind is 3D game engine based on ECS architecture. It supports both Windows a
 
 ##### Prerequisites
 
-* C++17/20 compiler;
+* C++20 compiler;
 * Conan package manager;
 * CMake;
 
 ##### Build steps
 
-1. Clone repository.
-2. Add the following remote repositories to Conan package manager via `conan remote add`:
-    *  https://api.bintray.com/conan/bincrafters/public-conan
-    *  https://api.bintray.com/conan/inexorgame/inexor-conan
-    * https://api.bintray.com/conan/jinncrafters/conan
-3. Install dependencies via Conan package manager, generate `conanbuildinfo.cmake` file and put it in `build/conanbuildinfo.cmake`.
-4. Build projects `Engine`, `Game` or `Tests` with CMake. 
-5. For `Game` or `Tests` projects set working directory to directory `bin`.
+######  Clone engine repository  
+```bash
+git clone --recurse-submodules git@github.com:n-paukov/swengine.git  
 
-The `MeshTool` building process is pretty more complicated. In this case it is required to install `Assimp` as Git module, manually build and install it with CMake and put `include/assimp` folder in `ThirdParty`, put lib file in `build/libraries/assimp.lib` and finally put shader library file in working directory.
+cd swengine  
+
+mkdir bin  
+  ```
+
+######  Install third-party dependencies
+```bash
+conan remote add https://api.bintray.com/conan/bincrafters/public-conan
+
+mkdir build
+
+cd build  
+
+conan install ..  
+  
+cd ..
+ ```
+
+Check the existence of `conanbuildinfo.cmake` file in the  `build` directory.
+
+######  Build project
+Build projects `Engine`, `Game` or `Tests` with CMake. 
+
+For `Game` or `Tests` projects set working directory to directory `bin`.
 
 #### Project status and contributing:
 
