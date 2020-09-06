@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 
 class BulletDebugPainter : public btIDebugDraw {

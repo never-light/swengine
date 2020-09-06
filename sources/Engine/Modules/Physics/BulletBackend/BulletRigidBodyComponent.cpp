@@ -6,10 +6,10 @@
 #include "BulletRigidBodyComponent.h"
 
 #include <utility>
-#include "BulletHelpers.h"
+#include "BulletUtils.h"
 
 BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
-  : m_collisionShape(convertCollisionShapeToBulletShape(*collisionShape))
+  : m_collisionShape(BulletUtils::convertCollisionShapeToBulletShape(*collisionShape))
 {
   btTransform defaultTransform;
   defaultTransform.setIdentity();
@@ -56,70 +56,15 @@ float BulletRigidBodyComponent::getMass() const
 
 void BulletRigidBodyComponent::setTransform(const Transform& transform)
 {
-  btTransform internalTransform;
-  internalTransform.setIdentity();
-
-  const glm::vec3& position = transform.getPosition();
-  const glm::quat& orientation = transform.getOrientation();
-
-  internalTransform.setOrigin({position.x, position.y, position.z});
-  internalTransform.setRotation({orientation.x, orientation.y, orientation.z, orientation.w});
+  btTransform internalTransform = BulletUtils::internalTransformToBt(transform);
 
   m_motionState->setWorldTransform(internalTransform);
   m_rigidBodyInstance->setWorldTransform(internalTransform);
 }
 
-btCollisionShape* BulletRigidBodyComponent::convertCollisionShapeToBulletShape(
-  const CollisionShape& shape)
-{
-  if (auto sphereShape = dynamic_cast<const CollisionShapeSphere*>(&shape)) {
-    return new btSphereShape(sphereShape->getRadius());
-  }
-  else if (auto boxShape = dynamic_cast<const CollisionShapeBox*>(&shape)) {
-    glm::vec3 boxExtents = boxShape->getHalfExtents();
-
-    return new btBoxShape({boxExtents.x, boxExtents.y, boxExtents.z});
-  }
-  else if (auto capsuleShape = dynamic_cast<const CollisionShapeCapsule*>(&shape)) {
-    return new btCapsuleShape(capsuleShape->getRadius(), capsuleShape->getHeight());
-  }
-  else if (auto triangleMeshShape = dynamic_cast<const CollisionShapeTriangleMesh*>(&shape)) {
-    // TODO: optimize it, use indices instead of duplicated vertices
-
-    auto* btTriangleMeshShape = new btTriangleMesh();
-
-    const auto& vertices = triangleMeshShape->getVertices();
-
-    for (size_t vertexIndex = 0; vertexIndex < vertices.size(); vertexIndex += 3) {
-      btTriangleMeshShape->addTriangle(glmVec3ToBt(vertices[vertexIndex]),
-        glmVec3ToBt(vertices[vertexIndex + 1]),
-        glmVec3ToBt(vertices[vertexIndex + 2]));
-    }
-
-    return new btBvhTriangleMeshShape(btTriangleMeshShape, true);
-  }
-  else if (auto compoundShape = dynamic_cast<const CollisionShapeCompound*>(&shape)) {
-    auto* btCompound = new btCompoundShape();
-
-    for (const auto& childShape : compoundShape->getChildren()) {
-      btTransform transform;
-      transform.setOrigin(glmVec3ToBt(childShape.origin));
-
-      btCompound->addChildShape(transform, convertCollisionShapeToBulletShape(*childShape.shape));
-    }
-
-    return btCompound;
-  }
-  else {
-    SW_ASSERT(false);
-  }
-
-  return nullptr;
-}
-
 void BulletRigidBodyComponent::setLinearVelocity(const glm::vec3& velocity)
 {
-  m_rigidBodyInstance->setLinearVelocity(glmVec3ToBt(velocity));
+  m_rigidBodyInstance->setLinearVelocity(BulletUtils::glmVec3ToBt(velocity));
 }
 
 glm::vec3 BulletRigidBodyComponent::getLinearVelocity() const
@@ -131,12 +76,22 @@ glm::vec3 BulletRigidBodyComponent::getLinearVelocity() const
 
 void BulletRigidBodyComponent::setAngularFactor(const glm::vec3& factor)
 {
-  m_rigidBodyInstance->setAngularFactor(glmVec3ToBt(factor));
+  m_rigidBodyInstance->setAngularFactor(BulletUtils::glmVec3ToBt(factor));
 }
 
 glm::vec3 BulletRigidBodyComponent::getAngularFactor() const
 {
-  return btVec3ToGlm(m_rigidBodyInstance->getAngularFactor());
+  return BulletUtils::btVec3ToGlm(m_rigidBodyInstance->getAngularFactor());
+}
+
+void BulletRigidBodyComponent::setLinearFactor(const glm::vec3& factor)
+{
+  m_rigidBodyInstance->setLinearFactor(BulletUtils::glmVec3ToBt(factor));
+}
+
+glm::vec3 BulletRigidBodyComponent::getLinearFactor() const
+{
+  return BulletUtils::btVec3ToGlm(m_rigidBodyInstance->getLinearFactor());
 }
 
 void BulletRigidBodyComponent::setUpdateCallback(std::function<void(const btTransform&)> updateCallback)

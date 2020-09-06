@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <bullet/btBulletCollisionCommon.h>
+#include <btBulletCollisionCommon.h>
 
 class BulletPhysicsSystemBackend;
 

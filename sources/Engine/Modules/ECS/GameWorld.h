@@ -314,7 +314,7 @@ inline T& GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
   T rawComponentObj = T(std::forward<Args>(args)...);
   std::any component = rawComponentObj;
 
-  gameObject.m_components[typeId] = component;
+  gameObject.m_components[typeId] = std::move(component);
 
   T& componentReference = *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
 

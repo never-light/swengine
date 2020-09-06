@@ -9,7 +9,7 @@ class GameWorld;
 
 class GameSystemsGroup : public GameSystem {
  public:
-  GameSystemsGroup(std::shared_ptr<GameWorld> gameWorld);
+  explicit GameSystemsGroup(std::shared_ptr<GameWorld> gameWorld);
   ~GameSystemsGroup() override;
 
   void configure(GameWorld* gameWorld) override;
@@ -19,6 +19,7 @@ class GameSystemsGroup : public GameSystem {
   void render(GameWorld* gameWorld) override;
   void afterRender(GameWorld* gameWorld) override;
 
+  void fixedUpdate(GameWorld* gameWorld, float delta) override;
   void update(GameWorld* gameWorld, float delta) override;
 
   virtual void addGameSystem(std::shared_ptr<GameSystem> system);

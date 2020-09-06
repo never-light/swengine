@@ -9,7 +9,8 @@
 #include "Modules/Physics/CollisionShapes.h"
 
 #include "BulletMotionState.h"
-#include "BulletPhysicsSystemBackend.h"
+
+class BulletPhysicsSystemBackend;
 
 class BulletRigidBodyComponent : public RigidBodyComponentBackend {
  public:
@@ -29,10 +30,10 @@ class BulletRigidBodyComponent : public RigidBodyComponentBackend {
   void setAngularFactor(const glm::vec3& factor) override;
   [[nodiscard]] glm::vec3 getAngularFactor() const override;
 
-  void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
+  void setLinearFactor(const glm::vec3& factor) override;
+  [[nodiscard]] glm::vec3 getLinearFactor() const override;
 
- private:
-  [[nodiscard]] static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);
+  void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
 
  private:
   btCollisionShape* m_collisionShape = nullptr;

@@ -47,6 +47,8 @@
 #include <spdlog/spdlog.h>
 
 #include <btBulletDynamicsCommon.h>
+#include <btBulletCollisionCommon.h>
+#include <BulletDynamics/btBulletDynamicsCommon.h>
 
 // Engine headers to precompile
 #include "Utility/helpers.h"

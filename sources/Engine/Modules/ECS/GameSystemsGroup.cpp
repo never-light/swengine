@@ -63,6 +63,13 @@ void GameSystemsGroup::afterRender(GameWorld* gameWorld)
   }
 }
 
+void GameSystemsGroup::fixedUpdate(GameWorld* gameWorld, float delta)
+{
+  for (auto& system : m_gameSystems) {
+    system->fixedUpdate(gameWorld, delta);
+  }
+}
+
 void GameSystemsGroup::update(GameWorld* gameWorld, float delta)
 {
   for (auto& system : m_gameSystems) {

@@ -5,6 +5,8 @@
 #include "BaseBackend/PhysicsSystemBackend.h"
 
 #include "RigidBodyComponent.h"
+#include "KinematicCharacterComponent.h"
+
 #include "CollisionShapesFactory.h"
 
 
