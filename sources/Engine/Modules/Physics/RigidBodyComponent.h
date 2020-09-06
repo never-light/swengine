@@ -22,8 +22,7 @@ using CollisionCallback = std::function<RigidBodyCollisionProcessingStatus(Colli
 
 struct RigidBodyComponent {
  public:
-  RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
-    std::shared_ptr<Transform> gameTransform);
+  RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
 
   void setMass(float mass);
   [[nodiscard]] float getMass() const;

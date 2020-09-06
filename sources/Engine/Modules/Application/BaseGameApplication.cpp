@@ -254,10 +254,6 @@ void BaseGameApplication::initializeEngineSystems()
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 
-  // Game application systems
-  m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
-  engineGameSystems->addGameSystem(m_gameApplicationSystems);
-
   // Skeletal animation system
   auto skeletalAnimationSystem = std::make_shared<SkeletalAnimationSystem>();
   engineGameSystems->addGameSystem(skeletalAnimationSystem);
@@ -315,6 +311,14 @@ void BaseGameApplication::initializeEngineSystems()
   m_physicsSystem = std::make_shared<PhysicsSystem>();
 
   engineGameSystems->addGameSystem(m_physicsSystem);
+
+  m_physicsSystem->setUpdateStepCallback([this] (float delta) {
+    this->m_gameWorld->fixedUpdate(delta);
+  });
+
+  // Game application systems
+  m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+  engineGameSystems->addGameSystem(m_gameApplicationSystems);
 
   // Game console
   m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);

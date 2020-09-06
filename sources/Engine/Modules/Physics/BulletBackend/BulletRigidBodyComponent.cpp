@@ -4,11 +4,11 @@
 
 #include "Modules/Math/MathUtils.h"
 #include "BulletRigidBodyComponent.h"
+
+#include <utility>
 #include "BulletHelpers.h"
 
-BulletRigidBodyComponent::BulletRigidBodyComponent(float mass,
-  std::shared_ptr<CollisionShape> collisionShape,
-  std::shared_ptr<Transform> gameTransform)
+BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
   : m_collisionShape(convertCollisionShapeToBulletShape(*collisionShape))
 {
   btTransform defaultTransform;
@@ -21,7 +21,7 @@ BulletRigidBodyComponent::BulletRigidBodyComponent(float mass,
     btShape->calculateLocalInertia(mass, localInertia);
   }
 
-  m_motionState = new BulletMotionState(defaultTransform, gameTransform);
+  m_motionState = new BulletMotionState(defaultTransform);
 
   btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_motionState, btShape, localInertia);
   m_rigidBodyInstance = new btRigidBody(rbInfo);
@@ -137,4 +137,10 @@ void BulletRigidBodyComponent::setAngularFactor(const glm::vec3& factor)
 glm::vec3 BulletRigidBodyComponent::getAngularFactor() const
 {
   return btVec3ToGlm(m_rigidBodyInstance->getAngularFactor());
+}
+
+void BulletRigidBodyComponent::setUpdateCallback(std::function<void(const btTransform&)> updateCallback)
+{
+  auto* motionState = dynamic_cast<BulletMotionState*>(m_rigidBodyInstance->getMotionState());
+  motionState->setUpdateCallback(std::move(updateCallback));
 }

@@ -7,17 +7,13 @@
 #include <utility>
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 
-BulletMotionState::BulletMotionState(const btTransform& transform, std::shared_ptr<Transform> gameTransform)
-  : m_btTransform(transform),
-  m_gameTransform(std::move(gameTransform))
+BulletMotionState::BulletMotionState(const btTransform& transform)
+  : m_btTransform(transform)
 {
 
 }
 
-BulletMotionState::~BulletMotionState()
-{
-
-}
+BulletMotionState::~BulletMotionState() = default;
 
 void BulletMotionState::getWorldTransform(btTransform& worldTrans) const
 {
@@ -26,11 +22,14 @@ void BulletMotionState::getWorldTransform(btTransform& worldTrans) const
 
 void BulletMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-  btQuaternion orientation = worldTrans.getRotation();
-  btVector3 origin = worldTrans.getOrigin();
-
-  m_gameTransform->setOrientation(glm::quat(orientation.w(), orientation.x(), orientation.y(), orientation.z()));
-  m_gameTransform->setPosition(origin.x(), origin.y(), origin.z());
+  if (m_updateCallback != nullptr) {
+    m_updateCallback(worldTrans);
+  }
 
   m_btTransform = worldTrans;
+}
+
+void BulletMotionState::setUpdateCallback(std::function<void(const btTransform&)> updateCallback)
+{
+  m_updateCallback = std::move(updateCallback);
 }

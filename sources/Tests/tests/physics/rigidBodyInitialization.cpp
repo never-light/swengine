@@ -26,8 +26,7 @@ TEST_CASE("rigid_body_creation", "[physics]")
   transformComponent.getTransform().setPosition(0.0f, 10.0f, 0.0f);
 
   rigidBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(10.0f),
-    transformComponent.getTransformPtr()));
+    CollisionShapesFactory::createSphere(10.0f)));
 
   REQUIRE(MathUtils::isEqual(rigidBody->getComponent<RigidBodyComponent>().getMass(), 1.0f));
 }
@@ -41,8 +40,7 @@ TEST_CASE("rigid_body_gravity_affection", "[physics]")
   transform.setPosition(0.0f, 10.0f, 0.0f);
 
   auto& rigidBodyComponent = rigidBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(1.0f),
-    rigidBody->getComponent<TransformComponent>().getTransformPtr()));
+    CollisionShapesFactory::createSphere(1.0f)));
 
   gameWorld->update(0.5f);
   gameWorld->update(0.5f);

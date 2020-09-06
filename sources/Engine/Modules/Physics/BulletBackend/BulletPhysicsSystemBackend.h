@@ -43,15 +43,21 @@ class BulletPhysicsSystemBackend :
   void enableDebugDrawing(bool enable) override;
   bool isDebugDrawingEnabled() override;
 
+  void setUpdateStepCallback(std::function<void(float)> callback) override;
+
  private:
   bool isConfigured() const;
 
   void nearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
 
+  void synchronizeTransforms(GameObject& object, const btTransform& transform);
+
  private:
   static void physicsNearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+
+  static void physicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -64,4 +70,6 @@ class BulletPhysicsSystemBackend :
   BulletDebugPainter* m_physicsDebugPainter = nullptr;
 
   bool m_isDebugDrawingEnabled = false;
+
+  std::function<void(float)> m_updateStepCallback;
 };

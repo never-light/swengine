@@ -5,9 +5,8 @@
 #include "RigidBodyComponent.h"
 #include "PhysicsBackendFactory.h"
 
-RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
-  std::shared_ptr<Transform> gameTransform)
-  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, collisionShape, gameTransform))
+RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
+  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, collisionShape))
 {
 
 }

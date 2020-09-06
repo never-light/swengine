@@ -13,8 +13,7 @@ std::shared_ptr<PhysicsSystemBackend> PhysicsBackendFactory::createPhysicsSystem
 }
 
 std::shared_ptr<RigidBodyComponentBackend> PhysicsBackendFactory::createRigidBodyComponent(float mass,
-  std::shared_ptr<CollisionShape> collisionShape,
-  std::shared_ptr<Transform> gameTransform)
+  std::shared_ptr<CollisionShape> collisionShape)
 {
-  return std::make_shared<BulletRigidBodyComponent>(mass, collisionShape, gameTransform);
+  return std::make_shared<BulletRigidBodyComponent>(mass, collisionShape);
 }

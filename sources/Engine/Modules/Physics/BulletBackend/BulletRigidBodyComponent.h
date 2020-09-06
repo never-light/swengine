@@ -13,8 +13,7 @@
 
 class BulletRigidBodyComponent : public RigidBodyComponentBackend {
  public:
-  BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
-    std::shared_ptr<Transform> gameTransform);
+  BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
   ~BulletRigidBodyComponent() override;
 
   void setMass(float mass) override;
@@ -29,6 +28,8 @@ class BulletRigidBodyComponent : public RigidBodyComponentBackend {
 
   void setAngularFactor(const glm::vec3& factor) override;
   [[nodiscard]] glm::vec3 getAngularFactor() const override;
+
+  void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
 
  private:
   [[nodiscard]] static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);

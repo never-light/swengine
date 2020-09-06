@@ -9,6 +9,10 @@
 #include "Transform.h"
 #include "Material.h"
 
+struct MeshRenderingAttributes {
+  bool isStatic = true;
+};
+
 class MeshRendererComponent {
  public:
   MeshRendererComponent();
@@ -25,8 +29,13 @@ class MeshRendererComponent {
   [[nodiscard]] bool isCulled() const;
 
   void updateBounds(const glm::mat4& transformation);
+  void updateBounds(const glm::vec3& origin, const glm::quat& orientation);
 
-  [[nodiscard]] const AABB& getAABB() const;
+  [[nodiscard]] const AABB& getBoundingBox() const;
+  [[nodiscard]] const Sphere& getBoundingSphere() const;
+
+  [[nodiscard]] const MeshRenderingAttributes& getAttributes() const;
+  [[nodiscard]] MeshRenderingAttributes& getAttributes();
 
  private:
   std::shared_ptr<Mesh> m_meshInstance;
@@ -34,6 +43,9 @@ class MeshRendererComponent {
 
   bool m_isCulled = false;
 
-  AABB m_aabb;
+  MeshRenderingAttributes m_renderingAttributes;
+
+  AABB m_boundingBox;
+  Sphere m_boundingSphere;
 };
 

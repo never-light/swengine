@@ -4,11 +4,16 @@
 
 #include "BulletPhysicsSystemBackend.h"
 
+#include <utility>
+
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
+#include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
+
 #include "BulletRigidBodyComponent.h"
+#include "BulletHelpers.h"
 
 BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld)
-  : m_gameWorld(gameWorld)
+  : m_gameWorld(std::move(gameWorld))
 {
 }
 
@@ -129,10 +134,19 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
 
   event.getComponent().setTransform(event.getGameObject().getComponent<TransformComponent>().getTransform());
 
+  GameObjectId gameObjectId = event.getGameObject().getId();
+
   const auto* bulletRigidBodyComponent =
     dynamic_cast<const BulletRigidBodyComponent*>(&event.getComponent().getBackend());
 
-  bulletRigidBodyComponent->m_rigidBodyInstance->setUserPointer(static_cast<void*>(&event.getGameObject()));
+  btRigidBody* rigidBodyInstance = bulletRigidBodyComponent->m_rigidBodyInstance;
+  rigidBodyInstance->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(gameObjectId)));
+
+  auto* motionState = dynamic_cast<BulletMotionState*>(rigidBodyInstance->getMotionState());
+
+  motionState->setUpdateCallback([gameObjectId, this] (const btTransform& transform) {
+    this->synchronizeTransforms(*this->m_gameWorld->findGameObject(gameObjectId), transform);
+  });
 
   m_dynamicsWorld->addRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
 
@@ -161,10 +175,13 @@ void BulletPhysicsSystemBackend::nearCallback(btBroadphasePair& collisionPair,
   RigidBodyCollisionProcessingStatus processingStatus = RigidBodyCollisionProcessingStatus::Skipped;
 
   if (client1->getUserPointer() != nullptr && client2->getUserPointer() != nullptr) {
-    auto gameObject1 = static_cast<GameObject*>(client1->getUserPointer());
+    auto clientId1 = static_cast<GameObjectId>(reinterpret_cast<uintptr_t>(client1->getUserPointer()));
+    auto clientId2 = static_cast<GameObjectId>(reinterpret_cast<uintptr_t>(client2->getUserPointer()));
+
+    auto gameObject1 = m_gameWorld->findGameObject(clientId1);
     auto collisionCallback1 = gameObject1->getComponent<RigidBodyComponent>().getCollisionCallback();
 
-    auto gameObject2 = static_cast<GameObject*>(client2->getUserPointer());
+    auto gameObject2 = m_gameWorld->findGameObject(clientId2);
     auto collisionCallback2 = gameObject2->getComponent<RigidBodyComponent>().getCollisionCallback();
 
     CollisionInfo collisionInfo = { .selfGameObject = *gameObject1, .gameObject = *gameObject2 };
@@ -205,5 +222,46 @@ void BulletPhysicsSystemBackend::render()
 {
   if (isDebugDrawingEnabled()) {
     m_dynamicsWorld->debugDrawWorld();
+  }
+}
+
+void BulletPhysicsSystemBackend::physicsTickCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+  auto* physicsBackend = reinterpret_cast<BulletPhysicsSystemBackend*>(world->getWorldUserInfo());
+
+  physicsBackend->m_updateStepCallback(static_cast<float>(timeStep));
+}
+
+void BulletPhysicsSystemBackend::setUpdateStepCallback(std::function<void(float)> callback)
+{
+  m_updateStepCallback = callback;
+
+  if (m_updateStepCallback) {
+    m_dynamicsWorld->setInternalTickCallback(BulletPhysicsSystemBackend::physicsTickCallback,
+      reinterpret_cast<void*>(this), true);
+  }
+  else {
+    m_dynamicsWorld->setInternalTickCallback(nullptr,
+      reinterpret_cast<void*>(this), true);
+  }
+}
+
+void BulletPhysicsSystemBackend::synchronizeTransforms(GameObject& object, const btTransform& transform)
+{
+  glm::quat orientation = btQuatToGlm(transform.getRotation());
+  glm::vec3 origin = btVec3ToGlm(transform.getOrigin());
+
+  if (object.hasComponent<TransformComponent>())
+  {
+    auto& objectTransform = object.getComponent<TransformComponent>().getTransform();
+
+    objectTransform.setOrientation(orientation);
+    objectTransform.setPosition(origin);
+  }
+
+  if (object.hasComponent<MeshRendererComponent>()) {
+    auto& meshRenderer = object.getComponent<MeshRendererComponent>();
+
+    meshRenderer.updateBounds(origin, orientation);
   }
 }

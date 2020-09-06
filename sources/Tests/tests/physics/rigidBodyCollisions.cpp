@@ -31,8 +31,7 @@ std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
   fallingTransformComponent.getTransform().setPosition(0.0f, 10.0f, 0.0f);
 
   fallingBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(1.0f),
-    fallingTransformComponent.getTransformPtr()));
+    CollisionShapesFactory::createSphere(1.0f)));
 
   std::shared_ptr<GameObject> floorBody = gameWorld->createGameObject();
 
@@ -40,8 +39,7 @@ std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
   floorTransformComponent.getTransform().setPosition(0.0f, 0.0f, 0.0f);
 
   floorBody->addComponent<RigidBodyComponent>(RigidBodyComponent(0.0f,
-    CollisionShapesFactory::createBox(glm::vec3(0.5f, 0.5f, 0.5f)),
-    floorTransformComponent.getTransformPtr()));
+    CollisionShapesFactory::createBox(glm::vec3(0.5f, 0.5f, 0.5f))));
 
   return gameWorld;
 }
@@ -50,7 +48,7 @@ TEST_CASE("rigid_bodies_collision", "[physics]")
 {
   std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation();
 
-  const auto& fallingTransformComponent = gameWorld->findGameObject(0)->getComponent<TransformComponent>();
+  const auto& fallingTransformComponent = gameWorld->findGameObject(1)->getComponent<TransformComponent>();
 
   for (int timeStepIndex = 0; timeStepIndex < 60; timeStepIndex++) {
     gameWorld->update(5.0f / 60.0f);
@@ -70,22 +68,22 @@ TEST_CASE("rigid_bodies_collision_callback", "[physics]")
   bool collisionDetected2 = false;
   bool collisionVerified2 = true;
 
-  gameWorld->findGameObject(0)->getComponent<RigidBodyComponent>()
+  gameWorld->findGameObject(1)->getComponent<RigidBodyComponent>()
     .setCollisionCallback([&collisionDetected1, &collisionVerified1, gameWorld](CollisionInfo& collision) {
       collisionDetected1 = true;
 
       collisionVerified1 = collisionVerified1 &&
-        collision.selfGameObject.getId() == 0 && collision.gameObject.getId() == 1;
+        collision.selfGameObject.getId() == 1 && collision.gameObject.getId() == 2;
 
       return RigidBodyCollisionProcessingStatus::ObservedOnly;
     });
 
-  gameWorld->findGameObject(1)->getComponent<RigidBodyComponent>()
+  gameWorld->findGameObject(2)->getComponent<RigidBodyComponent>()
     .setCollisionCallback([&collisionDetected2, &collisionVerified2, gameWorld](CollisionInfo& collision) {
       collisionDetected2 = true;
 
       collisionVerified2 = collisionVerified2 &&
-        collision.selfGameObject.getId() == 1 && collision.gameObject.getId() == 0;
+        collision.selfGameObject.getId() == 2 && collision.gameObject.getId() == 1;
 
       return RigidBodyCollisionProcessingStatus::ObservedOnly;
     });
