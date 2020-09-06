@@ -65,7 +65,7 @@ struct Sphere {
   Sphere(const glm::vec3& origin, float radius);
 
   void setOrigin(const glm::vec3& origin);
-  [[nodiscard]] glm::vec3 getOrigin() const;
+  [[nodiscard]] const glm::vec3& getOrigin() const;
 
   void setRadius(float radius);
   [[nodiscard]] float getRadius() const;

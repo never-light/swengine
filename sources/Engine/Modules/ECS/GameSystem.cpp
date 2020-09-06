@@ -38,3 +38,9 @@ void GameSystem::unconfigure(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
 }
+
+void GameSystem::fixedUpdate(GameWorld* gameWorld, float delta)
+{
+  ARG_UNUSED(gameWorld);
+  ARG_UNUSED(delta);
+}

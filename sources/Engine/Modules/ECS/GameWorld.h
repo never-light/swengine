@@ -109,6 +109,16 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   ~GameWorld();
 
   /*!
+ * \brief Performs the game world update with fixed internal step
+ *
+ * The function performs update of the game world and
+ * calls systems update methods
+ *
+ * \param delta delta time
+ */
+  void fixedUpdate(float delta);
+
+  /*!
    * \brief Performs the game world update
    *
    * The function performs update of the game world and
@@ -279,7 +289,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   size_t getGameObjectsCount() const;
 
  private:
-  GameObjectId m_lastGameObjectId = -1;
+  GameObjectId m_freeGameObjectId = 0;
 
  private:
   std::unique_ptr<GameSystemsGroup> m_gameSystemsGroup;
@@ -304,7 +314,7 @@ inline T& GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
   T rawComponentObj = T(std::forward<Args>(args)...);
   std::any component = rawComponentObj;
 
-  gameObject.m_components[typeId] = component;
+  gameObject.m_components[typeId] = std::move(component);
 
   T& componentReference = *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
 

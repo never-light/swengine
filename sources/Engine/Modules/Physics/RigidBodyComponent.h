@@ -3,27 +3,14 @@
 #include <memory>
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
-
-#include "CollisionShapes.h"
 #include "BaseBackend/RigidBodyComponentBackend.h"
 
-enum class RigidBodyCollisionProcessingStatus {
-  Processed,
-  ObservedOnly,
-  Skipped
-};
-
-struct CollisionInfo {
-  GameObject& selfGameObject;
-  GameObject& gameObject;
-};
-
-using CollisionCallback = std::function<RigidBodyCollisionProcessingStatus(CollisionInfo&)>;
+#include "CollisionShapes.h"
+#include "PhysicsCollisions.h"
 
 struct RigidBodyComponent {
  public:
-  RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
-    std::shared_ptr<Transform> gameTransform);
+  RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
 
   void setMass(float mass);
   [[nodiscard]] float getMass() const;
@@ -39,7 +26,12 @@ struct RigidBodyComponent {
   void setAngularFactor(const glm::vec3& factor);
   [[nodiscard]] glm::vec3 getAngularFactor() const;
 
+  void setLinearFactor(const glm::vec3& factor);
+  [[nodiscard]] glm::vec3 getLinearFactor() const;
+
   [[nodiscard]] const RigidBodyComponentBackend& getBackend() const;
+  [[nodiscard]] RigidBodyComponentBackend& getBackend();
+
   void resetBackend();
 
  private:

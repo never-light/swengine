@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <typeindex>
 
-using GameObjectId = int;
+using GameObjectId = uint32_t;
 
-constexpr GameObjectId GameObjectNone = -1;
+constexpr GameObjectId GameObjectNone = 0;
 
 class GameWorld;
 

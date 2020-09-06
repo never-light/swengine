@@ -3,12 +3,11 @@
 #pragma hdrstop
 
 #include "PhysicsSystem.h"
+
+#include <utility>
 #include "PhysicsBackendFactory.h"
 
-PhysicsSystem::PhysicsSystem()
-{
-
-}
+PhysicsSystem::PhysicsSystem() = default;
 
 PhysicsSystem::~PhysicsSystem()
 {
@@ -61,4 +60,9 @@ void PhysicsSystem::render(GameWorld* gameWorld)
   ARG_UNUSED(gameWorld);
 
   m_physicsBackend->render();
+}
+
+void PhysicsSystem::setUpdateStepCallback(std::function<void(float)> callback)
+{
+  m_physicsBackend->setUpdateStepCallback(std::move(callback));
 }

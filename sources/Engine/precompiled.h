@@ -20,6 +20,8 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+#include <numbers>
+#include <numeric>
 
 // Third-party dependencies
 #ifndef NOMINMAX
@@ -38,12 +40,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_operation.hpp>
+#include <glm/gtx/extended_min_max.hpp>
 
 #include <pugixml.hpp>
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 
 #include <btBulletDynamicsCommon.h>
+#include <btBulletCollisionCommon.h>
+#include <BulletDynamics/btBulletDynamicsCommon.h>
 
 // Engine headers to precompile
 #include "Utility/helpers.h"

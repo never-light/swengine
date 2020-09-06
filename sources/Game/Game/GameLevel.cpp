@@ -18,22 +18,20 @@
 #include <Engine/Modules/Physics/PhysicsSystem.h>
 #include <Engine/Modules/Physics/Resources/CollisionDataResource.h>
 
+#include <utility>
+
 #include "Game/PlayerComponent.h"
 
 GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<ResourceManager> resourceManager)
-  : m_gameWorld(gameWorld),
-    m_graphicsContext(graphicsContext),
-    m_resourceManager(resourceManager)
+  : m_gameWorld(std::move(gameWorld)),
+    m_graphicsContext(std::move(graphicsContext)),
+    m_resourceManager(std::move(resourceManager))
 {
   m_player = m_gameWorld->createGameObject();
   auto& playerTransformComponent = m_player->addComponent<TransformComponent>();
-  playerTransformComponent.getTransform().pitchLocal(-90.0f);
-  playerTransformComponent.getTransform().scale(0.1f, 0.1f, 0.1f);
-  playerTransformComponent.getTransform().move(0.0f, 80.0f, 0.0f);
-
-  m_player->addComponent<PlayerComponent>();
+  playerTransformComponent.getTransform().move(0.0f, 0.0f, 0.0f);
 
   std::shared_ptr<Camera> camera = std::make_shared<Camera>();
   camera->setNearClipDistance(0.1f);
@@ -48,7 +46,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   playerCameraComponent.setCamera(camera);
 
   std::shared_ptr<Skeleton> playerSkeleton =
-    m_resourceManager->getResourceFromInstance<SkeletonResource>("human_skeleton")->getSkeleton();
+    m_resourceManager->getResourceFromInstance<SkeletonResource>("player_skeleton")->getSkeleton();
 
   std::shared_ptr<Mesh> playerMesh =
     m_resourceManager->getResourceFromInstance<MeshResource>("player_mesh")->getMesh();
@@ -61,6 +59,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerMeshRendererComponent = m_player->addComponent<MeshRendererComponent>();
   playerMeshRendererComponent.setMeshInstance(playerMesh);
   playerMeshRendererComponent.setMaterialInstance(0, playerMaterial);
+  playerMeshRendererComponent.getAttributes().isStatic = false;
   playerMeshRendererComponent.updateBounds(playerTransformComponent.getTransform().getTransformationMatrix());
 
   auto playerAnimationStatesMachine =
@@ -70,10 +69,16 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerAnimationComponent = m_player->addComponent<SkeletalAnimationComponent>(playerSkeleton);
   playerAnimationComponent.setAnimationStatesMachine(playerAnimationStatesMachine);
 
-  auto& playerRigidBodyComponent = m_player->addComponent<RigidBodyComponent>(60.0f,
-    CollisionShapesFactory::createCapsule(0.2f, 0.4f), playerTransformComponent.getTransformPtr());
+  auto& playerComponent = m_player->addComponent<PlayerComponent>(playerMesh->getAABB().getSize().y);
 
-  playerRigidBodyComponent.setAngularFactor({0.0f, 1.0f, 0.0f});
+  auto& playerKinematicCharacterComponent = m_player->addComponent<KinematicCharacterComponent>(
+    CollisionShapesFactory::createCapsule(0.32f, playerComponent.getPlayerHeight() - 0.32f * 2));
+
+  playerKinematicCharacterComponent.setOriginOffset({ 0.0f,
+    playerComponent.getPlayerHeight() / 2.0f - 0.015f,
+    0.0f });
+
+  playerKinematicCharacterComponent.setTransform(playerTransformComponent.getTransform());
 
   // Game objects
   std::shared_ptr<Material>
@@ -84,7 +89,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<GameObject> obj = m_gameWorld->createGameObject();
     auto& transformHandle = obj->addComponent<TransformComponent>();
 
-    transformHandle.getTransform().move(0.0f, 0.0f, 0.0f);
+    //transformHandle.getTransform().move(0.0f, 0.0f, 0.0f);
+    //transformHandle.getTransform().setScale(0.01f, 0.01f, 0.01f);
 
     std::shared_ptr<Mesh>
       cubeGeometry = m_resourceManager->getResourceFromInstance<MeshResource>("ground_mesh")->getMesh();
@@ -98,9 +104,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<CollisionShape> groundCollisionShape =
       m_resourceManager->getResourceFromInstance<CollisionDataResource>("ground_mesh_collision")->getCollisionShape();
 
-    obj->addComponent<RigidBodyComponent>(0.0f,
-      groundCollisionShape,
-      playerTransformComponent.getTransformPtr());
+    obj->addComponent<RigidBodyComponent>(0.0f, groundCollisionShape);
   }
 
   // Environment

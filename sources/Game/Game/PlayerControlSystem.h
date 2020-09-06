@@ -19,7 +19,9 @@ class PlayerControlSystem : public GameSystem,
   void configure(GameWorld* gameWorld) override;
   void unconfigure(GameWorld* gameWorld) override;
 
+  void fixedUpdate(GameWorld* gameWorld, float delta) override;
   void update(GameWorld* gameWorld, float delta) override;
+
   void render(GameWorld* gameWorld) override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
@@ -28,12 +30,10 @@ class PlayerControlSystem : public GameSystem,
  private:
   [[nodiscard]] Camera& getPlayerCamera() const;
 
-  void updateViewParameters(const glm::vec2& mouseDelta, float delta);
-  void updatePlayerAndCameraPosition(float delta);
-
  private:
-  GameObject* m_playerObject = nullptr;
-  int16_t m_runningAnimationStateId = -1;
+  std::shared_ptr<GameObject> m_playerObject;
+
+  int16_t m_walkAnimationStateId = -1;
   int16_t m_idleAnimationStateId = -1;
 
   std::shared_ptr<InputModule> m_inputModule;
