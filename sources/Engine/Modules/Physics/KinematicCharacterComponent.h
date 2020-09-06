@@ -19,10 +19,15 @@ struct KinematicCharacterComponent {
   void jump(const glm::vec3& jumpVector);
   [[nodiscard]] bool isOnGround() const;
 
+  void setOriginOffset(const glm::vec3& offset);
+  [[nodiscard]] glm::vec3 getOriginOffset() const;
+
   void setCollisionCallback(CollisionCallback callback);
   [[nodiscard]] CollisionCallback getCollisionCallback() const;
 
   [[nodiscard]] const KinematicCharacterComponentBackend& getBackend() const;
+  [[nodiscard]] KinematicCharacterComponentBackend& getBackend();
+
   void resetBackend();
 
  private:

@@ -15,4 +15,7 @@ class KinematicCharacterComponentBackend {
 
   virtual void jump(const glm::vec3& jumpVector) = 0;
   [[nodiscard]] virtual bool isOnGround() const = 0;
+
+  virtual void setOriginOffset(const glm::vec3& offset) = 0;
+  [[nodiscard]] virtual glm::vec3 getOriginOffset() const = 0;
 };

@@ -32,6 +32,8 @@ BulletKinematicCharacterComponent::~BulletKinematicCharacterComponent()
 void BulletKinematicCharacterComponent::setTransform(const Transform& transform)
 {
   btTransform internalTransform = BulletUtils::internalTransformToBt(transform);
+  internalTransform.setOrigin(internalTransform.getOrigin() + m_originOffset);
+
   m_ghostObject->setWorldTransform(internalTransform);
 }
 
@@ -52,7 +54,20 @@ bool BulletKinematicCharacterComponent::isOnGround() const
 
 void BulletKinematicCharacterComponent::setUpdateCallback(std::function<void(const btTransform&)> updateCallback)
 {
-  m_kinematicController->setUpdateCallback(std::move(updateCallback));
+  m_kinematicController->setUpdateCallback([updateCallback, this] (const btTransform& transform) {
+    btTransform shiftedTransform = transform;
+    shiftedTransform.setOrigin(shiftedTransform.getOrigin() - this->m_originOffset);
+
+    updateCallback(shiftedTransform);
+  });
 }
 
+void BulletKinematicCharacterComponent::setOriginOffset(const glm::vec3& offset)
+{
+  m_originOffset = BulletUtils::glmVec3ToBt(offset);
+}
 
+glm::vec3 BulletKinematicCharacterComponent::getOriginOffset() const
+{
+  return BulletUtils::btVec3ToGlm(m_originOffset);
+}

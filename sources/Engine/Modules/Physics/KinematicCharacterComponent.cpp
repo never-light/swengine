@@ -48,7 +48,22 @@ const KinematicCharacterComponentBackend& KinematicCharacterComponent::getBacken
   return *m_backend;
 }
 
+KinematicCharacterComponentBackend& KinematicCharacterComponent::getBackend()
+{
+  return *m_backend;
+}
+
 void KinematicCharacterComponent::resetBackend()
 {
   m_backend = nullptr;
+}
+
+void KinematicCharacterComponent::setOriginOffset(const glm::vec3& offset)
+{
+  m_backend->setOriginOffset(offset);
+}
+
+glm::vec3 KinematicCharacterComponent::getOriginOffset() const
+{
+  return m_backend->getOriginOffset();
 }

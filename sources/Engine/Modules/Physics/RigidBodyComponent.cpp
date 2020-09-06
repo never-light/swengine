@@ -73,6 +73,11 @@ void RigidBodyComponent::setLinearFactor(const glm::vec3& factor)
   m_backend->setLinearFactor(factor);
 }
 
+RigidBodyComponentBackend& RigidBodyComponent::getBackend()
+{
+  return *m_backend;
+}
+
 [[nodiscard]] glm::vec3 RigidBodyComponent::getLinearFactor() const
 {
   return m_backend->getLinearFactor();

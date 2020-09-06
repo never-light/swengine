@@ -27,10 +27,15 @@ class BulletKinematicCharacterComponent : public KinematicCharacterComponentBack
 
   void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
 
+  void setOriginOffset(const glm::vec3& offset) override;
+  [[nodiscard]] glm::vec3 getOriginOffset() const override;
+
  private:
   btConvexShape* m_collisionShape = nullptr;
   BulletKinematicCharacterController* m_kinematicController = nullptr;
   btPairCachingGhostObject* m_ghostObject = nullptr;
+
+  btVector3 m_originOffset = btVector3(0.0f, 0.0f, 0.0f);
 
  private:
   friend class BulletPhysicsSystemBackend;

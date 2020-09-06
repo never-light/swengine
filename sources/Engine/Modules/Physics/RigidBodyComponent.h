@@ -30,6 +30,8 @@ struct RigidBodyComponent {
   [[nodiscard]] glm::vec3 getLinearFactor() const;
 
   [[nodiscard]] const RigidBodyComponentBackend& getBackend() const;
+  [[nodiscard]] RigidBodyComponentBackend& getBackend();
+
   void resetBackend();
 
  private:

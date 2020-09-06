@@ -5,7 +5,7 @@
 
 class PlayerComponent {
  public:
-  PlayerComponent();
+  PlayerComponent(float playerHeight);
 
   void setMovementSpeed(float speed);
   [[nodiscard]] float getMovementSpeed() const;
@@ -22,11 +22,17 @@ class PlayerComponent {
   void increaseThirdPersonViewYaw(float delta);
   [[nodiscard]] float getThirdPersonViewYaw() const;
 
+  [[nodiscard]] float getPlayerHeight() const;
+
  private:
+  float m_playerHeight = 0.0f;
+
   float m_movementSpeed = 2.15f;
 
   float m_distanceToPlayer = 3.0f;
   float m_thirdPersonViewPitch = 45.0f;
   float m_thirdPersonViewYaw = 0.0f;
+
+  glm::vec3 m_currentSpeed{0.0f};
 };
 

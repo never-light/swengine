@@ -185,8 +185,7 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
 
   GameObjectId gameObjectId = event.getGameObject().getId();
 
-  const auto* bulletKinematicComponent =
-    dynamic_cast<const BulletKinematicCharacterComponent*>(&event.getComponent().getBackend());
+  auto* bulletKinematicComponent = dynamic_cast<BulletKinematicCharacterComponent*>(&event.getComponent().getBackend());
 
   btGhostObject* ghostObject = bulletKinematicComponent->m_ghostObject;
   ghostObject->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(gameObjectId)));
@@ -195,7 +194,7 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
 
   kinematicController->setGravity(m_dynamicsWorld->getGravity());
 
-  kinematicController->setUpdateCallback([gameObjectId, this] (const btTransform& transform) {
+  bulletKinematicComponent->setUpdateCallback([gameObjectId, this] (const btTransform& transform) {
     this->synchronizeTransforms(*this->m_gameWorld->findGameObject(gameObjectId), transform);
   });
 
