@@ -13,6 +13,14 @@ class GameSystem {
   virtual ~GameSystem();
 
   /*!
+* \brief Performs the game system update with fixed internal step
+*
+* \param gameWorld the game world pointer
+* \param delta delta time
+*/
+  virtual void fixedUpdate(GameWorld* gameWorld, float delta);
+
+  /*!
    * \brief Performs the game system update
    *
    * \param gameWorld the game world pointer

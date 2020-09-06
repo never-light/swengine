@@ -19,4 +19,7 @@ class RigidBodyComponentBackend {
 
   virtual void setAngularFactor(const glm::vec3& factor) = 0;
   [[nodiscard]] virtual glm::vec3 getAngularFactor() const = 0;
+
+  virtual void setLinearFactor(const glm::vec3& factor) = 0;
+  [[nodiscard]] virtual glm::vec3 getLinearFactor() const = 0;
 };

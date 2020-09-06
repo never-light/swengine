@@ -7,9 +7,12 @@
 
 #include "Modules/Physics/BaseBackend/PhysicsSystemBackend.h"
 #include "Modules/Physics/RigidBodyComponent.h"
+#include "Modules/Physics/KinematicCharacterComponent.h"
+#include "Modules/Physics/PhysicsCollisions.h"
 
 #include "BulletCollisionDispatcher.h"
 #include "BulletDebugPainter.h"
+#include "BulletKinematicCharacterComponent.h"
 
 // TODO: fix possible circular dependency here, replace shared_ptr to GameWorld with weak_ptr
 
@@ -18,6 +21,8 @@ class BulletPhysicsSystemBackend :
   public std::enable_shared_from_this<BulletPhysicsSystemBackend>,
   public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
+  public EventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>,
+  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>,
   public EventsListener<GameObjectRemoveEvent> {
  public:
   explicit BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld);
@@ -38,20 +43,33 @@ class BulletPhysicsSystemBackend :
   EventProcessStatus receiveEvent(GameWorld* gameWorld,
     const GameObjectRemoveComponentEvent<RigidBodyComponent>& event) override;
 
+  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+    const GameObjectAddComponentEvent<KinematicCharacterComponent>& event) override;
+
+  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+    const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event) override;
+
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event) override;
 
   void enableDebugDrawing(bool enable) override;
   bool isDebugDrawingEnabled() override;
+
+  void setUpdateStepCallback(std::function<void(float)> callback) override;
 
  private:
   bool isConfigured() const;
 
   void nearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+  CollisionCallback getCollisionsCallback(const GameObject& object) const;
+
+  void synchronizeTransforms(GameObject& object, const btTransform& transform);
 
  private:
   static void physicsNearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+
+  static void physicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -64,4 +82,6 @@ class BulletPhysicsSystemBackend :
   BulletDebugPainter* m_physicsDebugPainter = nullptr;
 
   bool m_isDebugDrawingEnabled = false;
+
+  std::function<void(float)> m_updateStepCallback;
 };

@@ -1,6 +1,7 @@
 #include "PlayerComponent.h"
 
-PlayerComponent::PlayerComponent()
+PlayerComponent::PlayerComponent(float playerHeight)
+  : m_playerHeight(playerHeight)
 {
 
 }
@@ -58,4 +59,9 @@ void PlayerComponent::increaseThirdPersonViewPitch(float delta)
 void PlayerComponent::increaseThirdPersonViewYaw(float delta)
 {
   m_thirdPersonViewYaw += delta;
+}
+
+float PlayerComponent::getPlayerHeight() const
+{
+  return m_playerHeight;
 }

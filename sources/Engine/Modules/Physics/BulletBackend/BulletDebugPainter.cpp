@@ -6,7 +6,7 @@
 
 #include <utility>
 #include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
-#include "BulletHelpers.h"
+#include "BulletUtils.h"
 
 BulletDebugPainter::BulletDebugPainter()
 {
@@ -20,7 +20,9 @@ BulletDebugPainter::~BulletDebugPainter()
 
 void BulletDebugPainter::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
-  DebugPainter::renderSegment(btVec3ToGlm(from), btVec3ToGlm(to), glm::vec4(btVec3ToGlm(color), 0.0f));
+  DebugPainter::renderSegment(BulletUtils::btVec3ToGlm(from),
+    BulletUtils::btVec3ToGlm(to),
+    glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
 }
 
 void BulletDebugPainter::drawTriangle(const btVector3& v0,
@@ -29,7 +31,10 @@ void BulletDebugPainter::drawTriangle(const btVector3& v0,
   const btVector3& color,
   btScalar /*alpha*/)
 {
-  DebugPainter::renderTriangle(btVec3ToGlm(v0), btVec3ToGlm(v1), btVec3ToGlm(v2), glm::vec4(btVec3ToGlm(color), 0.0f));
+  DebugPainter::renderTriangle(BulletUtils::btVec3ToGlm(v0),
+    BulletUtils::btVec3ToGlm(v1),
+    BulletUtils::btVec3ToGlm(v2),
+    glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
 }
 
 void BulletDebugPainter::drawContactPoint(const btVector3& PointOnB,

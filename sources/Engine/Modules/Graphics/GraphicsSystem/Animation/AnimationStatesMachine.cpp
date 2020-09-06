@@ -72,8 +72,6 @@ void AnimationStatesMachine::switchToNextState(int16_t stateId)
   AnimationTransition& transition = m_transitionsTable[m_activeStateId][stateId];
 
   if (transition.getType() == AnimationStatesTransitionType::SmoothLinear) {
-    spdlog::debug("Switch to state {}", stateId);
-
     m_fadingPose = getCurrentPose();
     m_activeTransition = &transition;
   }

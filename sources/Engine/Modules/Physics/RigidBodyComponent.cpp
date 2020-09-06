@@ -3,11 +3,12 @@
 #pragma hdrstop
 
 #include "RigidBodyComponent.h"
+
+#include <utility>
 #include "PhysicsBackendFactory.h"
 
-RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape,
-  std::shared_ptr<Transform> gameTransform)
-  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, collisionShape, gameTransform))
+RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
+  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, std::move(collisionShape)))
 {
 
 }
@@ -42,6 +43,11 @@ void RigidBodyComponent::setCollisionCallback(CollisionCallback callback)
   m_collisionCallback = std::move(callback);
 }
 
+CollisionCallback RigidBodyComponent::getCollisionCallback() const
+{
+  return m_collisionCallback;
+}
+
 const RigidBodyComponentBackend& RigidBodyComponent::getBackend() const
 {
   return *m_backend;
@@ -52,11 +58,6 @@ void RigidBodyComponent::resetBackend()
   m_backend = nullptr;
 }
 
-CollisionCallback RigidBodyComponent::getCollisionCallback() const
-{
-  return m_collisionCallback;
-}
-
 void RigidBodyComponent::setAngularFactor(const glm::vec3& factor)
 {
   m_backend->setAngularFactor(factor);
@@ -65,4 +66,19 @@ void RigidBodyComponent::setAngularFactor(const glm::vec3& factor)
 [[nodiscard]] glm::vec3 RigidBodyComponent::getAngularFactor() const
 {
   return m_backend->getAngularFactor();
+}
+
+void RigidBodyComponent::setLinearFactor(const glm::vec3& factor)
+{
+  m_backend->setLinearFactor(factor);
+}
+
+RigidBodyComponentBackend& RigidBodyComponent::getBackend()
+{
+  return *m_backend;
+}
+
+[[nodiscard]] glm::vec3 RigidBodyComponent::getLinearFactor() const
+{
+  return m_backend->getLinearFactor();
 }

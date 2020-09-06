@@ -7,6 +7,8 @@
 
 GameWorld::GameWorld()
 {
+  // Create internal GameObject with zero id to mark the id as reserved
+  RETURN_VALUE_UNUSED(createGameObject());
 }
 
 GameWorld::~GameWorld()
@@ -57,8 +59,8 @@ GameSystemsGroup* GameWorld::getGameSystemsGroup() const
 
 std::shared_ptr<GameObject> GameWorld::createGameObject()
 {
-  m_lastGameObjectId++;
-  auto gameObject = std::make_shared<GameObject>(m_lastGameObjectId, this);
+  auto gameObject = std::make_shared<GameObject>(m_freeGameObjectId, this);
+  m_freeGameObjectId++;
 
   m_gameObjects.push_back(gameObject);
 
@@ -152,4 +154,9 @@ std::shared_ptr<GameWorld> GameWorld::createInstance()
   gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld));
 
   return gameWorld;
+}
+
+void GameWorld::fixedUpdate(float delta)
+{
+  m_gameSystemsGroup->fixedUpdate(this, delta);
 }

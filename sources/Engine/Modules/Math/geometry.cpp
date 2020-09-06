@@ -175,7 +175,7 @@ void Sphere::setOrigin(const glm::vec3& origin)
   m_origin = origin;
 }
 
-glm::vec3 Sphere::getOrigin() const
+const glm::vec3& Sphere::getOrigin() const
 {
   return m_origin;
 }
