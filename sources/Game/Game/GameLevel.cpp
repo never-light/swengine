@@ -18,6 +18,9 @@
 #include <Engine/Modules/Physics/PhysicsSystem.h>
 #include <Engine/Modules/Physics/Resources/CollisionDataResource.h>
 
+#include <Engine/Modules/Audio/AudioSourceComponent.h>
+#include <Engine/Modules/Audio/Resources/AudioClipResource.h>
+
 #include <utility>
 
 #include "Game/PlayerComponent.h"
@@ -74,11 +77,18 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   auto& playerKinematicCharacterComponent = m_player->addComponent<KinematicCharacterComponent>(
     CollisionShapesFactory::createCapsule(0.32f, playerComponent.getPlayerHeight() - 0.32f * 2));
 
-  playerKinematicCharacterComponent.setOriginOffset({ 0.0f,
+  playerKinematicCharacterComponent.setOriginOffset({0.0f,
     playerComponent.getPlayerHeight() / 2.0f - 0.015f,
-    0.0f });
+    0.0f});
 
   playerKinematicCharacterComponent.setTransform(playerTransformComponent.getTransform());
+
+  auto& playerAudioSourceComponent = m_player->addComponent<AudioSourceComponent>(
+    m_resourceManager->getResourceFromInstance<AudioClipResource>("audio_actions_footsteps_1")->getAudioClip()
+  );
+
+  playerAudioSourceComponent.getSource().setRelativeToListenerMode(false);
+  playerAudioSourceComponent.getSource().setLooped(true);
 
   // Game objects
   std::shared_ptr<Material>
@@ -114,6 +124,23 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
     environment.setEnvironmentMaterial(
       m_resourceManager->getResourceFromInstance<MaterialResource>("test_scene_environment")->getMaterial());
+  }
+
+  // Background music
+
+  {
+    std::shared_ptr<GameObject> backgroundSoundSource = m_gameWorld->createGameObject();
+
+    RETURN_VALUE_UNUSED(backgroundSoundSource->addComponent<TransformComponent>());
+
+    auto& audioSourceComponent = backgroundSoundSource->addComponent<AudioSourceComponent>(
+      m_resourceManager->getResourceFromInstance<AudioClipResource>("audio_background_1")->getAudioClip()
+    );
+
+    audioSourceComponent.getSource().setRelativeToListenerMode(true);
+    audioSourceComponent.getSource().setVolume(0.2f);
+    audioSourceComponent.getSource().play();
+    audioSourceComponent.getSource().playOnce(m_resourceManager->getResourceFromInstance<AudioClipResource>("audio_actions_footsteps_1")->getAudioClip());
   }
 }
 

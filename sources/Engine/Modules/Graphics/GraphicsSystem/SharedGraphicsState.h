@@ -33,13 +33,13 @@ class SharedGraphicsState {
   SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
 
   void setActiveCamera(std::shared_ptr<Camera> camera);
-  std::shared_ptr<Camera> getActiveCamera() const;
+  [[nodiscard]] std::shared_ptr<Camera> getActiveCamera() const;
 
-  const FrameStats& getFrameStats() const;
+  [[nodiscard]] const FrameStats& getFrameStats() const;
   FrameStats& getFrameStats();
 
-  GLFramebuffer& getDeferredFramebuffer() const;
-  GLFramebuffer& getForwardFramebuffer() const;
+  [[nodiscard]] GLFramebuffer& getDeferredFramebuffer() const;
+  [[nodiscard]] GLFramebuffer& getForwardFramebuffer() const;
 
  private:
   std::shared_ptr<Camera> m_activeCamera;

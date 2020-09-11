@@ -25,3 +25,13 @@ std::shared_ptr<Transform> TransformComponent::getTransformPtr() const
   return m_transform;
 }
 
+void TransformComponent::setStaticMode(bool isStatic)
+{
+  m_isStatic = isStatic;
+}
+
+bool TransformComponent::isStatic() const
+{
+  return m_isStatic;
+}
+

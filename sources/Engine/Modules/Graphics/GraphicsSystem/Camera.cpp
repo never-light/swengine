@@ -5,7 +5,7 @@
 #include "Camera.h"
 
 Camera::Camera()
-    : m_transform(new Transform())
+  : m_transform(new Transform())
 {
 
 }
@@ -98,8 +98,8 @@ glm::mat4x4 Camera::getViewMatrix()
 {
   if (m_transform->isCacheOutdated()) {
     m_viewMatrixCache = glm::lookAt(m_transform->getPosition(),
-        m_transform->getPosition() + m_transform->getFrontDirection(),
-        m_transform->getUpDirection());
+      m_transform->getPosition() + m_transform->getFrontDirection(),
+      m_transform->getUpDirection());
 
     // Trigger transformation cache update
     (void)m_transform->getTransformationMatrix();

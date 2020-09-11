@@ -9,6 +9,8 @@
 #include <Engine/Modules/Physics/PhysicsSystem.h>
 #include <Engine/Modules/Physics/RigidBodyComponent.h>
 
+#include <Engine/Modules/Audio/AudioSourceComponent.h>
+
 #include <Engine/Modules/Math/MathUtils.h>
 
 #include <utility>
@@ -128,18 +130,27 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 
   playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
 
+  auto& playerAudioSource = m_playerObject->getComponent<AudioSourceComponent>().getSource();
+
   if (playerIsWalking) {
     if (animationStatesMachine.getActiveStateId() != m_walkAnimationStateId) {
       animationStatesMachine.switchToNextState(m_walkAnimationStateId);
+    }
+
+    if (!playerAudioSource.isPlaying()) {
+      playerAudioSource.play();
     }
   }
   else {
     if (animationStatesMachine.getActiveStateId() == m_walkAnimationStateId) {
       animationStatesMachine.switchToNextState(m_idleAnimationStateId);
     }
+
+    playerAudioSource.stop();
   }
 
   playerCameraTransform.lookAt(playerOrigin);
+  m_playerObject->getComponent<KinematicCharacterComponent>().setTransform(playerTransform);
 }
 
 Camera& PlayerControlSystem::getPlayerCamera() const

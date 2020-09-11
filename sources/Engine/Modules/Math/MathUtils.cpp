@@ -77,3 +77,13 @@ bool MathUtils::isMatrixIdentity(const glm::mat4& matrix, const float eps)
 {
   return isEqual(matrix, glm::identity<glm::mat4>(), eps);
 }
+
+std::tuple<glm::vec3, glm::vec3> MathUtils::quatToForwardUp(const glm::quat& q)
+{
+  return { q * AXIS_FORWARD, q * AXIS_UP };
+}
+
+glm::quat MathUtils::forwardUpToQuat(const glm::vec3& forward, const glm::vec3& up)
+{
+  return glm::quatLookAt(forward, up);
+}
