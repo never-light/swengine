@@ -19,6 +19,7 @@
 #include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
 
 #include "Modules/Physics/Resources/CollisionDataResource.h"
+#include "Modules/Audio/Resources/AudioClipResource.h"
 
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
@@ -230,6 +231,7 @@ void BaseGameApplication::initializeEngine()
   resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
 
   resourceManager->declareResourceType<CollisionDataResource>("collision");
+  resourceManager->declareResourceType<AudioClipResource>("audio");
 
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
@@ -315,6 +317,11 @@ void BaseGameApplication::initializeEngineSystems()
   m_physicsSystem->setUpdateStepCallback([this] (float delta) {
     this->m_gameWorld->fixedUpdate(delta);
   });
+
+  // Audio system
+  m_audioSystem = std::make_shared<AudioSystem>(m_sharedGraphicsState);
+
+  engineGameSystems->addGameSystem(m_audioSystem);
 
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);

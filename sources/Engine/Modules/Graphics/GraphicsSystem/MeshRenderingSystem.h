@@ -20,4 +20,6 @@ class MeshRenderingSystem : public RenderingSystem {
 
   void renderForward(GameWorld* gameWorld) override;
   void renderDeferred(GameWorld* gameWorld) override;
+
+
 };

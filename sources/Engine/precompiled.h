@@ -3,6 +3,10 @@
 //#endif
 
 #if defined __cplusplus
+
+// Utility header
+#include "Utility/helpers.h"
+
 // Standard library
 #include <string>
 #include <map>
@@ -22,6 +26,7 @@
 #include <utility>
 #include <numbers>
 #include <numeric>
+#include <span>
 
 // Third-party dependencies
 #ifndef NOMINMAX
@@ -46,12 +51,14 @@
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
 #include <BulletDynamics/btBulletDynamicsCommon.h>
 
 // Engine headers to precompile
-#include "Utility/helpers.h"
 #include "swdebug.h"
 
 #endif
