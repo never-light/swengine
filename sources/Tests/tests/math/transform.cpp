@@ -3,11 +3,11 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/Transform.h>
 #include <Engine/Modules/Math/MathUtils.h>
 
-TEST_CASE("Test affine transformations", "[transform]")
+TEST_CASE("affine_transformations", "[math]")
 {
   Transform transform;
 
-  SECTION("Default transform") {
+  SECTION("default_transform") {
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), MathUtils::IDENTITY_MATRIX4));
 
     REQUIRE(MathUtils::isEqual(transform.getFrontDirection(), -MathUtils::AXIS_Z));
@@ -15,7 +15,7 @@ TEST_CASE("Test affine transformations", "[transform]")
     REQUIRE(MathUtils::isEqual(transform.getUpDirection(), MathUtils::AXIS_Y));
   }
 
-  SECTION("Positions and movements") {
+  SECTION("positions_and_movements") {
     transform.setPosition(10.0f, -15.0f, 20.0f);
 
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(),
@@ -27,7 +27,7 @@ TEST_CASE("Test affine transformations", "[transform]")
       MathUtils::getTranslationMatrix({15.0f, -5.0f, 5.0f})));
   }
 
-  SECTION("Rotation X") {
+  SECTION("rotation_x") {
     transform.pitchGlobal(90.0f);
 
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(),
@@ -39,7 +39,7 @@ TEST_CASE("Test affine transformations", "[transform]")
       MathUtils::getRotationMatrix(MathUtils::AXIS_X, -90.0f)));
   }
 
-  SECTION("Rotation Y") {
+  SECTION("rotation_y") {
     transform.yawGlobal(90.0f);
 
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(),
@@ -51,7 +51,7 @@ TEST_CASE("Test affine transformations", "[transform]")
       MathUtils::getRotationMatrix(MathUtils::AXIS_Y, -90.0f)));
   }
 
-  SECTION("Rotation Z") {
+  SECTION("rotation_z") {
     transform.rollGlobal(90.0f);
 
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(),
@@ -63,7 +63,7 @@ TEST_CASE("Test affine transformations", "[transform]")
       MathUtils::getRotationMatrix(MathUtils::AXIS_Z, -90.0f)));
   }
 
-  SECTION("Combine rotations") {
+  SECTION("combine_rotations") {
     transform.pitchGlobal(45.0f);
     transform.yawGlobal(-90.0f);
     transform.rollGlobal(-180.0f);
@@ -75,14 +75,14 @@ TEST_CASE("Test affine transformations", "[transform]")
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), rotationMatrix));
   }
 
-  SECTION("Scale") {
+  SECTION("scale") {
     transform.scale({1.0f, 2.0f, 3.0f});
 
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(),
       MathUtils::getScaleMatrix({1.0f, 2.0f, 3.0f})));
   }
 
-  SECTION("Combine scale, position") {
+  SECTION("translation_scale") {
     transform.setScale({2.0f, 3.0f, 4.0f});
     transform.setPosition({10.0f, 20.0f, 30.0f});
 
@@ -92,7 +92,7 @@ TEST_CASE("Test affine transformations", "[transform]")
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), resultMatrix));
   }
 
-  SECTION("Combine scale, rotation, position") {
+  SECTION("translation_rotation_scale") {
     transform.setScale({2.0f, 3.0f, 4.0f});
     transform.setPosition({10.0f, 20.0f, 30.0f});
     transform.pitchGlobal(45.0f);
@@ -105,7 +105,7 @@ TEST_CASE("Test affine transformations", "[transform]")
     REQUIRE(MathUtils::isEqual(transform.getTransformationMatrix(), resultMatrix));
   }
 
-  SECTION("Look directions") {
+  SECTION("look_directions") {
     transform.yawGlobal(180.0f);
 
     REQUIRE(MathUtils::isEqual(transform.getFrontDirection(), MathUtils::AXIS_Z));

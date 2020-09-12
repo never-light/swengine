@@ -1,7 +1,6 @@
 #include "animation.h"
-#include <Engine/swdebug.h>
 
-TEST_CASE("bone-pose-matrix", "[animation]")
+TEST_CASE("bone_pose_matrix", "[graphics][animation]")
 {
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
   glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
@@ -11,34 +10,32 @@ TEST_CASE("bone-pose-matrix", "[animation]")
     glm::mat4_cast(originOrientation)));
 }
 
-TEST_CASE("bone-poses-interpolation", "[animation]")
+TEST_CASE("bone_poses_interpolation", "[graphics][animation]")
 {
   glm::vec3 originPosition = {1.0f, 2.0f, 3.0f};
   glm::quat originOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_X);
   BonePose originPose(originPosition, originOrientation);
 
-  SECTION("interpolation") {
-    glm::vec3 targetPosition = {2.0f, 4.0f, 6.0f};
-    glm::quat targetOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_Y);
+  glm::vec3 targetPosition = {2.0f, 4.0f, 6.0f};
+  glm::quat targetOrientation = glm::angleAxis(glm::radians(45.0f), MathUtils::AXIS_Y);
 
-    BonePose targetPose(targetPosition, targetOrientation);
+  BonePose targetPose(targetPosition, targetOrientation);
 
-    float interpolationFactor = 0.5f;
-    BonePose interpolatedPose = BonePose::interpolate(originPose, targetPose, interpolationFactor);
+  float interpolationFactor = 0.5f;
+  BonePose interpolatedPose = BonePose::interpolate(originPose, targetPose, interpolationFactor);
 
-    glm::vec3 interpolatedPosition = glm::mix(originPosition, targetPosition, interpolationFactor);
-    glm::quat interpolatedOrientation = glm::slerp(originOrientation, targetOrientation, interpolationFactor);
+  glm::vec3 interpolatedPosition = glm::mix(originPosition, targetPosition, interpolationFactor);
+  glm::quat interpolatedOrientation = glm::slerp(originOrientation, targetOrientation, interpolationFactor);
 
-    REQUIRE(MathUtils::isEqual(interpolatedPose.position, interpolatedPosition));
-    REQUIRE(MathUtils::isEqual(interpolatedPose.orientation, interpolatedOrientation));
+  REQUIRE(MathUtils::isEqual(interpolatedPose.position, interpolatedPosition));
+  REQUIRE(MathUtils::isEqual(interpolatedPose.orientation, interpolatedOrientation));
 
-    REQUIRE(MathUtils::isEqual(interpolatedPose.getBoneMatrix(),
-      MathUtils::getTranslationMatrix(interpolatedPosition) *
-        glm::mat4_cast(interpolatedOrientation)));
-  }
+  REQUIRE(MathUtils::isEqual(interpolatedPose.getBoneMatrix(),
+    MathUtils::getTranslationMatrix(interpolatedPosition) *
+      glm::mat4_cast(interpolatedOrientation)));
 }
 
-TEST_CASE("getting-clip-bones-poses", "[animation]")
+TEST_CASE("getting_clip_bones_poses", "[graphics][animation]")
 {
   Skeleton skeleton = generateTestSkeleton();
   AnimationClip clip = generateTestAnimationClip();
@@ -72,12 +69,12 @@ TEST_CASE("getting-clip-bones-poses", "[animation]")
   REQUIRE(MathUtils::isEqual(spinEndBonePose.orientation, MathUtils::IDENTITY_QUAT));
 }
 
-TEST_CASE("clip-instance-increasing-time", "[animation]")
+TEST_CASE("clip_instance_increasing_time", "[graphics][animation]")
 {
   AnimationClipInstance clipInstance = generateTestAnimationClipInstance();
   std::shared_ptr<Skeleton> skeleton = clipInstance.getSkeletonPtr();
 
-  SECTION("clip-zero-time") {
+  SECTION("clip_zero_time") {
     AnimationPose pose = clipInstance.getAnimationPose();
 
     REQUIRE(MathUtils::isEqual(pose.getBoneLocalPose(0).getBoneMatrix(), MathUtils::IDENTITY_MATRIX4));
@@ -96,7 +93,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
       MathUtils::IDENTITY_MATRIX4 * skeleton->getBone(2).getInverseBindPoseMatrix()));
   }
 
-  SECTION("clip-middle-time") {
+  SECTION("clip_middle_time") {
     clipInstance.start();
     RETURN_VALUE_UNUSED(clipInstance.increaseCurrentTime(0.5f));
 
@@ -125,7 +122,7 @@ TEST_CASE("clip-instance-increasing-time", "[animation]")
         skeleton->getBone(1).getInverseBindPoseMatrix()));
   }
 
-  SECTION("clip-overflow-time") {
+  SECTION("clip_overflow_time") {
     clipInstance.setEndBehaviour(AnimationClipEndBehaviour::Repeat);
     clipInstance.start();
     RETURN_VALUE_UNUSED(clipInstance.increaseCurrentTime(2.5f));

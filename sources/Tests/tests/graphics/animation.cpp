@@ -1,6 +1,3 @@
-#include <glm/gtx/string_cast.hpp>
-#include <spdlog/spdlog.h>
-
 #include "animation.h"
 
 Skeleton generateTestSkeleton()
