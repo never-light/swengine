@@ -7,7 +7,7 @@
 
 #include <Engine/Modules/Graphics/Resources/Raw/RawMesh.h>
 
-TEST_CASE("сolliders_parameters_restoring_AABB", "[math]")
+TEST_CASE("colliders_parameters_restoring_AABB", "[math]")
 {
   auto rawMesh = RawMesh::readFromFile("../resources/models/primitives/box.mesh");
 
@@ -19,7 +19,7 @@ TEST_CASE("сolliders_parameters_restoring_AABB", "[math]")
   REQUIRE(MathUtils::isEqual(aabb.getMin(), {-0.5f, -0.5f, -0.5f}, 1e-2f));
 }
 
-TEST_CASE("сolliders_parameters_restoring_sphere", "[math]")
+TEST_CASE("colliders_parameters_restoring_sphere", "[math]")
 {
   auto rawMesh = RawMesh::readFromFile("../resources/models/primitives/sphere.mesh");
 

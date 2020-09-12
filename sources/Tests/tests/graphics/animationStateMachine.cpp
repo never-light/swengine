@@ -1,11 +1,8 @@
 #include "animation.h"
 
-#include <spdlog/spdlog.h>
 #include <glm/gtx/string_cast.hpp>
 
-#include <Engine/swdebug.h>
-
-TEST_CASE("state-machine-variables-get-set", "[animation]")
+TEST_CASE("state_machine_variables_get_set", "[graphics]animation]")
 {
   auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
   AnimationStatesMachine stateMachine(skeleton);
@@ -20,7 +17,7 @@ TEST_CASE("state-machine-variables-get-set", "[animation]")
   REQUIRE(MathUtils::isEqual(variablesSet.getVariableValue(speedVarId), 15.0f));
 }
 
-TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
+TEST_CASE("state_machine_states_clip_pose_node", "[graphics][animation]")
 {
   SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance());
   AnimationStatesMachineVariables variablesSet;
@@ -44,7 +41,7 @@ TEST_CASE("state-machine-states-clip-pose-node", "[animation]")
     spinBoneTranslation * spinBoneRotation));
 }
 
-TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
+TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
 {
   std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(
     std::vector<Bone>({Bone("root", Bone::ROOT_BONE_PARENT_ID, MathUtils::IDENTITY_MATRIX4)}));
@@ -72,7 +69,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
   AnimationStatesMachineVariables variablesSet;
   SkeletalAnimationVariableId blendFactorVariableId = variablesSet.registerVariable("blend_factor", 0.0f);
 
-  SECTION("linear-blending") {
+  SECTION("linear_blending") {
     AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(firstAnimationClipInstance),
       std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
       blendFactorVariableId,
@@ -91,7 +88,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
     REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).position, targetBonePose));
   }
 
-  SECTION("override-blending") {
+  SECTION("override_blending") {
     AnimationBlendPoseNode poseNode(std::make_shared<SkeletalAnimationClipPoseNode>(firstAnimationClipInstance),
       std::make_shared<SkeletalAnimationClipPoseNode>(secondAnimationClipInstance),
       blendFactorVariableId,
@@ -109,7 +106,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
     REQUIRE(MathUtils::isEqual(animationPose.getBoneLocalPose(0).position, targetBonePose));
   }
 
-  SECTION("additive-blending") {
+  SECTION("additive_blending") {
     std::shared_ptr<AnimationClip> mainAnimationClip =
       std::make_shared<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
         BoneAnimationChannel({
@@ -164,7 +161,7 @@ TEST_CASE("state-machine-states-blend-pose-node", "[animation]")
 
 }
 
-TEST_CASE("state-machine-conditional-transitions", "[animation]")
+TEST_CASE("state_machine_conditional_transitions", "[graphics][animation]")
 {
   auto clipInstance = generateTestAnimationClipInstance();
 
