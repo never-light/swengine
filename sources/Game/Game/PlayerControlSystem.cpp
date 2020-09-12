@@ -27,14 +27,6 @@ PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModul
 
 void PlayerControlSystem::configure(GameWorld* gameWorld)
 {
-  m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
-  m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
-  m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
-  m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
-
-  m_inputModule->enableGlobalTracking();
-  m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
-
   if (m_playerObject == nullptr) {
     m_playerObject = gameWorld->findGameObject([](const GameObject& obj) {
       return obj.hasComponent<PlayerComponent>();
@@ -55,22 +47,36 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
 
     skeletalAnimationComponent.getAnimationStatesMachineRef().setActiveState(m_walkAnimationStateId);
   }
-
-  gameWorld->subscribeEventsListener<MouseWheelEvent>(this);
-  gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
-
-  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>().getCamera());
 }
 
 void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
+}
 
+void PlayerControlSystem::activate()
+{
+  m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
+  m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
+  m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
+  m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+
+  m_inputModule->enableGlobalTracking();
+  m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
+
+  getGameWorld().subscribeEventsListener<MouseWheelEvent>(this);
+  getGameWorld().subscribeEventsListener<InputActionToggleEvent>(this);
+
+  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>().getCamera());
+}
+
+void PlayerControlSystem::deactivate()
+{
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_sharedGraphicsState->setActiveCamera(nullptr);
 
-  gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
-  gameWorld->unsubscribeEventsListener<MouseWheelEvent>(this);
+  getGameWorld().unsubscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld().unsubscribeEventsListener<MouseWheelEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");

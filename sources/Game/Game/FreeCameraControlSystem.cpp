@@ -22,6 +22,16 @@ FreeCameraControlSystem::FreeCameraControlSystem(std::shared_ptr<InputModule> in
 
 void FreeCameraControlSystem::configure(GameWorld* gameWorld)
 {
+  ARG_UNUSED(gameWorld);
+}
+
+void FreeCameraControlSystem::unconfigure(GameWorld* gameWorld)
+{
+  ARG_UNUSED(gameWorld);
+}
+
+void FreeCameraControlSystem::activate()
+{
   m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
   m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
   m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
@@ -30,19 +40,18 @@ void FreeCameraControlSystem::configure(GameWorld* gameWorld)
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld().subscribeEventsListener<InputActionToggleEvent>(this);
 
   m_sharedGraphicsState->setActiveCamera(m_freeCamera);
+
 }
 
-void FreeCameraControlSystem::unconfigure(GameWorld* gameWorld)
+void FreeCameraControlSystem::deactivate()
 {
-  ARG_UNUSED(gameWorld);
-
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_sharedGraphicsState->setActiveCamera(nullptr);
 
-  gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld().unsubscribeEventsListener<InputActionToggleEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
