@@ -50,6 +50,7 @@ void GameWorld::setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group)
 {
   m_gameSystemsGroup = std::move(group);
   m_gameSystemsGroup->configure(this);
+  m_gameSystemsGroup->setActive(true);
 }
 
 GameSystemsGroup* GameWorld::getGameSystemsGroup() const
@@ -60,6 +61,20 @@ GameSystemsGroup* GameWorld::getGameSystemsGroup() const
 std::shared_ptr<GameObject> GameWorld::createGameObject()
 {
   auto gameObject = std::make_shared<GameObject>(m_freeGameObjectId, this);
+  m_freeGameObjectId++;
+
+  m_gameObjects.push_back(gameObject);
+
+  emitEvent(GameObjectAddEvent(gameObject));
+
+  return gameObject;
+}
+
+std::shared_ptr<GameObject> GameWorld::createGameObject(const std::string& name)
+{
+  auto gameObject = std::make_shared<GameObject>(m_freeGameObjectId, name, this);
+  m_gameObjectsNamesLookupTable.insert({name, m_freeGameObjectId});
+
   m_freeGameObjectId++;
 
   m_gameObjects.push_back(gameObject);
@@ -127,8 +142,12 @@ void GameWorld::cancelEventsListening(BaseEventsListener* listener)
 
 void GameWorld::removeDestroyedObjects()
 {
-  std::for_each(m_gameObjects.begin(), m_gameObjects.end(), [](std::shared_ptr<GameObject>& obj) {
+  std::for_each(m_gameObjects.begin(), m_gameObjects.end(), [this](std::shared_ptr<GameObject>& obj) {
     if (!obj->isAlive()) {
+      if (!obj->getName().empty()) {
+        m_gameObjectsNamesLookupTable.erase(m_gameObjectsNamesLookupTable.find(obj->getName()));
+      }
+
       obj = nullptr;
     }
   });
@@ -146,6 +165,17 @@ std::shared_ptr<GameObject> GameWorld::findGameObject(GameObjectId id) const
   }
 
   return nullptr;
+}
+
+std::shared_ptr<GameObject> GameWorld::findGameObject(const std::string& name) const
+{
+  auto objectIdIt = m_gameObjectsNamesLookupTable.find(name);
+
+  if (objectIdIt == m_gameObjectsNamesLookupTable.end()) {
+    return nullptr;
+  }
+
+  return findGameObject(objectIdIt->second);
 }
 
 std::shared_ptr<GameWorld> GameWorld::createInstance()

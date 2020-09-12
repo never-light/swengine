@@ -17,6 +17,9 @@ class FreeCameraControlSystem : public GameSystem,
   void configure(GameWorld* gameWorld) override;
   void unconfigure(GameWorld* gameWorld) override;
 
+  void activate() override;
+  void deactivate() override;
+
   void update(GameWorld* gameWorld, float delta) override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;

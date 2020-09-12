@@ -22,6 +22,9 @@ class GameSystemsGroup : public GameSystem {
   void fixedUpdate(GameWorld* gameWorld, float delta) override;
   void update(GameWorld* gameWorld, float delta) override;
 
+  void activate() override;
+  void deactivate() override;
+
   virtual void addGameSystem(std::shared_ptr<GameSystem> system);
   virtual void removeGameSystem(std::shared_ptr<GameSystem> system);
 

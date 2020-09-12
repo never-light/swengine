@@ -19,6 +19,8 @@ class GameWorld;
 class GameObject {
  public:
   GameObject(GameObjectId id, GameWorld* gameWorld);
+  GameObject(GameObjectId id, const std::string& name, GameWorld* gameWorld);
+
   virtual ~GameObject();
 
   template<class T, class... Args>
@@ -73,8 +75,17 @@ class GameObject {
    */
   [[nodiscard]] bool isAlive() const;
 
+  /*!
+   * \brief Returns the game object's name
+   *
+   * \return game object's name
+   */
+  [[nodiscard]] const std::string& getName() const;
+
  protected:
   GameObjectId m_id;
+  std::string m_name;
+
   std::unordered_map<std::type_index, std::any> m_components;
 
   bool m_isDestroyed;

@@ -21,11 +21,12 @@
 #include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"
 #include "Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h"
 
-#include "Modules/Graphics/GUI/GUISystem.h"
-#include "Modules/ScreenManagement/ScreenManager.h"
-
 #include "Modules/Physics/PhysicsSystem.h"
 #include "Modules/Audio/AudioSystem.h"
+
+#include "Modules/Graphics/GUI/GUISystem.h"
+#include "Modules/ScreenManagement/ScreenManager.h"
+#include "Modules/LevelsManagement/LevelsManager.h"
 
 #include "GameConsole.h"
 
@@ -80,9 +81,11 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<PhysicsSystem> m_physicsSystem;
   std::shared_ptr<AudioSystem> m_audioSystem;
 
+  std::shared_ptr<GameSystemsGroup> m_engineGameSystems;
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
 
   std::shared_ptr<ScreenManager> m_screenManager;
+  std::shared_ptr<LevelsManager> m_levelsManager;
 
   std::shared_ptr<GameConsole> m_gameConsole;
 

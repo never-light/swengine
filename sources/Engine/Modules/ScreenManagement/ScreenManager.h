@@ -6,6 +6,11 @@
 
 #include "Screen.h"
 
+struct ScreenSwitchEvent {
+  const Screen* previousScreen;
+  const Screen* newScreen;
+};
+
 class ScreenManager : public std::enable_shared_from_this<ScreenManager> {
  public:
   ScreenManager(std::shared_ptr<GameWorld> gameWorld,

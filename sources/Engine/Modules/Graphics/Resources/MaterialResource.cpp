@@ -15,10 +15,7 @@
 #include "TextureResource.h"
 #include "ShaderResource.h"
 
-MaterialResource::MaterialResource()
-{
-
-}
+MaterialResource::MaterialResource() = default;
 
 MaterialResource::~MaterialResource()
 {
@@ -31,7 +28,7 @@ void MaterialResource::load(const ResourceDeclaration& declaration, ResourceMana
 
   ARG_UNUSED(declaration);
 
-  MaterialResourceParameters parameters = declaration.getParameters<MaterialResourceParameters>();
+  auto parameters = declaration.getParameters<MaterialResourceParameters>();
 
   if (std::get_if<ResourceSourceDeclaration>(&declaration.source)) {
     std::unique_ptr<GLMaterial> gpuMaterial = std::make_unique<GLMaterial>();

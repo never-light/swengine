@@ -21,6 +21,8 @@
 #include "Modules/Physics/Resources/CollisionDataResource.h"
 #include "Modules/Audio/Resources/AudioClipResource.h"
 
+#include "Modules/LevelsManagement/GameObjectsGenericClassLoader.h"
+
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
   const std::string& windowTitle,
@@ -246,26 +248,26 @@ void BaseGameApplication::initializeEngineSystems()
 {
   std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
-  std::shared_ptr<GameSystemsGroup> engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
-  m_gameWorld->getGameSystemsGroup()->addGameSystem(engineGameSystems);
+  m_engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+  m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
 
   // Input system
   m_inputSystem = std::make_shared<InputSystem>(m_gameWorld, m_inputModule);
-  engineGameSystems->addGameSystem(m_inputSystem);
+  m_engineGameSystems->addGameSystem(m_inputSystem);
 
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
 
   // Skeletal animation system
   auto skeletalAnimationSystem = std::make_shared<SkeletalAnimationSystem>();
-  engineGameSystems->addGameSystem(skeletalAnimationSystem);
+  m_engineGameSystems->addGameSystem(skeletalAnimationSystem);
 
   // Rendering pipeline
   m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_gameWorld,
     m_graphicsModule->getGraphicsContext(),
     m_sharedGraphicsState);
 
-  engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
+  m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
   // Geometry culling
   auto geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
@@ -307,12 +309,12 @@ void BaseGameApplication::initializeEngineSystems()
   guiSystem->setDefaultFont(guiDefaultFont);
   guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
-  engineGameSystems->addGameSystem(guiSystem);
+  m_engineGameSystems->addGameSystem(guiSystem);
 
   // Physics system
   m_physicsSystem = std::make_shared<PhysicsSystem>();
 
-  engineGameSystems->addGameSystem(m_physicsSystem);
+  m_engineGameSystems->addGameSystem(m_physicsSystem);
 
   m_physicsSystem->setUpdateStepCallback([this] (float delta) {
     this->m_gameWorld->fixedUpdate(delta);
@@ -321,11 +323,19 @@ void BaseGameApplication::initializeEngineSystems()
   // Audio system
   m_audioSystem = std::make_shared<AudioSystem>(m_sharedGraphicsState);
 
-  engineGameSystems->addGameSystem(m_audioSystem);
+  m_engineGameSystems->addGameSystem(m_audioSystem);
+
+  // Levels manager
+
+  m_levelsManager =
+    std::make_shared<LevelsManager>(m_gameWorld, m_resourceManagementModule->getResourceManager());
+
+  m_levelsManager->getObjectsLoader().registerClassLoader("generic",
+    std::make_unique<GameObjectsGenericClassLoader>(m_levelsManager));
 
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
-  engineGameSystems->addGameSystem(m_gameApplicationSystems);
+  m_engineGameSystems->addGameSystem(m_gameApplicationSystems);
 
   // Game console
   m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
