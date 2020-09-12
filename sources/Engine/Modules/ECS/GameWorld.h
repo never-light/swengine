@@ -157,12 +157,28 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   std::shared_ptr<GameObject> createGameObject();
 
   /*!
+ * \brief Creates and registers a new game object with specified unique name
+ *
+ * \return the object pointer
+ */
+  std::shared_ptr<GameObject> createGameObject(const std::string& name);
+
+  /*!
    * \brief Finds the game object by ID
    *
    * \param id Identifier of the game object
    * \return the object pointer
    */
   std::shared_ptr<GameObject> findGameObject(GameObjectId id) const;
+
+  /*!
+   * \brief Finds the game object by name
+   *
+   * \param id Name of the game object
+   * \return the object pointer
+   */
+  std::shared_ptr<GameObject> findGameObject(const std::string& name) const;
+
 
   /*!
    * \brief Finds the game object by predicate
@@ -296,6 +312,8 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   std::vector<std::shared_ptr<GameObject>> m_gameObjects;
 
   std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
+
+  std::unordered_map<std::string, GameObjectId> m_gameObjectsNamesLookupTable;
 
  private:
   friend class GameObject;

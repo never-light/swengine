@@ -27,6 +27,7 @@
 #include <numbers>
 #include <numeric>
 #include <span>
+#include <tuple>
 
 // Third-party dependencies
 #ifndef NOMINMAX

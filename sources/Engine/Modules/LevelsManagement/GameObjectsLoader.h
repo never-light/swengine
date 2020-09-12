@@ -32,6 +32,9 @@ class GameObjectsLoader {
   void loadRigidBodyData(GameObject& gameObject, const pugi::xml_node& data);
   void loadEnvironmentData(GameObject& gameObject, const pugi::xml_node& data);
   void loadAudioSourceData(GameObject& gameObject, const pugi::xml_node& data);
+  void loadCameraData(GameObject& gameObject, const pugi::xml_node& data);
+  void loadAnimationData(GameObject& gameObject, const pugi::xml_node& data);
+  void loadKinematicCharacterData(GameObject& gameObject, const pugi::xml_node& data);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

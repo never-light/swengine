@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <utility>
 
 #include "Modules/ECS/ECS.h"
@@ -64,6 +65,14 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
   void unloadCurrentLevel();
 
   GameObjectsLoader& getObjectsLoader();
+
+ private:
+  static std::tuple<pugi::xml_document, pugi::xml_node> openLevelDescriptionFile(const std::string& levelName,
+    const std::string& descriptionFile,
+    const std::string& descriptionNodeName);
+
+  void loadLevelStaticObjects(const std::string& levelName, std::vector<GameObjectId>& objectsIds);
+  void loadLevelDynamicObjects(const std::string& levelName, std::vector<GameObjectId>& objectsIds);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
