@@ -50,6 +50,7 @@ void GameWorld::setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group)
 {
   m_gameSystemsGroup = std::move(group);
   m_gameSystemsGroup->configure(this);
+  m_gameSystemsGroup->setActive(true);
 }
 
 GameSystemsGroup* GameWorld::getGameSystemsGroup() const

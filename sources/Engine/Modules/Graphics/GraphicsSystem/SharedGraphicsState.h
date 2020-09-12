@@ -17,7 +17,7 @@ struct FrameStats {
   void increaseSubMeshesCount(size_t count);
   void increaseCulledSubMeshesCount(size_t count);
 
-  [[nodiscard]] size_t getPrimivitesCount() const;
+  [[nodiscard]] size_t getPrimitivesCount() const;
   [[nodiscard]] size_t getSubMeshesCount() const;
   [[nodiscard]] size_t getCulledSubMeshesCount() const;
 

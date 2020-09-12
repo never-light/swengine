@@ -55,6 +55,8 @@ std::shared_ptr<Screen> ScreenManager::getScreen(const std::string& name) const
 
 void ScreenManager::changeScreen(const std::string& newScreenName)
 {
+  const Screen* previousScreen = m_activeScreen.get();
+
   if (m_activeScreen != nullptr) {
     m_commonGUILayout->removeChildWidget(m_activeScreen->getGUILayout());
     m_activeScreen->performDeactivate();
@@ -63,6 +65,8 @@ void ScreenManager::changeScreen(const std::string& newScreenName)
   m_activeScreen = m_screens.at(newScreenName);
   m_activeScreen->performActivate();
   m_commonGUILayout->addChildWidget(m_activeScreen->getGUILayout());
+
+  m_gameWorld->emitEvent<ScreenSwitchEvent>(ScreenSwitchEvent{ previousScreen, m_activeScreen.get() });
 }
 
 std::shared_ptr<Screen> ScreenManager::getActiveScreen() const

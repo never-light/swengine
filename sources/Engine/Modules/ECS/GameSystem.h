@@ -2,6 +2,8 @@
 
 class GameWorld;
 
+class GameSystemsGroup;
+
 /*!
  * \brief Class for representing a game system
  *
@@ -56,4 +58,42 @@ class GameSystem {
    * \param gameWorld the game world pointer
    */
   virtual void unconfigure(GameWorld* gameWorld);
+
+  /*!
+   * \brief Sets the game system active status
+   *
+   * \param isActive the active status flag
+   */
+  void setActive(bool isActive);
+
+  /*!
+   * @brief Checks whether the game system is active
+   *
+   * @return active status flag
+   */
+  [[nodiscard]] bool isActive() const;
+
+  /*!
+   * \brief Calls at the time of the game system registration
+   */
+  virtual void activate();
+
+  /*!
+   * \brief Calls at the time of the game system removal
+   */
+  virtual void deactivate();
+
+  /*!
+   * @brief Returns GameWorld reference
+   * @return GameWorld reference
+   */
+  GameWorld& getGameWorld() const;
+
+ private:
+  bool m_isActive = false;
+
+  std::weak_ptr<GameWorld> m_gameWorld;
+
+ private:
+  friend class GameSystemsGroup;
 };

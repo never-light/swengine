@@ -44,3 +44,35 @@ void GameSystem::fixedUpdate(GameWorld* gameWorld, float delta)
   ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
+
+void GameSystem::setActive(bool isActive)
+{
+  SW_ASSERT(isActive != m_isActive);
+
+  if (isActive) {
+    m_isActive = true;
+    activate();
+  }
+  else {
+    m_isActive = false;
+    deactivate();
+  }
+}
+
+bool GameSystem::isActive() const
+{
+  return m_isActive;
+}
+
+void GameSystem::activate()
+{
+}
+
+void GameSystem::deactivate()
+{
+}
+
+GameWorld& GameSystem::getGameWorld() const
+{
+  return *m_gameWorld.lock();
+}
