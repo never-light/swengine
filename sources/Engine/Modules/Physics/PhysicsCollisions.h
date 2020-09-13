@@ -3,8 +3,8 @@
 class GameObject;
 
 struct CollisionInfo {
-  GameObject& selfGameObject;
-  GameObject& gameObject;
+  GameObject selfGameObject;
+  GameObject gameObject;
 };
 
 enum class RigidBodyCollisionProcessingStatus {

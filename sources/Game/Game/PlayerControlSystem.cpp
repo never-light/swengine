@@ -27,17 +27,19 @@ PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModul
 
 void PlayerControlSystem::configure(GameWorld* gameWorld)
 {
-  if (m_playerObject == nullptr) {
+  if (!m_playerObject.isAlive()) {
     m_playerObject = gameWorld->findGameObject([](const GameObject& obj) {
       return obj.hasComponent<PlayerComponent>();
     });
 
-    SW_ASSERT(m_playerObject->hasComponent<CameraComponent>() &&
-      m_playerObject->hasComponent<TransformComponent>() &&
-      m_playerObject->hasComponent<SkeletalAnimationComponent>() &&
-      m_playerObject->hasComponent<KinematicCharacterComponent>());
+    SW_ASSERT(m_playerObject.isAlive());
 
-    auto& skeletalAnimationComponent = m_playerObject->getComponent<SkeletalAnimationComponent>();
+    SW_ASSERT(m_playerObject.hasComponent<CameraComponent>() &&
+      m_playerObject.hasComponent<TransformComponent>() &&
+      m_playerObject.hasComponent<SkeletalAnimationComponent>() &&
+      m_playerObject.hasComponent<KinematicCharacterComponent>());
+
+    auto& skeletalAnimationComponent = *m_playerObject.getComponent<SkeletalAnimationComponent>().get();
 
     m_walkAnimationStateId =
       skeletalAnimationComponent.getAnimationStatesMachineRef().getStateIdByName("walk");
@@ -67,7 +69,7 @@ void PlayerControlSystem::activate()
   getGameWorld().subscribeEventsListener<MouseWheelEvent>(this);
   getGameWorld().subscribeEventsListener<InputActionToggleEvent>(this);
 
-  m_sharedGraphicsState->setActiveCamera(m_playerObject->getComponent<CameraComponent>().getCamera());
+  m_sharedGraphicsState->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
 }
 
 void PlayerControlSystem::deactivate()
@@ -95,7 +97,7 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 
   mouseDelta *= -0.25;
 
-  auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
 
   playerComponent.increaseThirdPersonViewPitch(mouseDelta.y * 6.0f * delta);
   playerComponent.increaseThirdPersonViewYaw(mouseDelta.x * 6.0f * delta);
@@ -111,8 +113,8 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
   float verticalOffset = playerComponent.getDistanceToPlayer() *
     glm::sin(glm::radians(playerComponent.getThirdPersonViewPitch()));
 
-  auto& playerCameraTransform = *m_playerObject->getComponent<CameraComponent>().getCamera()->getTransform();
-  auto& playerTransform = m_playerObject->getComponent<TransformComponent>().getTransform();
+  auto& playerCameraTransform = *m_playerObject.getComponent<CameraComponent>()->getCamera()->getTransform();
+  auto& playerTransform = m_playerObject.getComponent<TransformComponent>()->getTransform();
 
   glm::vec3 playerOrigin = playerTransform.getPosition() +
     glm::vec3(0.0f, playerComponent.getPlayerHeight() / 2.0f, 0.0f);
@@ -122,7 +124,7 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
     playerOrigin.z - horizontalOffsetZ);
 
   auto& animationStatesMachine =
-    m_playerObject->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef();
+    m_playerObject.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
 
   //auto& animationVariablesSet = animationStatesMachine.getVariablesSet();
 
@@ -136,7 +138,7 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
 
   playerTransform.lookAt(playerTransform.getPosition() - playerCameraFrontDirection);
 
-  auto& playerAudioSource = m_playerObject->getComponent<AudioSourceComponent>().getSource();
+  auto& playerAudioSource = m_playerObject.getComponent<AudioSourceComponent>()->getSource();
 
   if (playerIsWalking) {
     if (animationStatesMachine.getActiveStateId() != m_walkAnimationStateId) {
@@ -156,26 +158,26 @@ void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
   }
 
   playerCameraTransform.lookAt(playerOrigin);
-  m_playerObject->getComponent<KinematicCharacterComponent>().setTransform(playerTransform);
+  m_playerObject.getComponent<KinematicCharacterComponent>()->setTransform(playerTransform);
 }
 
-Camera& PlayerControlSystem::getPlayerCamera() const
+Camera& PlayerControlSystem::getPlayerCamera()
 {
-  return *m_playerObject->getComponent<CameraComponent>().getCamera();
+  return *m_playerObject.getComponent<CameraComponent>()->getCamera();
 }
 
 void PlayerControlSystem::render(GameWorld* gameWorld)
 {
   ARG_UNUSED(gameWorld);
 
-  //DebugPainter::renderAABB(m_playerObject->getComponent<MeshRendererComponent>().getAABB());
+  //DebugPainter::renderAABB(m_playerObject.getComponent<MeshRendererComponent>().getAABB());
 }
 
 EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event)
 {
   ARG_UNUSED(gameWorld);
 
-  auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   playerComponent.increaseDistanceToPlayer(event.wheelDelta * 0.2f);
 
   return EventProcessStatus::Processed;
@@ -193,9 +195,9 @@ void PlayerControlSystem::fixedUpdate(GameWorld* gameWorld, float delta)
 {
   ARG_UNUSED(gameWorld);
 
-  const auto& playerComponent = m_playerObject->getComponent<PlayerComponent>();
+  auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   auto& playerCameraTransform = *getPlayerCamera().getTransform();
-  // auto& playerTransform = m_playerObject->getComponent<TransformComponent>().getTransform();
+  // auto& playerTransform = m_playerObject.getComponent<TransformComponent>().getTransform();
 
   glm::vec3 playerCameraFrontDirection = glm::normalize(playerCameraTransform.getFrontDirection() *
     glm::vec3{1.0f, 0.0f, 1.0f});
@@ -227,7 +229,7 @@ void PlayerControlSystem::fixedUpdate(GameWorld* gameWorld, float delta)
     playerMovementDirection += playerCameraRightDirection * (-1.0f);
   }
 
-  auto& playerKinematicCharacterComponent = m_playerObject->getComponent<KinematicCharacterComponent>();
+  auto& playerKinematicCharacterComponent = *m_playerObject.getComponent<KinematicCharacterComponent>().get();
 
   if (playerIsWalking) {
     if (!MathUtils::isEqual(playerMovementDirection, MathUtils::ZERO_VEC3, 1e-2f)) {

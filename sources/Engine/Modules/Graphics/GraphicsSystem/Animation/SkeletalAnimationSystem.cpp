@@ -21,17 +21,17 @@ void SkeletalAnimationSystem::unconfigure(GameWorld* gameWorld)
 
 void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
 {
-  for (GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
-    auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>();
-    auto& statesMachine = animationComponent.getAnimationStatesMachineRef();
+  for (GameObject obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
+    auto animationComponent = obj.getComponent<SkeletalAnimationComponent>();
+    auto& statesMachine = animationComponent->getAnimationStatesMachineRef();
 
     if (statesMachine.isActive()) {
       updateAnimationStateMachine(statesMachine, delta);
 
-      if (obj->hasComponent<MeshRendererComponent>()) {
-        updateObjectBounds(obj->getComponent<TransformComponent>(),
-          animationComponent,
-          obj->getComponent<MeshRendererComponent>(),
+      if (obj.hasComponent<MeshRendererComponent>()) {
+        updateObjectBounds(*obj.getComponent<TransformComponent>().get(),
+          *animationComponent.get(),
+          *obj.getComponent<MeshRendererComponent>().get(),
           delta);
       }
     }

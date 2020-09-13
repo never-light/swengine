@@ -23,3 +23,8 @@ AudioSource& AudioSourceComponent::getSource()
 {
   return *m_source;
 }
+
+AudioSource* AudioSourceComponent::getSourcePtr() const
+{
+  return m_source.get();
+}

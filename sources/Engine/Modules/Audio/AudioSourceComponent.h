@@ -12,6 +12,7 @@ class AudioSourceComponent {
 
   [[nodiscard]] const AudioSource& getSource() const;
   [[nodiscard]] AudioSource& getSource();
+  [[nodiscard]] AudioSource* getSourcePtr() const;
 
  private:
   std::shared_ptr<AudioSource> m_source;

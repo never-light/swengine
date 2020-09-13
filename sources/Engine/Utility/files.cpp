@@ -1,5 +1,4 @@
 #include "precompiled.h"
-
 #pragma hdrstop
 
 #include "files.h"

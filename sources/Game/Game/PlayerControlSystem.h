@@ -31,10 +31,10 @@ class PlayerControlSystem : public GameSystem,
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
 
  private:
-  [[nodiscard]] Camera& getPlayerCamera() const;
+  [[nodiscard]] Camera& getPlayerCamera();
 
  private:
-  std::shared_ptr<GameObject> m_playerObject;
+  GameObject m_playerObject;
 
   int16_t m_walkAnimationStateId = -1;
   int16_t m_idleAnimationStateId = -1;

@@ -38,14 +38,14 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
 
   m_player = m_gameWorld->findGameObject("player");
 
-  m_player->getComponent<CameraComponent>().getCamera()->setAspectRatio(
+  m_player.getComponent<CameraComponent>()->getCamera()->setAspectRatio(
     m_graphicsContext->getDefaultFramebuffer().getAspectRatio());
 
   auto environmentObject = m_gameWorld->findGameObject("city_environment");
-  environmentObject->getComponent<AudioSourceComponent>().getSource().play();
+  environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
 }
 
-std::shared_ptr<GameObject> GameLevel::getPlayer() const
+GameObject GameLevel::getPlayer() const
 {
   return m_player;
 }

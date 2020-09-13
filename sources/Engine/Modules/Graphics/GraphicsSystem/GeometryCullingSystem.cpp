@@ -39,44 +39,44 @@ void GeometryCullingSystem::update(GameWorld* gameWorld, float delta)
 
 void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
 {
-  for (GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-    auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+    auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
     std::shared_ptr<Camera> activeCamera = m_sharedGraphicsState->getActiveCamera();
 
     bool isVisible = false;
 
-    if (meshComponent.getAttributes().isStatic) {
-      isVisible = GeometryUtils::isAABBFrustumIntersecting(meshComponent.getBoundingBox(),
+    if (meshComponent->getAttributes().isStatic) {
+      isVisible = GeometryUtils::isAABBFrustumIntersecting(meshComponent->getBoundingBox(),
         activeCamera->getFrustum());
     }
     else {
-      isVisible = GeometryUtils::isSphereFrustumIntersecting(meshComponent.getBoundingSphere(),
+      isVisible = GeometryUtils::isSphereFrustumIntersecting(meshComponent->getBoundingSphere(),
         activeCamera->getFrustum());
     }
 
     if (!isVisible) {
-      meshComponent.cull();
+      meshComponent->cull();
 
       m_sharedGraphicsState->getFrameStats()
-        .increaseCulledSubMeshesCount(meshComponent.getMeshInstance()->getSubMeshesCount());
+        .increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
     }
 
     // TODO: draw bounds only for visible objects
-    if (meshComponent.getAttributes().isStatic) {
-      DebugPainter::renderAABB(meshComponent.getBoundingBox());
+    if (meshComponent->getAttributes().isStatic) {
+      DebugPainter::renderAABB(meshComponent->getBoundingBox());
     }
     else {
-      DebugPainter::renderSphere(meshComponent.getBoundingSphere());
+      DebugPainter::renderSphere(meshComponent->getBoundingSphere());
     }
   }
 }
 
 void GeometryCullingSystem::afterRender(GameWorld* gameWorld)
 {
-  for (auto obj : gameWorld->allWith<MeshRendererComponent>()) {
-    auto& rendererComponent = obj->getComponent<MeshRendererComponent>();
-    rendererComponent.cull(false);
+  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+    auto rendererComponent = obj.getComponent<MeshRendererComponent>();
+    rendererComponent->cull(false);
   }
 }
 

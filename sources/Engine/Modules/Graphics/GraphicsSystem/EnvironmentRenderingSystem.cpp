@@ -52,13 +52,14 @@ void EnvironmentRenderingSystem::update(GameWorld* gameWorld, float delta)
 
 void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
 {
-  std::shared_ptr<GameObject> environmentObject = gameWorld->findGameObject([](const GameObject& obj) {
-    return obj.hasComponent<EnvironmentComponent>();
-  });
+  GameObject environmentObject = gameWorld->allWith<EnvironmentComponent>().begin().getGameObject();
 
-  SW_ASSERT(environmentObject != nullptr);
+  if (!environmentObject.isAlive()) {
+    SW_ASSERT(false);
+    return;
+  }
 
-  Material* material = environmentObject->getComponent<EnvironmentComponent>().getEnvironmentMaterial();
+  Material* material = environmentObject.getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
 
   Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
 

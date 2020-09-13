@@ -45,18 +45,18 @@ void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
 
 void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
 {
-  for (GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-    auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+    auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
-    if (meshComponent.isCulled()) {
+    if (meshComponent->isCulled()) {
       continue;
     }
 
-    Mesh* mesh = meshComponent.getMeshInstance().get();
+    Mesh* mesh = meshComponent->getMeshInstance().get();
 
     SW_ASSERT(mesh != nullptr);
 
-    Transform& transform = obj->getComponent<TransformComponent>().getTransform();
+    Transform& transform = obj.getComponent<TransformComponent>()->getTransform();
 
     const size_t subMeshesCount = mesh->getSubMeshesCount();
 
@@ -65,7 +65,7 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
     m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(subMeshesCount);
 
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-      Material* material = meshComponent.getMaterialInstance(subMeshIndex).get();
+      Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
       SW_ASSERT(material != nullptr);
 
@@ -89,11 +89,11 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
       }
 
       if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
-        if (obj->hasComponent<SkeletalAnimationComponent>() &&
-          obj->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef().isActive()) {
+        if (obj.hasComponent<SkeletalAnimationComponent>() &&
+          obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef().isActive()) {
           // Set animation data for shader
           const AnimationStatesMachine& animationStatesMachine =
-            obj->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef();
+            obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
           const AnimationMatrixPalette& currentMatrixPalette =
             animationStatesMachine.getCurrentMatrixPalette();
 

@@ -24,7 +24,7 @@ class GameObjectsLoader {
   [[nodiscard]] ComponentLoaderCallback getComponentLoader(const std::string& componentName) const;
   ResourceManager& getResourceManager();
 
-  GameObject& loadGameObject(const pugi::xml_node& objectNode);
+  GameObject loadGameObject(const pugi::xml_node& objectNode);
 
  public:
   void loadTransformData(GameObject& gameObject, const pugi::xml_node& data);

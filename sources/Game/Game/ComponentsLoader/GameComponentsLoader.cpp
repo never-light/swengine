@@ -7,7 +7,7 @@ void GameComponentsLoader::loadPlayerData(GameObject& gameObject,
 {
   float height = data.attribute("height").as_float(1.0f);
 
-  auto& playerComponent = gameObject.addComponent<PlayerComponent>(height);
+  auto& playerComponent = *gameObject.addComponent<PlayerComponent>(height).get();
 
   float walk_speed = data.attribute("walk_speed").as_float(1.0f);
   playerComponent.setMovementSpeed(walk_speed);

@@ -29,13 +29,14 @@ void LevelsManager::unloadCurrentLevel()
 {
   SW_ASSERT(m_currentLevelId != GameObjectNone);
 
-  auto levelObject = m_gameWorld->findGameObject(m_currentLevelId);
+  GameObject levelObject = m_gameWorld->findGameObject(m_currentLevelId);
 
   m_gameWorld->emitEvent(LevelUnloadEvent(m_currentLevelId));
 
   // TODO: add function to remove game object by id to GameWorld and use it here
-  for (auto levelObjectId : levelObject->getComponent<LevelComponent>().getStaticObjectsList()) {
-    m_gameWorld->removeGameObject(m_gameWorld->findGameObject(levelObjectId));
+  for (auto levelObjectId : levelObject.getComponent<LevelComponent>()->getStaticObjectsList()) {
+    GameObject object = m_gameWorld->findGameObject(levelObjectId);
+    m_gameWorld->removeGameObject(object);
   }
 
   m_gameWorld->removeGameObject(levelObject);
@@ -66,7 +67,7 @@ void LevelsManager::loadLevelStaticObjects(const std::string& levelName, std::ve
   }
 
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
-    auto& gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
+    auto gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
 
     objectsIds.push_back(gameObject.getId());
   }
@@ -95,7 +96,7 @@ void LevelsManager::loadLevelDynamicObjects(const std::string& levelName, std::v
   }
 
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
-    auto& gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
+    auto gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
 
     objectsIds.push_back(gameObject.getId());
   }
@@ -112,10 +113,10 @@ void LevelsManager::loadLevel(const std::string& name)
   loadLevelStaticObjects(name, gameObjectsIds);
   loadLevelDynamicObjects(name, gameObjectsIds);
 
-  auto levelGameObject = m_gameWorld->createGameObject();
-  RETURN_VALUE_UNUSED(levelGameObject->addComponent<LevelComponent>(std::move(gameObjectsIds)));
+  GameObject levelGameObject = m_gameWorld->createGameObject();
+  RETURN_VALUE_UNUSED(levelGameObject.addComponent<LevelComponent>(std::move(gameObjectsIds)));
 
-  m_currentLevelId = levelGameObject->getId();
+  m_currentLevelId = levelGameObject.getId();
 
   spdlog::info("Level {} is loaded", name);
 }

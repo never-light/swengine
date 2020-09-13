@@ -84,13 +84,13 @@ void AudioSystem::update(GameWorld* gameWorld, float delta)
   m_audioListener->setOrientation(currentCameraTransform.getOrientation());
 
   for (auto object : gameWorld->allWith<AudioSourceComponent>()) {
-    auto& transformComponent = object->getComponent<TransformComponent>();
-    auto& audioSource = object->getComponent<AudioSourceComponent>().getSource();
+    auto transformComponent = object.getComponent<TransformComponent>();
+    auto& audioSource = object.getComponent<AudioSourceComponent>()->getSource();
 
     audioSource.updateInternalState();
 
-    if (!transformComponent.isStatic()) {
-      audioSource.setPosition(transformComponent.getTransform().getPosition());
+    if (!transformComponent->isStatic()) {
+      audioSource.setPosition(transformComponent->getTransform().getPosition());
     }
   }
 }
@@ -110,10 +110,10 @@ EventProcessStatus AudioSystem::receiveEvent(GameWorld* gameWorld,
 {
   ARG_UNUSED(gameWorld);
 
-  auto& transform = event.getGameObject().getComponent<TransformComponent>().getTransform();
-  auto& source = event.getComponent().getSource();
+  auto& transform = event.gameObject.getComponent<TransformComponent>()->getTransform();
+  auto source = event.component->getSourcePtr();
 
-  source.setPosition(transform.getPosition());
+  source->setPosition(transform.getPosition());
 
   return EventProcessStatus::Processed;
 }
