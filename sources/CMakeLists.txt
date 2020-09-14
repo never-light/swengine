@@ -17,6 +17,5 @@ endif()
 add_definitions(-DGLM_FORCE_SILENT_WARNINGS)
 
 add_subdirectory(Engine)
-add_subdirectory(MeshTool)
 add_subdirectory(Tests)
 add_subdirectory(Game)
