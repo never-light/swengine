@@ -9,19 +9,17 @@ SkeletalAnimationSystem::SkeletalAnimationSystem() = default;
 
 SkeletalAnimationSystem::~SkeletalAnimationSystem() = default;
 
-void SkeletalAnimationSystem::configure(GameWorld* gameWorld)
+void SkeletalAnimationSystem::configure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void SkeletalAnimationSystem::unconfigure(GameWorld* gameWorld)
+void SkeletalAnimationSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
+void SkeletalAnimationSystem::update(float delta)
 {
-  for (GameObject obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
+  for (GameObject obj : getGameWorld()->allWith<SkeletalAnimationComponent>()) {
     auto animationComponent = obj.getComponent<SkeletalAnimationComponent>();
     auto& statesMachine = animationComponent->getAnimationStatesMachineRef();
 

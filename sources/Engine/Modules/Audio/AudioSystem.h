@@ -12,10 +12,10 @@ class AudioSystem : public GameSystem,
   explicit AudioSystem(std::shared_ptr<SharedGraphicsState> environmentState);
   ~AudioSystem() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void update(GameWorld* gameWorld, float delta) override;
+  void update(float delta) override;
 
   [[nodiscard]] const AudioListener& getListener() const;
   [[nodiscard]] AudioListener& getListener();

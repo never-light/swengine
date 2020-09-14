@@ -21,15 +21,15 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
                   public EventsListener<MouseButtonEvent>,
                   public EventsListener<KeyboardEvent> {
  public:
-  GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
+  GUISystem(std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void update(GameWorld* gameWorld, float delta) override;
-  void render(GameWorld* gameWorld) override;
+  void update(float delta) override;
+  void render() override;
 
   void setActiveLayout(std::shared_ptr<GUILayout> layout);
   [[nodiscard]] std::shared_ptr<GUILayout> getActiveLayout();
@@ -59,7 +59,6 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
 
   std::shared_ptr<GUILayout> m_activeLayout;
 
-  std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;

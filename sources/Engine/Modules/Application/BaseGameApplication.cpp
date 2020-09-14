@@ -159,11 +159,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   if (event.actionName == "console" && event.newState == InputActionState::Active) {
     if (m_gameConsole->getGUIConsole()->isShown()) {
       m_gameConsole->getGUIConsole()->hide();
-      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{ false });
+      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{false});
     }
     else {
       m_gameConsole->getGUIConsole()->show();
-      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{ true });
+      m_gameWorld->emitEvent<GameConsoleChangeVisibilityEvent>(GameConsoleChangeVisibilityEvent{true});
     }
   }
 
@@ -248,11 +248,11 @@ void BaseGameApplication::initializeEngineSystems()
 {
   std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
-  m_engineGameSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+  m_engineGameSystems = std::make_shared<GameSystemsGroup>();
   m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
 
   // Input system
-  m_inputSystem = std::make_shared<InputSystem>(m_gameWorld, m_inputModule);
+  m_inputSystem = std::make_shared<InputSystem>(m_inputModule);
   m_engineGameSystems->addGameSystem(m_inputSystem);
 
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
@@ -263,8 +263,7 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(skeletalAnimationSystem);
 
   // Rendering pipeline
-  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_gameWorld,
-    m_graphicsModule->getGraphicsContext(),
+  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext(),
     m_sharedGraphicsState);
 
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
@@ -301,7 +300,7 @@ void BaseGameApplication::initializeEngineSystems()
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
     guiVertexShader, guiFragmentShader, nullptr);
 
-  auto guiSystem = std::make_shared<GUISystem>(m_gameWorld, m_inputModule,
+  auto guiSystem = std::make_shared<GUISystem>(m_inputModule,
     m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
 
   std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
@@ -316,7 +315,7 @@ void BaseGameApplication::initializeEngineSystems()
 
   m_engineGameSystems->addGameSystem(m_physicsSystem);
 
-  m_physicsSystem->setUpdateStepCallback([this] (float delta) {
+  m_physicsSystem->setUpdateStepCallback([this](float delta) {
     this->m_gameWorld->fixedUpdate(delta);
   });
 
@@ -334,7 +333,7 @@ void BaseGameApplication::initializeEngineSystems()
     std::make_unique<GameObjectsGenericClassLoader>(m_levelsManager));
 
   // Game application systems
-  m_gameApplicationSystems = std::make_shared<GameSystemsGroup>(m_gameWorld);
+  m_gameApplicationSystems = std::make_shared<GameSystemsGroup>();
   m_engineGameSystems->addGameSystem(m_gameApplicationSystems);
 
   // Game console

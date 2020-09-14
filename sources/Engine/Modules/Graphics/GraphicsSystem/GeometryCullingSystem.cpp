@@ -21,25 +21,22 @@ GeometryCullingSystem::GeometryCullingSystem(std::shared_ptr<GLGraphicsContext> 
 
 GeometryCullingSystem::~GeometryCullingSystem() = default;
 
-void GeometryCullingSystem::configure(GameWorld* gameWorld)
+void GeometryCullingSystem::configure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void GeometryCullingSystem::unconfigure(GameWorld* gameWorld)
+void GeometryCullingSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void GeometryCullingSystem::update(GameWorld* gameWorld, float delta)
+void GeometryCullingSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
+void GeometryCullingSystem::beforeRender()
 {
-  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
     auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
     std::shared_ptr<Camera> activeCamera = m_sharedGraphicsState->getActiveCamera();
@@ -72,11 +69,10 @@ void GeometryCullingSystem::beforeRender(GameWorld* gameWorld)
   }
 }
 
-void GeometryCullingSystem::afterRender(GameWorld* gameWorld)
+void GeometryCullingSystem::afterRender()
 {
-  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
     auto rendererComponent = obj.getComponent<MeshRendererComponent>();
     rendererComponent->cull(false);
   }
 }
-

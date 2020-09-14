@@ -25,7 +25,7 @@ class BulletPhysicsSystemBackend :
   public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>,
   public EventsListener<GameObjectRemoveEvent> {
  public:
-  explicit BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld);
+  explicit BulletPhysicsSystemBackend(GameWorld* gameWorld);
   ~BulletPhysicsSystemBackend() override;
 
   void configure() override;
@@ -72,7 +72,7 @@ class BulletPhysicsSystemBackend :
   static void physicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
  private:
-  std::shared_ptr<GameWorld> m_gameWorld;
+  GameWorld* m_gameWorld;
 
   btDefaultCollisionConfiguration* m_collisionConfiguration = nullptr;
   BulletCollisionDispatcher* m_collisionDispatcher = nullptr;

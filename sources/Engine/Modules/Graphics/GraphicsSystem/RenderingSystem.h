@@ -10,11 +10,11 @@ class RenderingSystem : public GameSystem {
   RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
 
-  virtual void renderDeferred(GameWorld* gameWorld);
-  virtual void renderForward(GameWorld* gameWorld);
-  virtual void renderPostProcess(GameWorld* gameWorld);
+  virtual void renderDeferred();
+  virtual void renderForward();
+  virtual void renderPostProcess();
 
-  void render(GameWorld* gameWorld) final;
+  void render() final;
 
  protected:
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;

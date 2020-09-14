@@ -4,6 +4,8 @@
 
 #include "MeshRenderingSystem.h"
 
+#include <utility>
+
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
 
@@ -12,40 +14,33 @@
 
 MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : RenderingSystem(graphicsContext, sharedGraphicsState)
+  : RenderingSystem(std::move(graphicsContext), std::move(sharedGraphicsState))
 {
 
 }
 
-MeshRenderingSystem::~MeshRenderingSystem()
-{
+MeshRenderingSystem::~MeshRenderingSystem() = default;
 
+void MeshRenderingSystem::configure()
+{
 }
 
-void MeshRenderingSystem::configure(GameWorld* gameWorld)
+void MeshRenderingSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::unconfigure(GameWorld* gameWorld)
+void MeshRenderingSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-}
-
-void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
+void MeshRenderingSystem::renderForward()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
+void MeshRenderingSystem::renderDeferred()
 {
-  for (GameObject obj : gameWorld->allWith<MeshRendererComponent>()) {
+  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
     auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
     if (meshComponent->isCulled()) {

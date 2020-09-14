@@ -1,48 +1,18 @@
 #include "precompiled.h"
+
 #pragma hdrstop
 
 #include "GameSystem.h"
 
 GameSystem::GameSystem() = default;
 
+GameSystem::GameSystem(GameWorld* gameWorld)
+  : m_gameWorld(gameWorld)
+{
+
+}
+
 GameSystem::~GameSystem() = default;
-
-void GameSystem::update(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
-  ARG_UNUSED(delta);
-}
-
-void GameSystem::render(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::beforeRender(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::afterRender(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::configure(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::unconfigure(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::fixedUpdate(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
-  ARG_UNUSED(delta);
-}
 
 void GameSystem::setActive(bool isActive)
 {
@@ -71,7 +41,37 @@ void GameSystem::deactivate()
 {
 }
 
-GameWorld& GameSystem::getGameWorld() const
+void GameSystem::fixedUpdate(float delta)
 {
-  return *m_gameWorld.lock();
+  ARG_UNUSED(delta);
+}
+
+void GameSystem::update(float delta)
+{
+  ARG_UNUSED(delta);
+}
+
+void GameSystem::render()
+{
+
+}
+
+void GameSystem::beforeRender()
+{
+
+}
+
+void GameSystem::afterRender()
+{
+
+}
+
+void GameSystem::configure()
+{
+
+}
+
+void GameSystem::unconfigure()
+{
+
 }

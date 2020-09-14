@@ -25,12 +25,10 @@ PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModul
 
 }
 
-void PlayerControlSystem::configure(GameWorld* gameWorld)
+void PlayerControlSystem::configure()
 {
   if (!m_playerObject.isAlive()) {
-    m_playerObject = gameWorld->findGameObject([](const GameObject& obj) {
-      return obj.hasComponent<PlayerComponent>();
-    });
+    m_playerObject = *getGameWorld()->allWith<PlayerComponent>().begin();
 
     SW_ASSERT(m_playerObject.isAlive());
 
@@ -51,9 +49,8 @@ void PlayerControlSystem::configure(GameWorld* gameWorld)
   }
 }
 
-void PlayerControlSystem::unconfigure(GameWorld* gameWorld)
+void PlayerControlSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
 void PlayerControlSystem::activate()
@@ -66,8 +63,8 @@ void PlayerControlSystem::activate()
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  getGameWorld().subscribeEventsListener<MouseWheelEvent>(this);
-  getGameWorld().subscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld()->subscribeEventsListener<MouseWheelEvent>(this);
+  getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
 
   m_sharedGraphicsState->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
 }
@@ -77,8 +74,8 @@ void PlayerControlSystem::deactivate()
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_sharedGraphicsState->setActiveCamera(nullptr);
 
-  getGameWorld().unsubscribeEventsListener<InputActionToggleEvent>(this);
-  getGameWorld().unsubscribeEventsListener<MouseWheelEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<MouseWheelEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
@@ -88,10 +85,8 @@ void PlayerControlSystem::deactivate()
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
 
-void PlayerControlSystem::update(GameWorld* gameWorld, float delta)
+void PlayerControlSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
   glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
 
@@ -166,10 +161,8 @@ Camera& PlayerControlSystem::getPlayerCamera()
   return *m_playerObject.getComponent<CameraComponent>()->getCamera();
 }
 
-void PlayerControlSystem::render(GameWorld* gameWorld)
+void PlayerControlSystem::render()
 {
-  ARG_UNUSED(gameWorld);
-
   //DebugPainter::renderAABB(m_playerObject.getComponent<MeshRendererComponent>().getAABB());
 }
 
@@ -191,10 +184,8 @@ EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const
   return EventProcessStatus::Processed;
 }
 
-void PlayerControlSystem::fixedUpdate(GameWorld* gameWorld, float delta)
+void PlayerControlSystem::fixedUpdate(float delta)
 {
-  ARG_UNUSED(gameWorld);
-
   auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   auto& playerCameraTransform = *getPlayerCamera().getTransform();
   // auto& playerTransform = m_playerObject.getComponent<TransformComponent>().getTransform();

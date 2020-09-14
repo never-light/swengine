@@ -13,13 +13,13 @@ class MeshRenderingSystem : public RenderingSystem {
 
   ~MeshRenderingSystem() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void update(GameWorld* gameWorld, float delta) override;
+  void update(float delta) override;
 
-  void renderForward(GameWorld* gameWorld) override;
-  void renderDeferred(GameWorld* gameWorld) override;
+  void renderForward() override;
+  void renderDeferred() override;
 
 
 };

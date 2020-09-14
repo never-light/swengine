@@ -33,7 +33,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   GameWorld(const GameWorld& gameWorld) = delete;
 
   ~GameWorld() {
-    m_gameSystemsGroup->unconfigure(this);
+    m_gameSystemsGroup->unconfigure();
     m_gameObjectsStorage.reset();
   }
 
@@ -46,7 +46,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  * \param delta delta time
  */
   void fixedUpdate(float delta) {
-    m_gameSystemsGroup->fixedUpdate(this, delta);
+    m_gameSystemsGroup->fixedUpdate(delta);
   }
 
   /*!
@@ -58,28 +58,28 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param delta delta time
    */
   void update(float delta) {
-    m_gameSystemsGroup->update(this, delta);
+    m_gameSystemsGroup->update(delta);
   }
 
   /*!
    * \brief Renders the game world
    */
   void render() {
-    m_gameSystemsGroup->render(this);
+    m_gameSystemsGroup->render();
   }
 
   /*!
    * \brief It is called before rendering of the game world
    */
   void beforeRender() {
-    m_gameSystemsGroup->beforeRender(this);
+    m_gameSystemsGroup->beforeRender();
   }
 
   /*!
    * \brief It is called after rendering of the game world
    */
   void afterRender() {
-    m_gameSystemsGroup->afterRender(this);
+    m_gameSystemsGroup->afterRender();
   }
 
   /*!
@@ -231,7 +231,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  public:
   static std::shared_ptr<GameWorld> createInstance() {
     std::shared_ptr<GameWorld> gameWorld(new GameWorld());
-    gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld));
+    gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld.get()));
     gameWorld->m_gameObjectsStorage = std::make_unique<GameObjectsStorage>(gameWorld.get());
 
     // Create internal ill-formed GameObject to mark the zero id as reserved
@@ -249,7 +249,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  */
   void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group) {
     m_gameSystemsGroup = std::move(group);
-    m_gameSystemsGroup->configure(this);
+    m_gameSystemsGroup->configure();
     m_gameSystemsGroup->setActive(true);
   }
 

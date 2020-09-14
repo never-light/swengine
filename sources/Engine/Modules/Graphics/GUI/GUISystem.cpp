@@ -6,13 +6,14 @@
 
 #include <spdlog/spdlog.h>
 
-GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<InputModule> inputModule,
+#include <utility>
+
+GUISystem::GUISystem(std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
-  : m_gameWorld(gameWorld),
-    m_inputModule(inputModule),
-    m_graphicsContext(graphicsContext),
-    m_guiShadersPipeline(guiShadersPipeline)
+  : m_inputModule(std::move(inputModule)),
+    m_graphicsContext(std::move(graphicsContext)),
+    m_guiShadersPipeline(std::move(guiShadersPipeline))
 {
   m_guiNDCQuad = std::make_unique<Mesh>();
 
@@ -47,8 +48,10 @@ GUISystem::GUISystem(std::shared_ptr<GameWorld> gameWorld, std::shared_ptr<Input
   m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
 }
 
-void GUISystem::configure(GameWorld* gameWorld)
+void GUISystem::configure()
 {
+  GameWorld* gameWorld = getGameWorld();
+
   gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
   gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
@@ -57,15 +60,16 @@ void GUISystem::configure(GameWorld* gameWorld)
     0.0f, -1.0f, 1.0f);
 }
 
-void GUISystem::unconfigure(GameWorld* gameWorld)
+void GUISystem::unconfigure()
 {
+  GameWorld* gameWorld = getGameWorld();
+
   gameWorld->unsubscribeEventsListener<KeyboardEvent>(this);
   gameWorld->unsubscribeEventsListener<MouseButtonEvent>(this);
 }
 
-void GUISystem::update(GameWorld* gameWorld, float delta)
+void GUISystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 
   if (m_activeLayout != nullptr) {
@@ -73,10 +77,8 @@ void GUISystem::update(GameWorld* gameWorld, float delta)
   }
 }
 
-void GUISystem::render(GameWorld* gameWorld)
+void GUISystem::render()
 {
-  ARG_UNUSED(gameWorld);
-
   GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
   vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
 
@@ -87,7 +89,7 @@ void GUISystem::render(GameWorld* gameWorld)
 
 void GUISystem::setActiveLayout(std::shared_ptr<GUILayout> layout)
 {
-  m_activeLayout = layout;
+  m_activeLayout = std::move(layout);
 }
 
 std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
@@ -97,7 +99,7 @@ std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
 
 void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font)
 {
-  m_defaultFont = font;
+  m_defaultFont = std::move(font);
 }
 
 std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const
@@ -199,7 +201,7 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
   ARG_UNUSED(gameWorld);
 
   if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {
-    GUIKeyboardEvent guiEvent;
+    GUIKeyboardEvent guiEvent{};
     guiEvent.type = event.type;
     guiEvent.keyCode = event.keyCode;
     guiEvent.repeated = event.repeated;
@@ -236,7 +238,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
     }
   }
 
-  for (auto childWidget : widget->getChildrenWidgets()) {
+  for (const auto& childWidget : widget->getChildrenWidgets()) {
     updateGUIWidget(childWidget.get());
   }
 }
@@ -249,7 +251,7 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
 
   bool isExclusive = true;
 
-  for (auto childWidget : widget->getChildrenWidgets()) {
+  for (const auto& childWidget : widget->getChildrenWidgets()) {
     if (isMouseInWidgetArea(widget)) {
       isExclusive = false;
 

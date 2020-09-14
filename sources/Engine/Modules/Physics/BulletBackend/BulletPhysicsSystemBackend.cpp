@@ -13,8 +13,8 @@
 #include "BulletRigidBodyComponent.h"
 #include "BulletUtils.h"
 
-BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld)
-  : m_gameWorld(std::move(gameWorld))
+BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(GameWorld* gameWorld)
+  : m_gameWorld(gameWorld)
 {
 }
 

@@ -13,11 +13,11 @@ class GeometryCullingSystem : public RenderingSystem {
 
   ~GeometryCullingSystem() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void update(GameWorld* gameWorld, float delta) override;
+  void update(float delta) override;
 
-  void beforeRender(GameWorld* gameWorld) override;
-  void afterRender(GameWorld* gameWorld) override;
+  void beforeRender() override;
+  void afterRender() override;
 };
