@@ -16,11 +16,6 @@
 
 #include "EventsListener.h"
 
-// TODO: replace raw EventListener pointers with shared pointers to avoid memory leaks or usage of invalid pointers
-
-// TODO: add ability to subscribe to events not only objects but also callbacks, probably replace
-// polymorphic objects with std::function objects, but foresee deleting of them (for example, by unique identifies)
-
 /*!
  * \brief Class for representing the game world
  * 
@@ -28,7 +23,7 @@
  * and systems. Also the class provide functions to find these things
  * and iterate over them.
  */
-class GameWorld : public std::enable_shared_from_this<GameWorld> {
+class GameWorld {
  public:
   GameWorld(const GameWorld& gameWorld) = delete;
 
@@ -120,7 +115,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param id Identifier of the game object
    * \return the object pointer
    */
-  GameObject findGameObject(GameObjectId id) const {
+  [[nodiscard]] GameObject findGameObject(GameObjectId id) const {
     return m_gameObjectsStorage->getById(id);
   }
 
@@ -130,7 +125,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param id Name of the game object
    * \return the object pointer
    */
-  GameObject findGameObject(const std::string& name) const {
+  [[nodiscard]] GameObject findGameObject(const std::string& name) const {
     return m_gameObjectsStorage->getByName(name);
   }
 
@@ -140,7 +135,7 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param predicate predicate for the object determination
    * \return the object pointer
    */
-  GameObject findGameObject(const std::function<bool(const GameObject&)>& predicate) {
+  [[nodiscard]] GameObject findGameObject(const std::function<bool(const GameObject&)>& predicate) {
     for (const GameObjectData& object : m_gameObjectsStorage->getGameObjects()) {
       GameObject gameObject(object.id, object.revision, m_gameObjectsStorage.get());
 
