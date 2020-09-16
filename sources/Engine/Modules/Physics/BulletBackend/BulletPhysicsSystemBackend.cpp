@@ -13,8 +13,8 @@
 #include "BulletRigidBodyComponent.h"
 #include "BulletUtils.h"
 
-BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld)
-  : m_gameWorld(std::move(gameWorld))
+BulletPhysicsSystemBackend::BulletPhysicsSystemBackend(GameWorld* gameWorld)
+  : m_gameWorld(gameWorld)
 {
 }
 
@@ -66,15 +66,10 @@ void BulletPhysicsSystemBackend::configure()
 
   m_gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>(this);
   m_gameWorld->subscribeEventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>(this);
-
-
-  m_gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
 void BulletPhysicsSystemBackend::unconfigure()
 {
-  m_gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
-
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>(this);
 
@@ -109,11 +104,15 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
     return EventProcessStatus::Skipped;
   }
 
+  const auto& ev = event.component.get();
+  LOCAL_VALUE_UNUSED(ev);
+
   const auto* bulletRigidBodyComponent =
-    dynamic_cast<const BulletRigidBodyComponent*>(&event.getComponent().getBackend());
+    dynamic_cast<const BulletRigidBodyComponent*>(&event.component->getBackend());
+
 
   m_dynamicsWorld->removeRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
-  event.getComponent().resetBackend();
+  event.component->resetBackend();
 
   return EventProcessStatus::Processed;
 }
@@ -127,14 +126,16 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
     return EventProcessStatus::Skipped;
   }
 
-  SW_ASSERT(event.getGameObject().hasComponent<TransformComponent>());
+  SW_ASSERT(event.gameObject.hasComponent<TransformComponent>());
 
-  event.getComponent().setTransform(event.getGameObject().getComponent<TransformComponent>().getTransform());
+  GameObjectComponentHandle<RigidBodyComponent> rigidBodyComponent = event.component;
 
-  GameObjectId gameObjectId = event.getGameObject().getId();
+  rigidBodyComponent->setTransform(event.gameObject.getComponent<TransformComponent>()->getTransform());
+
+  GameObjectId gameObjectId = event.gameObject.getId();
 
   const auto* bulletRigidBodyComponent =
-    dynamic_cast<const BulletRigidBodyComponent*>(&event.getComponent().getBackend());
+    dynamic_cast<const BulletRigidBodyComponent*>(&rigidBodyComponent->getBackend());
 
   btRigidBody* rigidBodyInstance = bulletRigidBodyComponent->m_rigidBodyInstance;
   rigidBodyInstance->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(gameObjectId)));
@@ -142,7 +143,13 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   auto* motionState = dynamic_cast<BulletMotionState*>(rigidBodyInstance->getMotionState());
 
   motionState->setUpdateCallback([gameObjectId, this] (const btTransform& transform) {
-    this->synchronizeTransforms(*this->m_gameWorld->findGameObject(gameObjectId), transform);
+    auto obj = this->m_gameWorld->findGameObject(gameObjectId);
+
+    if (!obj.isAlive()) {
+      SW_ASSERT(false);
+    }
+
+    this->synchronizeTransforms(obj, transform);
   });
 
   m_dynamicsWorld->addRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
@@ -159,13 +166,15 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
     return EventProcessStatus::Skipped;
   }
 
+  GameObjectComponentHandle<KinematicCharacterComponent> kinematicCharacterComponent = event.component;
+
   const auto* bulletKinematicComponent =
-    dynamic_cast<const BulletKinematicCharacterComponent*>(&event.getComponent().getBackend());
+    dynamic_cast<const BulletKinematicCharacterComponent*>(&kinematicCharacterComponent->getBackend());
 
   m_dynamicsWorld->removeCollisionObject(bulletKinematicComponent->m_ghostObject);
   m_dynamicsWorld->removeAction(bulletKinematicComponent->m_kinematicController);
 
-  event.getComponent().resetBackend();
+  kinematicCharacterComponent->resetBackend();
 
   return EventProcessStatus::Processed;
 }
@@ -179,13 +188,16 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
     return EventProcessStatus::Skipped;
   }
 
-  SW_ASSERT(event.getGameObject().hasComponent<TransformComponent>());
+  SW_ASSERT(event.gameObject.hasComponent<TransformComponent>());
 
-  event.getComponent().setTransform(event.getGameObject().getComponent<TransformComponent>().getTransform());
+  GameObjectComponentHandle<KinematicCharacterComponent> kinematicCharacterComponent = event.component;
 
-  GameObjectId gameObjectId = event.getGameObject().getId();
+  kinematicCharacterComponent->setTransform(event.gameObject.getComponent<TransformComponent>()->getTransform());
 
-  auto* bulletKinematicComponent = dynamic_cast<BulletKinematicCharacterComponent*>(&event.getComponent().getBackend());
+  GameObjectId gameObjectId = event.gameObject.getId();
+
+  auto* bulletKinematicComponent =
+    dynamic_cast<BulletKinematicCharacterComponent*>(&kinematicCharacterComponent->getBackend());
 
   btGhostObject* ghostObject = bulletKinematicComponent->m_ghostObject;
   ghostObject->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(gameObjectId)));
@@ -195,27 +207,12 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   kinematicController->setGravity(m_dynamicsWorld->getGravity());
 
   bulletKinematicComponent->setUpdateCallback([gameObjectId, this] (const btTransform& transform) {
-    this->synchronizeTransforms(*this->m_gameWorld->findGameObject(gameObjectId), transform);
+    GameObject object = this->m_gameWorld->findGameObject(gameObjectId);
+    this->synchronizeTransforms(object, transform);
   });
 
   m_dynamicsWorld->addCollisionObject(ghostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter);
   m_dynamicsWorld->addAction(kinematicController);
-
-  return EventProcessStatus::Processed;
-}
-
-
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event)
-{
-  ARG_UNUSED(gameWorld);
-
-  if (!isConfigured()) {
-    return EventProcessStatus::Skipped;
-  }
-
-  if (event.getObject()->hasComponent<RigidBodyComponent>()) {
-    event.getObject()->removeComponent<RigidBodyComponent>();
-  }
 
   return EventProcessStatus::Processed;
 }
@@ -246,12 +243,12 @@ void BulletPhysicsSystemBackend::nearCallback(btBroadphasePair& collisionPair,
     auto clientId2 = static_cast<GameObjectId>(reinterpret_cast<uintptr_t>(client2->getUserPointer()));
 
     auto gameObject1 = m_gameWorld->findGameObject(clientId1);
-    auto collisionCallback1 = getCollisionsCallback(*gameObject1);
+    auto collisionCallback1 = getCollisionsCallback(gameObject1);
 
     auto gameObject2 = m_gameWorld->findGameObject(clientId2);
-    auto collisionCallback2 = getCollisionsCallback(*gameObject2);
+    auto collisionCallback2 = getCollisionsCallback(gameObject2);
 
-    CollisionInfo collisionInfo = { .selfGameObject = *gameObject1, .gameObject = *gameObject2 };
+    CollisionInfo collisionInfo = { .selfGameObject = gameObject1, .gameObject = gameObject2 };
 
     if (collisionCallback1 != nullptr) {
       processingStatus = collisionCallback1(collisionInfo);
@@ -268,13 +265,13 @@ void BulletPhysicsSystemBackend::nearCallback(btBroadphasePair& collisionPair,
   }
 }
 
-CollisionCallback BulletPhysicsSystemBackend::getCollisionsCallback(const GameObject& object) const
+CollisionCallback BulletPhysicsSystemBackend::getCollisionsCallback(GameObject& object) const
 {
   if (object.hasComponent<RigidBodyComponent>()) {
-    return object.getComponent<RigidBodyComponent>().getCollisionCallback();
+    return object.getComponent<RigidBodyComponent>()->getCollisionCallback();
   }
   else if (object.hasComponent<KinematicCharacterComponent>()) {
-    return object.getComponent<KinematicCharacterComponent>().getCollisionCallback();
+    return object.getComponent<KinematicCharacterComponent>()->getCollisionCallback();
   }
   else {
     return nullptr;
@@ -333,16 +330,16 @@ void BulletPhysicsSystemBackend::synchronizeTransforms(GameObject& object, const
 
   if (object.hasComponent<TransformComponent>())
   {
-    auto& objectTransform = object.getComponent<TransformComponent>().getTransform();
+    auto& objectTransform = object.getComponent<TransformComponent>()->getTransform();
 
     objectTransform.setOrientation(orientation);
     objectTransform.setPosition(origin);
   }
 
   if (object.hasComponent<MeshRendererComponent>()) {
-    auto& meshRenderer = object.getComponent<MeshRendererComponent>();
+    auto meshRenderer = object.getComponent<MeshRendererComponent>();
 
-    meshRenderer.updateBounds(origin, orientation);
+    meshRenderer->updateBounds(origin, orientation);
   }
 
 }

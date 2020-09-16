@@ -14,24 +14,20 @@ PhysicsSystem::~PhysicsSystem()
   SW_ASSERT(m_physicsBackend == nullptr);
 }
 
-void PhysicsSystem::configure(GameWorld* gameWorld)
+void PhysicsSystem::configure()
 {
-  m_physicsBackend = PhysicsBackendFactory::createPhysicsSystem(gameWorld->shared_from_this());
+  m_physicsBackend = PhysicsBackendFactory::createPhysicsSystem(getGameWorld());
   m_physicsBackend->configure();
 }
 
-void PhysicsSystem::unconfigure(GameWorld* gameWorld)
+void PhysicsSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
-
   m_physicsBackend->unconfigure();
   m_physicsBackend = nullptr;
 }
 
-void PhysicsSystem::update(GameWorld* gameWorld, float delta)
+void PhysicsSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-
   m_physicsBackend->update(delta);
 }
 
@@ -55,10 +51,8 @@ bool PhysicsSystem::isDebugDrawingEnabled()
   return m_physicsBackend->isDebugDrawingEnabled();
 }
 
-void PhysicsSystem::render(GameWorld* gameWorld)
+void PhysicsSystem::render()
 {
-  ARG_UNUSED(gameWorld);
-
   m_physicsBackend->render();
 }
 

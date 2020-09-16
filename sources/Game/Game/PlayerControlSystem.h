@@ -16,25 +16,25 @@ class PlayerControlSystem : public GameSystem,
     std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
   ~PlayerControlSystem() override = default;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
   void activate() override;
   void deactivate() override;
 
-  void fixedUpdate(GameWorld* gameWorld, float delta) override;
-  void update(GameWorld* gameWorld, float delta) override;
+  void fixedUpdate(float delta) override;
+  void update(float delta) override;
 
-  void render(GameWorld* gameWorld) override;
+  void render() override;
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
 
  private:
-  [[nodiscard]] Camera& getPlayerCamera() const;
+  [[nodiscard]] Camera& getPlayerCamera();
 
  private:
-  std::shared_ptr<GameObject> m_playerObject;
+  GameObject m_playerObject;
 
   int16_t m_walkAnimationStateId = -1;
   int16_t m_idleAnimationStateId = -1;

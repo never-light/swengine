@@ -22,10 +22,9 @@ class BulletPhysicsSystemBackend :
   public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>,
-  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>,
-  public EventsListener<GameObjectRemoveEvent> {
+  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>> {
  public:
-  explicit BulletPhysicsSystemBackend(std::shared_ptr<GameWorld> gameWorld);
+  explicit BulletPhysicsSystemBackend(GameWorld* gameWorld);
   ~BulletPhysicsSystemBackend() override;
 
   void configure() override;
@@ -49,8 +48,6 @@ class BulletPhysicsSystemBackend :
   EventProcessStatus receiveEvent(GameWorld* gameWorld,
     const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event) override;
-
   void enableDebugDrawing(bool enable) override;
   bool isDebugDrawingEnabled() override;
 
@@ -61,7 +58,7 @@ class BulletPhysicsSystemBackend :
 
   void nearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
-  CollisionCallback getCollisionsCallback(const GameObject& object) const;
+  CollisionCallback getCollisionsCallback(GameObject& object) const;
 
   void synchronizeTransforms(GameObject& object, const btTransform& transform);
 
@@ -69,10 +66,10 @@ class BulletPhysicsSystemBackend :
   static void physicsNearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
 
-  static void physicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
+  static void physicsTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
  private:
-  std::shared_ptr<GameWorld> m_gameWorld;
+  GameWorld* m_gameWorld;
 
   btDefaultCollisionConfiguration* m_collisionConfiguration = nullptr;
   BulletCollisionDispatcher* m_collisionDispatcher = nullptr;

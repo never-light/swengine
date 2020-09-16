@@ -12,7 +12,7 @@ class GameLevel {
     std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager);
 
-  [[nodiscard]] std::shared_ptr<GameObject> getPlayer() const;
+  [[nodiscard]] GameObject getPlayer() const;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -20,6 +20,6 @@ class GameLevel {
   std::shared_ptr<ResourceManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
 
-  std::shared_ptr<GameObject> m_player;
+  GameObject m_player;
 };
 

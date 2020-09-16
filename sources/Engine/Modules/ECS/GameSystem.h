@@ -12,6 +12,8 @@ class GameSystemsGroup;
 class GameSystem {
  public:
   GameSystem();
+  explicit GameSystem(GameWorld* gameWorld);
+
   virtual ~GameSystem();
 
   /*!
@@ -20,7 +22,7 @@ class GameSystem {
 * \param gameWorld the game world pointer
 * \param delta delta time
 */
-  virtual void fixedUpdate(GameWorld* gameWorld, float delta);
+  virtual void fixedUpdate(float delta);
 
   /*!
    * \brief Performs the game system update
@@ -28,36 +30,36 @@ class GameSystem {
    * \param gameWorld the game world pointer
    * \param delta delta time
    */
-  virtual void update(GameWorld* gameWorld, float delta);
+  virtual void update(float delta);
 
   /*!
    * \brief Renders the game system data
    */
-  virtual void render(GameWorld* gameWorld);
+  virtual void render();
 
   /*!
    * \brief It is called before rendering of the game world
    */
-  virtual void beforeRender(GameWorld* gameWorld);
+  virtual void beforeRender();
 
   /*!
    * \brief It is called after rendering of the game world
    */
-  virtual void afterRender(GameWorld* gameWorld);
+  virtual void afterRender();
 
   /*!
    * \brief Calls at the time of the game system registration
    *
    * \param gameWorld the game world pointer
    */
-  virtual void configure(GameWorld* gameWorld);
+  virtual void configure();
 
   /*!
    * \brief Calls at the time of the game system removal
    *
    * \param gameWorld the game world pointer
    */
-  virtual void unconfigure(GameWorld* gameWorld);
+  virtual void unconfigure();
 
   /*!
    * \brief Sets the game system active status
@@ -87,12 +89,14 @@ class GameSystem {
    * @brief Returns GameWorld reference
    * @return GameWorld reference
    */
-  GameWorld& getGameWorld() const;
+  [[nodiscard]] inline GameWorld* getGameWorld() const {
+    return m_gameWorld;
+  }
 
  private:
   bool m_isActive = false;
 
-  std::weak_ptr<GameWorld> m_gameWorld;
+  GameWorld* m_gameWorld{};
 
  private:
   friend class GameSystemsGroup;

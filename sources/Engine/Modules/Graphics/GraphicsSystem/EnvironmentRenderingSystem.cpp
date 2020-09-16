@@ -3,16 +3,15 @@
 #pragma hdrstop
 
 #include "EnvironmentRenderingSystem.h"
+
+#include <utility>
 #include "Modules/ECS/ECS.h"
 
-EnvironmentComponent::EnvironmentComponent()
-{
+EnvironmentComponent::EnvironmentComponent() = default;
 
-}
-
-void EnvironmentComponent::setEnvironmentMaterial(const std::shared_ptr<Material> material)
+void EnvironmentComponent::setEnvironmentMaterial(std::shared_ptr<Material> material)
 {
-  m_environmentMaterial = material;
+  m_environmentMaterial = std::move(material);
 }
 
 Material* EnvironmentComponent::getEnvironmentMaterial() const
@@ -23,42 +22,37 @@ Material* EnvironmentComponent::getEnvironmentMaterial() const
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
   std::shared_ptr<Mesh> environmentMesh)
-  : RenderingSystem(graphicsContext, sharedGraphicsState),
-    m_environmentMesh(environmentMesh)
+  : RenderingSystem(std::move(graphicsContext), std::move(sharedGraphicsState)),
+    m_environmentMesh(std::move(environmentMesh))
 {
 
 }
 
-EnvironmentRenderingSystem::~EnvironmentRenderingSystem()
-{
+EnvironmentRenderingSystem::~EnvironmentRenderingSystem() = default;
 
+void EnvironmentRenderingSystem::configure()
+{
 }
 
-void EnvironmentRenderingSystem::configure(GameWorld* gameWorld)
+void EnvironmentRenderingSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void EnvironmentRenderingSystem::unconfigure(GameWorld* gameWorld)
+void EnvironmentRenderingSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-}
-
-void EnvironmentRenderingSystem::update(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void EnvironmentRenderingSystem::renderForward(GameWorld* gameWorld)
+void EnvironmentRenderingSystem::renderForward()
 {
-  std::shared_ptr<GameObject> environmentObject = gameWorld->findGameObject([](const GameObject& obj) {
-    return obj.hasComponent<EnvironmentComponent>();
-  });
+  GameObject environmentObject = getGameWorld()->allWith<EnvironmentComponent>().begin().getGameObject();
 
-  SW_ASSERT(environmentObject != nullptr);
+  if (!environmentObject.isAlive()) {
+    SW_ASSERT(false);
+    return;
+  }
 
-  Material* material = environmentObject->getComponent<EnvironmentComponent>().getEnvironmentMaterial();
+  Material* material = environmentObject.getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
 
   Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
 

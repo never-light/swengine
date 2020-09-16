@@ -15,11 +15,11 @@ class PhysicsSystem : public GameSystem {
   PhysicsSystem();
   ~PhysicsSystem() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void render(GameWorld* gameWorld) override;
-  void update(GameWorld* gameWorld, float delta) override;
+  void render() override;
+  void update(float delta) override;
 
   void enableDebugDrawing(bool enable);
   bool isDebugDrawingEnabled();

@@ -2,5 +2,4 @@
 
 #include "GameWorld.h"
 #include "GameObjectImpl.h"
-#include "GameObjectsComponentsIteratorImpl.h"
-#include "GameObjectsComponentsViewImpl.h"
+#include "GameObjectsStorageImpl.h"

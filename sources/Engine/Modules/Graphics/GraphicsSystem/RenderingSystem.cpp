@@ -4,37 +4,34 @@
 
 #include "RenderingSystem.h"
 
+#include <utility>
+
 RenderingSystem::RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : m_graphicsContext(graphicsContext),
-    m_sharedGraphicsState(sharedGraphicsState)
+  : m_graphicsContext(std::move(graphicsContext)),
+    m_sharedGraphicsState(std::move(sharedGraphicsState))
 {
 
 }
 
-void RenderingSystem::renderDeferred(GameWorld* gameWorld)
+void RenderingSystem::renderDeferred()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::renderForward(GameWorld* gameWorld)
+void RenderingSystem::renderForward()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::renderPostProcess(GameWorld* gameWorld)
+void RenderingSystem::renderPostProcess()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void RenderingSystem::render(GameWorld* gameWorld)
+void RenderingSystem::render()
 {
-  ARG_UNUSED(gameWorld);
-
   /*
    * Direct usage of render method for RenderingSystem is forbidden
    *
-   * Every rendering system must use one or more of the specific rendering stages
+   * Every rendering system should use one or more of the specific rendering stages
    * (e.g. deferred, forward, postprocessing)
    */
   SW_ASSERT(false);

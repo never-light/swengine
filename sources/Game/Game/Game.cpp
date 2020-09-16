@@ -17,15 +17,15 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_levelsManager(levelsManager),
     m_level(std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager, levelsManager)),
     m_gameApplicationSystems(gameApplicationSystemsGroup),
-    m_gameModeSystems(std::make_shared<GameSystemsGroup>(gameWorld)),
+    m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
     m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule, sharedGraphicsState)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, sharedGraphicsState))
 {
-  m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>().getCamera());
+  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
+
+  m_sharedGraphicsState->setActiveCamera(m_level->getPlayer().getComponent<CameraComponent>()->getCamera());
   m_activeCameraControlSystem = m_playerControlSystem;
   m_gameModeSystems->addGameSystem(m_playerControlSystem);
-
-  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
 }
 
 void Game::activate()

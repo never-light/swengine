@@ -11,7 +11,7 @@ class PhysicsBackendFactory {
   PhysicsBackendFactory() = delete;
 
  public:
-  static std::shared_ptr<PhysicsSystemBackend> createPhysicsSystem(std::shared_ptr<GameWorld> gameWorld);
+  static std::shared_ptr<PhysicsSystemBackend> createPhysicsSystem(GameWorld* gameWorld);
 
   static std::shared_ptr<RigidBodyComponentBackend> createRigidBodyComponent(float mass,
     std::shared_ptr<CollisionShape> collisionShape);

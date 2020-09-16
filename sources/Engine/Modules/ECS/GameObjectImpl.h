@@ -3,53 +3,64 @@
 #include <utility>
 
 #include "GameObject.h"
-#include "GameWorld.h"
-#include "swdebug.h"
+#include "GameObjectsStorage.h"
 
 template<class T, class ...Args>
-inline T& GameObject::addComponent(Args&& ...args)
+inline GameObjectComponentHandle<T> GameObject::addComponent(Args&& ...args)
 {
-  SW_ASSERT(!hasComponent<T>());
+  SW_ASSERT(isAlive() && !hasComponent<T>());
 
-  return m_gameWorld->assignComponent<T, Args...>(*this, std::forward<Args>(args) ...);
+  return m_objectsStorage->assignComponent<T, Args...>(*this, std::forward<Args>(args) ...);
 }
 
 template<class T>
 inline void GameObject::removeComponent()
 {
-  SW_ASSERT(hasComponent<T>());
+  SW_ASSERT(isAlive() && hasComponent<T>());
 
-  m_gameWorld->removeComponent<T>(*this);
+  m_objectsStorage->removeComponent<T>(*this);
 }
 
 template<class T>
-inline T& GameObject::getComponent()
+inline GameObjectComponentHandle<T> GameObject::getComponent()
 {
-  auto componentIt = m_components.find(std::type_index(typeid(T)));
+  SW_ASSERT(isAlive());
 
-  SW_ASSERT(componentIt != m_components.end());
-
-  return *std::any_cast<T>(&componentIt->second);
-}
-
-template<class T>
-inline const T& GameObject::getComponent() const
-{
-  auto componentIt = m_components.find(std::type_index(typeid(T)));
-
-  SW_ASSERT(componentIt != m_components.end());
-
-  return *std::any_cast<T>(&componentIt->second);
+  return m_objectsStorage->getComponent<T>(*this);
 }
 
 template<class T>
 inline bool GameObject::hasComponent() const
 {
-  return m_components.find(std::type_index(typeid(T))) != m_components.end();
+  SW_ASSERT(isAlive());
+
+  return m_objectsStorage->hasComponent<T>(*this);
 }
 
-template<class T, class V, class ...Types>
-inline bool GameObject::hasComponent() const
+inline GameObjectId GameObject::getId() const
 {
-  return hasComponent < T > () && hasComponent < V, Types...>();
+  SW_ASSERT(isAlive());
+
+  return m_id;
+}
+
+inline const std::string& GameObject::getName() const
+{
+  SW_ASSERT(isAlive());
+
+  return m_objectsStorage->m_gameObjects[m_id].name;
+}
+
+inline size_t GameObject::getRevision() const
+{
+  SW_ASSERT(isAlive());
+
+  return m_revision;
+}
+
+inline bool GameObject::isAlive() const
+{
+  // TODO: initialize m_objectsStorage in all cases and remove m_id != GameObjectNone condition
+  return m_id != GameObjectNone && m_objectsStorage->m_gameObjects[m_id].id != GameObjectNone &&
+    m_objectsStorage->m_gameObjects[m_id].revision == m_revision;
 }

@@ -1,7 +1,20 @@
 #include <catch2/catch.hpp>
 
-#include <unordered_set>
+#include <set>
 #include <Engine/Modules/ECS/ECS.h>
+
+bool operator<(const GameObject& lhs, const GameObject& rhs)
+{
+  if (!lhs.isAlive()) {
+    return false;
+  }
+  else if (!rhs.isAlive()) {
+    return true;
+  }
+  else {
+    return lhs.getId() < rhs.getId();
+  }
+}
 
 struct TestEvent {
   int messageCode = 0;
@@ -24,23 +37,23 @@ class TestGameSystem : public GameSystem {
   TestGameSystem() = default;
   ~TestGameSystem() override = default;
 
-  void update(GameWorld* gameWorld, float delta) override
+  void update(float delta) override
   {
     ARG_UNUSED(delta);
 
-    for (auto object : gameWorld->allWith<TestSpeedComponent>()) {
-      object->getComponent<TestSpeedComponent>().speed += 5;
+    for (auto object : getGameWorld()->allWith<TestSpeedComponent>()) {
+      object.getComponent<TestSpeedComponent>()->speed += 5;
     }
 
-    for (auto object : gameWorld->allWith<TestMeshComponent>()) {
-      object->getComponent<TestMeshComponent>().isDrawn = false;
+    for (auto object : getGameWorld()->allWith<TestMeshComponent>()) {
+      object.getComponent<TestMeshComponent>()->isDrawn = false;
     }
   }
 
-  void render(GameWorld* gameWorld) override
+  void render() override
   {
-    for (auto object : gameWorld->allWith<TestMeshComponent>()) {
-      object->getComponent<TestMeshComponent>().isDrawn = true;
+    for (auto object : getGameWorld()->allWith<TestMeshComponent>()) {
+      object.getComponent<TestMeshComponent>()->isDrawn = true;
     }
   }
 };
@@ -71,107 +84,96 @@ TEST_CASE("game_objects_creation", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
 
-  std::shared_ptr<GameObject> firstObject = gameWorld->createGameObject();
+  GameObject firstObject = gameWorld->createGameObject();
 
-  firstObject->addComponent<TestHealthComponent>();
-  firstObject->addComponent<TestSpeedComponent>(TestSpeedComponent{10});
+  firstObject.addComponent<TestHealthComponent>();
+  firstObject.addComponent<TestSpeedComponent>(TestSpeedComponent{10});
 
-  REQUIRE(firstObject->hasComponent<TestHealthComponent>());
-  REQUIRE(firstObject->getComponent<TestHealthComponent>().health == 0);
+  REQUIRE(firstObject.hasComponent<TestHealthComponent>());
+  REQUIRE(firstObject.getComponent<TestHealthComponent>()->health == 0);
 
-  REQUIRE(firstObject->hasComponent<TestSpeedComponent>());
-  REQUIRE(firstObject->getComponent<TestSpeedComponent>().speed == 10);
+  REQUIRE(firstObject.hasComponent<TestSpeedComponent>());
+  REQUIRE(firstObject.getComponent<TestSpeedComponent>()->speed == 10);
 
-  std::shared_ptr<GameObject> secondObject = gameWorld->createGameObject();
-  secondObject->addComponent<TestSpeedComponent>(TestSpeedComponent{20});
+  // Reference to the first object could become invalid here
+  GameObject secondObject = gameWorld->createGameObject();
+  secondObject.addComponent<TestSpeedComponent>(TestSpeedComponent{20});
 
-  REQUIRE(secondObject->hasComponent<TestSpeedComponent>());
-  REQUIRE(secondObject->getComponent<TestSpeedComponent>().speed == 20);
-
-  REQUIRE(gameWorld->findGameObject(firstObject->getId()) == firstObject);
-  REQUIRE(gameWorld->findGameObject(secondObject->getId()) == secondObject);
+  REQUIRE(secondObject.hasComponent<TestSpeedComponent>());
+  REQUIRE(secondObject.getComponent<TestSpeedComponent>()->speed == 20);
 }
 
 TEST_CASE("game_objects_components_management", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
-  std::shared_ptr<GameObject> object = gameWorld->createGameObject();
+  GameObject object = gameWorld->createGameObject();
 
-  object->addComponent<TestHealthComponent>(TestHealthComponent{10});
-  object->addComponent<TestSpeedComponent>(TestSpeedComponent{15});
+  object.addComponent<TestHealthComponent>(TestHealthComponent{10});
+  object.addComponent<TestSpeedComponent>(TestSpeedComponent{15});
 
-  REQUIRE(object->hasComponent<TestHealthComponent>());
-  REQUIRE(object->getComponent<TestHealthComponent>().health == 10);
+  REQUIRE(object.hasComponent<TestHealthComponent>());
+  REQUIRE(object.getComponent<TestHealthComponent>()->health == 10);
 
-  REQUIRE(object->hasComponent<TestSpeedComponent>());
-  REQUIRE(object->getComponent<TestSpeedComponent>().speed == 15);
+  REQUIRE(object.hasComponent<TestSpeedComponent>());
+  REQUIRE(object.getComponent<TestSpeedComponent>()->speed == 15);
 
-  object->removeComponent<TestHealthComponent>();
+  object.removeComponent<TestHealthComponent>();
 
-  REQUIRE_FALSE(object->hasComponent<TestHealthComponent>());
-  REQUIRE(object->hasComponent<TestSpeedComponent>());
+  REQUIRE_FALSE(object.hasComponent<TestHealthComponent>());
+  REQUIRE(object.hasComponent<TestSpeedComponent>());
 
-  object->addComponent<TestHealthComponent>(TestHealthComponent{50});
+  object.addComponent<TestHealthComponent>(TestHealthComponent{50});
 
-  REQUIRE(object->hasComponent<TestHealthComponent>());
-  REQUIRE(object->getComponent<TestHealthComponent>().health == 50);
+  REQUIRE(object.hasComponent<TestHealthComponent>());
+  REQUIRE(object.getComponent<TestHealthComponent>()->health == 50);
 }
 
 TEST_CASE("game_objects_management", "[ecs]")
 {
   std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
 
-  std::shared_ptr<GameObject> firstObject = gameWorld->createGameObject();
-  GameObjectId firstObjectId = firstObject->getId();
+  GameObject firstObject = gameWorld->createGameObject();
+  firstObject.addComponent<TestHealthComponent>();
 
-  firstObject->addComponent<TestHealthComponent>();
-
-  std::shared_ptr<GameObject> secondObject = gameWorld->createGameObject();
-  GameObjectId secondObjectId = secondObject->getId();
-
-  secondObject->addComponent<TestHealthComponent>();
+  GameObject secondObject = gameWorld->createGameObject();
+  secondObject.addComponent<TestHealthComponent>();
 
   gameWorld->removeGameObject(secondObject);
 
-  std::shared_ptr<GameObject> thirdObject = gameWorld->createGameObject();
-  GameObjectId thirdObjectId = thirdObject->getId();
+  GameObject thirdObject = gameWorld->createGameObject();
+  thirdObject.addComponent<TestHealthComponent>();
 
-  thirdObject->addComponent<TestHealthComponent>();
+  REQUIRE_FALSE(secondObject.isAlive());
 
-  REQUIRE(gameWorld->findGameObject(secondObjectId) == nullptr);
-  REQUIRE(gameWorld->findGameObject([secondObjectId](const GameObject& obj) {
-    return obj.getId() == secondObjectId;
-  }) == nullptr);
-
-  std::unordered_set<GameObjectId> objectsFoundByForEach;
+  std::set<GameObject> objectsFoundByForEach;
 
   gameWorld->forEach([&objectsFoundByForEach](GameObject& obj) {
-    objectsFoundByForEach.insert(obj.getId());
+    objectsFoundByForEach.insert(obj);
   });
 
-  REQUIRE(objectsFoundByForEach.contains(firstObjectId));
-  REQUIRE_FALSE(objectsFoundByForEach.contains(secondObjectId));
-  REQUIRE(objectsFoundByForEach.contains(thirdObjectId));
+  REQUIRE(objectsFoundByForEach.contains(firstObject));
+  REQUIRE_FALSE(objectsFoundByForEach.contains(secondObject));
+  REQUIRE(objectsFoundByForEach.contains(thirdObject));
 
-  std::unordered_set<GameObjectId> objectsFoundByForAll;
+  std::set<GameObject> objectsFoundByForAll;
 
   for (auto obj : gameWorld->all()) {
-    objectsFoundByForAll.insert(obj->getId());
+    objectsFoundByForAll.insert(obj);
   }
 
-  REQUIRE(objectsFoundByForAll.contains(firstObjectId));
-  REQUIRE_FALSE(objectsFoundByForAll.contains(secondObjectId));
-  REQUIRE(objectsFoundByForAll.contains(thirdObjectId));
+  REQUIRE(objectsFoundByForAll.contains(firstObject));
+  REQUIRE_FALSE(objectsFoundByForAll.contains(secondObject));
+  REQUIRE(objectsFoundByForAll.contains(thirdObject));
 
-  std::unordered_set<GameObjectId> objectsFoundByForAllWith;
+  std::set<GameObject> objectsFoundByForAllWith;
 
   for (auto obj : gameWorld->allWith<TestHealthComponent>()) {
-    objectsFoundByForAllWith.insert(obj->getId());
+    objectsFoundByForAllWith.insert(obj);
   }
 
-  REQUIRE(objectsFoundByForAllWith.contains(firstObjectId));
-  REQUIRE_FALSE(objectsFoundByForAllWith.contains(secondObjectId));
-  REQUIRE(objectsFoundByForAllWith.contains(thirdObjectId));
+  REQUIRE(objectsFoundByForAllWith.contains(firstObject));
+  REQUIRE_FALSE(objectsFoundByForAllWith.contains(secondObject));
+  REQUIRE(objectsFoundByForAllWith.contains(thirdObject));
 }
 
 TEST_CASE("game_systems_usage", "[ecs]")
@@ -184,23 +186,23 @@ TEST_CASE("game_systems_usage", "[ecs]")
 
   REQUIRE(defaultGameSystemsGroup->getGameSystem<TestGameSystem>() == testSystem);
 
-  std::shared_ptr<GameObject> gameObject = gameWorld->createGameObject();
-  gameObject->addComponent<TestSpeedComponent>(TestSpeedComponent{10});
-  gameObject->addComponent<TestMeshComponent>(TestMeshComponent{false});
+  GameObject gameObject = gameWorld->createGameObject();
+  gameObject.addComponent<TestSpeedComponent>(TestSpeedComponent{10});
+  gameObject.addComponent<TestMeshComponent>(TestMeshComponent{false});
 
   gameWorld->update(1.0f);
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 15);
+  REQUIRE(gameObject.getComponent<TestSpeedComponent>()->speed == 15);
 
   gameWorld->render();
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 15);
-  REQUIRE(gameObject->getComponent<TestMeshComponent>().isDrawn);
+  REQUIRE(gameObject.getComponent<TestSpeedComponent>()->speed == 15);
+  REQUIRE(gameObject.getComponent<TestMeshComponent>()->isDrawn);
 
   gameWorld->update(1.0f);
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 20);
-  REQUIRE_FALSE(gameObject->getComponent<TestMeshComponent>().isDrawn);
+  REQUIRE(gameObject.getComponent<TestSpeedComponent>()->speed == 20);
+  REQUIRE_FALSE(gameObject.getComponent<TestMeshComponent>()->isDrawn);
 
   defaultGameSystemsGroup->removeGameSystem(testSystem);
 
@@ -210,7 +212,7 @@ TEST_CASE("game_systems_usage", "[ecs]")
   gameWorld->update(1.0f);
   gameWorld->render();
 
-  REQUIRE(gameObject->getComponent<TestSpeedComponent>().speed == 20);
+  REQUIRE(gameObject.getComponent<TestSpeedComponent>()->speed == 20);
 }
 
 TEST_CASE("game_events_handling", "[ecs]")
@@ -220,11 +222,11 @@ TEST_CASE("game_events_handling", "[ecs]")
 
   gameWorld->subscribeEventsListener(listener.get());
 
-  gameWorld->emitEvent(TestEvent{ 10 });
+  gameWorld->emitEvent(TestEvent{10});
   REQUIRE(listener->getLastMessageCode() == 10);
 
   gameWorld->unsubscribeEventsListener(listener.get());
 
-  gameWorld->emitEvent(TestEvent{ 20 });
+  gameWorld->emitEvent(TestEvent{20});
   REQUIRE(listener->getLastMessageCode() == 10);
 }

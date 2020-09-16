@@ -6,11 +6,12 @@
 
 #include <algorithm>
 
-#include "GameSystem.h"
 #include "GameWorld.h"
 
-GameSystemsGroup::GameSystemsGroup(std::shared_ptr<GameWorld> gameWorld)
-  : m_gameWorld(gameWorld)
+GameSystemsGroup::GameSystemsGroup() = default;
+
+GameSystemsGroup::GameSystemsGroup(GameWorld* gameWorld)
+  : GameSystem(gameWorld)
 {
 
 }
@@ -20,18 +21,18 @@ GameSystemsGroup::~GameSystemsGroup()
   SW_ASSERT(!m_isConfigured);
 }
 
-void GameSystemsGroup::configure(GameWorld* gameWorld)
+void GameSystemsGroup::configure()
 {
   SW_ASSERT(!m_isConfigured && !isActive());
 
   m_isConfigured = true;
 
   for (auto& system : m_gameSystems) {
-    system->configure(gameWorld);
+    system->configure();
   }
 }
 
-void GameSystemsGroup::unconfigure(GameWorld* gameWorld)
+void GameSystemsGroup::unconfigure()
 {
   SW_ASSERT(m_isConfigured);
 
@@ -40,24 +41,24 @@ void GameSystemsGroup::unconfigure(GameWorld* gameWorld)
       system->setActive(false);
     }
 
-    system->unconfigure(gameWorld);
+    system->unconfigure();
   }
 
   m_isConfigured = false;
 }
 
-void GameSystemsGroup::beforeRender(GameWorld* gameWorld)
+void GameSystemsGroup::beforeRender()
 {
   if (!isActive()) {
     return;
   }
 
   for (auto& system : m_gameSystems) {
-    system->beforeRender(gameWorld);
+    system->beforeRender();
   }
 }
 
-void GameSystemsGroup::render(GameWorld* gameWorld)
+void GameSystemsGroup::render()
 {
   if (!isActive()) {
     return;
@@ -65,12 +66,12 @@ void GameSystemsGroup::render(GameWorld* gameWorld)
 
   for (auto& system : m_gameSystems) {
     if (system->isActive()) {
-      system->render(gameWorld);
+      system->render();
     }
   }
 }
 
-void GameSystemsGroup::afterRender(GameWorld* gameWorld)
+void GameSystemsGroup::afterRender()
 {
   if (!isActive()) {
     return;
@@ -78,12 +79,12 @@ void GameSystemsGroup::afterRender(GameWorld* gameWorld)
 
   for (auto& system : m_gameSystems) {
     if (system->isActive()) {
-      system->afterRender(gameWorld);
+      system->afterRender();
     }
   }
 }
 
-void GameSystemsGroup::fixedUpdate(GameWorld* gameWorld, float delta)
+void GameSystemsGroup::fixedUpdate(float delta)
 {
   if (!isActive()) {
     return;
@@ -91,12 +92,12 @@ void GameSystemsGroup::fixedUpdate(GameWorld* gameWorld, float delta)
 
   for (auto& system : m_gameSystems) {
     if (system->isActive()) {
-      system->fixedUpdate(gameWorld, delta);
+      system->fixedUpdate(delta);
     }
   }
 }
 
-void GameSystemsGroup::update(GameWorld* gameWorld, float delta)
+void GameSystemsGroup::update(float delta)
 {
   if (!isActive()) {
     return;
@@ -104,7 +105,7 @@ void GameSystemsGroup::update(GameWorld* gameWorld, float delta)
 
   for (auto& system : m_gameSystems) {
     if (system->isActive()) {
-      system->update(gameWorld, delta);
+      system->update(delta);
     }
   }
 }
@@ -128,12 +129,14 @@ void GameSystemsGroup::deactivate()
 
 void GameSystemsGroup::addGameSystem(std::shared_ptr<GameSystem> system)
 {
+  SW_ASSERT(m_gameWorld != nullptr && "Parent game system group should be added to other group");
+
   system->m_gameWorld = m_gameWorld;
 
   m_gameSystems.push_back(system);
 
   if (m_isConfigured) {
-    system->configure(m_gameWorld.lock().get());
+    system->configure();
 
     if (isActive()) {
       system->setActive(true);
@@ -148,10 +151,10 @@ void GameSystemsGroup::removeGameSystem(std::shared_ptr<GameSystem> system)
       system->setActive(false);
     }
 
-    system->unconfigure(m_gameWorld.lock().get());
+    system->unconfigure();
   }
 
-  system->m_gameWorld.reset();
+  system->m_gameWorld = nullptr;
 
   m_gameSystems.erase(std::remove(m_gameSystems.begin(), m_gameSystems.end(), system),
     m_gameSystems.end());
