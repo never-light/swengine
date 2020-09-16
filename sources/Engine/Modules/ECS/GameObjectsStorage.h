@@ -43,6 +43,38 @@ class GameObjectComponentHandle {
   GameObjectsStorage* m_gameObjectsStorage;
 };
 
+class GameObjectBaseComponentsUtility {
+ public:
+  explicit GameObjectBaseComponentsUtility(GameWorld* gameWorld, GameObjectsStorage* gameObjectsStorage)
+    : m_gameWorld(gameWorld),
+      m_gameObjectsStorage(gameObjectsStorage)
+  {
+
+  };
+
+  virtual ~GameObjectBaseComponentsUtility() = default;
+
+  virtual void emitRemoveEvent(const GameObject& gameObject) = 0;
+
+ protected:
+  GameWorld* m_gameWorld;
+  GameObjectsStorage* m_gameObjectsStorage;
+};
+
+template<class T>
+class GameObjectGenericComponentsUtility : public GameObjectBaseComponentsUtility {
+ public:
+  explicit GameObjectGenericComponentsUtility(GameWorld* gameWorld, GameObjectsStorage* gameObjectsStorage)
+    : GameObjectBaseComponentsUtility(gameWorld, gameObjectsStorage)
+  {
+
+  }
+
+  ~GameObjectGenericComponentsUtility() override = default;
+
+  inline void emitRemoveEvent(const GameObject& gameObject) override;
+};
+
 template<class T>
 struct GameObjectAddRemoveComponentEvent {
   mutable GameObject gameObject;
@@ -68,11 +100,11 @@ class GameObjectsStorage {
     : m_gameWorld(gameWorld)
   {
     m_componentsDataPools.resize(GameObjectData::MAX_COMPONENTS_COUNT, nullptr);
+    m_componentsUtilities.resize(GameObjectData::MAX_COMPONENTS_COUNT, nullptr);
   };
 
   ~GameObjectsStorage()
   {
-    // TODO[high]: emit appropriate events here
     for (const auto& object : m_gameObjects) {
       if (object.id != GameObjectNone) {
         GameObject tempObjectHandle = GameObject(object.id, object.revision, this);
@@ -82,6 +114,10 @@ class GameObjectsStorage {
 
     for (DynamicDataPool* pool : m_componentsDataPools) {
       delete pool;
+    }
+
+    for (GameObjectBaseComponentsUtility* componentUtility : m_componentsUtilities) {
+      delete componentUtility;
     }
   }
 
@@ -231,6 +267,7 @@ class GameObjectsStorage {
   std::vector<GameObjectId> m_freeGameObjectsIds;
 
   std::vector<DynamicDataPool*> m_componentsDataPools;
+  std::vector<GameObjectBaseComponentsUtility*> m_componentsUtilities;
 
   std::unordered_map<std::string, GameObjectId> m_gameObjectsNamesLookupTable;
 

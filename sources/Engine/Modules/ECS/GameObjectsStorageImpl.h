@@ -16,14 +16,16 @@ inline void GameObjectsStorage::remove(GameObject& gameObject)
 
   auto& objectData = m_gameObjects[gameObject.m_id];
 
-  m_gameWorld->emitEvent(GameObjectRemoveEvent{gameObject});
-
-  // TODO[HIGH]: emit event about components removing here and send GameObjectRemoveEvent after them
   for (size_t componentIndex = 0; componentIndex < GameObjectData::MAX_COMPONENTS_COUNT; componentIndex++) {
     if (objectData.componentsMask.test(componentIndex)) {
+      m_componentsUtilities[componentIndex]->emitRemoveEvent(gameObject);
       m_componentsDataPools[componentIndex]->freeObject(gameObject.m_id);
+
+      objectData.componentsMask.reset(componentIndex);
     }
   }
+
+  m_gameWorld->emitEvent(GameObjectRemoveEvent{gameObject});
 
   if (!objectData.name.empty()) {
     m_gameObjectsNamesLookupTable.erase(objectData.name);
@@ -40,6 +42,7 @@ inline GameObjectComponentHandle<T> GameObjectsStorage::assignComponent(GameObje
 
   if (m_componentsDataPools[typeId] == nullptr) {
     m_componentsDataPools[typeId] = new ComponentsPool<T>(8192);
+    m_componentsUtilities[typeId] = new GameObjectGenericComponentsUtility<T>(m_gameWorld, this);
   }
 
   auto& gameObjectData = m_gameObjects[gameObject.m_id];
@@ -74,6 +77,8 @@ inline void GameObjectsStorage::removeComponent(GameObject& gameObject)
 
   ComponentsPool<T>* componentStorage = getComponentDataStorage<T>();
 
+  m_componentsUtilities[typeId]->emitRemoveEvent(gameObject);
+
   GameObjectComponentHandle<T> componentReference(gameObject.m_id, this);
   m_gameWorld->emitEvent(GameObjectRemoveComponentEvent<T>{gameObject, componentReference});
 
@@ -103,4 +108,11 @@ template<class T>
 inline const T* GameObjectComponentHandle<T>::get() const
 {
   return static_cast<T*>(m_gameObjectsStorage->getComponentDataStorage<T>()->getObject(m_objectId));
+}
+
+template<class T>
+inline void GameObjectGenericComponentsUtility<T>::emitRemoveEvent(const GameObject& gameObject)
+{
+  GameObjectComponentHandle<T> componentReference(gameObject.getId(), m_gameObjectsStorage);
+  m_gameWorld->emitEvent(GameObjectRemoveComponentEvent<T>{gameObject, componentReference});
 }

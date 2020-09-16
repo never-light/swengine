@@ -37,22 +37,22 @@ class TestGameSystem : public GameSystem {
   TestGameSystem() = default;
   ~TestGameSystem() override = default;
 
-  void update(GameWorld* gameWorld, float delta) override
+  void update(float delta) override
   {
     ARG_UNUSED(delta);
 
-    for (auto object : gameWorld->allWith<TestSpeedComponent>()) {
+    for (auto object : getGameWorld()->allWith<TestSpeedComponent>()) {
       object.getComponent<TestSpeedComponent>()->speed += 5;
     }
 
-    for (auto object : gameWorld->allWith<TestMeshComponent>()) {
+    for (auto object : getGameWorld()->allWith<TestMeshComponent>()) {
       object.getComponent<TestMeshComponent>()->isDrawn = false;
     }
   }
 
-  void render(GameWorld* gameWorld) override
+  void render() override
   {
-    for (auto object : gameWorld->allWith<TestMeshComponent>()) {
+    for (auto object : getGameWorld()->allWith<TestMeshComponent>()) {
       object.getComponent<TestMeshComponent>()->isDrawn = true;
     }
   }

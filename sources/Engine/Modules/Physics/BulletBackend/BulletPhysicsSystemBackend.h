@@ -22,8 +22,7 @@ class BulletPhysicsSystemBackend :
   public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>,
-  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>,
-  public EventsListener<GameObjectRemoveEvent> {
+  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>> {
  public:
   explicit BulletPhysicsSystemBackend(GameWorld* gameWorld);
   ~BulletPhysicsSystemBackend() override;
@@ -49,8 +48,6 @@ class BulletPhysicsSystemBackend :
   EventProcessStatus receiveEvent(GameWorld* gameWorld,
     const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event) override;
-
   void enableDebugDrawing(bool enable) override;
   bool isDebugDrawingEnabled() override;
 
@@ -69,7 +66,7 @@ class BulletPhysicsSystemBackend :
   static void physicsNearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
 
-  static void physicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
+  static void physicsTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
  private:
   GameWorld* m_gameWorld;

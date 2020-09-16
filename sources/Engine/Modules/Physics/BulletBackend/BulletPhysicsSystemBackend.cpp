@@ -66,15 +66,10 @@ void BulletPhysicsSystemBackend::configure()
 
   m_gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>(this);
   m_gameWorld->subscribeEventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>(this);
-
-
-  m_gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
 void BulletPhysicsSystemBackend::unconfigure()
 {
-  m_gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
-
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>(this);
 
@@ -218,24 +213,6 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
 
   m_dynamicsWorld->addCollisionObject(ghostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter);
   m_dynamicsWorld->addAction(kinematicController);
-
-  return EventProcessStatus::Processed;
-}
-
-
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event)
-{
-  ARG_UNUSED(gameWorld);
-
-  if (!isConfigured()) {
-    return EventProcessStatus::Skipped;
-  }
-
-  GameObject removedObject = event.gameObject;
-
-  if (removedObject.hasComponent<RigidBodyComponent>()) {
-    removedObject.removeComponent<RigidBodyComponent>();
-  }
 
   return EventProcessStatus::Processed;
 }
