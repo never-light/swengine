@@ -16,6 +16,6 @@ TEST_CASE("loading_levels_game_objects", "[levels_management]")
 
     m_levelsManager->loadLevel("test");
 
-    REQUIRE(m_gameWorld->findGameObject("player") != nullptr);
-    REQUIRE(m_gameWorld->findGameObject("city_environment") != nullptr);
+    REQUIRE(m_gameWorld->findGameObject("player").isAlive());
+    REQUIRE(m_gameWorld->findGameObject("city_environment").isAlive());
 }
