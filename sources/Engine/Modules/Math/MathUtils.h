@@ -1,11 +1,13 @@
 #pragma once
 
+#include <tuple>
+
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "geometry.h"
 
+#include "geometry.h"
 
 class MathUtils {
  public:
@@ -25,11 +27,18 @@ class MathUtils {
   static glm::mat4 getYawMatrix(float angle);
   static glm::mat4 getPitchMatrix(float angle);
   static glm::mat4 getRollMatrix(float angle);
-  
+
+  static std::tuple<glm::vec3, glm::vec3> quatToForwardUp(const glm::quat& q);
+  static glm::quat forwardUpToQuat(const glm::vec3& forward, const glm::vec3& up);
+
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};
   static constexpr glm::vec3 AXIS_Y = {0.0f, 1.0f, 0.0f};
   static constexpr glm::vec3 AXIS_Z = {0.0f, 0.0f, 1.0f};
+
+  static constexpr glm::vec3 AXIS_FORWARD = -AXIS_Z;
+  static constexpr glm::vec3 AXIS_UP = AXIS_Y;
+  static constexpr glm::vec3 AXIS_RIGHT = AXIS_X;
 
   static constexpr glm::mat4 IDENTITY_MATRIX4 = glm::identity<glm::mat4>();
   static constexpr glm::quat IDENTITY_QUAT = glm::identity<glm::quat>();

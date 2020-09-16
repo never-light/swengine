@@ -7,33 +7,35 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<LevelsManager> levelsManager)
   : m_gameWorld(gameWorld),
     m_inputModule(inputModule),
     m_graphicsContext(graphicsContext),
     m_sharedGraphicsState(sharedGraphicsState),
     m_resourceManager(resourceManager),
-    m_level(std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager)),
+    m_levelsManager(levelsManager),
+    m_level(std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager, levelsManager)),
     m_gameApplicationSystems(gameApplicationSystemsGroup),
-    m_gameModeSystems(std::make_shared<GameSystemsGroup>(gameWorld)),
+    m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
     m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule, sharedGraphicsState)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, sharedGraphicsState))
 {
-  m_sharedGraphicsState->setActiveCamera(m_level->getPlayer()->getComponent<CameraComponent>().getCamera());
+  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
+
+  m_sharedGraphicsState->setActiveCamera(m_level->getPlayer().getComponent<CameraComponent>()->getCamera());
   m_activeCameraControlSystem = m_playerControlSystem;
   m_gameModeSystems->addGameSystem(m_playerControlSystem);
 }
 
 void Game::activate()
 {
-  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
 }
 
 void Game::deactivate()
 {
   m_gameWorld->unsubscribeEventsListener<GameConsoleCommandEvent>(this);
-  m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
 }
 
 void Game::enterConsoleMode()

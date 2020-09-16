@@ -95,7 +95,7 @@ void FrameStats::increaseCulledSubMeshesCount(size_t count)
   m_culledSubMeshesCount += count;
 }
 
-size_t FrameStats::getPrimivitesCount() const
+size_t FrameStats::getPrimitivesCount() const
 {
   return m_primitivesCount;
 }

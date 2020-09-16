@@ -25,20 +25,20 @@ std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
   gameWorld->getGameSystemsGroup()->addGameSystem(physicsSystem);
   physicsSystem->setGravity({0.0f, -10.0f, 0.0f});
 
-  std::shared_ptr<GameObject> fallingBody = gameWorld->createGameObject();
+  GameObject fallingBody = gameWorld->createGameObject();
 
-  auto& fallingTransformComponent = fallingBody->addComponent<TransformComponent>();
+  auto& fallingTransformComponent = *fallingBody.addComponent<TransformComponent>().get();
   fallingTransformComponent.getTransform().setPosition(0.0f, 10.0f, 0.0f);
 
-  fallingBody->addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
+  fallingBody.addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
     CollisionShapesFactory::createSphere(1.0f)));
 
-  std::shared_ptr<GameObject> floorBody = gameWorld->createGameObject();
+  GameObject floorBody = gameWorld->createGameObject();
 
-  auto& floorTransformComponent = floorBody->addComponent<TransformComponent>();
+  auto& floorTransformComponent = *floorBody.addComponent<TransformComponent>().get();
   floorTransformComponent.getTransform().setPosition(0.0f, 0.0f, 0.0f);
 
-  floorBody->addComponent<RigidBodyComponent>(RigidBodyComponent(0.0f,
+  floorBody.addComponent<RigidBodyComponent>(RigidBodyComponent(0.0f,
     CollisionShapesFactory::createBox(glm::vec3(0.5f, 0.5f, 0.5f))));
 
   return gameWorld;
@@ -48,7 +48,7 @@ TEST_CASE("rigid_bodies_collision", "[physics]")
 {
   std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation();
 
-  const auto& fallingTransformComponent = gameWorld->findGameObject(1)->getComponent<TransformComponent>();
+  const auto& fallingTransformComponent = *gameWorld->findGameObject(1).getComponent<TransformComponent>().get();
 
   for (int timeStepIndex = 0; timeStepIndex < 60; timeStepIndex++) {
     gameWorld->update(5.0f / 60.0f);
@@ -68,8 +68,8 @@ TEST_CASE("rigid_bodies_collision_callback", "[physics]")
   bool collisionDetected2 = false;
   bool collisionVerified2 = true;
 
-  gameWorld->findGameObject(1)->getComponent<RigidBodyComponent>()
-    .setCollisionCallback([&collisionDetected1, &collisionVerified1, gameWorld](CollisionInfo& collision) {
+  gameWorld->findGameObject(1).getComponent<RigidBodyComponent>()
+    ->setCollisionCallback([&collisionDetected1, &collisionVerified1, gameWorld](CollisionInfo& collision) {
       collisionDetected1 = true;
 
       collisionVerified1 = collisionVerified1 &&
@@ -78,8 +78,8 @@ TEST_CASE("rigid_bodies_collision_callback", "[physics]")
       return RigidBodyCollisionProcessingStatus::ObservedOnly;
     });
 
-  gameWorld->findGameObject(2)->getComponent<RigidBodyComponent>()
-    .setCollisionCallback([&collisionDetected2, &collisionVerified2, gameWorld](CollisionInfo& collision) {
+  gameWorld->findGameObject(2).getComponent<RigidBodyComponent>()
+    ->setCollisionCallback([&collisionDetected2, &collisionVerified2, gameWorld](CollisionInfo& collision) {
       collisionDetected2 = true;
 
       collisionVerified2 = collisionVerified2 &&

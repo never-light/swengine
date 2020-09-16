@@ -13,7 +13,7 @@ class EnvironmentComponent {
  public:
   EnvironmentComponent();
 
-  void setEnvironmentMaterial(const std::shared_ptr<Material> material);
+  void setEnvironmentMaterial(std::shared_ptr<Material> material);
   [[nodiscard]] Material* getEnvironmentMaterial() const;
 
  private:
@@ -28,11 +28,11 @@ class EnvironmentRenderingSystem : public RenderingSystem {
 
   ~EnvironmentRenderingSystem() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void update(GameWorld* gameWorld, float delta) override;
-  void renderForward(GameWorld* gameWorld) override;
+  void update(float delta) override;
+  void renderForward() override;
 
  private:
   std::shared_ptr<Mesh> m_environmentMesh;

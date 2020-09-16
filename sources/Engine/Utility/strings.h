@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 
+#include <glm/vec3.hpp>
+
 #include "Exceptions/exceptions.h"
 
 class StringUtils {
@@ -26,6 +28,7 @@ class StringUtils {
     const std::string& pattern,
     const std::string& replacement);
 
+  [[nodiscard]] static glm::vec3 stringToVec3(const std::string& string);
 };
 
 template<class T>

@@ -9,92 +9,12 @@
 
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
+#include "GameObjectsStorage.h"
 
 #include "GameObjectsSequentialView.h"
 #include "GameObjectsComponentsView.h"
 
 #include "EventsListener.h"
-
-// TODO: declare and use type alias like GameObjectRef instead of std::shared_ptr<GameObject>
-
-// TODO: check whether the game object alive before any actions with it
-
-// TODO: replace raw EventListener pointers with shared pointers to avoid memory leaks or usage of invalid pointers
-
-// TODO: add ability to subscribe to events not only objects but also callbacks, probably replace
-// polymorphic objects with std::function objects, but foresee deleting of them (for example, by unique identifies)
-
-struct GameObjectAddEvent {
- public:
-  GameObjectAddEvent(std::shared_ptr<GameObject> object) : m_object(object) {
-
-  }
-
-  std::shared_ptr<GameObject> getObject() const {
-    return m_object;
-  }
-
- private:
-  std::shared_ptr<GameObject> m_object;
-};
-
-struct GameObjectRemoveEvent {
- public:
-  GameObjectRemoveEvent(std::shared_ptr<GameObject> object) : m_object(object) {
-
-  }
-
-  std::shared_ptr<GameObject> getObject() const {
-    return m_object;
-  }
-
- private:
-  std::shared_ptr<GameObject> m_object;
-};
-
-template<class T>
-struct GameObjectAddComponentEvent {
- public:
-  GameObjectAddComponentEvent(GameObject& gameObject, T& componentReference)
-    : m_gameObject(gameObject),
-      m_component(componentReference) {
-
-  }
-
-  T& getComponent() const {
-    return m_component;
-  }
-
-  GameObject& getGameObject() const {
-    return m_gameObject;
-  }
-
- private:
-  GameObject& m_gameObject;
-  T& m_component;
-};
-
-template<class T>
-struct GameObjectRemoveComponentEvent {
- public:
-  GameObjectRemoveComponentEvent(GameObject& gameObject, T& componentReference)
-    : m_gameObject(gameObject),
-      m_component(componentReference) {
-
-  }
-
-  T& getComponent() const {
-    return m_component;
-  }
-
-  GameObject& getGameObject() const {
-    return m_gameObject;
-  }
-
- private:
-  GameObject& m_gameObject;
-  T& m_component;
-};
 
 /*!
  * \brief Class for representing the game world
@@ -103,10 +23,14 @@ struct GameObjectRemoveComponentEvent {
  * and systems. Also the class provide functions to find these things
  * and iterate over them.
  */
-class GameWorld : public std::enable_shared_from_this<GameWorld> {
+class GameWorld {
  public:
   GameWorld(const GameWorld& gameWorld) = delete;
-  ~GameWorld();
+
+  ~GameWorld() {
+    m_gameSystemsGroup->unconfigure();
+    m_gameObjectsStorage.reset();
+  }
 
   /*!
  * \brief Performs the game world update with fixed internal step
@@ -116,7 +40,9 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
  *
  * \param delta delta time
  */
-  void fixedUpdate(float delta);
+  void fixedUpdate(float delta) {
+    m_gameSystemsGroup->fixedUpdate(delta);
+  }
 
   /*!
    * \brief Performs the game world update
@@ -126,35 +52,62 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    *
    * \param delta delta time
    */
-  void update(float delta);
+  void update(float delta) {
+    m_gameSystemsGroup->update(delta);
+  }
 
   /*!
    * \brief Renders the game world
    */
-  void render();
+  void render() {
+    m_gameSystemsGroup->render();
+  }
 
   /*!
    * \brief It is called before rendering of the game world
    */
-  void beforeRender();
+  void beforeRender() {
+    m_gameSystemsGroup->beforeRender();
+  }
 
   /*!
    * \brief It is called after rendering of the game world
    */
-  void afterRender();
+  void afterRender() {
+    m_gameSystemsGroup->afterRender();
+  }
 
   /*!
    * \brief getGameSystemsGroup Returns main game systems group
    * \return the main game systems group
    */
-  GameSystemsGroup* getGameSystemsGroup() const;
+  GameSystemsGroup* getGameSystemsGroup() const {
+    return m_gameSystemsGroup.get();
+  }
 
   /*!
    * \brief Creates and registers a new game object
    *
    * \return the object pointer
    */
-  std::shared_ptr<GameObject> createGameObject();
+  GameObject createGameObject() {
+    GameObject gameObject = m_gameObjectsStorage->create();
+    emitEvent(GameObjectAddEvent{gameObject});
+
+    return gameObject;
+  }
+
+  /*!
+ * \brief Creates and registers a new game object with specified unique name
+ *
+ * \return the object pointer
+ */
+  GameObject createGameObject(const std::string& name) {
+    GameObject gameObject = m_gameObjectsStorage->createNamed(name);
+    emitEvent(GameObjectAddEvent{gameObject});
+
+    return gameObject;
+  }
 
   /*!
    * \brief Finds the game object by ID
@@ -162,7 +115,19 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param id Identifier of the game object
    * \return the object pointer
    */
-  std::shared_ptr<GameObject> findGameObject(GameObjectId id) const;
+  [[nodiscard]] GameObject findGameObject(GameObjectId id) const {
+    return m_gameObjectsStorage->getById(id);
+  }
+
+  /*!
+   * \brief Finds the game object by name
+   *
+   * \param id Name of the game object
+   * \return the object pointer
+   */
+  [[nodiscard]] GameObject findGameObject(const std::string& name) const {
+    return m_gameObjectsStorage->getByName(name);
+  }
 
   /*!
    * \brief Finds the game object by predicate
@@ -170,36 +135,57 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    * \param predicate predicate for the object determination
    * \return the object pointer
    */
-  std::shared_ptr<GameObject> findGameObject(std::function<bool(const GameObject&)> predicate) const;
+  [[nodiscard]] GameObject findGameObject(const std::function<bool(const GameObject&)>& predicate) {
+    for (const GameObjectData& object : m_gameObjectsStorage->getGameObjects()) {
+      GameObject gameObject(object.id, object.revision, m_gameObjectsStorage.get());
+
+      if (gameObject.isAlive() && predicate(gameObject)) {
+        return gameObject;
+      }
+    }
+
+    return GameObject();
+  }
 
   /*!
    * \brief Removes the game objects
    *
    * \param gameObject removed game object
    */
-  void removeGameObject(std::shared_ptr<GameObject> gameObject);
+  void removeGameObject(GameObject& gameObject) {
+    m_gameObjectsStorage->remove(gameObject);
+  }
 
   /*!
    * \brief Performs specified action for each existing game object
    *
    * \param action action to perform
    */
-  void forEach(std::function<void(GameObject&)> action);
+  void forEach(const std::function<void(GameObject&)>& action) {
+    for (GameObject gameObject : this->all()) {
+      action(gameObject);
+    }
+  }
 
   /*!
    * \brief Returns view for iterate over all game objects
    *
    * \return view for iterate over all game objects
    */
-  GameObjectsSequentialView all();
+  GameObjectsSequentialView all() {
+    GameObjectsSequentialIterator begin(m_gameObjectsStorage.get(), 0, false);
+    GameObjectsSequentialIterator end(m_gameObjectsStorage.get(), m_gameObjectsStorage->getSize(), true);
+
+    return GameObjectsSequentialView(begin, end);
+  }
 
   /*!
    * \brief Returns view of game objects with specified components
    *
    * \return view of game objects with specified components
    */
-  template<class... ComponentsTypes>
-  GameObjectsComponentsView<ComponentsTypes...> allWith();
+  template<class ComponentType>
+  GameObjectsComponentsView<ComponentType> allWith();
 
   /*!
    * \brief Subscribes the event listener for the specified event
@@ -222,7 +208,12 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
    *
    * \param listener events listener object
    */
-  void cancelEventsListening(BaseEventsListener* listener);
+  void cancelEventsListening(BaseEventsListener* listener) {
+    for (auto& it : m_eventsListeners) {
+      std::vector<BaseEventsListener*>& listeners = it.second;
+      listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end());
+    }
+  }
 
   /*!
    * \brief Sends the event data to all appropriate listeners
@@ -233,117 +224,47 @@ class GameWorld : public std::enable_shared_from_this<GameWorld> {
   EventProcessStatus emitEvent(const T& event);
 
  public:
-  static std::shared_ptr<GameWorld> createInstance();
+  static std::shared_ptr<GameWorld> createInstance() {
+    std::shared_ptr<GameWorld> gameWorld(new GameWorld());
+    gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld.get()));
+    gameWorld->m_gameObjectsStorage = std::make_unique<GameObjectsStorage>(gameWorld.get());
+
+    // Create internal ill-formed GameObject to mark the zero id as reserved
+    RETURN_VALUE_UNUSED(gameWorld->createGameObject());
+
+    return gameWorld;
+  }
 
  private:
-  GameWorld();
-
-  void removeDestroyedObjects();
+  GameWorld() = default;
 
   /*!
  * \brief setGameSystemsGroup Sets main game systems group
  * \param group group to set
  */
-  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group);
-
- private:
-  /*!
- * \brief Adds the new component to the game object
- *
- * \param gameObject game object to add the component
- * \param ...args args for the component constructor
- * \return ComponentHandle object
- */
-  template<class T, class... Args>
-  T& assignComponent(GameObject& gameObject, Args&& ... args);
-
-  /*!
-   * \brief Removes the component from the game object
-   *
-   * \param gameObject game object to remove the component
-   */
-  template<class T>
-  void removeComponent(GameObject& gameObject);
-
-  /*!
-   * \brief Gets the game object by it's index
-   *
-   * \param index index of the game object
-   * \return the object pointer
-   */
-  GameObject& getGameObjectByIndex(size_t index) const;
-
-  /*!
-   * \brief Checks whether the game object exists by it's index
-   *
-   * \param index index of the game object
-   * \return the existing status
-   */
-  bool hasGameObjectWithIndex(size_t index) const;
-
-  /*!
-   * \brief Gets the number of game objects
-   *
-   * \return the number of game objects
-   */
-  size_t getGameObjectsCount() const;
-
- private:
-  GameObjectId m_freeGameObjectId = 0;
+  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group) {
+    m_gameSystemsGroup = std::move(group);
+    m_gameSystemsGroup->configure();
+    m_gameSystemsGroup->setActive(true);
+  }
 
  private:
   std::unique_ptr<GameSystemsGroup> m_gameSystemsGroup;
-  std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+  std::unique_ptr<GameObjectsStorage> m_gameObjectsStorage;
 
   std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
 
  private:
   friend class GameObject;
-
-  template<class... ComponentsTypes>
-  friend class GameObjectsComponentsIterator;
-
-  friend class GameObjectsSequentialIterator;
 };
 
-template<class T, class ...Args>
-inline T& GameWorld::assignComponent(GameObject& gameObject, Args&& ...args)
+template<class ComponentType>
+inline GameObjectsComponentsView<ComponentType> GameWorld::allWith()
 {
-  auto typeId = std::type_index(typeid(T));
+  GameObjectsComponentsIterator<ComponentType> begin(m_gameObjectsStorage.get(), 0, false);
+  GameObjectsComponentsIterator<ComponentType> end(m_gameObjectsStorage.get(), m_gameObjectsStorage->getSize(), true);
 
-  T rawComponentObj = T(std::forward<Args>(args)...);
-  std::any component = rawComponentObj;
-
-  gameObject.m_components[typeId] = std::move(component);
-
-  T& componentReference = *std::any_cast<T>(&gameObject.m_components.find(typeId)->second);
-
-  emitEvent(GameObjectAddComponentEvent<T>(gameObject, componentReference));
-  return componentReference;
-}
-
-template<class T>
-inline void GameWorld::removeComponent(GameObject& gameObject)
-{
-  auto typeId = std::type_index(typeid(T));
-
-  auto componentIterator = gameObject.m_components.find(typeId);
-
-  SW_ASSERT(componentIterator != gameObject.m_components.end());
-
-  T& componentReference = *std::any_cast<T>(&componentIterator->second);
-  emitEvent(GameObjectRemoveComponentEvent<T>(gameObject, componentReference));
-
-  gameObject.m_components.erase(componentIterator);
-}
-
-template<class ...ComponentsTypes>
-inline GameObjectsComponentsView<ComponentsTypes...> GameWorld::allWith()
-{
-  GameObjectsComponentsIterator<ComponentsTypes...> begin(this, 0, false);
-  GameObjectsComponentsIterator<ComponentsTypes...> end(this, m_gameObjects.size(), true);
-
-  return GameObjectsComponentsView<ComponentsTypes...>(begin, end);
+  return GameObjectsComponentsView<ComponentType>(begin, end);
 }
 
 template<class T>

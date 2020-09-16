@@ -8,7 +8,7 @@
 #include "BulletBackend/BulletRigidBodyComponent.h"
 #include "BulletBackend/BulletKinematicCharacterComponent.h"
 
-std::shared_ptr<PhysicsSystemBackend> PhysicsBackendFactory::createPhysicsSystem(std::shared_ptr<GameWorld> gameWorld)
+std::shared_ptr<PhysicsSystemBackend> PhysicsBackendFactory::createPhysicsSystem(GameWorld* gameWorld)
 {
   return std::make_shared<BulletPhysicsSystemBackend>(gameWorld);
 }

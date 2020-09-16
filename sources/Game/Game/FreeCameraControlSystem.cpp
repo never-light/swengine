@@ -1,12 +1,14 @@
 #include "FreeCameraControlSystem.h"
 
+#include <utility>
+
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
 
 FreeCameraControlSystem::FreeCameraControlSystem(std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : m_inputModule(inputModule),
-    m_sharedGraphicsState(sharedGraphicsState),
+  : m_inputModule(std::move(inputModule)),
+    m_sharedGraphicsState(std::move(sharedGraphicsState)),
     m_freeCamera(std::make_shared<Camera>())
 {
   m_freeCamera->setNearClipDistance(0.1f);
@@ -20,7 +22,15 @@ FreeCameraControlSystem::FreeCameraControlSystem(std::shared_ptr<InputModule> in
 
 }
 
-void FreeCameraControlSystem::configure(GameWorld* gameWorld)
+void FreeCameraControlSystem::configure()
+{
+}
+
+void FreeCameraControlSystem::unconfigure()
+{
+}
+
+void FreeCameraControlSystem::activate()
 {
   m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
   m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
@@ -30,19 +40,18 @@ void FreeCameraControlSystem::configure(GameWorld* gameWorld)
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
 
   m_sharedGraphicsState->setActiveCamera(m_freeCamera);
+
 }
 
-void FreeCameraControlSystem::unconfigure(GameWorld* gameWorld)
+void FreeCameraControlSystem::deactivate()
 {
-  ARG_UNUSED(gameWorld);
-
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_sharedGraphicsState->setActiveCamera(nullptr);
 
-  gameWorld->unsubscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
 
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
@@ -52,10 +61,8 @@ void FreeCameraControlSystem::unconfigure(GameWorld* gameWorld)
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
 
-void FreeCameraControlSystem::update(GameWorld* gameWorld, float delta)
+void FreeCameraControlSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
   glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
 

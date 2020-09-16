@@ -9,18 +9,23 @@ class GameWorld;
 
 class GameSystemsGroup : public GameSystem {
  public:
-  explicit GameSystemsGroup(std::shared_ptr<GameWorld> gameWorld);
+  GameSystemsGroup();
+  explicit GameSystemsGroup(GameWorld* gameWorld);
+
   ~GameSystemsGroup() override;
 
-  void configure(GameWorld* gameWorld) override;
-  void unconfigure(GameWorld* gameWorld) override;
+  void configure() override;
+  void unconfigure() override;
 
-  void beforeRender(GameWorld* gameWorld) override;
-  void render(GameWorld* gameWorld) override;
-  void afterRender(GameWorld* gameWorld) override;
+  void beforeRender() override;
+  void render() override;
+  void afterRender() override;
 
-  void fixedUpdate(GameWorld* gameWorld, float delta) override;
-  void update(GameWorld* gameWorld, float delta) override;
+  void fixedUpdate(float delta) override;
+  void update(float delta) override;
+
+  void activate() override;
+  void deactivate() override;
 
   virtual void addGameSystem(std::shared_ptr<GameSystem> system);
   virtual void removeGameSystem(std::shared_ptr<GameSystem> system);
@@ -29,12 +34,10 @@ class GameSystemsGroup : public GameSystem {
   std::shared_ptr<T> getGameSystem() const;
 
  protected:
-  const std::vector<std::shared_ptr<GameSystem>>& getGameSystems() const;
+  [[nodiscard]] const std::vector<std::shared_ptr<GameSystem>>& getGameSystems() const;
 
  private:
   std::vector<std::shared_ptr<GameSystem>> m_gameSystems;
-  std::weak_ptr<GameWorld> m_gameWorld;
-
   bool m_isConfigured = false;
 };
 

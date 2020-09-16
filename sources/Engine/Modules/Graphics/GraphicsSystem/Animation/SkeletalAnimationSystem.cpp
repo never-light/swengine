@@ -9,29 +9,27 @@ SkeletalAnimationSystem::SkeletalAnimationSystem() = default;
 
 SkeletalAnimationSystem::~SkeletalAnimationSystem() = default;
 
-void SkeletalAnimationSystem::configure(GameWorld* gameWorld)
+void SkeletalAnimationSystem::configure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void SkeletalAnimationSystem::unconfigure(GameWorld* gameWorld)
+void SkeletalAnimationSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void SkeletalAnimationSystem::update(GameWorld* gameWorld, float delta)
+void SkeletalAnimationSystem::update(float delta)
 {
-  for (GameObject* obj : gameWorld->allWith<SkeletalAnimationComponent>()) {
-    auto& animationComponent = obj->getComponent<SkeletalAnimationComponent>();
-    auto& statesMachine = animationComponent.getAnimationStatesMachineRef();
+  for (GameObject obj : getGameWorld()->allWith<SkeletalAnimationComponent>()) {
+    auto animationComponent = obj.getComponent<SkeletalAnimationComponent>();
+    auto& statesMachine = animationComponent->getAnimationStatesMachineRef();
 
     if (statesMachine.isActive()) {
       updateAnimationStateMachine(statesMachine, delta);
 
-      if (obj->hasComponent<MeshRendererComponent>()) {
-        updateObjectBounds(obj->getComponent<TransformComponent>(),
-          animationComponent,
-          obj->getComponent<MeshRendererComponent>(),
+      if (obj.hasComponent<MeshRendererComponent>()) {
+        updateObjectBounds(*obj.getComponent<TransformComponent>().get(),
+          *animationComponent.get(),
+          *obj.getComponent<MeshRendererComponent>().get(),
           delta);
       }
     }

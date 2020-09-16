@@ -13,7 +13,12 @@ class TransformComponent {
 
   [[nodiscard]] std::shared_ptr<Transform> getTransformPtr() const;
 
+  void setStaticMode(bool isStatic);
+  [[nodiscard]] bool isStatic() const;
+
  private:
   std::shared_ptr<Transform> m_transform;
+
+  bool m_isStatic = false;
 };
 

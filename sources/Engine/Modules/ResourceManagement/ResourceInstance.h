@@ -10,7 +10,7 @@ class ResourceManager;
 
 class ResourceInstance {
  public:
-  ResourceInstance(const std::string& resourceId,
+  ResourceInstance(std::string  resourceId,
     std::unique_ptr<Resource> resource,
     std::shared_ptr<ResourceManager> resourceManager);
 

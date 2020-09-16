@@ -3,12 +3,28 @@
 #include <any>
 #include <unordered_map>
 #include <typeindex>
+#include <memory>
+#include <bitset>
 
 using GameObjectId = uint32_t;
-
 constexpr GameObjectId GameObjectNone = 0;
 
-class GameWorld;
+class GameObjectsStorage;
+
+struct GameObjectData {
+ public:
+  static constexpr size_t MAX_COMPONENTS_COUNT = 64;
+
+ public:
+  GameObjectId id = GameObjectNone;
+  std::string name;
+
+  size_t revision{};
+  std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+};
+
+template<class T>
+class GameObjectComponentHandle;
 
 /*!
  * \brief Class for a game object representation
@@ -18,69 +34,82 @@ class GameWorld;
  */
 class GameObject {
  public:
-  GameObject(GameObjectId id, GameWorld* gameWorld);
-  virtual ~GameObject();
+  GameObject()
+    : m_id(GameObjectNone),
+      m_revision(0),
+      m_objectsStorage(nullptr)
+  {
+
+  }
+
+  GameObject(GameObjectId id, size_t revision, GameObjectsStorage* objectsStorage)
+    : m_id(id),
+      m_revision(revision),
+      m_objectsStorage(objectsStorage)
+  {
+
+  }
+
+  ~GameObject() = default;
+
+  inline bool operator==(const GameObject& other) const
+  {
+    return m_id == other.m_id && m_revision == other.m_revision;
+  }
 
   template<class T, class... Args>
-  T& addComponent(Args&& ... args);
+  GameObjectComponentHandle<T> addComponent(Args&& ... args);
 
   template<class T>
   void removeComponent();
 
-  /*!
-   * \brief Gets the specified component
-   *
-   * \return the specified component handle
-   */
   template<class T>
-  T& getComponent();
+  inline GameObjectComponentHandle<T> getComponent();
 
-  /*!
- * \brief Gets the specified component
- *
- * \return the specified component handle
- */
   template<class T>
-  const T& getComponent() const;
+  [[nodiscard]] inline bool hasComponent() const;
 
-  /*!
-  * \brief Checks existing of the component
-  *
-  * \return
-  */
-  template<class T>
-  [[nodiscard]] bool hasComponent() const;
-
-  /*!
-   * \brief Checks existing of several components
-   *
-   * \return
-   */
-  template<class T, class V, class... Types>
-  [[nodiscard]] bool hasComponent() const;
-
-  /*!
-   * \brief Gets the game object id
-   *
-   * \return id of the game object
-   */
-  [[nodiscard]] GameObjectId getId() const;
+  [[nodiscard]] inline GameObjectId getId() const;
 
   /*!
    * \brief Check whether the game object was destroyed
    *
    * \return
    */
-  [[nodiscard]] bool isAlive() const;
+  [[nodiscard]] inline bool isAlive() const;
 
- protected:
+  /*!
+   * \brief Returns the game object's name
+   *
+   * \return game object's name
+   */
+  [[nodiscard]] inline const std::string& getName() const;
+
+  /*!
+ * \brief Returns the game object's revision
+ *
+ * \return game object's revision
+ */
+  [[nodiscard]] inline size_t getRevision() const;
+
+ private:
   GameObjectId m_id;
-  std::unordered_map<std::type_index, std::any> m_components;
+  size_t m_revision;
 
-  bool m_isDestroyed;
+  GameObjectsStorage* m_objectsStorage;
 
-  GameWorld* m_gameWorld;
-
- protected:
+ private:
   friend class GameWorld;
+
+  friend class GameObjectsStorage;
+};
+
+struct GameObjectAddRemoveEvent {
+  mutable GameObject gameObject;
+};
+
+struct GameObjectAddEvent : public GameObjectAddRemoveEvent {
+};
+
+struct GameObjectRemoveEvent : public GameObjectAddRemoveEvent {
 };

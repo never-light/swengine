@@ -4,6 +4,8 @@
 
 #include "MeshRenderingSystem.h"
 
+#include <utility>
+
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
 
@@ -12,51 +14,44 @@
 
 MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : RenderingSystem(graphicsContext, sharedGraphicsState)
+  : RenderingSystem(std::move(graphicsContext), std::move(sharedGraphicsState))
 {
 
 }
 
-MeshRenderingSystem::~MeshRenderingSystem()
-{
+MeshRenderingSystem::~MeshRenderingSystem() = default;
 
+void MeshRenderingSystem::configure()
+{
 }
 
-void MeshRenderingSystem::configure(GameWorld* gameWorld)
+void MeshRenderingSystem::unconfigure()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::unconfigure(GameWorld* gameWorld)
+void MeshRenderingSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-}
-
-void MeshRenderingSystem::update(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::renderForward(GameWorld* gameWorld)
+void MeshRenderingSystem::renderForward()
 {
-  ARG_UNUSED(gameWorld);
 }
 
-void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
+void MeshRenderingSystem::renderDeferred()
 {
-  for (GameObject* obj : gameWorld->allWith<MeshRendererComponent, TransformComponent>()) {
-    auto& meshComponent = obj->getComponent<MeshRendererComponent>();
+  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
+    auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
-    if (meshComponent.isCulled()) {
+    if (meshComponent->isCulled()) {
       continue;
     }
 
-    Mesh* mesh = meshComponent.getMeshInstance().get();
+    Mesh* mesh = meshComponent->getMeshInstance().get();
 
     SW_ASSERT(mesh != nullptr);
 
-    Transform& transform = obj->getComponent<TransformComponent>().getTransform();
+    Transform& transform = obj.getComponent<TransformComponent>()->getTransform();
 
     const size_t subMeshesCount = mesh->getSubMeshesCount();
 
@@ -65,7 +60,7 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
     m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(subMeshesCount);
 
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-      Material* material = meshComponent.getMaterialInstance(subMeshIndex).get();
+      Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
       SW_ASSERT(material != nullptr);
 
@@ -89,11 +84,11 @@ void MeshRenderingSystem::renderDeferred(GameWorld* gameWorld)
       }
 
       if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
-        if (obj->hasComponent<SkeletalAnimationComponent>() &&
-          obj->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef().isActive()) {
+        if (obj.hasComponent<SkeletalAnimationComponent>() &&
+          obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef().isActive()) {
           // Set animation data for shader
           const AnimationStatesMachine& animationStatesMachine =
-            obj->getComponent<SkeletalAnimationComponent>().getAnimationStatesMachineRef();
+            obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
           const AnimationMatrixPalette& currentMatrixPalette =
             animationStatesMachine.getCurrentMatrixPalette();
 

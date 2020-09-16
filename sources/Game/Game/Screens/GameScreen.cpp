@@ -1,28 +1,18 @@
 #include "GameScreen.h"
 
-#include <spdlog/spdlog.h>
-
-#include <Engine/Modules/Graphics/GUI/GUIText.h>
-#include <Engine/Modules/Graphics/GUI/GUITextBox.h>
-#include <Engine/Modules/Graphics/GUI/GUIImage.h>
 #include <Engine/Modules/Graphics/Resources/BitmapFontResource.h>
-
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
-
-#include <Engine/Modules/Graphics/Resources/ShaderResource.h>
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
-#include <Engine/Modules/Graphics/Resources/MeshResource.h>
-
 #include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
 
-#include "Game/PlayerComponent.h"
+#include <utility>
 
 GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup)
+  std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
+  std::shared_ptr<LevelsManager> levelsManager)
   : BaseGameScreen(GameScreenType::Game),
-    m_inputModule(inputModule),
-    m_gameApplicationSystemsGroup(gameApplicationSystemsGroup)
+    m_inputModule(std::move(inputModule)),
+    m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
+    m_levelsManager(std::move(levelsManager))
 {
 }
 
@@ -66,18 +56,13 @@ void GameScreen::update(float delta)
 
   const FrameStats& stats = m_sharedGraphicsState->getFrameStats();
 
-  m_primivitesCountText->setText("Privimites: " + std::to_string(stats.getPrimivitesCount()));
+  m_primivitesCountText->setText("Primitives: " + std::to_string(stats.getPrimitivesCount()));
   m_subMeshesCountText->setText("Meshes: " + std::to_string(stats.getSubMeshesCount()));
   m_culledSubMeshesCountText->setText("Culled: " + std::to_string(stats.getCulledSubMeshesCount()));
 }
 
 void GameScreen::render()
 {
-  //DebugPainter::renderFrustum(m_sharedGraphicsState->getActiveCamera()->getFrustum(), { 1.0f, 0.0f, 0.0f, 1.0f });
-//  DebugPainter::renderSphere(m_resourceManager->getResourceFromInstance<MeshResource>("ground_mesh")->getMesh()
-//      ->getAABB().toSphere(),
-//    {1.0f, 0.0f, 0.0f, 1.0f}, true);
-
   DebugPainter::renderBasis({0.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 2.0f});
 }
 
@@ -114,7 +99,9 @@ void GameScreen::initializeGame()
     m_gameApplicationSystemsGroup,
     m_inputModule,
     m_graphicsModule->getGraphicsContext(),
-    m_sharedGraphicsState, m_resourceManager);
+    m_sharedGraphicsState,
+    m_resourceManager,
+    m_levelsManager);
 
   spdlog::info("Game is loaded...");
 }

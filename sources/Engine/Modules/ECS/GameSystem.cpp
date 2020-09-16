@@ -6,41 +6,72 @@
 
 GameSystem::GameSystem() = default;
 
+GameSystem::GameSystem(GameWorld* gameWorld)
+  : m_gameWorld(gameWorld)
+{
+
+}
+
 GameSystem::~GameSystem() = default;
 
-void GameSystem::update(GameWorld* gameWorld, float delta)
+void GameSystem::setActive(bool isActive)
 {
-  ARG_UNUSED(gameWorld);
+  SW_ASSERT(isActive != m_isActive);
+
+  if (isActive) {
+    m_isActive = true;
+    activate();
+  }
+  else {
+    m_isActive = false;
+    deactivate();
+  }
+}
+
+bool GameSystem::isActive() const
+{
+  return m_isActive;
+}
+
+void GameSystem::activate()
+{
+}
+
+void GameSystem::deactivate()
+{
+}
+
+void GameSystem::fixedUpdate(float delta)
+{
   ARG_UNUSED(delta);
 }
 
-void GameSystem::render(GameWorld* gameWorld)
+void GameSystem::update(float delta)
 {
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::beforeRender(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::afterRender(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::configure(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::unconfigure(GameWorld* gameWorld)
-{
-  ARG_UNUSED(gameWorld);
-}
-
-void GameSystem::fixedUpdate(GameWorld* gameWorld, float delta)
-{
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(delta);
+}
+
+void GameSystem::render()
+{
+
+}
+
+void GameSystem::beforeRender()
+{
+
+}
+
+void GameSystem::afterRender()
+{
+
+}
+
+void GameSystem::configure()
+{
+
+}
+
+void GameSystem::unconfigure()
+{
+
 }
