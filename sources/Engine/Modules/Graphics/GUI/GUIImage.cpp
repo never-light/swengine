@@ -7,6 +7,5 @@
 
 GUIImage::GUIImage(std::shared_ptr<GLTexture> image)
 {
-  setBackgroundImage(image);
-  setHoverBackgroundImage(image);
+  getVisualParameters(GUIWidgetVisualState::Default).setBackgroundImage(image);
 }

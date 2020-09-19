@@ -4,9 +4,11 @@
 
 #include "GUIConsole.h"
 
+#include <utility>
+
 GUIConsole::GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
   std::shared_ptr<BitmapFont> font)
-  : m_commandsExecutor(commandsExecutor),
+  : m_commandsExecutor(std::move(commandsExecutor)),
     m_historySize(historySize),
     m_textFontSize(font->getBaseSize())
 {
@@ -42,32 +44,16 @@ int GUIConsole::getTextFontSize() const
   return m_textFontSize;
 }
 
-void GUIConsole::setTextColor(const glm::vec4& color)
+void GUIConsole::setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState)
 {
-  m_textColor = color;
-
-  for (auto textLine : m_textLines) {
-    textLine->setColor(color);
+  for (const auto& textLine : m_textLines) {
+    textLine->setColor(color, visualState);
   }
 }
 
-glm::vec4 GUIConsole::getTextColor() const
+glm::vec4 GUIConsole::getTextColor(GUIWidgetVisualState visualState) const
 {
-  return m_textColor;
-}
-
-void GUIConsole::setTextHoverColor(const glm::vec4& color)
-{
-  m_textHoverColor = color;
-
-  for (auto textLine : m_textLines) {
-    textLine->setHoverColor(color);
-  }
-}
-
-glm::vec4 GUIConsole::getTextHoverColor() const
-{
-  return m_textHoverColor;
+  return (*m_textLines.begin())->getColor(visualState);
 }
 
 std::shared_ptr<GUITextBox> GUIConsole::getTextBox() const
@@ -100,11 +86,11 @@ void GUIConsole::recalculateLayout()
 {
   int textVerticalOffset = 0;
 
-  for (std::shared_ptr<GUIText> textLine : m_textLines) {
+  for (const auto& textLine : m_textLines) {
     textLine->setOrigin({10, textVerticalOffset});
     textLine->setFontSize(m_textFontSize);
 
-    textVerticalOffset += static_cast<int>(m_textFontSize * 2.0f);
+    textVerticalOffset += static_cast<int>(float(m_textFontSize) * 2.0f);
   }
 
   textVerticalOffset += m_textFontSize;
@@ -115,15 +101,19 @@ void GUIConsole::recalculateLayout()
   setHeight(textVerticalOffset + 25);
 }
 
-void GUIConsole::transformationCacheUpdate()
+glm::mat4 GUIConsole::updateTransformationMatrix()
 {
+  glm::mat4 transformationMatrix = GUIWidget::updateTransformationMatrix();
+
   if (m_commandsTextBox->getParent() == nullptr) {
     addChildWidget(m_commandsTextBox);
 
-    for (auto textLine : m_textLines) {
+    for (const auto& textLine : m_textLines) {
       addChildWidget(textLine);
     }
   }
+
+  return transformationMatrix;
 }
 
 void GUIConsole::processConsoleKeyboardEvent(const GUIKeyboardEvent& event)

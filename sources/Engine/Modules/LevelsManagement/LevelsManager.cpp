@@ -138,25 +138,5 @@ std::tuple<pugi::xml_document, pugi::xml_node> LevelsManager::openLevelDescripti
 
   std::string levelDescPath = levelPath + "/" + descriptionFile + ".xml";
 
-  if (!FileUtils::isFileExists(levelDescPath)) {
-    THROW_EXCEPTION(EngineRuntimeException,
-      fmt::format("Level description file doesn't exist: {}", levelDescPath));
-  }
-
-  pugi::xml_document levelDescDocument;
-  pugi::xml_parse_result levelDescParseResult = levelDescDocument.load_file(levelDescPath.c_str());
-
-  if (!levelDescParseResult) {
-    THROW_EXCEPTION(EngineRuntimeException,
-      fmt::format("Level description file has invalid format: {}", levelDescPath));
-  }
-
-  pugi::xml_node levelDescriptionNode = levelDescDocument.child(descriptionNodeName.c_str());
-
-  if (!levelDescriptionNode) {
-    THROW_EXCEPTION(EngineRuntimeException,
-      fmt::format("Level description file hasn't description node {}: {}", descriptionNodeName, levelDescPath));
-  }
-
-  return std::tuple<pugi::xml_document, pugi::xml_node>(std::move(levelDescDocument), levelDescriptionNode);
+  return XMLUtils::openDescriptionFile(levelDescPath, descriptionNodeName);
 }

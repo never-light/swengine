@@ -31,24 +31,14 @@ std::string GUITextBox::getText() const
   return m_text->getText();
 }
 
-void GUITextBox::setTextColor(const glm::vec4& color)
+void GUITextBox::setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState)
 {
-  m_text->setColor(color);
+  m_text->setColor(color, visualState);
 }
 
-glm::vec4 GUITextBox::getTextColor() const
+glm::vec4 GUITextBox::getTextColor(GUIWidgetVisualState visualState) const
 {
-  return m_text->getColor();
-}
-
-void GUITextBox::setTextHoverColor(const glm::vec4& color)
-{
-  m_text->setHoverColor(color);
-}
-
-glm::vec4 GUITextBox::getTextHoverColor() const
-{
-  return m_text->getHoverColor();
+  return m_text->getColor(visualState);
 }
 
 void GUITextBox::setTextFontSize(int size)
@@ -101,8 +91,10 @@ void GUITextBox::processKeyboardEvent(const GUIKeyboardEvent& event)
   }
 }
 
-void GUITextBox::transformationCacheUpdate()
+glm::mat4 GUITextBox::updateTransformationMatrix()
 {
+  glm::mat4 transformationMatrix = GUIWidget::updateTransformationMatrix();
+
   if (m_text->getParent() == nullptr) {
     addChildWidget(m_text);
   }
@@ -114,4 +106,6 @@ void GUITextBox::transformationCacheUpdate()
 
     m_text->setOrigin({10, getSize().y / 2 - m_text->getSize().y / 2});
   }
+
+  return transformationMatrix;
 }

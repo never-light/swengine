@@ -7,7 +7,7 @@
 #include "BitmapFont.h"
 #include "GUIText.h"
 
-class GUITextBox : public GUIWidget {
+class GUITextBox : public GUIWidgetRect {
  public:
   explicit GUITextBox(std::shared_ptr<BitmapFont> font);
 
@@ -17,11 +17,8 @@ class GUITextBox : public GUIWidget {
   void setText(const std::string& text);
   [[nodiscard]] std::string getText() const;
 
-  void setTextColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextColor() const;
-
-  void setTextHoverColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextHoverColor() const;
+  void setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState = GUIWidgetVisualState::Default);
+  [[nodiscard]] glm::vec4 getTextColor(GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const;
 
   void setTextFontSize(int size);
   [[nodiscard]] int getTextFontSize() const;
@@ -33,7 +30,7 @@ class GUITextBox : public GUIWidget {
  protected:
   void processKeyboardEvent(const GUIKeyboardEvent& event) override;
 
-  void transformationCacheUpdate() override;
+  [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
  private:
   std::shared_ptr<BitmapFont> m_font;

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 #include "Exceptions/exceptions.h"
@@ -22,13 +23,16 @@ class StringUtils {
     const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
 
   [[nodiscard]] static std::string regexReplace(const std::string& expression, std::string str,
-    std::function<std::string(const std::smatch&)> callback);
+    const std::function<std::string(const std::smatch&)>& callback);
 
   [[nodiscard]] static std::string replace(std::string source,
     const std::string& pattern,
     const std::string& replacement);
 
   [[nodiscard]] static glm::vec3 stringToVec3(const std::string& string);
+  [[nodiscard]] static glm::vec4 stringToVec4(const std::string& string);
+
+  [[nodiscard]] static glm::ivec2 stringToIVec2(const std::string& string);
 };
 
 template<class T>

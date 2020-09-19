@@ -300,15 +300,18 @@ void BaseGameApplication::initializeEngineSystems()
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
     guiVertexShader, guiFragmentShader, nullptr);
 
-  auto guiSystem = std::make_shared<GUISystem>(m_inputModule,
-    m_graphicsModule->getGraphicsContext(), guiShadersPipeline);
+  m_guiSystem = std::make_shared<GUISystem>(
+    m_inputModule,
+    m_resourceManagementModule->getResourceManager(),
+    m_graphicsModule->getGraphicsContext(),
+    guiShadersPipeline);
 
   std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
     getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
-  guiSystem->setDefaultFont(guiDefaultFont);
-  guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
+  m_guiSystem->setDefaultFont(guiDefaultFont);
+  m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
-  m_engineGameSystems->addGameSystem(guiSystem);
+  m_engineGameSystems->addGameSystem(m_guiSystem);
 
   // Physics system
   m_physicsSystem = std::make_shared<PhysicsSystem>();
@@ -339,27 +342,34 @@ void BaseGameApplication::initializeEngineSystems()
   // Game console
   m_gameConsole = std::make_shared<GameConsole>(m_gameWorld);
 
-  std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(m_gameConsole, 20, guiSystem->getDefaultFont());
+  std::shared_ptr<GUIConsole> guiConsole = std::make_shared<GUIConsole>(
+    m_gameConsole,
+    20,
+    m_guiSystem->getDefaultFont());
+
   m_gameConsole->setGUIConsole(guiConsole);
 
   glm::vec4 guiConsoleBackgroundColor = {0.168f, 0.172f, 0.25f, 0.8f};
 
-  guiConsole->setBackgroundColor(guiConsoleBackgroundColor);
-  guiConsole->setHoverBackgroundColor(guiConsoleBackgroundColor);
-  guiConsole->setWidth(guiSystem->getScreenWidth());
+  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Default);
+  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Hover);
+  guiConsole->setWidth(m_guiSystem->getScreenWidth());
 
   glm::vec4 guiConsoleTextBoxBackgroundColor = {0.118f, 0.112f, 0.15f, 1.0f};
 
-  guiConsole->getTextBox()->setBackgroundColor(guiConsoleTextBoxBackgroundColor);
-  guiConsole->getTextBox()->setHoverBackgroundColor(guiConsoleTextBoxBackgroundColor);
-  guiConsole->getTextBox()->setFocusBackgroundColor(guiConsoleTextBoxBackgroundColor);
-  guiConsole->getTextBox()->setTextColor({1.0f, 1.0f, 1.0f, 1.0f});
-  guiConsole->getTextBox()->setTextHoverColor({1.0f, 1.0f, 1.0f, 1.0f});
+  auto textBoxWidget = guiConsole->getTextBox();
+
+  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Default);
+  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Hover);
+  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Focus);
+
+  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
+  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
   guiConsole->getTextBox()->setTextFontSize(9);
 
   guiConsole->setTextFontSize(9);
-  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f});
-  guiConsole->setTextHoverColor({1.0f, 1.0f, 1.0f, 1.0f});
+  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
+  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
 
   guiConsole->setZIndex(10);
   guiConsole->hide();

@@ -28,7 +28,7 @@ class GUIConsoleCommandsBackPrinter : public GUIConsoleCommandsExecutor {
   void executeCommand(const std::string& command, GUIConsole& console) override;
 };
 
-class GUIConsole : public GUIWidget {
+class GUIConsole : public GUIWidgetRect {
  public:
   GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
     std::shared_ptr<BitmapFont> font);
@@ -38,11 +38,8 @@ class GUIConsole : public GUIWidget {
   void setTextFontSize(int size);
   [[nodiscard]] int getTextFontSize() const;
 
-  void setTextColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextColor() const;
-
-  void setTextHoverColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextHoverColor() const;
+  void setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState = GUIWidgetVisualState::Default);
+  [[nodiscard]] glm::vec4 getTextColor(GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const;
 
   [[nodiscard]] std::shared_ptr<GUITextBox> getTextBox() const;
 
@@ -50,7 +47,8 @@ class GUIConsole : public GUIWidget {
 
  protected:
   void recalculateLayout();
-  void transformationCacheUpdate() override;
+
+  [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
   void processConsoleKeyboardEvent(const GUIKeyboardEvent& event);
 

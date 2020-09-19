@@ -8,10 +8,13 @@
 
 #include <utility>
 
-GUISystem::GUISystem(std::shared_ptr<InputModule> inputModule,
+GUISystem::GUISystem(
+  std::shared_ptr<InputModule> inputModule,
+  std::shared_ptr<ResourceManager> resourceManager,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
   : m_inputModule(std::move(inputModule)),
+    m_resourceManager(std::move(resourceManager)),
     m_graphicsContext(std::move(graphicsContext)),
     m_guiShadersPipeline(std::move(guiShadersPipeline))
 {
@@ -58,10 +61,14 @@ void GUISystem::configure()
   m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getWidth()),
     static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
     0.0f, -1.0f, 1.0f);
+
+  m_widgetsLoader = std::make_unique<GUIWidgetsLoader>(weak_from_this(), m_resourceManager);
 }
 
 void GUISystem::unconfigure()
 {
+  m_widgetsLoader.reset();
+
   GameWorld* gameWorld = getGameWorld();
 
   gameWorld->unsubscribeEventsListener<KeyboardEvent>(this);
@@ -122,22 +129,32 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
   GLShader* fragmentShader = m_guiShadersPipeline->getShader(GL_FRAGMENT_SHADER);
 
   // Background
-  glm::vec4 backgroundColor = widget->getBackgroundColor();
-  GLTexture* backgroundTexture = widget->getBackgroundImage().get();
+  GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
 
   if (widget->isHovered()) {
-    backgroundColor = widget->getHoverBackgroundColor();
-
-    if (widget->getHoverBackgroundImage() != nullptr) {
-      backgroundTexture = widget->getHoverBackgroundImage().get();
-    }
+    visualState = GUIWidgetVisualState::Hover;;
   }
 
   if (widget->hasFocus()) {
-    backgroundColor = widget->getFocusBackgroundColor();
+    visualState = GUIWidgetVisualState::Focus;
   }
 
-  fragmentShader->setParameter("widget.backgroundColor", backgroundColor);
+  auto& currentVisualParameters = widget->getVisualParameters(visualState);
+  auto& defaultVisualParameters = widget->getVisualParameters(GUIWidgetVisualState::Default);
+
+  auto backgroundColor = currentVisualParameters.getBackgroundColor();
+
+  if (!backgroundColor.has_value()) {
+    backgroundColor = defaultVisualParameters.getBackgroundColor();
+  }
+
+  auto backgroundTexture = currentVisualParameters.getBackgroundImage();
+
+  if (backgroundTexture == nullptr) {
+    backgroundTexture = defaultVisualParameters.getBackgroundImage();
+  }
+
+  fragmentShader->setParameter("widget.backgroundColor", backgroundColor.value());
   fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture != nullptr);
 
   if (backgroundTexture != nullptr) {
@@ -296,4 +313,13 @@ void GUISystem::renderGUIWidget(GUIWidget* widget)
   for (const auto& childWidget : widget->getChildrenWidgets()) {
     renderGUIWidget(childWidget.get());
   }
+}
+
+std::shared_ptr<GUILayout> GUISystem::loadScheme(const std::string& schemePath)
+{
+  SW_ASSERT(m_widgetsLoader != nullptr);
+
+  spdlog::debug("Load GUI scheme from file {}", schemePath);
+
+  return m_widgetsLoader->loadScheme(schemePath);
 }
