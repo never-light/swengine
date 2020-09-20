@@ -7,54 +7,58 @@
 #include <utility>
 
 #include "Modules/Graphics/Resources/BitmapFontResource.h"
-
 #include "Utility/files.h"
-#include "Utility/xml.h"
-#include "Exceptions/exceptions.h"
 
 #include "GUISystem.h"
-#include "GUILayout.h"
-#include "GUIButton.h"
-#include "GUITextBox.h"
-#include "GUIText.h"
-#include "GUIImage.h"
 
 GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
   std::shared_ptr<ResourceManager> resourceManager)
   : m_guiSystem(std::move(guiSystem)),
     m_resourceManager(std::move(resourceManager))
 {
-  // Image property
-  registerPropertyTypeParser("image", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
-    std::string imageResourceName = propertyNode.attribute("value").as_string();
+  // String property
+  registerPropertyTypeParser("string",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return std::string(propertyNode.attribute("value").as_string());
+    });
 
-    return m_resourceManager->getResourceFromInstance<TextureResource>(imageResourceName)->getTexture();
-  });
+  // Image property
+  registerPropertyTypeParser("image",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      std::string imageResourceName = propertyNode.attribute("value").as_string();
+
+      return m_resourceManager->getResourceFromInstance<TextureResource>(imageResourceName)->getTexture();
+    });
 
   // Font property
-  registerPropertyTypeParser("font", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
-    std::string fontResourceName = propertyNode.attribute("value").as_string();
+  registerPropertyTypeParser("font",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      std::string fontResourceName = propertyNode.attribute("value").as_string();
 
-    return m_resourceManager->getResourceFromInstance<BitmapFontResource>(fontResourceName)->getFont();
-  });
+      return m_resourceManager->getResourceFromInstance<BitmapFontResource>(fontResourceName)->getFont();
+    });
 
   // Color property
-  registerPropertyTypeParser("color", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
-    return StringUtils::stringToVec4(propertyNode.attribute("value").as_string());
-  });
+  registerPropertyTypeParser("color",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return StringUtils::stringToVec4(propertyNode.attribute("value").as_string());
+    });
 
   // Integer property
-  registerPropertyTypeParser("integer", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
-    return propertyNode.attribute("value").as_int();
-  });
+  registerPropertyTypeParser("integer",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return propertyNode.attribute("value").as_int();
+    });
 
   // Float property
-  registerPropertyTypeParser("float", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
-    return propertyNode.attribute("value").as_float();
-  });
+  registerPropertyTypeParser("float",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return propertyNode.attribute("value").as_float();
+    });
 
   registerWidgetLoader("layout", WidgetClassLoadingData::genGenericWidgetLoader<GUILayout>());
   registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
+  registerWidgetLoader("label", WidgetClassLoadingData::genGenericWidgetLoader<GUIText>());
 }
 
 GUIWidgetsLoader::~GUIWidgetsLoader() = default;
@@ -141,6 +145,12 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
     if (parts[0] == "center") {
       origin.x = parentWidget->getSize().x / 2;
     }
+    else if (parts[0] == "right") {
+      origin.x = parentWidget->getSize().x;
+    }
+    else if (parts[0] == "left") {
+      origin.x = 0;
+    }
     else {
       origin.x = std::stoi(parts[0]);
     }
@@ -148,8 +158,14 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
     if (parts[1] == "center") {
       origin.y = parentWidget->getSize().y / 2;
     }
+    else if (parts[1] == "bottom") {
+      origin.y = parentWidget->getSize().y;
+    }
+    else if (parts[1] == "top") {
+      origin.y = 0;
+    }
     else {
-      origin.y = std::stoi(parts[0]);
+      origin.y = std::stoi(parts[1]);
     }
 
     widget->setOrigin(origin);
@@ -164,15 +180,6 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
     widget->setOrigin(widget->getOrigin() + StringUtils::stringToIVec2(originOffsetAttr.as_string()));
   }
 
-  // Visual parameters
-
-  pugi::xml_node stylesheetNode = widgetNode.child("stylesheet");
-
-  if (stylesheetNode) {
-    GUIWidgetStylesheet stylesheet = loadStylesheet(stylesheetNode);
-    widget->applyStylesheet(stylesheet);
-  }
-
   // Children widgets
 
   pugi::xml_node childrenWidgetsNode = widgetNode.child("widgets");
@@ -181,6 +188,15 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
     for (auto childWidgetNode : childrenWidgetsNode.children("widget")) {
       widget->addChildWidget(loadSchemeWidget(widget, childWidgetNode));
     }
+  }
+
+  // Stylesheets
+
+  pugi::xml_node stylesheetNode = widgetNode.child("stylesheet");
+
+  if (stylesheetNode) {
+    GUIWidgetStylesheet stylesheet = loadStylesheet(stylesheetNode);
+    widget->applyStylesheet(stylesheet);
   }
 
   return widget;

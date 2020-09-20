@@ -37,9 +37,14 @@ void GameApplication::load()
   resourceMgr->loadResourcesMapFile("../resources/resources.xml");
   resourceMgr->loadResourcesMapFile("../resources/game/resources.xml");
 
-  m_screenManager->registerScreen(std::make_shared<GameScreen>(m_inputModule,
-    getGameApplicationSystemsGroup(),
-    m_levelsManager));
+  auto gameScreenDebugUILayout = m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("screen_game_debug"));
+
+  m_screenManager->registerScreen(
+    std::make_shared<GameScreen>(m_inputModule,
+      getGameApplicationSystemsGroup(),
+      m_levelsManager,
+      gameScreenDebugUILayout));
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_main_menu"));

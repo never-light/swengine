@@ -24,7 +24,13 @@ template<class... Ts> GUIWidgetStylesheetPropertyVisitor(Ts...) -> GUIWidgetStyl
 
 struct GUIWidgetStylesheetProperty {
  public:
-  using Value = std::variant<std::shared_ptr<GLTexture>, std::shared_ptr<BitmapFont>, glm::vec4, int, float>;
+  using Value = std::variant<
+    std::string,
+    std::shared_ptr<GLTexture>,
+    std::shared_ptr<BitmapFont>,
+    glm::vec4,
+    int,
+    float>;
 
  public:
   GUIWidgetStylesheetProperty() = default;

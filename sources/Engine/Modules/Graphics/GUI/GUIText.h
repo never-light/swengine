@@ -11,6 +11,7 @@ class GUITextBox;
 
 class GUIText : public GUIWidget {
  public:
+  GUIText();
   GUIText(std::shared_ptr<BitmapFont> font, std::string  text);
 
   void setFont(std::shared_ptr<BitmapFont> font);

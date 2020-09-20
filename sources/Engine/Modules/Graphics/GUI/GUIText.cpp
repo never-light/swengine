@@ -9,6 +9,14 @@
 #include <utility>
 #include "GUISystem.h"
 
+GUIText::GUIText()
+  : GUIWidget("label"),
+    m_font(nullptr),
+    m_fontSize(0)
+{
+
+}
+
 GUIText::GUIText(std::shared_ptr<BitmapFont> font, std::string text)
   : GUIWidget("label"),
     m_font(font),
@@ -231,16 +239,36 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
     if (propertyName == "text-color") {
       // Text color
       std::visit(GUIWidgetStylesheetPropertyVisitor{
-        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
         [this, visualState](const glm::vec4& color) {
           this->setColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "text") {
+      // Text
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
+        [this, visualState](const std::string& text) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Text is supported only for default state");
+
+          this->setText(text);
         },
       }, property.getValue());
     }
     else if (propertyName == "font-size") {
       // Font size
       std::visit(GUIWidgetStylesheetPropertyVisitor{
-        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
         [this, visualState](int size) {
           SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
 
@@ -251,7 +279,10 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
     else if (propertyName == "font-family") {
       // Font family
       std::visit(GUIWidgetStylesheetPropertyVisitor{
-        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
         [this, visualState](std::shared_ptr<BitmapFont> font) {
           SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
 
