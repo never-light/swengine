@@ -16,16 +16,18 @@ GUILayout::GUILayout(const std::string& className)
 
 }
 
-void GUILayout::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUILayout::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUIWidgetRect::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUIWidgetRect::applyStylesheetRule(stylesheetRule);
 }
 
-void GUILayout::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUILayout::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
 {
-  GUIWidgetRect::applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex);
+  GUIWidgetRect::applyStylesheetRuleToChildren(stylesheetRule, currentPath);
 
   for (const auto& childWidget : getChildrenWidgets()) {
-    childWidget->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+    childWidget->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
   }
 }

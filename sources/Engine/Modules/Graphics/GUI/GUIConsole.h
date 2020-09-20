@@ -46,9 +46,10 @@ class GUIConsole : public GUILayout {
 
   void print(const std::string& text);
 
-  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override;
-  void applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule,
-    size_t selectorPartIndex) override;
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;
+  void applyStylesheetRuleToChildren(
+    const GUIWidgetStylesheetRule& stylesheetRule,
+    const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath) override;
 
  protected:
   void recalculateLayout();

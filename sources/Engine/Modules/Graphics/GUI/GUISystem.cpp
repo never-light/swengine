@@ -323,3 +323,12 @@ std::shared_ptr<GUILayout> GUISystem::loadScheme(const std::string& schemePath)
 
   return m_widgetsLoader->loadScheme(schemePath);
 }
+
+GUIWidgetStylesheet GUISystem::loadStylesheet(const std::string& stylesheetPath)
+{
+  SW_ASSERT(m_widgetsLoader != nullptr);
+
+  spdlog::debug("Load GUI stylesheet from file {}", stylesheetPath);
+
+  return m_widgetsLoader->loadStylesheet(stylesheetPath);
+}

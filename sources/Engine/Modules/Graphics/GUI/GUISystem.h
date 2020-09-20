@@ -51,6 +51,7 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
 
   [[nodiscard]] std::shared_ptr<GUILayout> loadScheme(const std::string& schemePath);
+  [[nodiscard]] GUIWidgetStylesheet loadStylesheet(const std::string& stylesheetPath);
 
  private:
   void updateGUIWidget(GUIWidget* widget);

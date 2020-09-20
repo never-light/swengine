@@ -48,6 +48,10 @@ void GameApplication::load()
     mainMenuGUILayout,
     m_gameConsole));
 
+  GUIWidgetStylesheet commonStylesheet = m_guiSystem->loadStylesheet(
+    FileUtils::getGUISchemePath("common.stylesheet"));
+  m_screenManager->getCommonGUILayout()->applyStylesheet(commonStylesheet);
+
   std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
     resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
     resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),

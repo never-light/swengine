@@ -13,9 +13,9 @@ GUIImage::GUIImage(std::shared_ptr<GLTexture> image)
   getVisualParameters(GUIWidgetVisualState::Default).setBackgroundImage(std::move(image));
 }
 
-void GUIImage::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIImage::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUIWidget::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUIWidget::applyStylesheetRule(stylesheetRule);
 
   stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
     if (propertyName == "background") {

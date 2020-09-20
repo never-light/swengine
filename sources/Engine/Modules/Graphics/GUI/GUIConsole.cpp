@@ -132,9 +132,9 @@ void GUIConsoleCommandsBackPrinter::executeCommand(const std::string& command, G
   console.print(command);
 }
 
-void GUIConsole::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIConsole::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUILayout::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUILayout::applyStylesheetRule(stylesheetRule);
 
   stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
     if (propertyName == "text-color") {
@@ -168,15 +168,17 @@ void GUIConsole::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRu
 
 }
 
-void GUIConsole::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIConsole::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
 {
-  GUILayout::applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex);
+  GUILayout::applyStylesheetRuleToChildren(stylesheetRule, currentPath);
 
   if (m_commandsTextBox->getParent() == nullptr) {
-    m_commandsTextBox->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+    m_commandsTextBox->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
 
     for (const auto& textLine : m_textLines) {
-      textLine->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+      textLine->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
     }
   }
 }

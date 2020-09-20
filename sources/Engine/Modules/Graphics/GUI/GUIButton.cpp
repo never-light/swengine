@@ -10,7 +10,7 @@ GUIButton::GUIButton()
 
 }
 
-void GUIButton::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIButton::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUIWidgetRect::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUIWidgetRect::applyStylesheetRule(stylesheetRule);
 }

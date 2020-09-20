@@ -223,9 +223,9 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
     glm::vec3(getAbsoluteOrigin(), 0.0f));
 }
 
-void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUIWidget::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUIWidget::applyStylesheetRule(stylesheetRule);
 
   stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
     if (propertyName == "text-color") {

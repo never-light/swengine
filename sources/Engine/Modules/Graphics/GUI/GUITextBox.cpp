@@ -111,9 +111,9 @@ glm::mat4 GUITextBox::updateTransformationMatrix()
   return transformationMatrix;
 }
 
-void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
-  GUIWidgetRect::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+  GUIWidgetRect::applyStylesheetRule(stylesheetRule);
 
   stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
     if (propertyName == "text-color") {
@@ -147,6 +147,9 @@ void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRu
         },
       }, property.getValue());
     }
+    else if (propertyName == "background") {
+      // Do nothing as property should be already processed by GUILayout
+    }
     else {
       SW_ASSERT(false);
     }
@@ -154,9 +157,11 @@ void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRu
 
 }
 
-void GUITextBox::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUITextBox::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
 {
-  GUIWidget::applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex);
+  GUIWidget::applyStylesheetRuleToChildren(stylesheetRule, currentPath);
 
-  m_text->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+  m_text->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
 }

@@ -108,12 +108,12 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   [[nodiscard]] bool isPointInside(const glm::ivec2& point) const;
 
   void applyStylesheetRuleWithSelector(const GUIWidgetStylesheetRule& stylesheetRule,
-    size_t selectorPartIndex);
+    std::vector<GUIWidgetStylesheetSelectorPart> currentPath);
 
   virtual void applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule,
-    size_t selectorPartIndex);
+    const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath);
 
-  virtual void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex);
+  virtual void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule);
 
   void applyStylesheet(const GUIWidgetStylesheet& stylesheet);
 
@@ -125,6 +125,9 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   const GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state) const;
   GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state);
+
+  static bool isPathSatisfiesSelector(const std::vector<GUIWidgetStylesheetSelectorPart>& path,
+    const std::vector<GUIWidgetStylesheetSelectorPart>& selector);
 
  private:
   void triggerMouseButtonEvent(const GUIMouseButtonEvent& event);
@@ -208,9 +211,9 @@ class GUIWidgetRect : public GUIWidget {
     return getVisualParameters(visualState).getBackgroundImage();
   }
 
-  inline void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override
+  inline void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override
   {
-    GUIWidget::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+    GUIWidget::applyStylesheetRule(stylesheetRule);
 
     stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
       if (propertyName == "background") {

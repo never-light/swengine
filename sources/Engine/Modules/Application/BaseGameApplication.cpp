@@ -346,30 +346,32 @@ void BaseGameApplication::initializeEngineSystems()
     m_gameConsole,
     20,
     m_guiSystem->getDefaultFont());
+  guiConsole->setName("engine_builtin_console");
 
   m_gameConsole->setGUIConsole(guiConsole);
 
-  glm::vec4 guiConsoleBackgroundColor = {0.168f, 0.172f, 0.25f, 0.8f};
+//  glm::vec4 guiConsoleBackgroundColor = {0.168f, 0.172f, 0.25f, 0.8f};
+//
+//  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Default);
+//  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Hover);
 
-  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Default);
-  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Hover);
   guiConsole->setWidth(m_guiSystem->getScreenWidth());
 
-  glm::vec4 guiConsoleTextBoxBackgroundColor = {0.118f, 0.112f, 0.15f, 1.0f};
+//  glm::vec4 guiConsoleTextBoxBackgroundColor = {0.118f, 0.112f, 0.15f, 1.0f};
 
-  auto textBoxWidget = guiConsole->getTextBox();
+//  auto textBoxWidget = guiConsole->getTextBox();
 
-  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Default);
-  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Hover);
-  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Focus);
+//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Default);
+//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Hover);
+//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Focus);
+//
+//  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
+//  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
+//  guiConsole->getTextBox()->setTextFontSize(9);
 
-  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
-  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
-  guiConsole->getTextBox()->setTextFontSize(9);
-
-  guiConsole->setTextFontSize(9);
-  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
-  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
+//  guiConsole->setTextFontSize(9);
+//  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
+//  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
 
   guiConsole->setZIndex(10);
   guiConsole->hide();

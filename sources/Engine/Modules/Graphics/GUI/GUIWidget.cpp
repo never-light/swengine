@@ -8,8 +8,7 @@
 
 #include "GUISystem.h"
 
-
-GUIWidget::GUIWidget(std::string  className)
+GUIWidget::GUIWidget(std::string className)
   : m_className(std::move(className))
 {
 
@@ -315,50 +314,65 @@ std::shared_ptr<GUIWidget> GUIWidget::findChildByName(const std::string& name) c
   return nullptr;
 }
 
-void GUIWidget::applyStylesheetRuleWithSelector(const GUIWidgetStylesheetRule& stylesheetRule,
-  size_t selectorPartIndex)
+void GUIWidget::applyStylesheetRuleWithSelector(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  std::vector<GUIWidgetStylesheetSelectorPart> currentPath)
 {
-  if (stylesheetRule.isSelectionCompleted(selectorPartIndex)) {
-    return;
+  // Increase current path
+  currentPath.emplace_back(m_className, m_name);
+
+  // Check that the current widget should be selected
+  if (isPathSatisfiesSelector(currentPath, stylesheetRule.getSelector())) {
+    applyStylesheetRule(stylesheetRule);
   }
 
-  auto& selectorPart = stylesheetRule.getSelectorPart(selectorPartIndex);
-
-  // Class name filter
-  if (selectorPart.getClassFilter() != m_className) {
-    return;
-  }
-
-  // Widget name filter
-  if (!selectorPart.getNameFilter().empty() && selectorPart.getNameFilter() != m_name) {
-    return;
-  }
-
-  // Selector filter is passed here
-
-  if (!stylesheetRule.isSelectionCompleted(selectorPartIndex + 1)) {
-    applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex + 1);
-  }
-  else {
-    applyStylesheetRule(stylesheetRule, selectorPartIndex + 1);
-  }
+  // Apply the rule for children
+  applyStylesheetRuleToChildren(stylesheetRule, currentPath);
 }
 
-void GUIWidget::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIWidget::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
 {
   ARG_UNUSED(stylesheetRule);
-  ARG_UNUSED(selectorPartIndex);
 }
 
-void GUIWidget::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+void GUIWidget::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
 {
   ARG_UNUSED(stylesheetRule);
-  ARG_UNUSED(selectorPartIndex);
+  ARG_UNUSED(currentPath);
 }
 
 void GUIWidget::applyStylesheet(const GUIWidgetStylesheet& stylesheet)
 {
   for (const GUIWidgetStylesheetRule& rule : stylesheet.getRules()) {
-    applyStylesheetRuleWithSelector(rule, 0);
+    applyStylesheetRuleWithSelector(rule, {});
   }
+}
+
+bool GUIWidget::isPathSatisfiesSelector(
+  const std::vector<GUIWidgetStylesheetSelectorPart>& path,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& selector)
+{
+  size_t selectorPartIndex = 0;
+  size_t pathPartIndex = 0;
+
+  for (const auto& pathPart : path) {
+    auto& selectorPart = selector[selectorPartIndex];
+
+    bool isClassFilterPassed = selectorPart.getClassFilter() == pathPart.getClassFilter();
+    bool isNameFilterPassed = selectorPart.getNameFilter().empty() ||
+      selectorPart.getNameFilter() == pathPart.getNameFilter();
+
+    if (isClassFilterPassed && isNameFilterPassed) {
+      selectorPartIndex++;
+      if (selectorPartIndex == selector.size()) {
+        return pathPartIndex == (path.size() - 1);
+      }
+    }
+
+    pathPartIndex++;
+  }
+
+  return false;
 }
