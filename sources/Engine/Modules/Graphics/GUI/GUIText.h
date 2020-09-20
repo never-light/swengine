@@ -27,6 +27,8 @@ class GUIText : public GUIWidget {
 
   void render(GUISystem& guiSystem) override;
 
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override;
+
  protected:
   [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 

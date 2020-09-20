@@ -12,6 +12,7 @@
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "GUIWidgetVisualParameters.h"
+#include "GUIWidgetStylesheet.h"
 
 struct GUIEvent {
 };
@@ -52,7 +53,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   using EventCallback = std::function<void(const T&)>;
 
  public:
-  GUIWidget() = default;
+  explicit GUIWidget(std::string className);
   virtual ~GUIWidget() = default;
 
   void setName(const std::string& name);
@@ -106,6 +107,16 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   [[nodiscard]] bool isPointInside(const glm::ivec2& point) const;
 
+  void applyStylesheetRuleWithSelector(const GUIWidgetStylesheetRule& stylesheetRule,
+    size_t selectorPartIndex);
+
+  virtual void applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule,
+    size_t selectorPartIndex);
+
+  virtual void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex);
+
+  void applyStylesheet(const GUIWidgetStylesheet& stylesheet);
+
  protected:
   void resetTransformationCache();
 
@@ -133,6 +144,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   void orderChildrenByZIndex();
 
  private:
+  std::string m_className;
   std::string m_name;
 
   glm::ivec2 m_origin = glm::ivec2(0);
@@ -165,7 +177,12 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
 class GUIWidgetRect : public GUIWidget {
  public:
-  GUIWidgetRect() = default;
+  explicit GUIWidgetRect(const std::string& className)
+    : GUIWidget(className)
+  {
+
+  }
+
   ~GUIWidgetRect() override = default;
 
   inline void setBackgroundColor(const glm::vec4& color,
@@ -189,6 +206,29 @@ class GUIWidgetRect : public GUIWidget {
     GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const
   {
     return getVisualParameters(visualState).getBackgroundImage();
+  }
+
+  inline void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override
+  {
+    GUIWidget::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+
+    stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+      if (propertyName == "background") {
+        // Background
+        std::visit(GUIWidgetStylesheetPropertyVisitor{
+          [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+          // Background color
+          [this, visualState](const glm::vec4& color) {
+            this->setBackgroundImage(nullptr, visualState);
+            this->setBackgroundColor(color, visualState);
+          },
+          // Background image
+          [this, visualState](const std::shared_ptr<GLTexture>& image) {
+            this->setBackgroundImage(image, visualState);
+          },
+        }, property.getValue());
+      }
+    });
   }
 
 };

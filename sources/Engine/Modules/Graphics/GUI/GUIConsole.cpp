@@ -8,7 +8,8 @@
 
 GUIConsole::GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
   std::shared_ptr<BitmapFont> font)
-  : m_commandsExecutor(std::move(commandsExecutor)),
+  : GUILayout("console"),
+    m_commandsExecutor(std::move(commandsExecutor)),
     m_historySize(historySize),
     m_textFontSize(font->getBaseSize())
 {
@@ -129,4 +130,53 @@ void GUIConsole::processConsoleKeyboardEvent(const GUIKeyboardEvent& event)
 void GUIConsoleCommandsBackPrinter::executeCommand(const std::string& command, GUIConsole& console)
 {
   console.print(command);
+}
+
+void GUIConsole::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  GUILayout::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+
+  stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+    if (propertyName == "text-color") {
+      // Text color
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](const glm::vec4& color) {
+          this->setTextColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-size") {
+      // Font size
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](int size) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
+
+          this->setTextFontSize(size);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "background") {
+      // Do nothing as property should be already processed by GUILayout
+    }
+    else {
+      SW_ASSERT(false);
+    }
+
+  });
+
+}
+
+void GUIConsole::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  GUILayout::applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex);
+
+  if (m_commandsTextBox->getParent() == nullptr) {
+    m_commandsTextBox->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+
+    for (const auto& textLine : m_textLines) {
+      textLine->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
+    }
+  }
 }

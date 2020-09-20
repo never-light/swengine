@@ -6,8 +6,9 @@
 
 #include <utility>
 
-#include "Utility/files.h"
+#include "Modules/Graphics/Resources/BitmapFontResource.h"
 
+#include "Utility/files.h"
 #include "Utility/xml.h"
 #include "Exceptions/exceptions.h"
 
@@ -23,21 +24,37 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
   : m_guiSystem(std::move(guiSystem)),
     m_resourceManager(std::move(resourceManager))
 {
-  registerGenericWidgetLoader<GUILayout>(
-    "layout",
-    GUIGenericPropertySetter<GUILayout, std::shared_ptr<GLTexture>, decltype(&GUILayout::setBackgroundImage)>
-      {"background_image", &GUILayout::setBackgroundImage},
-    GUIGenericPropertySetter<GUILayout, glm::vec4, decltype(&GUILayout::setBackgroundColor)>
-      {"background_color", &GUILayout::setBackgroundColor}
-  );
+  // Image property
+  registerPropertyTypeParser("image", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+    std::string imageResourceName = propertyNode.attribute("value").as_string();
 
-  registerGenericWidgetLoader<GUIButton>(
-    "button",
-    GUIGenericPropertySetter<GUIButton, std::shared_ptr<GLTexture>, decltype(&GUIButton::setBackgroundImage)>
-      {"background_image", &GUIButton::setBackgroundImage},
-    GUIGenericPropertySetter<GUIButton, glm::vec4, decltype(&GUIButton::setBackgroundColor)>
-      {"background_color", &GUIButton::setBackgroundColor}
-  );
+    return m_resourceManager->getResourceFromInstance<TextureResource>(imageResourceName)->getTexture();
+  });
+
+  // Font property
+  registerPropertyTypeParser("font", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+    std::string fontResourceName = propertyNode.attribute("value").as_string();
+
+    return m_resourceManager->getResourceFromInstance<BitmapFontResource>(fontResourceName)->getFont();
+  });
+
+  // Color property
+  registerPropertyTypeParser("color", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+    return StringUtils::stringToVec4(propertyNode.attribute("value").as_string());
+  });
+
+  // Integer property
+  registerPropertyTypeParser("integer", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+    return propertyNode.attribute("value").as_int();
+  });
+
+  // Float property
+  registerPropertyTypeParser("float", [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+    return propertyNode.attribute("value").as_float();
+  });
+
+  registerWidgetLoader("layout", WidgetClassLoadingData::genGenericWidgetLoader<GUILayout>());
+  registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
 }
 
 GUIWidgetsLoader::~GUIWidgetsLoader() = default;
@@ -47,14 +64,13 @@ void GUIWidgetsLoader::registerWidgetLoader(const std::string& widgetClass,
 {
   SW_ASSERT(!m_widgetsLoaders.contains(widgetClass));
 
-  m_widgetsLoaders.insert({widgetClass, WidgetClassLoadingData{loader, {}}});
+  m_widgetsLoaders.insert({widgetClass, WidgetClassLoadingData{loader}});
 }
 
-void GUIWidgetsLoader::registerPropertyLoader(const std::string& widgetClass,
-  const std::string& propertyName,
-  const WidgetClassLoadingData::PropertyLoaderCallback& loader)
+void GUIWidgetsLoader::registerPropertyTypeParser(const std::string& typeName,
+  const GUIWidgetsLoader::PropertyParser& parser)
 {
-  m_widgetsLoaders.at(widgetClass).m_propertiesLoaders.insert({propertyName, loader});
+  m_propertiesTypeParsers.insert({typeName, parser});
 }
 
 WidgetClassLoadingData::WidgetLoaderCallback GUIWidgetsLoader::getWidgetLoader(const std::string& widgetClass) const
@@ -62,22 +78,15 @@ WidgetClassLoadingData::WidgetLoaderCallback GUIWidgetsLoader::getWidgetLoader(c
   return m_widgetsLoaders.at(widgetClass).m_widgetLoader;
 }
 
-WidgetClassLoadingData::PropertyLoaderCallback GUIWidgetsLoader::getPropertyLoader(const std::string& widgetClass,
-  const std::string& propertyName) const
+GUIWidgetsLoader::PropertyParser GUIWidgetsLoader::getPropertyTypeParser(const std::string& typeName) const
 {
-  auto widgetLoadersDataIt = m_widgetsLoaders.find(widgetClass);
+  auto typeParserIt = m_propertiesTypeParsers.find(typeName);
 
-  if (widgetLoadersDataIt == m_widgetsLoaders.end()) {
+  if (typeParserIt == m_propertiesTypeParsers.end()) {
     return nullptr;
   }
 
-  auto propertyLoaderIt = widgetLoadersDataIt->second.m_propertiesLoaders.find(propertyName);
-
-  if (propertyLoaderIt == widgetLoadersDataIt->second.m_propertiesLoaders.end()) {
-    return nullptr;
-  }
-
-  return propertyLoaderIt->second;
+  return typeParserIt->second;
 }
 
 std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schemePath)
@@ -157,41 +166,11 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
 
   // Visual parameters
 
-  pugi::xml_node visualParameters = widgetNode.child("styles");
+  pugi::xml_node stylesheetNode = widgetNode.child("stylesheet");
 
-  if (visualParameters) {
-    for (auto styleSheetNode : visualParameters.children("stylesheet")) {
-      std::string styleSheetType = styleSheetNode.attribute("state").as_string("default");
-
-      GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
-
-      if (styleSheetType == "default") {
-        visualState = GUIWidgetVisualState::Default;
-      }
-      else if (styleSheetType == "hover") {
-        visualState = GUIWidgetVisualState::Hover;
-      }
-      else if (styleSheetType == "focus") {
-        visualState = GUIWidgetVisualState::Focus;
-      }
-      else {
-        THROW_EXCEPTION(EngineRuntimeException,
-          fmt::format("GUI widget stylesheet state {} is invalid", styleSheetType));
-      }
-
-      for (auto propertyNode : styleSheetNode.children("property")) {
-        std::string propertyName = propertyNode.attribute("name").as_string();
-
-        auto propertyLoader = getPropertyLoader(widgetType, propertyName);
-
-        if (propertyLoader == nullptr) {
-          THROW_EXCEPTION(EngineRuntimeException,
-            fmt::format("Widget {} has invalid property {}", widgetType, propertyName));
-        }
-
-        propertyLoader(*widget, visualState, propertyNode, *m_resourceManager);
-      }
-    }
+  if (stylesheetNode) {
+    GUIWidgetStylesheet stylesheet = loadStylesheet(stylesheetNode);
+    widget->applyStylesheet(stylesheet);
   }
 
   // Children widgets
@@ -205,4 +184,74 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
   }
 
   return widget;
+}
+
+GUIWidgetStylesheet GUIWidgetsLoader::loadStylesheet(const pugi::xml_node& stylesheetNode)
+{
+  GUIWidgetStylesheet stylesheet;
+
+  for (pugi::xml_node ruleNode : stylesheetNode.children("rule")) {
+    std::string ruleVisualState = ruleNode.attribute("state").as_string("default");
+
+    GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
+
+    if (ruleVisualState == "default") {
+      visualState = GUIWidgetVisualState::Default;
+    }
+    else if (ruleVisualState == "hover") {
+      visualState = GUIWidgetVisualState::Hover;
+    }
+    else if (ruleVisualState == "focus") {
+      visualState = GUIWidgetVisualState::Focus;
+    }
+    else {
+      THROW_EXCEPTION(EngineRuntimeException,
+        fmt::format("GUI widget stylesheet rule state {} is invalid", ruleVisualState));
+    }
+
+    std::vector<GUIWidgetStylesheetSelectorPart> selectorData;
+
+    auto selectorRawParts = StringUtils::split(ruleNode.attribute("selector").as_string(), ' ');
+
+    for (const auto& part : selectorRawParts) {
+      auto selectorPartItems = StringUtils::split(part, '#');
+
+      std::string classFilter = selectorPartItems[0];
+      std::string nameFilter = selectorPartItems.size() >= 2 ? selectorPartItems[1] : "";
+
+      selectorData.emplace_back(classFilter, nameFilter);
+    }
+
+    GUIWidgetStylesheetRule rule(visualState, selectorData);
+
+    for (auto propertyNode : ruleNode.children("property")) {
+      std::string propertyName = propertyNode.attribute("name").as_string();
+      std::string propertyType = propertyNode.attribute("type").as_string();
+
+      auto propertyTypeParser = getPropertyTypeParser(propertyType);
+
+      if (propertyTypeParser == nullptr) {
+        THROW_EXCEPTION(EngineRuntimeException,
+          fmt::format("GUI widget stylesheet property {} has invalid type {}", propertyName, propertyType));
+      }
+
+      GUIWidgetStylesheetProperty property(propertyTypeParser(propertyNode));
+
+      rule.setProperty(propertyName, property);
+    }
+
+    stylesheet.addRule(rule);
+  }
+
+  return stylesheet;
+}
+
+GUIWidgetStylesheet GUIWidgetsLoader::loadStylesheet(const std::string& stylesheetPath)
+{
+  auto[stylesheetDescriptionDocument, stylesheetDescription] = XMLUtils::openDescriptionFile(stylesheetPath,
+    "stylesheet");
+
+  LOCAL_VALUE_UNUSED(stylesheetDescriptionDocument);
+
+  return loadStylesheet(stylesheetDescription);
 }

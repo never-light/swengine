@@ -6,7 +6,8 @@
 #include "GUISystem.h"
 
 GUITextBox::GUITextBox(std::shared_ptr<BitmapFont> font)
-  : m_font(font),
+  : GUIWidgetRect("textbox"),
+    m_font(font),
     m_text(std::make_unique<GUIText>(font, ""))
 {
 }
@@ -108,4 +109,54 @@ glm::mat4 GUITextBox::updateTransformationMatrix()
   }
 
   return transformationMatrix;
+}
+
+void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  GUIWidgetRect::applyStylesheetRule(stylesheetRule, selectorPartIndex);
+
+  stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+    if (propertyName == "text-color") {
+      // Text color
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](const glm::vec4& color) {
+          this->setTextColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-size") {
+      // Font size
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](int size) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
+
+          this->setTextFontSize(size);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-family") {
+      // Font family
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](std::shared_ptr<BitmapFont> font) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
+
+          this->setFont(std::move(font));
+        },
+      }, property.getValue());
+    }
+    else {
+      SW_ASSERT(false);
+    }
+  });
+
+}
+
+void GUITextBox::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  GUIWidget::applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex);
+
+  m_text->applyStylesheetRuleWithSelector(stylesheetRule, selectorPartIndex);
 }

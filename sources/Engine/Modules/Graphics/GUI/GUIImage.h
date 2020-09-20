@@ -21,4 +21,5 @@ class GUIImage : public GUIWidget {
     return getVisualParameters(visualState).getBackgroundImage();
   }
 
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override;
 };

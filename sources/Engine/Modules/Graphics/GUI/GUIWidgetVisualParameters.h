@@ -9,12 +9,6 @@
 
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
-enum class GUIWidgetVisualState {
-  Default,
-  Hover,
-  Focus
-};
-
 class GUIWidgetVisualParameters {
  public:
   using ParamVec4 = std::optional<glm::vec4>;

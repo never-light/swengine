@@ -8,6 +8,13 @@
 
 #include "GUISystem.h"
 
+
+GUIWidget::GUIWidget(std::string  className)
+  : m_className(std::move(className))
+{
+
+}
+
 void GUIWidget::setOrigin(const glm::ivec2& origin)
 {
   m_origin = origin;
@@ -306,4 +313,52 @@ std::shared_ptr<GUIWidget> GUIWidget::findChildByName(const std::string& name) c
   }
 
   return nullptr;
+}
+
+void GUIWidget::applyStylesheetRuleWithSelector(const GUIWidgetStylesheetRule& stylesheetRule,
+  size_t selectorPartIndex)
+{
+  if (stylesheetRule.isSelectionCompleted(selectorPartIndex)) {
+    return;
+  }
+
+  auto& selectorPart = stylesheetRule.getSelectorPart(selectorPartIndex);
+
+  // Class name filter
+  if (selectorPart.getClassFilter() != m_className) {
+    return;
+  }
+
+  // Widget name filter
+  if (!selectorPart.getNameFilter().empty() && selectorPart.getNameFilter() != m_name) {
+    return;
+  }
+
+  // Selector filter is passed here
+
+  if (!stylesheetRule.isSelectionCompleted(selectorPartIndex + 1)) {
+    applyStylesheetRuleToChildren(stylesheetRule, selectorPartIndex + 1);
+  }
+  else {
+    applyStylesheetRule(stylesheetRule, selectorPartIndex + 1);
+  }
+}
+
+void GUIWidget::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  ARG_UNUSED(stylesheetRule);
+  ARG_UNUSED(selectorPartIndex);
+}
+
+void GUIWidget::applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex)
+{
+  ARG_UNUSED(stylesheetRule);
+  ARG_UNUSED(selectorPartIndex);
+}
+
+void GUIWidget::applyStylesheet(const GUIWidgetStylesheet& stylesheet)
+{
+  for (const GUIWidgetStylesheetRule& rule : stylesheet.getRules()) {
+    applyStylesheetRuleWithSelector(rule, 0);
+  }
 }

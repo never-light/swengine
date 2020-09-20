@@ -27,6 +27,11 @@ class GUITextBox : public GUIWidgetRect {
 
   [[nodiscard]] bool canHaveFocus() const override;
 
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override;
+
+  void applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule,
+    size_t selectorPartIndex) override;
+
  protected:
   void processKeyboardEvent(const GUIKeyboardEvent& event) override;
 

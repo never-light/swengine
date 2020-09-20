@@ -8,6 +8,7 @@
 #include "GUIWidget.h"
 #include "GUITextBox.h"
 #include "GUIText.h"
+#include "GUILayout.h"
 
 class GUIConsole;
 
@@ -28,7 +29,7 @@ class GUIConsoleCommandsBackPrinter : public GUIConsoleCommandsExecutor {
   void executeCommand(const std::string& command, GUIConsole& console) override;
 };
 
-class GUIConsole : public GUIWidgetRect {
+class GUIConsole : public GUILayout {
  public:
   GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
     std::shared_ptr<BitmapFont> font);
@@ -44,6 +45,10 @@ class GUIConsole : public GUIWidgetRect {
   [[nodiscard]] std::shared_ptr<GUITextBox> getTextBox() const;
 
   void print(const std::string& text);
+
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule, size_t selectorPartIndex) override;
+  void applyStylesheetRuleToChildren(const GUIWidgetStylesheetRule& stylesheetRule,
+    size_t selectorPartIndex) override;
 
  protected:
   void recalculateLayout();
