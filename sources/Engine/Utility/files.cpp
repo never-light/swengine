@@ -37,3 +37,7 @@ std::string FileUtils::getLevelPath(const std::string& levelName)
   return std::string(LEVELS_PATH) + "/" + levelName;
 }
 
+std::string FileUtils::getGUISchemePath(const std::string& schemeName)
+{
+  return std::string(GUI_SCHEMES_PATH) + "/" + schemeName + ".xml";
+}

@@ -11,7 +11,8 @@ class GUITextBox;
 
 class GUIText : public GUIWidget {
  public:
-  GUIText(std::shared_ptr<BitmapFont> font, const std::string& text);
+  GUIText();
+  GUIText(std::shared_ptr<BitmapFont> font, std::string  text);
 
   void setFont(std::shared_ptr<BitmapFont> font);
   [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;
@@ -19,19 +20,18 @@ class GUIText : public GUIWidget {
   void setText(const std::string& text);
   [[nodiscard]] std::string getText() const;
 
-  void setColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getColor() const;
-
-  void setHoverColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getHoverColor() const;
+  void setColor(const glm::vec4& color, GUIWidgetVisualState visualState = GUIWidgetVisualState::Default);
+  [[nodiscard]] glm::vec4 getColor(GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const;
 
   void setFontSize(int size);
   [[nodiscard]] int getFontSize() const;
 
   void render(GUISystem& guiSystem) override;
 
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;
+
  protected:
-  bool isTextGeometryBufferOutdated() const;
+  [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
  private:
   void resetTextGeometryCache();

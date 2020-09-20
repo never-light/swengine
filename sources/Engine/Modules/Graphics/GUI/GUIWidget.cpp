@@ -4,8 +4,15 @@
 
 #include "GUIWidget.h"
 #include <algorithm>
+#include <utility>
 
 #include "GUISystem.h"
+
+GUIWidget::GUIWidget(std::string className)
+  : m_className(std::move(className))
+{
+
+}
 
 void GUIWidget::setOrigin(const glm::ivec2& origin)
 {
@@ -117,96 +124,6 @@ void GUIWidget::render(GUISystem& guiSystem)
   guiSystem.getGraphicsContext()->executeRenderTask(task);
 }
 
-void GUIWidget::setBackgroundColor(const glm::vec4& color)
-{
-  m_backgroundColor = color;
-}
-
-glm::vec4 GUIWidget::getBackgroundColor() const
-{
-  return m_backgroundColor;
-}
-
-void GUIWidget::setBackgroundImage(std::shared_ptr<GLTexture> image)
-{
-  m_backgroundImage = image;
-}
-
-std::shared_ptr<GLTexture> GUIWidget::getBackgroundImage() const
-{
-  return m_backgroundImage;
-}
-
-void GUIWidget::setHoverBackgroundColor(const glm::vec4& color)
-{
-  m_hoverBackgroundColor = color;
-}
-
-glm::vec4 GUIWidget::getHoverBackgroundColor() const
-{
-  return m_hoverBackgroundColor;
-}
-
-void GUIWidget::setFocusBackgroundColor(const glm::vec4& color)
-{
-  m_focusBackgroundColor = color;
-}
-
-glm::vec4 GUIWidget::getFocusBackgroundColor() const
-{
-  return m_focusBackgroundColor;
-}
-
-void GUIWidget::setHoverBackgroundImage(std::shared_ptr<GLTexture> image)
-{
-  m_hoverBackgroundImage = image;
-}
-
-std::shared_ptr<GLTexture> GUIWidget::getHoverBackgroundImage() const
-{
-  return m_hoverBackgroundImage;
-}
-
-void GUIWidget::setBorderWidth(int width)
-{
-  m_borderWidth = width;
-}
-
-int GUIWidget::getBorderWidth() const
-{
-  return m_borderWidth;
-}
-
-void GUIWidget::setBorderColor(const glm::vec4& color)
-{
-  m_borderColor = color;
-}
-
-glm::vec4 GUIWidget::getBorderColor() const
-{
-  return m_borderColor;
-}
-
-void GUIWidget::setHoverBorderColor(const glm::vec4& color)
-{
-  m_hoverBorderColor = color;
-}
-
-glm::vec4 GUIWidget::getHoverBorderColor() const
-{
-  return m_hoverBorderColor;
-}
-
-void GUIWidget::setFocusBorderColor(const glm::vec4& color)
-{
-  m_focusBorderColor = color;
-}
-
-glm::vec4 GUIWidget::getFocusBorderColor() const
-{
-  return m_focusBorderColor;
-}
-
 void GUIWidget::setZIndex(int zIndex)
 {
   m_zIndex = zIndex;
@@ -224,14 +141,7 @@ int GUIWidget::getZIndex() const
 const glm::mat4x4& GUIWidget::getTransformationMatrix()
 {
   if (m_needTransformationMatrixCacheUpdate) {
-    m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(),
-      glm::vec3(getAbsoluteOrigin(), 0.0f));
-
-    if (m_isScaleTransformEnabled) {
-      m_transformationMatrixCache = glm::scale(m_transformationMatrixCache, glm::vec3(m_size, 1.0f));
-    }
-
-    transformationCacheUpdate();
+    m_transformationMatrixCache = updateTransformationMatrix();
 
     m_needTransformationMatrixCacheUpdate = false;
   }
@@ -241,48 +151,31 @@ const glm::mat4x4& GUIWidget::getTransformationMatrix()
 
 void GUIWidget::setMouseButtonCallback(EventCallback<GUIMouseButtonEvent> callback)
 {
-  m_mouseButtonCallback = callback;
+  m_mouseButtonCallback = std::move(callback);
 }
 
 void GUIWidget::setMouseEnterCallback(EventCallback<GUIMouseEnterEvent> callback)
 {
-  m_mouseEnterCallback = callback;
+  m_mouseEnterCallback = std::move(callback);
 }
 
 void GUIWidget::setMouseLeaveCallback(EventCallback<GUIMouseLeaveEvent> callback)
 {
-  m_mouseLeaveCallback = callback;
+  m_mouseLeaveCallback = std::move(callback);
 }
 
 void GUIWidget::setKeyboardEventCallback(EventCallback<GUIKeyboardEvent> callback)
 {
-  m_keyboardEventCallback = callback;
-}
-
-void GUIWidget::enableScaleTransform()
-{
-  m_isScaleTransformEnabled = true;
-  resetTransformationCache();
-}
-
-void GUIWidget::disableScaleTransform()
-{
-  m_isScaleTransformEnabled = false;
-  resetTransformationCache();
+  m_keyboardEventCallback = std::move(callback);
 }
 
 void GUIWidget::resetTransformationCache()
 {
   m_needTransformationMatrixCacheUpdate = true;
 
-  for (auto childWidget : m_widgets) {
+  for (const auto& childWidget : m_widgets) {
     childWidget->resetTransformationCache();
   }
-}
-
-void GUIWidget::transformationCacheUpdate()
-{
-
 }
 
 void GUIWidget::processKeyboardEvent(const GUIKeyboardEvent& event)
@@ -322,7 +215,7 @@ void GUIWidget::triggerKeyboardEvent(const GUIKeyboardEvent& event)
 
 void GUIWidget::setParent(std::weak_ptr<GUIWidget> parent)
 {
-  m_parent = parent;
+  m_parent = std::move(parent);
 }
 
 void GUIWidget::setFocus()
@@ -375,4 +268,111 @@ void GUIWidget::showChildren(GUIWidget* parent)
   for (auto& childWidget : parent->getChildrenWidgets()) {
     showChildren(childWidget.get());
   }
+}
+
+glm::mat4 GUIWidget::updateTransformationMatrix()
+{
+  return glm::translate(glm::identity<glm::mat4x4>(),
+    glm::vec3(getAbsoluteOrigin(), 0.0f)) *
+    glm::scale(glm::identity<glm::mat4x4>(), glm::vec3(m_size, 1.0f));
+}
+
+const GUIWidgetVisualParameters& GUIWidget::getVisualParameters(GUIWidgetVisualState state) const
+{
+  return m_visualParameters[static_cast<size_t>(state)];
+}
+
+GUIWidgetVisualParameters& GUIWidget::getVisualParameters(GUIWidgetVisualState state)
+{
+  return m_visualParameters[static_cast<size_t>(state)];
+}
+
+void GUIWidget::setName(const std::string& name)
+{
+  m_name = name;
+}
+
+const std::string& GUIWidget::getName() const
+{
+  return m_name;
+}
+
+std::shared_ptr<GUIWidget> GUIWidget::findChildByName(const std::string& name) const
+{
+  for (auto& child : m_widgets) {
+    if (child->getName() == name) {
+      return child;
+    }
+
+    auto foundChild = child->findChildByName(name);
+
+    if (foundChild != nullptr) {
+      return foundChild;
+    }
+  }
+
+  return nullptr;
+}
+
+void GUIWidget::applyStylesheetRuleWithSelector(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  std::vector<GUIWidgetStylesheetSelectorPart> currentPath)
+{
+  // Increase current path
+  currentPath.emplace_back(m_className, m_name);
+
+  // Check that the current widget should be selected
+  if (isPathSatisfiesSelector(currentPath, stylesheetRule.getSelector())) {
+    applyStylesheetRule(stylesheetRule);
+  }
+
+  // Apply the rule for children
+  applyStylesheetRuleToChildren(stylesheetRule, currentPath);
+}
+
+void GUIWidget::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
+{
+  ARG_UNUSED(stylesheetRule);
+}
+
+void GUIWidget::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
+{
+  ARG_UNUSED(stylesheetRule);
+  ARG_UNUSED(currentPath);
+}
+
+void GUIWidget::applyStylesheet(const GUIWidgetStylesheet& stylesheet)
+{
+  for (const GUIWidgetStylesheetRule& rule : stylesheet.getRules()) {
+    applyStylesheetRuleWithSelector(rule, {});
+  }
+}
+
+bool GUIWidget::isPathSatisfiesSelector(
+  const std::vector<GUIWidgetStylesheetSelectorPart>& path,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& selector)
+{
+  size_t selectorPartIndex = 0;
+  size_t pathPartIndex = 0;
+
+  for (const auto& pathPart : path) {
+    auto& selectorPart = selector[selectorPartIndex];
+
+    bool isClassFilterPassed = selectorPart.getClassFilter() == pathPart.getClassFilter();
+    bool isNameFilterPassed = selectorPart.getNameFilter().empty() ||
+      selectorPart.getNameFilter() == pathPart.getNameFilter();
+
+    if (isClassFilterPassed && isNameFilterPassed) {
+      selectorPartIndex++;
+      if (selectorPartIndex == selector.size()) {
+        return pathPartIndex == (path.size() - 1);
+      }
+    }
+
+    pathPartIndex++;
+  }
+
+  return false;
 }

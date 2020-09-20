@@ -6,7 +6,8 @@
 #include "GUISystem.h"
 
 GUITextBox::GUITextBox(std::shared_ptr<BitmapFont> font)
-  : m_font(font),
+  : GUIWidgetRect("textbox"),
+    m_font(font),
     m_text(std::make_unique<GUIText>(font, ""))
 {
 }
@@ -31,24 +32,14 @@ std::string GUITextBox::getText() const
   return m_text->getText();
 }
 
-void GUITextBox::setTextColor(const glm::vec4& color)
+void GUITextBox::setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState)
 {
-  m_text->setColor(color);
+  m_text->setColor(color, visualState);
 }
 
-glm::vec4 GUITextBox::getTextColor() const
+glm::vec4 GUITextBox::getTextColor(GUIWidgetVisualState visualState) const
 {
-  return m_text->getColor();
-}
-
-void GUITextBox::setTextHoverColor(const glm::vec4& color)
-{
-  m_text->setHoverColor(color);
-}
-
-glm::vec4 GUITextBox::getTextHoverColor() const
-{
-  return m_text->getHoverColor();
+  return m_text->getColor(visualState);
 }
 
 void GUITextBox::setTextFontSize(int size)
@@ -101,8 +92,10 @@ void GUITextBox::processKeyboardEvent(const GUIKeyboardEvent& event)
   }
 }
 
-void GUITextBox::transformationCacheUpdate()
+glm::mat4 GUITextBox::updateTransformationMatrix()
 {
+  glm::mat4 transformationMatrix = GUIWidget::updateTransformationMatrix();
+
   if (m_text->getParent() == nullptr) {
     addChildWidget(m_text);
   }
@@ -114,4 +107,61 @@ void GUITextBox::transformationCacheUpdate()
 
     m_text->setOrigin({10, getSize().y / 2 - m_text->getSize().y / 2});
   }
+
+  return transformationMatrix;
+}
+
+void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
+{
+  GUIWidgetRect::applyStylesheetRule(stylesheetRule);
+
+  stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+    if (propertyName == "text-color") {
+      // Text color
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](const glm::vec4& color) {
+          this->setTextColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-size") {
+      // Font size
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](int size) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
+
+          this->setTextFontSize(size);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-family") {
+      // Font family
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](std::shared_ptr<BitmapFont> font) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
+
+          this->setFont(std::move(font));
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "background") {
+      // Do nothing as property should be already processed by GUILayout
+    }
+    else {
+      SW_ASSERT(false);
+    }
+  });
+
+}
+
+void GUITextBox::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
+{
+  GUIWidget::applyStylesheetRuleToChildren(stylesheetRule, currentPath);
+
+  m_text->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
 }

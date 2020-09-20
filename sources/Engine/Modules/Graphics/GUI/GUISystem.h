@@ -17,11 +17,15 @@
 #include "GUIText.h"
 #include "GUITextBox.h"
 
-class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISystem>,
+#include "GUIWidgetsLoader.h"
+
+class GUISystem : public std::enable_shared_from_this<GUISystem>,
+                  public GameSystem,
                   public EventsListener<MouseButtonEvent>,
                   public EventsListener<KeyboardEvent> {
  public:
   GUISystem(std::shared_ptr<InputModule> inputModule,
+    std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
 
@@ -46,6 +50,9 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
 
+  [[nodiscard]] std::shared_ptr<GUILayout> loadScheme(const std::string& schemePath);
+  [[nodiscard]] GUIWidgetStylesheet loadStylesheet(const std::string& stylesheetPath);
+
  private:
   void updateGUIWidget(GUIWidget* widget);
   void processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseButtonEvent& event);
@@ -60,6 +67,8 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
   std::shared_ptr<GUILayout> m_activeLayout;
 
   std::shared_ptr<InputModule> m_inputModule;
+  std::shared_ptr<ResourceManager> m_resourceManager;
+
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
   std::shared_ptr<BitmapFont> m_defaultFont;
@@ -69,5 +78,7 @@ class GUISystem : public GameSystem, public std::enable_shared_from_this<GUISyst
   glm::mat4x4 m_guiProjectionMatrix;
 
   std::unique_ptr<GLMaterial> m_guiMaterial;
+
+  std::unique_ptr<GUIWidgetsLoader> m_widgetsLoader;
 };
 

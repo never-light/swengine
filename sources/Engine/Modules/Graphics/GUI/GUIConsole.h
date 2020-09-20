@@ -8,6 +8,7 @@
 #include "GUIWidget.h"
 #include "GUITextBox.h"
 #include "GUIText.h"
+#include "GUILayout.h"
 
 class GUIConsole;
 
@@ -28,7 +29,7 @@ class GUIConsoleCommandsBackPrinter : public GUIConsoleCommandsExecutor {
   void executeCommand(const std::string& command, GUIConsole& console) override;
 };
 
-class GUIConsole : public GUIWidget {
+class GUIConsole : public GUILayout {
  public:
   GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
     std::shared_ptr<BitmapFont> font);
@@ -38,19 +39,22 @@ class GUIConsole : public GUIWidget {
   void setTextFontSize(int size);
   [[nodiscard]] int getTextFontSize() const;
 
-  void setTextColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextColor() const;
-
-  void setTextHoverColor(const glm::vec4& color);
-  [[nodiscard]] glm::vec4 getTextHoverColor() const;
+  void setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState = GUIWidgetVisualState::Default);
+  [[nodiscard]] glm::vec4 getTextColor(GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const;
 
   [[nodiscard]] std::shared_ptr<GUITextBox> getTextBox() const;
 
   void print(const std::string& text);
 
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;
+  void applyStylesheetRuleToChildren(
+    const GUIWidgetStylesheetRule& stylesheetRule,
+    const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath) override;
+
  protected:
   void recalculateLayout();
-  void transformationCacheUpdate() override;
+
+  [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
   void processConsoleKeyboardEvent(const GUIKeyboardEvent& event);
 

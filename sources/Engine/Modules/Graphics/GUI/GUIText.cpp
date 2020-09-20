@@ -3,21 +3,31 @@
 #pragma hdrstop
 
 #include "GUIText.h"
+
+#include <utility>
+
+#include <utility>
 #include "GUISystem.h"
 
-GUIText::GUIText(std::shared_ptr<BitmapFont> font, const std::string& text)
-  : m_font(font),
-    m_text(text),
+GUIText::GUIText()
+  : GUIWidget("label"),
+    m_font(nullptr),
+    m_fontSize(0)
+{
+
+}
+
+GUIText::GUIText(std::shared_ptr<BitmapFont> font, std::string text)
+  : GUIWidget("label"),
+    m_font(font),
+    m_text(std::move(text)),
     m_fontSize(font->getBaseSize())
 {
-  /* The widget size should not affect to vertices positions as
-   * they are formed in real scale */
-  disableScaleTransform();
 }
 
 void GUIText::setFont(std::shared_ptr<BitmapFont> font)
 {
-  m_font = font;
+  m_font = std::move(font);
   resetTextGeometryCache();
 }
 
@@ -37,24 +47,14 @@ std::string GUIText::getText() const
   return m_text;
 }
 
-void GUIText::setColor(const glm::vec4& color)
+void GUIText::setColor(const glm::vec4& color, GUIWidgetVisualState visualState)
 {
-  setBackgroundColor(color);
+  getVisualParameters(visualState).setBackgroundColor(color);
 }
 
-glm::vec4 GUIText::getColor() const
+glm::vec4 GUIText::getColor(GUIWidgetVisualState visualState) const
 {
-  return getBackgroundColor();
-}
-
-void GUIText::setHoverColor(const glm::vec4& color)
-{
-  setHoverBackgroundColor(color);
-}
-
-glm::vec4 GUIText::getHoverColor() const
-{
-  return getHoverBackgroundColor();
+  return getVisualParameters(visualState).getBackgroundColor().value();
 }
 
 void GUIText::setFontSize(int size)
@@ -84,14 +84,9 @@ void GUIText::render(GUISystem& guiSystem)
 
   GLShader* fragmentShader = task.material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER);
   fragmentShader->setParameter("widget.useColorAlphaTexture", true);
-  fragmentShader->setParameter("widget.colorAlphaTexture", *m_font->getBitmap().get(), 1);
+  fragmentShader->setParameter("widget.colorAlphaTexture", *m_font->getBitmap(), 1);
 
   guiSystem.getGraphicsContext()->executeRenderTask(task);
-}
-
-bool GUIText::isTextGeometryBufferOutdated() const
-{
-  return m_needTextGeometryUpdate;
 }
 
 GLGeometryStore* GUIText::updateAndGetGeometryStore()
@@ -111,7 +106,7 @@ void GUIText::resetTextGeometryCache()
 
 GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
 {
-  SW_ASSERT(str.size() > 0);
+  SW_ASSERT(!str.empty());
 
   std::vector<VertexPos3Norm3UV> vertices;
   std::vector<uint16_t> indices;
@@ -124,8 +119,8 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
 
   int maxHeight = 0;
 
-  for (size_t characterIndex = 0; characterIndex < str.size(); characterIndex++) {
-    unsigned char character = static_cast<unsigned char>(str[characterIndex]);
+  for (char rawCharacter : str) {
+    auto character = static_cast<unsigned char>(rawCharacter);
 
     if (character == '\n') {
       cursorPosition = 0;
@@ -140,7 +135,7 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
 
     glm::ivec2 originPosition(cursorPosition, cursorLineOffset);
 
-    uint16_t verticesBaseSize = static_cast<uint16_t>(vertices.size());
+    auto verticesBaseSize = static_cast<uint16_t>(vertices.size());
 
     VertexPos3Norm3UV topLeftVertex{
       {
@@ -150,8 +145,8 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
       },
       glm::vec3(0.0f),
       {
-        static_cast<float>(atlasPosition.x) / bitmapWidth,
-        static_cast<float>(atlasPosition.y) / bitmapHeight
+        static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
+        static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
       }
     };
 
@@ -165,8 +160,8 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
       },
       glm::vec3(0.0f),
       {
-        static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
-        static_cast<float>(atlasPosition.y) / bitmapHeight
+        static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
+        static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
       }
     };
 
@@ -180,8 +175,8 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
       },
       glm::vec3(0.0f),
       {
-        static_cast<float>(atlasPosition.x + characterSize.x) / bitmapWidth,
-        static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
+        static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
+        static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
       }
     };
 
@@ -195,8 +190,8 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
       },
       glm::vec3(0.0f),
       {
-        static_cast<float>(atlasPosition.x) / bitmapWidth,
-        static_cast<float>(atlasPosition.y + characterSize.y) / bitmapHeight
+        static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
+        static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
       }
     };
 
@@ -213,7 +208,7 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
     cursorPosition += characterDescription.xAdvance;
   }
 
-  float scaleFactor = static_cast<float>(m_fontSize) / m_font->getBaseSize();
+  float scaleFactor = static_cast<float>(m_fontSize) / static_cast<float>(m_font->getBaseSize());
 
   for (VertexPos3Norm3UV& vertex : vertices) {
     vertex.pos.x *= scaleFactor;
@@ -226,4 +221,78 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
   setSize({cursorPosition, maxHeight});
 
   return new GLGeometryStore(vertices, indices);
+}
+
+[[nodiscard]] glm::mat4 GUIText::updateTransformationMatrix()
+{
+  /* The widget size should not affect to vertices positions as
+   * they are formed in real scale */
+  return glm::translate(glm::identity<glm::mat4x4>(),
+    glm::vec3(getAbsoluteOrigin(), 0.0f));
+}
+
+void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
+{
+  GUIWidget::applyStylesheetRule(stylesheetRule);
+
+  stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+    if (propertyName == "text-color") {
+      // Text color
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
+        [this, visualState](const glm::vec4& color) {
+          this->setColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "text") {
+      // Text
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
+        [this, visualState](const std::string& text) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Text is supported only for default state");
+
+          this->setText(text);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-size") {
+      // Font size
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
+        [this, visualState](int size) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
+
+          this->setFontSize(size);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-family") {
+      // Font family
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) {
+          ARG_UNUSED(arg);
+          SW_ASSERT(false);
+        },
+        [this, visualState](std::shared_ptr<BitmapFont> font) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
+
+          this->setFont(std::move(font));
+        },
+      }, property.getValue());
+    }
+    else {
+      SW_ASSERT(false);
+    }
+
+  });
 }

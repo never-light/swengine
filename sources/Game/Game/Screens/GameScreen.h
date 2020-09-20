@@ -11,9 +11,11 @@ class GameScreen : public BaseGameScreen,
   public EventsListener<InputActionToggleEvent>,
   public EventsListener<GameConsoleChangeVisibilityEvent> {
  public:
-  GameScreen(std::shared_ptr<InputModule> inputModule,
+  GameScreen(
+    std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
-    std::shared_ptr<LevelsManager> levelsManager);
+    std::shared_ptr<LevelsManager> levelsManager,
+    std::shared_ptr<GUILayout> debugGUILayout);
   ~GameScreen() override;
 
   void activate() override;
@@ -33,7 +35,7 @@ class GameScreen : public BaseGameScreen,
   void deinitializeGame();
 
   void initializeDebugGUI();
-  void deinitialzieDebugGUI();
+  void deinitializeDebugGUI();
 
  private:
   std::shared_ptr<InputModule> m_inputModule;

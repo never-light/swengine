@@ -4,9 +4,12 @@
 
 #include "GUIConsole.h"
 
+#include <utility>
+
 GUIConsole::GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
   std::shared_ptr<BitmapFont> font)
-  : m_commandsExecutor(commandsExecutor),
+  : GUILayout("console"),
+    m_commandsExecutor(std::move(commandsExecutor)),
     m_historySize(historySize),
     m_textFontSize(font->getBaseSize())
 {
@@ -42,32 +45,16 @@ int GUIConsole::getTextFontSize() const
   return m_textFontSize;
 }
 
-void GUIConsole::setTextColor(const glm::vec4& color)
+void GUIConsole::setTextColor(const glm::vec4& color, GUIWidgetVisualState visualState)
 {
-  m_textColor = color;
-
-  for (auto textLine : m_textLines) {
-    textLine->setColor(color);
+  for (const auto& textLine : m_textLines) {
+    textLine->setColor(color, visualState);
   }
 }
 
-glm::vec4 GUIConsole::getTextColor() const
+glm::vec4 GUIConsole::getTextColor(GUIWidgetVisualState visualState) const
 {
-  return m_textColor;
-}
-
-void GUIConsole::setTextHoverColor(const glm::vec4& color)
-{
-  m_textHoverColor = color;
-
-  for (auto textLine : m_textLines) {
-    textLine->setHoverColor(color);
-  }
-}
-
-glm::vec4 GUIConsole::getTextHoverColor() const
-{
-  return m_textHoverColor;
+  return (*m_textLines.begin())->getColor(visualState);
 }
 
 std::shared_ptr<GUITextBox> GUIConsole::getTextBox() const
@@ -100,11 +87,11 @@ void GUIConsole::recalculateLayout()
 {
   int textVerticalOffset = 0;
 
-  for (std::shared_ptr<GUIText> textLine : m_textLines) {
+  for (const auto& textLine : m_textLines) {
     textLine->setOrigin({10, textVerticalOffset});
     textLine->setFontSize(m_textFontSize);
 
-    textVerticalOffset += static_cast<int>(m_textFontSize * 2.0f);
+    textVerticalOffset += static_cast<int>(float(m_textFontSize) * 2.0f);
   }
 
   textVerticalOffset += m_textFontSize;
@@ -115,15 +102,19 @@ void GUIConsole::recalculateLayout()
   setHeight(textVerticalOffset + 25);
 }
 
-void GUIConsole::transformationCacheUpdate()
+glm::mat4 GUIConsole::updateTransformationMatrix()
 {
+  glm::mat4 transformationMatrix = GUIWidget::updateTransformationMatrix();
+
   if (m_commandsTextBox->getParent() == nullptr) {
     addChildWidget(m_commandsTextBox);
 
-    for (auto textLine : m_textLines) {
+    for (const auto& textLine : m_textLines) {
       addChildWidget(textLine);
     }
   }
+
+  return transformationMatrix;
 }
 
 void GUIConsole::processConsoleKeyboardEvent(const GUIKeyboardEvent& event)
@@ -139,4 +130,55 @@ void GUIConsole::processConsoleKeyboardEvent(const GUIKeyboardEvent& event)
 void GUIConsoleCommandsBackPrinter::executeCommand(const std::string& command, GUIConsole& console)
 {
   console.print(command);
+}
+
+void GUIConsole::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
+{
+  GUILayout::applyStylesheetRule(stylesheetRule);
+
+  stylesheetRule.visit([this](auto propertyName, auto property, GUIWidgetVisualState visualState) {
+    if (propertyName == "text-color") {
+      // Text color
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](const glm::vec4& color) {
+          this->setTextColor(color, visualState);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "font-size") {
+      // Font size
+      std::visit(GUIWidgetStylesheetPropertyVisitor{
+        [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
+        [this, visualState](int size) {
+          SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-size is supported only for default state");
+
+          this->setTextFontSize(size);
+        },
+      }, property.getValue());
+    }
+    else if (propertyName == "background") {
+      // Do nothing as property should be already processed by GUILayout
+    }
+    else {
+      SW_ASSERT(false);
+    }
+
+  });
+
+}
+
+void GUIConsole::applyStylesheetRuleToChildren(
+  const GUIWidgetStylesheetRule& stylesheetRule,
+  const std::vector<GUIWidgetStylesheetSelectorPart>& currentPath)
+{
+  GUILayout::applyStylesheetRuleToChildren(stylesheetRule, currentPath);
+
+  if (m_commandsTextBox->getParent() == nullptr) {
+    m_commandsTextBox->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
+
+    for (const auto& textLine : m_textLines) {
+      textLine->applyStylesheetRuleWithSelector(stylesheetRule, currentPath);
+    }
+  }
 }

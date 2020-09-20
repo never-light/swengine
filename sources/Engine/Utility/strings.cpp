@@ -33,12 +33,12 @@ std::string StringUtils::toLowerCase(const std::string& str)
 }
 
 std::string StringUtils::regexReplace(const std::string& expression, std::string str,
-  std::function<std::string(const std::smatch&)> callback)
+  const std::function<std::string(const std::smatch&)>& callback)
 {
   std::regex regexp(expression);
   std::smatch match;
 
-  std::string result = "";
+  std::string result;
 
   while (regex_search(str, match, regexp)) {
     result += std::string(match.prefix()) + callback(match);
@@ -69,4 +69,18 @@ glm::vec3 StringUtils::stringToVec3(const std::string& string)
   auto parts = split(string, ' ');
 
   return glm::vec3(std::stof(parts[0]), std::stof(parts[1]), std::stof(parts[2]));
+}
+
+glm::vec4 StringUtils::stringToVec4(const std::string& string)
+{
+  auto parts = split(string, ' ');
+
+  return glm::vec4(std::stof(parts[0]), std::stof(parts[1]), std::stof(parts[2]), std::stof(parts[3]));
+}
+
+glm::ivec2 StringUtils::stringToIVec2(const std::string& string)
+{
+  auto parts = split(string, ' ');
+
+  return glm::ivec2(std::stoi(parts[0]), std::stoi(parts[1]));
 }
