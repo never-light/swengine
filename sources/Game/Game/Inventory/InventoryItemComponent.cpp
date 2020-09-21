@@ -1,0 +1,90 @@
+#include "InventoryItemComponent.h"
+
+#include <utility>
+
+InventoryItemComponent::InventoryItemComponent(std::shared_ptr<GLTexture> icon, std::string name)
+  : m_icon(std::move(icon)),
+  m_name(std::move(name))
+{
+
+}
+
+void InventoryItemComponent::setIcon(std::shared_ptr<GLTexture> icon)
+{
+  m_icon = std::move(icon);
+}
+
+std::shared_ptr<GLTexture> InventoryItemComponent::getIcon() const
+{
+  return m_icon;
+}
+
+void InventoryItemComponent::setName(const std::string& name)
+{
+  m_name = name;
+}
+
+const std::string& InventoryItemComponent::getName() const
+{
+  return m_name;
+}
+
+void InventoryItemComponent::setShortDescription(const std::string& description)
+{
+  m_shortDescription = description;
+}
+
+const std::string& InventoryItemComponent::getShortDescription() const
+{
+  return m_shortDescription;
+}
+
+void InventoryItemComponent::setLongDescription(const std::string& description)
+{
+  m_longDescription = description;
+}
+
+const std::string& InventoryItemComponent::getLongDescription() const
+{
+  return m_longDescription;
+}
+
+void InventoryItemComponent::setReadable(bool isReadable)
+{
+  m_isReadable = isReadable;
+}
+
+bool InventoryItemComponent::isReadable() const
+{
+  return m_isReadable;
+}
+
+void InventoryItemComponent::setUsable(bool isUsable)
+{
+  m_isUsable = isUsable;
+}
+
+bool InventoryItemComponent::isUsable() const
+{
+  return m_isUsable;
+}
+
+void InventoryItemComponent::setDroppable(bool isDroppable)
+{
+  m_isDroppable = isDroppable;
+}
+
+bool InventoryItemComponent::isDroppable() const
+{
+  return m_isDroppable;
+}
+
+const GameObject& InventoryItemComponent::getOwner() const
+{
+  return m_owner;
+}
+
+void InventoryItemComponent::setOwner(const GameObject& owner)
+{
+  m_owner = owner;
+}

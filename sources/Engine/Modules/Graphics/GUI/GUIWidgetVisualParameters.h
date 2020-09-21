@@ -18,43 +18,50 @@ class GUIWidgetVisualParameters {
  public:
   GUIWidgetVisualParameters() = default;
 
-  inline void setBackgroundColor(const glm::vec4& color) {
+  inline void setBackgroundColor(const glm::vec4& color)
+  {
     m_backgroundColor = color;
   }
 
-  [[nodiscard]] inline const ParamVec4& getBackgroundColor() const {
+  [[nodiscard]] inline const ParamVec4& getBackgroundColor() const
+  {
     return m_backgroundColor;
   }
 
-  void setBackgroundImage(std::shared_ptr<GLTexture> image) {
+  void setBackgroundImage(std::shared_ptr<GLTexture> image)
+  {
     m_backgroundImage = std::move(image);
   }
 
-  [[nodiscard]] inline std::shared_ptr<GLTexture> getBackgroundImage() const {
+  [[nodiscard]] inline std::shared_ptr<GLTexture> getBackgroundImage() const
+  {
     return m_backgroundImage;
   }
 
-  inline void setBorderWidth(int width) {
+  inline void setBorderWidth(int width)
+  {
     m_borderWidth = width;
   }
 
-  [[nodiscard]] inline const ParamInt& getBorderWidth() const {
+  [[nodiscard]] inline const ParamInt& getBorderWidth() const
+  {
     return m_borderWidth;
   }
 
-  inline void setBorderColor(const glm::vec4& color) {
+  inline void setBorderColor(const glm::vec4& color)
+  {
     m_borderColor = color;
   }
 
-  [[nodiscard]] inline const ParamVec4& getBorderColor() const {
+  [[nodiscard]] inline const ParamVec4& getBorderColor() const
+  {
     return m_borderColor;
   }
 
  private:
-  ParamVec4 m_backgroundColor = glm::vec4(0.0f);
+  ParamVec4 m_backgroundColor{};
   std::shared_ptr<GLTexture> m_backgroundImage;
 
-  ParamInt m_borderWidth = 0;
-  ParamVec4 m_borderColor = glm::vec4(0.0f);
+  ParamInt m_borderWidth{};
+  ParamVec4 m_borderColor{};
 };
-

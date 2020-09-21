@@ -56,6 +56,12 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
       return propertyNode.attribute("value").as_float();
     });
 
+  // Size2d property
+  registerPropertyTypeParser("size2d",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return StringUtils::stringToIVec2(propertyNode.attribute("value").as_string());
+    });
+
   registerWidgetLoader("layout", WidgetClassLoadingData::genGenericWidgetLoader<GUILayout>());
   registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
   registerWidgetLoader("label", WidgetClassLoadingData::genGenericWidgetLoader<GUIText>());

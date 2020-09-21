@@ -10,12 +10,15 @@ GameScreen::GameScreen(
   std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
   std::shared_ptr<LevelsManager> levelsManager,
-  std::shared_ptr<GUILayout> debugGUILayout)
+  std::shared_ptr<GUILayout> debugGUILayout,
+  std::shared_ptr<InventoryUI> inventoryUILayout)
   : BaseGameScreen(GameScreenType::Game),
     m_inputModule(std::move(inputModule)),
     m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
+    m_levelsManager(std::move(levelsManager)),
+    m_gameGUILayout(std::make_shared<GUILayout>()),
     m_debugGUILayout(std::move(debugGUILayout)),
-    m_levelsManager(std::move(levelsManager))
+    m_inventoryUILayout(std::move(inventoryUILayout))
 {
 }
 
@@ -43,6 +46,11 @@ void GameScreen::deactivate()
 
 void GameScreen::load()
 {
+  auto& screenFramebuffer = m_graphicsModule->getGraphicsContext()->getDefaultFramebuffer();
+  m_gameGUILayout->setSize({screenFramebuffer.getWidth(), screenFramebuffer.getHeight()});
+
+  getGUILayout()->addChildWidget(m_gameGUILayout);
+
   initializeGame();
   initializeDebugGUI();
 }
@@ -51,6 +59,8 @@ void GameScreen::unload()
 {
   deinitializeGame();
   deinitializeDebugGUI();
+
+  getGUILayout()->removeChildWidget(m_gameGUILayout);
 }
 
 void GameScreen::update(float delta)
@@ -104,7 +114,9 @@ void GameScreen::initializeGame()
     m_graphicsModule->getGraphicsContext(),
     m_sharedGraphicsState,
     m_resourceManager,
-    m_levelsManager);
+    m_levelsManager,
+    m_gameGUILayout,
+    m_inventoryUILayout);
 
   spdlog::info("Game is loaded...");
 }
@@ -118,7 +130,7 @@ void GameScreen::deinitializeGame()
 
 void GameScreen::initializeDebugGUI()
 {
-  getGUILayout()->addChildWidget(m_debugGUILayout);
+  m_gameGUILayout->addChildWidget(m_debugGUILayout);
   m_primivitesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
     ->findChildByName("game_debug_ui_layout_frame_stat_primitives_count"));
   m_subMeshesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
@@ -137,5 +149,5 @@ void GameScreen::deinitializeDebugGUI()
   m_subMeshesCountText.reset();
   m_subMeshesCountText.reset();
 
-  getGUILayout()->removeChildWidget(m_debugGUILayout);
+  m_gameGUILayout->removeChildWidget(m_debugGUILayout);
 }

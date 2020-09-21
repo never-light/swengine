@@ -50,8 +50,13 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
 
+  // TODO: the method suppose that default parent of the layout is the root layout, but
+  //  it is not common case. Add ability to specify custom default parent layout.
   [[nodiscard]] std::shared_ptr<GUILayout> loadScheme(const std::string& schemePath);
+
   [[nodiscard]] GUIWidgetStylesheet loadStylesheet(const std::string& stylesheetPath);
+
+  [[nodiscard]] GUIWidgetsLoader* getWidgetsLoader() const;
 
  private:
   void updateGUIWidget(GUIWidget* widget);

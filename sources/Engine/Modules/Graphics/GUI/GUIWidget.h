@@ -118,6 +118,10 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   void applyStylesheet(const GUIWidgetStylesheet& stylesheet);
 
  protected:
+  virtual void onShow();
+  virtual void onHide();
+
+ protected:
   void resetTransformationCache();
 
   [[nodiscard]] virtual glm::mat4 updateTransformationMatrix();

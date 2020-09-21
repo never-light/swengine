@@ -106,7 +106,8 @@ void GUIText::resetTextGeometryCache()
 
 GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
 {
-  SW_ASSERT(!str.empty());
+  SW_ASSERT(m_font != nullptr && "It is required to set font for the text line before rendering");
+  SW_ASSERT(!str.empty() && "It is impossible to create geometry buffer for the empty text string");
 
   std::vector<VertexPos3Norm3UV> vertices;
   std::vector<uint16_t> indices;
@@ -293,6 +294,9 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
     else {
       SW_ASSERT(false);
     }
-
   });
+
+  if (m_font != nullptr && m_fontSize > 0 && !m_text.empty()) {
+    RETURN_VALUE_UNUSED(updateAndGetGeometryStore());
+  }
 }

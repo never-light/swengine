@@ -8,4 +8,8 @@
 #define RETURN_VALUE_UNUSED(value) (void)(value)
 #define LOCAL_VALUE_UNUSED(value) (void)(value)
 
+#ifdef _DEBUG
 #define SW_ASSERT(condition) assert(condition)
+#else
+#define SW_ASSERT(condition) ((void)(condition))
+#endif
