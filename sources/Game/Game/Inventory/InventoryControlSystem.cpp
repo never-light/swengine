@@ -1,6 +1,12 @@
 #include "InventoryControlSystem.h"
 
-InventoryControlSystem::InventoryControlSystem() = default;
+#include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Engine/Modules/Physics/RigidBodyComponent.h>
+
+InventoryControlSystem::InventoryControlSystem(std::shared_ptr<LevelsManager> levelsManager)
+  : m_levelsManager(levelsManager) {
+
+}
 
 InventoryControlSystem::~InventoryControlSystem() = default;
 
@@ -28,6 +34,8 @@ EventProcessStatus InventoryControlSystem::receiveEvent(
 {
   ARG_UNUSED(gameWorld);
 
+  auto& inventoryItemComponent = *GameObject(event.item).getComponent<InventoryItemComponent>().get();
+
   switch (event.triggerType) {
     case InventoryItemActionTriggerType::RelocateToInventory:
       relocateObjectToInventory(event.inventoryOwner, event.item);
@@ -37,11 +45,15 @@ EventProcessStatus InventoryControlSystem::receiveEvent(
       dropObjectFromInventory(event.inventoryOwner, event.item);
       break;
 
-    case InventoryItemActionTriggerType::Use:
-      spdlog::debug("Use inventory object {}", event.item.getName());
-      //dropObjectFromInventory(event.inventoryOwner, event.item);
-      break;
+    case InventoryItemActionTriggerType::Use: {
+      const auto& useCallback = inventoryItemComponent.getUseCallback();
 
+      if (useCallback) {
+        useCallback(event.inventoryOwner, event.item);
+      }
+
+      break;
+    }
     default:
       SW_ASSERT(false && "Unknown inventory action trigger type");
       break;
@@ -57,12 +69,26 @@ void InventoryControlSystem::relocateObjectToInventory(
   auto& inventoryComponent = *inventoryOwner.getComponent<InventoryComponent>().get();
   auto& inventoryItemComponent = *objectToRelocate.getComponent<InventoryItemComponent>().get();
 
-  SW_ASSERT(!inventoryItemComponent.getOwner().isAlive());
+  SW_ASSERT(!inventoryItemComponent.getOwner().isFormed());
   inventoryItemComponent.setOwner(inventoryOwner);
 
-  // TODO[WIP]: set ghost state for objectToRelocate
+  if (objectToRelocate.hasComponent<MeshRendererComponent>()) {
+    objectToRelocate.removeComponent<MeshRendererComponent>();
+    inventoryItemComponent.addComponentToRestore<MeshRendererComponent>();
+  }
+
+  if (objectToRelocate.hasComponent<RigidBodyComponent>()) {
+    objectToRelocate.removeComponent<RigidBodyComponent>();
+    inventoryItemComponent.addComponentToRestore<RigidBodyComponent>();
+  }
 
   inventoryComponent.addItem(objectToRelocate);
+
+  const auto& takeCallback = inventoryItemComponent.getTakeCallback();
+
+  if (takeCallback) {
+    takeCallback(inventoryOwner, objectToRelocate);
+  }
 }
 
 void InventoryControlSystem::dropObjectFromInventory(
@@ -74,10 +100,24 @@ void InventoryControlSystem::dropObjectFromInventory(
 
   inventoryItemComponent.setOwner(GameObject());
 
-  // TODO[WIP]: remove ghost state from objectToDrop
+  if (inventoryItemComponent.shouldComponentBeRestored<MeshRendererComponent>()) {
+    m_levelsManager->loadGameObjectComponent<MeshRendererComponent>(objectToDrop);
+    inventoryItemComponent.removeComponentToRestore<MeshRendererComponent>();
+  }
+
+  if (inventoryItemComponent.shouldComponentBeRestored<RigidBodyComponent>()) {
+    m_levelsManager->loadGameObjectComponent<RigidBodyComponent>(objectToDrop);
+    inventoryItemComponent.removeComponentToRestore<RigidBodyComponent>();
+  }
 
   // TODO: consider creation component like EntityLifeComponent
   //  for storing Time To Live property. Set the object life start timestamp here.
 
   inventoryComponent.removeItem(objectToDrop);
+
+  const auto& dropCallback = inventoryItemComponent.getDropCallback();
+
+  if (dropCallback) {
+    dropCallback(inventoryOwner, objectToDrop);
+  }
 }

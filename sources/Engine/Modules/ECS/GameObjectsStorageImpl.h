@@ -12,7 +12,7 @@
 
 inline void GameObjectsStorage::remove(GameObject& gameObject)
 {
-  SW_ASSERT(gameObject.isAlive());
+  SW_ASSERT(gameObject.isValid());
 
   auto& objectData = m_gameObjects[gameObject.m_id];
 

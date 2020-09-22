@@ -91,6 +91,10 @@ void PlayerControlSystem::deactivate()
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 
   m_uiLayout->removeChildWidget(m_inventoryUI);
+
+  // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
+  // m_sharedGraphicsState->setActiveCamera(nullptr);
+
 }
 
 void PlayerControlSystem::update(float delta)
@@ -266,9 +270,6 @@ void PlayerControlSystem::enableMovementControl()
 
 void PlayerControlSystem::disableMovementControl()
 {
-  // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
-  // m_sharedGraphicsState->setActiveCamera(nullptr);
-
   m_isMovementControlEnabled = false;
 
   getGameWorld()->unsubscribeEventsListener<MouseWheelEvent>(this);
@@ -277,6 +278,9 @@ void PlayerControlSystem::disableMovementControl()
   m_inputModule->unregisterAction("backward");
   m_inputModule->unregisterAction("left");
   m_inputModule->unregisterAction("right");
+
+  auto& playerKinematicCharacterComponent = *m_playerObject.getComponent<KinematicCharacterComponent>().get();
+  playerKinematicCharacterComponent.setPositionIncrement(glm::vec3(0.0f));
 }
 
 void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)

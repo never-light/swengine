@@ -26,7 +26,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
       gameUILayout,
       inventoryUILayout)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, sharedGraphicsState)),
-    m_inventoryControlSystem(std::make_shared<InventoryControlSystem>())
+    m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager))
 {
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
   m_gameModeSystems->addGameSystem(m_inventoryControlSystem);

@@ -51,7 +51,7 @@ void GameApplication::load()
 
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui", [this](const pugi::xml_node& widgetData) {
     ARG_UNUSED(widgetData);
-    return std::make_shared<InventoryUI>(m_gameWorld);
+    return std::make_shared<InventoryUI>(m_gameWorld, m_inputModule);
   });
 
   auto gameScreenDebugUILayout = m_guiSystem->loadScheme(

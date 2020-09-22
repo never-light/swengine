@@ -5,9 +5,12 @@
 
 #include <utility>
 
-InventoryUI::InventoryUI(std::shared_ptr<GameWorld> gameWorld)
+InventoryUI::InventoryUI(
+  std::shared_ptr<GameWorld> gameWorld,
+  std::shared_ptr<InputModule> inputModule)
   : GUILayout("inventory_ui"),
-    m_gameWorld(std::move(gameWorld))
+    m_gameWorld(std::move(gameWorld)),
+    m_inputModule(std::move(inputModule))
 {
 
 }
@@ -42,16 +45,6 @@ int InventoryUI::getRowsCount() const
   return m_rowsCount;
 }
 
-void InventoryUI::setItemUseCallback(const InventoryUI::ItemActionCallback& callback)
-{
-  m_itemUseCallback = callback;
-}
-
-void InventoryUI::setItemDropCallback(const InventoryUI::ItemActionCallback& callback)
-{
-  m_itemDropCallback = callback;
-}
-
 void InventoryUI::updateLayout()
 {
   m_cellsLayout = std::dynamic_pointer_cast<GUILayout>(
@@ -83,6 +76,24 @@ void InventoryUI::updateLayout()
   SW_ASSERT(
     m_tooltipTitle != nullptr &&
       m_tooltipDesc != nullptr &&
+      "Specify tooltip layout in the inventory UI description");
+
+  m_detailedDesc = std::dynamic_pointer_cast<GUILayout>(
+    findChildByName("game_ui_inventory_layout_detailed_desc"));
+
+  SW_ASSERT(
+    m_detailedDesc != nullptr &&
+      "Specify detailed description layout in the inventory UI description");
+
+  m_detailedDescTitle = std::dynamic_pointer_cast<GUIText>(
+    m_detailedDesc->findChildByName("game_ui_inventory_layout_detailed_desc_title"));
+
+  m_detailedDescText = std::dynamic_pointer_cast<GUIText>(
+    m_detailedDesc->findChildByName("game_ui_inventory_layout_detailed_desc_text"));
+
+  SW_ASSERT(
+    m_detailedDescTitle != nullptr &&
+      m_detailedDescText != nullptr &&
       "Specify tooltip layout in the inventory UI description");
 
   m_contextMenu = std::dynamic_pointer_cast<GUILayout>(
@@ -156,7 +167,7 @@ void InventoryUI::syncGUIWithOwnerInventory()
     cellWidget->setMouseEnterCallback([this, item, cellWidget, icon](const GUIMouseEnterEvent& event) {
       ARG_UNUSED(event);
 
-      if (!m_contextMenu->isShown()) {
+      if (!m_contextMenu->isShown() && !m_detailedDesc->isShown()) {
         showTooltipWindow(m_cellsLayout->getOrigin() +
           cellWidget->getOrigin() + icon->getOrigin() + icon->getSize() / 2, item);
       }
@@ -168,11 +179,15 @@ void InventoryUI::syncGUIWithOwnerInventory()
     });
 
     cellWidget->setMouseButtonCallback([this, item, cellWidget, icon](const GUIMouseButtonEvent& event) {
-      if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_RIGHT) {
-        hideTooltipWindow();
+      if (event.type == MouseButtonEventType::ButtonDown) {
+        if (event.button == SDL_BUTTON_RIGHT) {
+          hideTooltipWindow();
 
-        showContextActionMenu(m_cellsLayout->getOrigin() +
-          cellWidget->getOrigin() + icon->getOrigin() + icon->getSize() / 2, item);
+          if (!m_detailedDesc->isShown()) {
+            showContextActionMenu(m_cellsLayout->getOrigin() +
+              cellWidget->getOrigin() + icon->getOrigin() + icon->getSize() / 2, item);
+          }
+        }
       }
     });
 
@@ -187,6 +202,18 @@ void InventoryUI::syncGUIWithOwnerInventory()
     cellWidget->setMouseLeaveCallback(nullptr);
     cellWidget->setMouseButtonCallback(nullptr);
   }
+
+  setMouseButtonCallback([this](const GUIMouseButtonEvent& event) {
+    if (event.type == MouseButtonEventType::ButtonDown) {
+      if (m_detailedDesc->isShown()) {
+        MousePosition mousePosition = m_inputModule->getMousePosition();
+
+        if (!m_detailedDesc->isPointInside({ mousePosition.x, mousePosition.y })) {
+          hideDetailedDescWindow();
+        }
+      }
+    }
+  });
 }
 
 void InventoryUI::setCellSize(const glm::ivec2& size)
@@ -224,11 +251,10 @@ void InventoryUI::showTooltipWindow(const glm::ivec2& origin, GameObject itemObj
   m_tooltipTitle->setText(itemObject.getComponent<InventoryItemComponent>()->getName());
   m_tooltipDesc->setText(itemObject.getComponent<InventoryItemComponent>()->getShortDescription());
 
-//   TODO: implement proper tooltip size calculation
-//   glm::ivec2 tooltipSize = m_tooltip->getSize();
-//   tooltipSize.x = glm::max(m_tooltipTitle->getSize().x, m_tooltipDesc->getSize().x) + m_padding * 2;
-//
-//   m_tooltip->setSize(tooltipSize);
+  glm::ivec2 tooltipSize = m_tooltip->getSize();
+  tooltipSize.x = glm::max(m_tooltipTitle->getSize().x, m_tooltipDesc->getSize().x) + m_padding * 2;
+
+  m_tooltip->setSize(tooltipSize);
 
   m_tooltip->setOrigin(origin);
   m_tooltip->show();
@@ -237,6 +263,19 @@ void InventoryUI::showTooltipWindow(const glm::ivec2& origin, GameObject itemObj
 void InventoryUI::hideTooltipWindow()
 {
   m_tooltip->hide();
+}
+
+void InventoryUI::showDetailedDescWindow(GameObject itemObject)
+{
+  m_detailedDescTitle->setText(itemObject.getComponent<InventoryItemComponent>()->getName());
+  m_detailedDescText->setText(itemObject.getComponent<InventoryItemComponent>()->getLongDescription());
+
+  m_detailedDesc->show();
+}
+
+void InventoryUI::hideDetailedDescWindow()
+{
+  m_detailedDesc->hide();
 }
 
 void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject itemObject)
@@ -253,7 +292,15 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
 
     m_contextShowDetailedDescLink->setMouseButtonCallback([this, itemObject](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
-        spdlog::warn("Read object {}", itemObject.getId());
+
+        const auto& readCallback = GameObject(itemObject).getComponent<InventoryItemComponent>()->getReadCallback();
+
+        if (readCallback) {
+          readCallback(m_inventoryOwner, itemObject);
+        }
+
+        hideContextActionMenu();
+        showDetailedDescWindow(itemObject);
       }
     });
   }
@@ -267,8 +314,9 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
         m_gameWorld->emitEvent<InventoryItemActionTriggeredEvent>(
           {m_inventoryOwner,
             InventoryItemActionTriggerType::Use,
-          itemObject});
+            itemObject});
 
+        hideContextActionMenu();
         syncGUIWithOwnerInventory();
       }
     });
@@ -285,6 +333,7 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
             InventoryItemActionTriggerType::DropFromInventory,
             itemObject});
 
+        hideContextActionMenu();
         syncGUIWithOwnerInventory();
       }
     });
@@ -361,6 +410,7 @@ void InventoryUI::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetR
 void InventoryUI::onShow()
 {
   m_tooltip->hide();
+  m_detailedDesc->hide();
   m_contextMenu->hide();
 }
 

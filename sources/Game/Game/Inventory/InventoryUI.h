@@ -2,6 +2,7 @@
 
 #include <Engine/Modules/Graphics/GUI/GUILayout.h>
 #include <Engine/Modules/Graphics/GUI/GUIText.h>
+#include <Engine/Modules/Input/InputModule.h>
 
 #include "InventoryComponent.h"
 
@@ -10,7 +11,8 @@ class InventoryUI : public GUILayout {
   using ItemActionCallback = std::function<void(GameObject)>;
 
  public:
-  InventoryUI(std::shared_ptr<GameWorld> gameWorld);
+  InventoryUI(std::shared_ptr<GameWorld> gameWorld,
+    std::shared_ptr<InputModule> inputModule);
 
   void setPadding(int padding);
   [[nodiscard]] int getPadding() const;
@@ -32,9 +34,6 @@ class InventoryUI : public GUILayout {
 
   void updateLayout();
 
-  void setItemUseCallback(const ItemActionCallback& callback);
-  void setItemDropCallback(const ItemActionCallback& callback);
-
   void setInventoryOwner(const GameObject& inventoryOwner);
   [[nodiscard]] GameObject getInventoryOwner() const;
 
@@ -47,6 +46,9 @@ class InventoryUI : public GUILayout {
   void showTooltipWindow(const glm::ivec2& origin, GameObject itemObject);
   void hideTooltipWindow();
 
+  void showDetailedDescWindow(GameObject itemObject);
+  void hideDetailedDescWindow();
+
   void showContextActionMenu(const glm::ivec2& origin, GameObject itemObject);
   void hideContextActionMenu();
 
@@ -56,10 +58,9 @@ class InventoryUI : public GUILayout {
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
-  GameObject m_inventoryOwner{};
+  std::shared_ptr<InputModule> m_inputModule;
 
-  ItemActionCallback m_itemUseCallback;
-  ItemActionCallback m_itemDropCallback;
+  GameObject m_inventoryOwner{};
 
   glm::ivec2 m_cellSize{};
   glm::ivec2 m_iconOrigin{};
@@ -76,6 +77,10 @@ class InventoryUI : public GUILayout {
   std::shared_ptr<GUILayout> m_tooltip;
   std::shared_ptr<GUIText> m_tooltipTitle;
   std::shared_ptr<GUIText> m_tooltipDesc;
+
+  std::shared_ptr<GUILayout> m_detailedDesc;
+  std::shared_ptr<GUIText> m_detailedDescTitle;
+  std::shared_ptr<GUIText> m_detailedDescText;
 
   std::shared_ptr<GUILayout> m_contextMenu;
 

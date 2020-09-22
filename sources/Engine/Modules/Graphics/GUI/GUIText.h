@@ -12,7 +12,7 @@ class GUITextBox;
 class GUIText : public GUIWidget {
  public:
   GUIText();
-  GUIText(std::shared_ptr<BitmapFont> font, std::string  text);
+  GUIText(std::shared_ptr<BitmapFont> font, std::string text);
 
   void setFont(std::shared_ptr<BitmapFont> font);
   [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;
@@ -30,11 +30,20 @@ class GUIText : public GUIWidget {
 
   void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;
 
+  void setSize(const glm::ivec2& size) override;
+  [[nodiscard]] glm::ivec2 getSize() const override;
+
+  void setWidth(int width) override;
+  void setHeight(int height) override;
+
  protected:
   [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
  private:
   void resetTextGeometryCache();
+
+  std::tuple<std::vector<VertexPos3Norm3UV>,
+             std::vector<uint16_t>, glm::ivec2> getStringGeometryStoreParams(const std::string& str) const;
 
   GLGeometryStore* updateAndGetGeometryStore();
   GLGeometryStore* createStringGeometryBuffer(const std::string& str);

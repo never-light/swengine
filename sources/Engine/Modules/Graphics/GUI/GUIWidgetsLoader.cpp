@@ -133,10 +133,14 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
   pugi::xml_attribute sizeAttr = widgetNode.attribute("size");
 
   if (sizeAttr) {
-    widget->setSize(StringUtils::stringToIVec2(sizeAttr.as_string()));
-  }
-  else {
-    widget->setSize(parentWidget->getSize());
+    std::string sizeAttrValue = sizeAttr.as_string();
+
+    if (sizeAttrValue == "inherit") {
+      widget->setSize(parentWidget->getSize());
+    }
+    else {
+      widget->setSize(StringUtils::stringToIVec2(sizeAttr.as_string()));
+    }
   }
 
   // Origin attribute

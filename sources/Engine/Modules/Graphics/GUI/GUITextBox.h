@@ -41,4 +41,3 @@ class GUITextBox : public GUIWidgetRect {
   std::shared_ptr<BitmapFont> m_font;
   std::shared_ptr<GUIText> m_text;
 };
-

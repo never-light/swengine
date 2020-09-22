@@ -88,3 +88,43 @@ void InventoryItemComponent::setOwner(const GameObject& owner)
 {
   m_owner = owner;
 }
+
+void InventoryItemComponent::setUseCallback(const InventoryItemComponent::ActionCallback& callback)
+{
+  m_useCallback = callback;
+}
+
+InventoryItemComponent::ActionCallback InventoryItemComponent::getUseCallback() const
+{
+  return m_useCallback;
+}
+
+void InventoryItemComponent::setDropCallback(const InventoryItemComponent::ActionCallback& callback)
+{
+  m_dropCallback = callback;
+}
+
+InventoryItemComponent::ActionCallback InventoryItemComponent::getDropCallback() const
+{
+  return m_dropCallback;
+}
+
+void InventoryItemComponent::setTakeCallback(const InventoryItemComponent::ActionCallback& callback)
+{
+  m_takeCallback = callback;
+}
+
+InventoryItemComponent::ActionCallback InventoryItemComponent::getTakeCallback() const
+{
+  return m_takeCallback;
+}
+
+void InventoryItemComponent::setReadCallback(const InventoryItemComponent::ActionCallback& callback)
+{
+  m_readCallback = callback;
+}
+
+InventoryItemComponent::ActionCallback InventoryItemComponent::getReadCallback() const
+{
+  return m_readCallback;
+}

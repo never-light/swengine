@@ -21,6 +21,7 @@ struct GameObjectData {
 
   size_t revision{};
   std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+  bool isGhost{};
 };
 
 template<class T>
@@ -72,9 +73,12 @@ class GameObject {
   [[nodiscard]] inline GameObjectId getId() const;
 
   /*!
-   * \brief Check whether the game object was destroyed
+   * @brief Check whether the game object is alive
    *
-   * \return
+   * Aliveness status should be used to check whether the object
+   * is ready for processing by game systems
+   *
+   * @return
    */
   [[nodiscard]] inline bool isAlive() const;
 
@@ -91,6 +95,21 @@ class GameObject {
  * \return game object's revision
  */
   [[nodiscard]] inline size_t getRevision() const;
+
+  /*!
+   * @brief Checks that the game object is formed (has ID)
+   * @return Object formation status
+   */
+  [[nodiscard]] inline bool isFormed() const;
+
+  /*!
+   * @brief Checks whether the game object is valid
+   *
+   * Object is valid if it is formed and was not deleted
+   *
+   * @return Object validity status
+   */
+  [[nodiscard]] inline bool isValid() const;
 
  private:
   GameObjectId m_id;
