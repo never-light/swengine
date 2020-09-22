@@ -5,8 +5,10 @@
 #include "GLGraphicsContext.h"
 
 #include <spdlog/spdlog.h>
-#include "Exceptions/exceptions.h"
+
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Exceptions/exceptions.h"
+#include "options.h"
 
 GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
   : m_window(window)
@@ -307,6 +309,13 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source,
   ARG_UNUSED(length);
   ARG_UNUSED(userParam);
 
+  // Skip some debug information from GPU
+  if constexpr (!LOG_GPU_ADDITIONAL_DEBUG_INFO_MESSAGES) {
+    if (id == 131185) {
+      return;
+    }
+  }
+
   std::string debugMessage = "[OpenGL] ";
 
   switch (type) {
@@ -323,10 +332,13 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source,
       debugMessage += "portability";
       break;
     case GL_DEBUG_TYPE_PERFORMANCE:
-      debugMessage += "perfomance";
+      debugMessage += "performance";
       break;
     case GL_DEBUG_TYPE_OTHER:
       debugMessage += "common";
+      break;
+    default:
+      debugMessage += fmt::format("Unknown ({})", type);
       break;
   }
 
@@ -341,6 +353,9 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source,
       break;
     case GL_DEBUG_SEVERITY_HIGH:
       debugMessage += "high";
+      break;
+    default:
+      debugMessage += fmt::format("Unknown ({})", severity);
       break;
   }
 
@@ -359,6 +374,9 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source,
       spdlog::warn(debugMessage);
       break;
     case GL_DEBUG_TYPE_OTHER:
+      spdlog::debug(debugMessage);
+      break;
+    default:
       spdlog::debug(debugMessage);
       break;
   }

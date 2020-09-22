@@ -11,6 +11,9 @@
 #include "PlayerControlSystem.h"
 #include "FreeCameraControlSystem.h"
 
+#include "Game/Inventory/InventoryUI.h"
+#include "Game/Inventory/InventoryControlSystem.h"
+
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
   Game(std::shared_ptr<GameWorld> gameWorld,
@@ -19,7 +22,9 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
     std::shared_ptr<ResourceManager> resourceManager,
-    std::shared_ptr<LevelsManager> levelsManager);
+    std::shared_ptr<LevelsManager> levelsManager,
+    std::shared_ptr<GUILayout> gameUILayout,
+    std::shared_ptr<InventoryUI> inventoryUILayout);
 
   ~Game() override = default;
 
@@ -46,6 +51,10 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
   std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
+  std::shared_ptr<InventoryControlSystem> m_inventoryControlSystem;
+
   std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
   std::shared_ptr<GameSystem> m_activeCameraControlSystem;
+
+  std::shared_ptr<GUILayout> m_gameUILayout;
 };

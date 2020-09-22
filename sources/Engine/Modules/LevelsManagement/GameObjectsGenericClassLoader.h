@@ -19,6 +19,11 @@ class GameObjectsGenericClassLoader : public GameObjectsClassLoader {
 
   void onComponentLoaded(GameObject& gameObject, const std::string& componentName) override;
 
+  void loadComponent(
+    GameObject& gameObject,
+    const pugi::xml_node& objectNode,
+    const std::string& componentName) override;
+
  private:
   std::weak_ptr<LevelsManager> m_levelsManager;
 };

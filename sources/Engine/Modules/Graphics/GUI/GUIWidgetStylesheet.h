@@ -29,6 +29,7 @@ struct GUIWidgetStylesheetProperty {
     std::shared_ptr<GLTexture>,
     std::shared_ptr<BitmapFont>,
     glm::vec4,
+    glm::ivec2,
     int,
     float>;
 

@@ -104,9 +104,11 @@ void GUIText::resetTextGeometryCache()
   m_needTextGeometryUpdate = true;
 }
 
-GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
+std::tuple<std::vector<VertexPos3Norm3UV>,
+           std::vector<uint16_t>, glm::ivec2> GUIText::getStringGeometryStoreParams(const std::string& str) const
 {
-  SW_ASSERT(!str.empty());
+  SW_ASSERT(m_font != nullptr && "It is required to set font for the text line before rendering");
+  SW_ASSERT(!str.empty() && "It is impossible to create geometry buffer for the empty text string");
 
   std::vector<VertexPos3Norm3UV> vertices;
   std::vector<uint16_t> indices;
@@ -218,9 +220,16 @@ GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
     maxHeight = std::max(vertexHeight, maxHeight);
   }
 
-  setSize({cursorPosition, maxHeight});
+  return {vertices, indices, {cursorPosition, maxHeight}};
+}
 
-  return new GLGeometryStore(vertices, indices);
+GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
+{
+  auto geometryStoreParams = getStringGeometryStoreParams(str);
+
+  GUIWidget::setSize(std::get<2>(geometryStoreParams));
+
+  return new GLGeometryStore(std::get<0>(geometryStoreParams), std::get<1>(geometryStoreParams));
 }
 
 [[nodiscard]] glm::mat4 GUIText::updateTransformationMatrix()
@@ -293,6 +302,39 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
     else {
       SW_ASSERT(false);
     }
-
   });
+
+  if (m_font != nullptr && m_fontSize > 0 && !m_text.empty()) {
+    RETURN_VALUE_UNUSED(updateAndGetGeometryStore());
+  }
+}
+
+void GUIText::setSize(const glm::ivec2& size)
+{
+  ARG_UNUSED(size);
+  SW_ASSERT(false && "It is forbidden to manually set size for GUIText widget");
+}
+
+glm::ivec2 GUIText::getSize() const
+{
+  if (m_needTextGeometryUpdate) {
+    auto geometryStoreParams = getStringGeometryStoreParams(m_text);
+
+    return std::get<2>(geometryStoreParams);
+  }
+  else {
+    return GUIWidget::getSize();
+  }
+}
+
+void GUIText::setWidth(int width)
+{
+  ARG_UNUSED(width);
+  SW_ASSERT(false && "It is forbidden to manually set width for GUIText widget");
+}
+
+void GUIText::setHeight(int height)
+{
+  ARG_UNUSED(height);
+  SW_ASSERT(false && "It is forbidden to manually set height for GUIText widget");
 }

@@ -17,10 +17,17 @@
 
 #include "PlayerComponent.h"
 
+// TODO: PlayerControlSystem class methods uses some magic numbers.
+// Consider replacing them with constants or moving to configuration files
+
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+  std::shared_ptr<GUILayout> playerUILayout,
+  std::shared_ptr<InventoryUI> inventoryUILayout)
   : m_inputModule(std::move(inputModule)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState))
+    m_sharedGraphicsState(std::move(sharedGraphicsState)),
+    m_uiLayout(std::move(playerUILayout)),
+    m_inventoryUI(std::move(inventoryUILayout))
 {
 
 }
@@ -46,7 +53,10 @@ void PlayerControlSystem::configure()
       skeletalAnimationComponent.getAnimationStatesMachineRef().getStateIdByName("idle");
 
     skeletalAnimationComponent.getAnimationStatesMachineRef().setActiveState(m_walkAnimationStateId);
+
+    m_inventoryUI->setInventoryOwner(m_playerObject);
   }
+
 }
 
 void PlayerControlSystem::unconfigure()
@@ -55,39 +65,47 @@ void PlayerControlSystem::unconfigure()
 
 void PlayerControlSystem::activate()
 {
-  m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
-  m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
-  m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
-  m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+  m_uiLayout->addChildWidget(m_inventoryUI);
+  m_inventoryUI->hide();
 
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  getGameWorld()->subscribeEventsListener<MouseWheelEvent>(this);
-  getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
-
   m_sharedGraphicsState->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
+
+  getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
+  getGameWorld()->subscribeEventsListener<KeyboardEvent>(this);
+
+  enableMovementControl();
 }
 
 void PlayerControlSystem::deactivate()
 {
+  if (m_isMovementControlEnabled) {
+    disableMovementControl();
+  }
+
+  getGameWorld()->unsubscribeEventsListener<KeyboardEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
+
+  m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
+
+  m_uiLayout->removeChildWidget(m_inventoryUI);
+
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_sharedGraphicsState->setActiveCamera(nullptr);
 
-  getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
-  getGameWorld()->unsubscribeEventsListener<MouseWheelEvent>(this);
-
-  m_inputModule->unregisterAction("forward");
-  m_inputModule->unregisterAction("backward");
-  m_inputModule->unregisterAction("left");
-  m_inputModule->unregisterAction("right");
-
-  m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 }
 
 void PlayerControlSystem::update(float delta)
 {
+  // TODO: getMouseDelta usage is unobvious and could lead to side effects. Fix it.
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
+
+  if (!m_isMovementControlEnabled) {
+    return;
+  }
+
   glm::vec2 mouseDelta(mouseDeltaTemp.x, mouseDeltaTemp.y);
 
   mouseDelta *= -0.25;
@@ -186,6 +204,10 @@ EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const
 
 void PlayerControlSystem::fixedUpdate(float delta)
 {
+  if (!m_isMovementControlEnabled) {
+    return;
+  }
+
   auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   auto& playerCameraTransform = *getPlayerCamera().getTransform();
   // auto& playerTransform = m_playerObject.getComponent<TransformComponent>().getTransform();
@@ -232,4 +254,69 @@ void PlayerControlSystem::fixedUpdate(float delta)
   else {
     playerKinematicCharacterComponent.setPositionIncrement(glm::vec3(0.0f));
   }
+}
+
+void PlayerControlSystem::enableMovementControl()
+{
+  m_isMovementControlEnabled = true;
+
+  m_inputModule->registerAction("forward", KeyboardInputAction(SDLK_w));
+  m_inputModule->registerAction("backward", KeyboardInputAction(SDLK_s));
+  m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
+  m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
+
+  getGameWorld()->subscribeEventsListener<MouseWheelEvent>(this);
+}
+
+void PlayerControlSystem::disableMovementControl()
+{
+  m_isMovementControlEnabled = false;
+
+  getGameWorld()->unsubscribeEventsListener<MouseWheelEvent>(this);
+
+  m_inputModule->unregisterAction("forward");
+  m_inputModule->unregisterAction("backward");
+  m_inputModule->unregisterAction("left");
+  m_inputModule->unregisterAction("right");
+
+  auto& playerKinematicCharacterComponent = *m_playerObject.getComponent<KinematicCharacterComponent>().get();
+  playerKinematicCharacterComponent.setPositionIncrement(glm::vec3(0.0f));
+}
+
+void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)
+{
+  disableMovementControl();
+  m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
+
+  m_isUIModeActive = true;
+
+  window->show();
+}
+
+void PlayerControlSystem::hideGUIWindow(std::shared_ptr<GUILayout> window)
+{
+  window->hide();
+
+  m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
+  enableMovementControl();
+
+  m_isUIModeActive = false;
+}
+
+EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+{
+  ARG_UNUSED(gameWorld);
+
+  if (event.type == KeyboardEventType::KeyDown) {
+    if (event.keyCode == SDLK_i) {
+      if (m_inventoryUI->isShown()) {
+        hideGUIWindow(m_inventoryUI);
+      }
+      else {
+        showGUIWindow(m_inventoryUI);
+      }
+    }
+  }
+
+  return EventProcessStatus::Processed;
 }

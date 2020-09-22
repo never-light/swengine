@@ -11,7 +11,11 @@
 GUIWidget::GUIWidget(std::string className)
   : m_className(std::move(className))
 {
-
+  auto& defaultVisualParameters = getVisualParameters(GUIWidgetVisualState::Default);
+  defaultVisualParameters.setBackgroundImage(nullptr);
+  defaultVisualParameters.setBackgroundColor(glm::vec4(0.0f));
+  defaultVisualParameters.setBorderColor(glm::vec4(0.0f));
+  defaultVisualParameters.setBorderWidth(0);
 }
 
 void GUIWidget::setOrigin(const glm::ivec2& origin)
@@ -32,7 +36,7 @@ glm::ivec2 GUIWidget::getAbsoluteOrigin() const
   std::shared_ptr<GUIWidget> parent = m_parent.lock();
 
   if (parent != nullptr) {
-    origin = origin + parent->getOrigin();
+    origin = origin + parent->getAbsoluteOrigin();
   }
 
   return origin;
@@ -259,6 +263,8 @@ void GUIWidget::hideChildren(GUIWidget* parent)
   for (auto& childWidget : parent->getChildrenWidgets()) {
     hideChildren(childWidget.get());
   }
+
+  parent->onHide();
 }
 
 void GUIWidget::showChildren(GUIWidget* parent)
@@ -268,6 +274,8 @@ void GUIWidget::showChildren(GUIWidget* parent)
   for (auto& childWidget : parent->getChildrenWidgets()) {
     showChildren(childWidget.get());
   }
+
+  parent->onShow();
 }
 
 glm::mat4 GUIWidget::updateTransformationMatrix()
@@ -375,4 +383,14 @@ bool GUIWidget::isPathSatisfiesSelector(
   }
 
   return false;
+}
+
+void GUIWidget::onShow()
+{
+
+}
+
+void GUIWidget::onHide()
+{
+
 }

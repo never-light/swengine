@@ -132,7 +132,7 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
   GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
 
   if (widget->isHovered()) {
-    visualState = GUIWidgetVisualState::Hover;;
+    visualState = GUIWidgetVisualState::Hover;
   }
 
   if (widget->hasFocus()) {
@@ -331,4 +331,9 @@ GUIWidgetStylesheet GUISystem::loadStylesheet(const std::string& stylesheetPath)
   spdlog::debug("Load GUI stylesheet from file {}", stylesheetPath);
 
   return m_widgetsLoader->loadStylesheet(stylesheetPath);
+}
+
+GUIWidgetsLoader* GUISystem::getWidgetsLoader() const
+{
+  return m_widgetsLoader.get();
 }

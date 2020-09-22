@@ -64,11 +64,12 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   [[nodiscard]] glm::ivec2 getAbsoluteOrigin() const;
 
-  void setSize(const glm::ivec2& size);
-  [[nodiscard]] glm::ivec2 getSize() const;
+  virtual void setSize(const glm::ivec2& size);
+  [[nodiscard]] virtual glm::ivec2 getSize() const;
 
-  void setWidth(int width);
-  void setHeight(int height);
+  // TODO: remove this methods
+  virtual void setWidth(int width);
+  virtual void setHeight(int height);
 
   void addChildWidget(std::shared_ptr<GUIWidget> widget);
   void removeChildWidget(const std::shared_ptr<GUIWidget>& widget);
@@ -116,6 +117,10 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   virtual void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule);
 
   void applyStylesheet(const GUIWidgetStylesheet& stylesheet);
+
+ protected:
+  virtual void onShow();
+  virtual void onHide();
 
  protected:
   void resetTransformationCache();

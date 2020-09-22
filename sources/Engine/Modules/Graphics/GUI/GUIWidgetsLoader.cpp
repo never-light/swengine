@@ -56,6 +56,12 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
       return propertyNode.attribute("value").as_float();
     });
 
+  // Size2d property
+  registerPropertyTypeParser("size2d",
+    [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
+      return StringUtils::stringToIVec2(propertyNode.attribute("value").as_string());
+    });
+
   registerWidgetLoader("layout", WidgetClassLoadingData::genGenericWidgetLoader<GUILayout>());
   registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
   registerWidgetLoader("label", WidgetClassLoadingData::genGenericWidgetLoader<GUIText>());
@@ -127,10 +133,14 @@ std::shared_ptr<GUILayout> GUIWidgetsLoader::loadScheme(const std::string& schem
   pugi::xml_attribute sizeAttr = widgetNode.attribute("size");
 
   if (sizeAttr) {
-    widget->setSize(StringUtils::stringToIVec2(sizeAttr.as_string()));
-  }
-  else {
-    widget->setSize(parentWidget->getSize());
+    std::string sizeAttrValue = sizeAttr.as_string();
+
+    if (sizeAttrValue == "inherit") {
+      widget->setSize(parentWidget->getSize());
+    }
+    else {
+      widget->setSize(StringUtils::stringToIVec2(sizeAttr.as_string()));
+    }
   }
 
   // Origin attribute
