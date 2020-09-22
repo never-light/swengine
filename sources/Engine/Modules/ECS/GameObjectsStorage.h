@@ -157,7 +157,8 @@ class GameObjectsStorage {
       m_gameObjects.push_back({.id = gameObjectId,
         .name = std::string(),
         .revision = 0,
-        .componentsMask = 0});
+        .componentsMask = 0,
+        .isGhost = false});
     }
     else {
       gameObjectId = *m_freeGameObjectsIds.rbegin();
@@ -168,7 +169,8 @@ class GameObjectsStorage {
       m_gameObjects[gameObjectId] = {.id = gameObjectId,
         .name = std::string(),
         .revision = oldRevision + 1,
-        .componentsMask = 0};
+        .componentsMask = 0,
+        .isGhost = false};
     }
 
     return GameObject(gameObjectId, m_gameObjects[gameObjectId].revision, this);

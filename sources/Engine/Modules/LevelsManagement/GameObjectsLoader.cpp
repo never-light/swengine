@@ -36,42 +36,51 @@ GameObjectsLoader::GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
   : m_gameWorld(std::move(gameWorld)),
     m_resourceManager(std::move(resourceManager))
 {
-  registerGenericComponentLoader("transform",
+  registerComponentName<TransformComponent>("transform");
+  registerComponentName<MeshRendererComponent>("visual");
+  registerComponentName<RigidBodyComponent>("rigid_body");
+  registerComponentName<EnvironmentComponent>("environment");
+  registerComponentName<AudioSourceComponent>("audio_source");
+  registerComponentName<CameraComponent>("camera");
+  registerComponentName<SkeletalAnimationComponent>("animation");
+  registerComponentName<KinematicCharacterComponent>("kinematic_character");
+
+  registerGenericComponentLoader<TransformComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadTransformData(object, objectNode);
     });
 
-  registerGenericComponentLoader("visual",
+  registerGenericComponentLoader<MeshRendererComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadVisualData(object, objectNode);
     });
 
-  registerGenericComponentLoader("rigid_body",
+  registerGenericComponentLoader<RigidBodyComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadRigidBodyData(object, objectNode);
     });
 
-  registerGenericComponentLoader("environment",
+  registerGenericComponentLoader<EnvironmentComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadEnvironmentData(object, objectNode);
     });
 
-  registerGenericComponentLoader("audio_source",
+  registerGenericComponentLoader<AudioSourceComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadAudioSourceData(object, objectNode);
     });
 
-  registerGenericComponentLoader("camera",
+  registerGenericComponentLoader<CameraComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadCameraData(object, objectNode);
     });
 
-  registerGenericComponentLoader("animation",
+  registerGenericComponentLoader<SkeletalAnimationComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadAnimationData(object, objectNode);
     });
 
-  registerGenericComponentLoader("kinematic_character",
+  registerGenericComponentLoader<KinematicCharacterComponent>(
     [this](GameObject& object, const pugi::xml_node& objectNode) {
       loadKinematicCharacterData(object, objectNode);
     });
@@ -332,4 +341,14 @@ void GameObjectsLoader::loadKinematicCharacterData(GameObject& gameObject, const
 
   auto& objectTransform = *gameObject.getComponent<TransformComponent>().get();
   kinematicCharacterComponent.setTransform(objectTransform.getTransform());
+}
+
+void GameObjectsLoader::loadGameObjectComponent(const pugi::xml_node& objectNode,
+  const std::string& componentName,
+  GameObject object)
+{
+  std::string objectClassName = objectNode.attribute("class").as_string();
+  auto& classLoader = m_classesLoaders.at(objectClassName);
+
+  classLoader->loadComponent(object, objectNode, componentName);
 }

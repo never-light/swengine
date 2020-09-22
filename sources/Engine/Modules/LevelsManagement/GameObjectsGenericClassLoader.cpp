@@ -37,3 +37,10 @@ void GameObjectsGenericClassLoader::onComponentLoaded(GameObject& gameObject, co
   ARG_UNUSED(gameObject);
   ARG_UNUSED(componentName);
 }
+
+void GameObjectsGenericClassLoader::loadComponent(GameObject& gameObject,
+  const pugi::xml_node& objectNode,
+  const std::string& componentName)
+{
+  loadComponent(gameObject, objectNode.child(componentName.c_str()));
+}

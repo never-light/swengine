@@ -5,8 +5,11 @@
 #include "GUIWidget.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
-class GUIButton : public GUIWidget {
+class GUIButton : public GUIWidgetRect {
  public:
   GUIButton();
+
+  void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;
+
 };
 

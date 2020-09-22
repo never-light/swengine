@@ -20,7 +20,7 @@ void GLCheckNewError(const char* file, size_t line, const char* function)
 {
   bool isErrorsDetected = false;
 
-  std::string errorsMessages = "OpenGL errors:/n";
+  std::string errorsMessages = "OpenGL errors: ";
 
   GLenum errorCode;
   while ((errorCode = glGetError()) != GL_NO_ERROR) {
@@ -47,6 +47,9 @@ void GLCheckNewError(const char* file, size_t line, const char* function)
         break;
       case GL_INVALID_FRAMEBUFFER_OPERATION:
         errorType = "INVALID_FRAMEBUFFER_OPERATION";
+        break;
+      default:
+        errorType = fmt::format("Unknown ({})", errorType);
         break;
     }
 

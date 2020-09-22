@@ -6,14 +6,20 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
 #include <Engine/Modules/Input/InputModule.h>
 
+#include "Game/Inventory/InventoryUI.h"
+
 #include "PlayerComponent.h"
 
 class PlayerControlSystem : public GameSystem,
                             public EventsListener<MouseWheelEvent>,
-                            public EventsListener<InputActionToggleEvent> {
+                            public EventsListener<InputActionToggleEvent>,
+                            public EventsListener<KeyboardEvent> {
  public:
-  explicit PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+  explicit PlayerControlSystem(
+    std::shared_ptr<InputModule> inputModule,
+    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<GUILayout> playerUILayout,
+    std::shared_ptr<InventoryUI> inventoryUILayout);
   ~PlayerControlSystem() override = default;
 
   void configure() override;
@@ -29,9 +35,16 @@ class PlayerControlSystem : public GameSystem,
 
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
+
+  void disableMovementControl();
+  void enableMovementControl();
 
  private:
   [[nodiscard]] Camera& getPlayerCamera();
+
+  void showGUIWindow(std::shared_ptr<GUILayout> window);
+  void hideGUIWindow(std::shared_ptr<GUILayout> window);
 
  private:
   GameObject m_playerObject;
@@ -41,5 +54,11 @@ class PlayerControlSystem : public GameSystem,
 
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+
+  std::shared_ptr<GUILayout> m_uiLayout;
+  std::shared_ptr<InventoryUI> m_inventoryUI;
+
+  bool m_isMovementControlEnabled{};
+  bool m_isUIModeActive{};
 };
 

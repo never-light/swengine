@@ -25,6 +25,10 @@ void InputModule::registerAction(const std::string& actionName,
   InputAction* actionClone = action.clone();
   actionClone->m_name = actionName;
 
+  // TODO[HIGH]: get rid of vector usage and especially linear search of actions in vector.
+  //  Replace it with actions pool or something with ability to perform fast search.
+  //  Probably use different pools or raw vectors for different actions types.
+  //  Get rid of dynamic memory allocations and dynamic polymorphism here.
   m_inputActions.push_back(actionClone);
 
   m_inputActionsState.insert({actionName, InputActionState::Inactive});
@@ -35,8 +39,8 @@ void InputModule::unregisterAction(const std::string& actionName)
   auto inputActionStateIt = m_inputActionsState.find(actionName);
 
   if (inputActionStateIt == m_inputActionsState.end()) {
-    spdlog::warn("Input: Failed to remove nonexistent action");
-
+    spdlog::error("Input: Failed to remove nonexistent action {}", actionName);
+    SW_ASSERT(false);
     return;
   }
 
@@ -101,6 +105,8 @@ MousePosition InputModule::getMousePosition() const
 
 MousePosition InputModule::getMouseDelta() const
 {
+  // TODO: getMouseDelta usage is unobvious and could lead to side effects. Fix it.
+  // Call SDL_GetRelativeMouseState only once per frame and store delta somewhere
   MousePosition position{};
   SDL_GetRelativeMouseState(&position.x, &position.y);
 
@@ -176,14 +182,17 @@ void InputModule::toggleActionState(const InputAction& action, InputActionState 
 {
   for (InputAction* currentAction : m_inputActions) {
     if (currentAction->equals(&action)) {
-      m_inputActionsState[currentAction->m_name] = state;
+      if (m_inputActionsState[currentAction->m_name] != state) {
 
-      InputActionToggleEvent event;
-      event.actionName = currentAction->m_name;
-      event.newState = state;
+        m_inputActionsState[currentAction->m_name] = state;
 
-      for (const auto& eventsListener : m_eventsListeners) {
-        eventsListener->processInputActionToggleEvent(event);
+        InputActionToggleEvent event;
+        event.actionName = currentAction->m_name;
+        event.newState = state;
+
+        for (const auto& eventsListener : m_eventsListeners) {
+          eventsListener->processInputActionToggleEvent(event);
+        }
       }
     }
   }

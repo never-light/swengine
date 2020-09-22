@@ -6,13 +6,19 @@
 
 #include <utility>
 
-GameScreen::GameScreen(std::shared_ptr<InputModule> inputModule,
+GameScreen::GameScreen(
+  std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
-  std::shared_ptr<LevelsManager> levelsManager)
+  std::shared_ptr<LevelsManager> levelsManager,
+  std::shared_ptr<GUILayout> debugGUILayout,
+  std::shared_ptr<InventoryUI> inventoryUILayout)
   : BaseGameScreen(GameScreenType::Game),
     m_inputModule(std::move(inputModule)),
     m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
-    m_levelsManager(std::move(levelsManager))
+    m_levelsManager(std::move(levelsManager)),
+    m_gameGUILayout(std::make_shared<GUILayout>()),
+    m_debugGUILayout(std::move(debugGUILayout)),
+    m_inventoryUILayout(std::move(inventoryUILayout))
 {
 }
 
@@ -40,6 +46,11 @@ void GameScreen::deactivate()
 
 void GameScreen::load()
 {
+  auto& screenFramebuffer = m_graphicsModule->getGraphicsContext()->getDefaultFramebuffer();
+  m_gameGUILayout->setSize({screenFramebuffer.getWidth(), screenFramebuffer.getHeight()});
+
+  getGUILayout()->addChildWidget(m_gameGUILayout);
+
   initializeGame();
   initializeDebugGUI();
 }
@@ -47,7 +58,9 @@ void GameScreen::load()
 void GameScreen::unload()
 {
   deinitializeGame();
-  deinitialzieDebugGUI();
+  deinitializeDebugGUI();
+
+  getGUILayout()->removeChildWidget(m_gameGUILayout);
 }
 
 void GameScreen::update(float delta)
@@ -101,7 +114,9 @@ void GameScreen::initializeGame()
     m_graphicsModule->getGraphicsContext(),
     m_sharedGraphicsState,
     m_resourceManager,
-    m_levelsManager);
+    m_levelsManager,
+    m_gameGUILayout,
+    m_inventoryUILayout);
 
   spdlog::info("Game is loaded...");
 }
@@ -115,36 +130,24 @@ void GameScreen::deinitializeGame()
 
 void GameScreen::initializeDebugGUI()
 {
-  m_debugGUILayout = std::make_shared<GUILayout>();
-  m_debugGUILayout->setSize({150, 120});
-  m_debugGUILayout->setOrigin({getGUILayout()->getSize().x - 150, 0});
-  m_debugGUILayout->setBackgroundColor({0.0f, 1.0f, 0.0f, 0.3f});
+  m_gameGUILayout->addChildWidget(m_debugGUILayout);
+  m_primivitesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
+    ->findChildByName("game_debug_ui_layout_frame_stat_primitives_count"));
+  m_subMeshesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
+    ->findChildByName("game_debug_ui_layout_frame_stat_meshes_count"));
+  m_culledSubMeshesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
+    ->findChildByName("game_debug_ui_layout_frame_stat_culled_meshes_count"));
 
-  getGUILayout()->addChildWidget(m_debugGUILayout);
-
-  std::shared_ptr<BitmapFont> textFont = m_resourceManager->
-    getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
-
-  m_primivitesCountText = std::make_shared<GUIText>(textFont, "Hello1");
-  m_primivitesCountText->setFontSize(9);
-  m_debugGUILayout->addChildWidget(m_primivitesCountText);
-
-  m_primivitesCountText->setOrigin({5, 10});
-
-  m_subMeshesCountText = std::make_shared<GUIText>(textFont, "Hello2");
-  m_subMeshesCountText->setFontSize(9);
-  m_debugGUILayout->addChildWidget(m_subMeshesCountText);
-
-  m_subMeshesCountText->setOrigin({5, 40});
-
-  m_culledSubMeshesCountText = std::make_shared<GUIText>(textFont, "Hello3");
-  m_culledSubMeshesCountText->setFontSize(9);
-  m_debugGUILayout->addChildWidget(m_culledSubMeshesCountText);
-
-  m_culledSubMeshesCountText->setOrigin({5, 70});
+  SW_ASSERT(m_primivitesCountText != nullptr &&
+    m_subMeshesCountText != nullptr &&
+    m_culledSubMeshesCountText != nullptr);
 }
 
-void GameScreen::deinitialzieDebugGUI()
+void GameScreen::deinitializeDebugGUI()
 {
-  getGUILayout()->removeChildWidget(m_debugGUILayout);
+  m_primivitesCountText.reset();
+  m_subMeshesCountText.reset();
+  m_subMeshesCountText.reset();
+
+  m_gameGUILayout->removeChildWidget(m_debugGUILayout);
 }

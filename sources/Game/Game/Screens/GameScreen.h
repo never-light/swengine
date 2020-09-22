@@ -7,13 +7,18 @@
 #include "Game/PlayerControlSystem.h"
 #include "Game/Game.h"
 
+#include "Game/Inventory/InventoryUI.h"
+
 class GameScreen : public BaseGameScreen,
   public EventsListener<InputActionToggleEvent>,
   public EventsListener<GameConsoleChangeVisibilityEvent> {
  public:
-  GameScreen(std::shared_ptr<InputModule> inputModule,
+  GameScreen(
+    std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
-    std::shared_ptr<LevelsManager> levelsManager);
+    std::shared_ptr<LevelsManager> levelsManager,
+    std::shared_ptr<GUILayout> debugGUILayout,
+    std::shared_ptr<InventoryUI> inventoryUILayout);
   ~GameScreen() override;
 
   void activate() override;
@@ -33,7 +38,7 @@ class GameScreen : public BaseGameScreen,
   void deinitializeGame();
 
   void initializeDebugGUI();
-  void deinitialzieDebugGUI();
+  void deinitializeDebugGUI();
 
  private:
   std::shared_ptr<InputModule> m_inputModule;
@@ -42,7 +47,9 @@ class GameScreen : public BaseGameScreen,
 
   std::unique_ptr<Game> m_game;
 
+  std::shared_ptr<GUILayout> m_gameGUILayout;
   std::shared_ptr<GUILayout> m_debugGUILayout;
+  std::shared_ptr<InventoryUI> m_inventoryUILayout;
 
   std::shared_ptr<GUIText> m_primivitesCountText;
   std::shared_ptr<GUIText> m_subMeshesCountText;
