@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "Modules/Graphics/GraphicsSystem/GraphicsSceneManagementSystem.h"
 #include "Modules/Math/MathUtils.h"
 #include "Utility/files.h"
 
@@ -20,28 +21,22 @@ LevelsManager::LevelsManager(std::shared_ptr<GameWorld> gameWorld,
 
 LevelsManager::~LevelsManager()
 {
-  if (m_currentLevel.isAlive()) {
-    unloadCurrentLevel();
+  if (m_currentLevelData != nullptr) {
+    unloadLevel();
   }
 }
 
-void LevelsManager::unloadCurrentLevel()
+void LevelsManager::unloadLevel()
 {
-  SW_ASSERT(m_currentLevel.isAlive());
+  SW_ASSERT(m_currentLevelData != nullptr);
 
-  m_gameWorld->emitEvent(LevelUnloadEvent(m_currentLevel));
+  m_gameWorld->emitEvent<UnloadSceneCommandEvent>(UnloadSceneCommandEvent{});
 
-  for (auto levelObject : m_currentLevel.getComponent<LevelComponent>()->getStaticObjectsList()) {
-    m_gameWorld->removeGameObject(levelObject);
+  for (GameObject object : m_gameWorld->all()) {
+    m_gameWorld->removeGameObject(object);
   }
 
-  for (auto levelObject : m_currentLevel.getComponent<LevelComponent>()->getDynamicObjectsList()) {
-    m_gameWorld->removeGameObject(levelObject);
-  }
-
-  m_gameWorld->removeGameObject(m_currentLevel);
-
-  m_currentLevel = GameObject{};
+  m_currentLevelData.reset();
 }
 
 std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelStaticObjects(
@@ -114,7 +109,7 @@ std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelDynamicObjects(
 
 void LevelsManager::loadLevel(const std::string& name)
 {
-  SW_ASSERT(!m_currentLevel.isAlive());
+  SW_ASSERT(m_currentLevelData == nullptr);
 
   spdlog::info("Load level {}", name);
 
@@ -124,14 +119,12 @@ void LevelsManager::loadLevel(const std::string& name)
   auto staticObjectsData = loadLevelStaticObjects(name, levelStaticObjects);
   auto dynamicObjectsData = loadLevelDynamicObjects(name, levelDynamicObjects);
 
-  GameObject levelGameObject = m_gameWorld->createGameObject();
-  RETURN_VALUE_UNUSED(levelGameObject.addComponent<LevelComponent>(
-    std::move(levelStaticObjects),
-    std::move(levelDynamicObjects),
-    staticObjectsData,
-    dynamicObjectsData));
+  m_currentLevelData = std::make_shared<LevelData>(staticObjectsData, dynamicObjectsData);
 
-  m_currentLevel = levelGameObject;
+  std::vector<GameObject> sceneObjects = levelStaticObjects;
+  sceneObjects.insert(sceneObjects.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
+
+  m_gameWorld->emitEvent<LoadSceneCommandEvent>(LoadSceneCommandEvent{.sceneObjects=sceneObjects});
 
   spdlog::info("Level {} is loaded", name);
 }

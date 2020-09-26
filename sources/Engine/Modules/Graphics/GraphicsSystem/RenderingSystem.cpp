@@ -7,9 +7,9 @@
 #include <utility>
 
 RenderingSystem::RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  std::shared_ptr<GraphicsScene> graphicsScene)
   : m_graphicsContext(std::move(graphicsContext)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState))
+    m_graphicsScene(std::move(graphicsScene))
 {
 
 }

@@ -11,10 +11,12 @@
 
 #include "TransformComponent.h"
 #include "MeshRendererComponent.h"
+#include "DebugPainter.h"
 
-MeshRenderingSystem::MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : RenderingSystem(std::move(graphicsContext), std::move(sharedGraphicsState))
+MeshRenderingSystem::MeshRenderingSystem(
+  std::shared_ptr<GLGraphicsContext> graphicsContext,
+  std::shared_ptr<GraphicsScene> graphicsScene)
+  : RenderingSystem(std::move(graphicsContext), std::move(graphicsScene))
 {
 
 }
@@ -40,24 +42,31 @@ void MeshRenderingSystem::renderForward()
 
 void MeshRenderingSystem::renderDeferred()
 {
-  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
+  static std::vector<GameObject> visibleObjects;
+  visibleObjects.reserve(1024);
+  visibleObjects.clear();
+
+  m_graphicsScene->queryVisibleObjects(visibleObjects);
+
+  auto& sharedGraphicsState = *m_graphicsScene->getSharedGraphicsState();
+  auto& frameStats = sharedGraphicsState.getFrameStats();
+
+  frameStats.increaseCulledSubMeshesCount(
+    m_graphicsScene->getDrawableObjectsCount() - visibleObjects.size());
+
+  for (GameObject obj : visibleObjects) {
+    auto& transformComponent = *obj.getComponent<TransformComponent>().get();
+    auto& transform = transformComponent.getTransform();
+
     auto meshComponent = obj.getComponent<MeshRendererComponent>();
 
-    if (meshComponent->isCulled()) {
-      continue;
-    }
-
     Mesh* mesh = meshComponent->getMeshInstance().get();
-
     SW_ASSERT(mesh != nullptr);
 
-    Transform& transform = obj.getComponent<TransformComponent>()->getTransform();
-
     const size_t subMeshesCount = mesh->getSubMeshesCount();
-
     SW_ASSERT(subMeshesCount != 0);
 
-    m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(subMeshesCount);
+    frameStats.increaseSubMeshesCount(subMeshesCount);
 
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
       Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
@@ -74,7 +83,7 @@ void MeshRenderingSystem::renderDeferred()
         vertexShader->setParameter("transform.localToWorld", transform.getTransformationMatrix());
       }
 
-      Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
+      Camera* camera = m_graphicsScene->getActiveCamera().get();
 
       if (camera != nullptr) {
         if (vertexShader->hasParameter("scene.worldToCamera")) {
@@ -102,7 +111,7 @@ void MeshRenderingSystem::renderDeferred()
         }
       }
 
-      m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
+      frameStats.increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
       m_graphicsContext->executeRenderTask({
         &material->getGpuMaterial(),
@@ -110,8 +119,15 @@ void MeshRenderingSystem::renderDeferred()
         mesh->getSubMeshIndicesOffset(subMeshIndex),
         mesh->getSubMeshIndicesCount(subMeshIndex),
         GL_TRIANGLES,
-        &m_sharedGraphicsState->getDeferredFramebuffer()
+        &sharedGraphicsState.getDeferredFramebuffer()
       });
+
+      if (transformComponent.isStatic()) {
+        DebugPainter::renderAABB(transformComponent.getBoundingBox());
+      }
+      else {
+        DebugPainter::renderSphere(transformComponent.getBoundingSphere());
+      }
     }
   }
 }

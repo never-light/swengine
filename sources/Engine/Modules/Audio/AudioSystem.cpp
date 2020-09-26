@@ -11,7 +11,7 @@
 #include "Exceptions/exceptions.h"
 #include "ALDebug.h"
 
-AudioSystem::AudioSystem(std::shared_ptr<SharedGraphicsState> environmentState)
+AudioSystem::AudioSystem(std::shared_ptr<GraphicsScene> environmentState)
   : m_environmentState(std::move(environmentState))
 {
 

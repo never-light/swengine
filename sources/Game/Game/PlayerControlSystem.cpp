@@ -21,11 +21,11 @@
 // Consider replacing them with constants or moving to configuration files
 
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+  std::shared_ptr<GraphicsScene> graphicsScene,
   std::shared_ptr<GUILayout> playerUILayout,
   std::shared_ptr<InventoryUI> inventoryUILayout)
   : m_inputModule(std::move(inputModule)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState)),
+    m_graphicsScene(std::move(graphicsScene)),
     m_uiLayout(std::move(playerUILayout)),
     m_inventoryUI(std::move(inventoryUILayout))
 {
@@ -71,7 +71,7 @@ void PlayerControlSystem::activate()
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  m_sharedGraphicsState->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
+  m_graphicsScene->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
 
   getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
   getGameWorld()->subscribeEventsListener<KeyboardEvent>(this);
@@ -93,7 +93,7 @@ void PlayerControlSystem::deactivate()
   m_uiLayout->removeChildWidget(m_inventoryUI);
 
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
-  // m_sharedGraphicsState->setActiveCamera(nullptr);
+  // m_graphicsScene->setActiveCamera(nullptr);
 
 }
 

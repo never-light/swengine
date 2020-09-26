@@ -64,6 +64,7 @@ void GameApplication::load()
     std::make_shared<GameScreen>(m_inputModule,
       getGameApplicationSystemsGroup(),
       m_levelsManager,
+      m_graphicsScene,
       gameScreenDebugUILayout,
       inventoryUILayout));
 

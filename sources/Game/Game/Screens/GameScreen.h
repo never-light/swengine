@@ -17,6 +17,7 @@ class GameScreen : public BaseGameScreen,
     std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<LevelsManager> levelsManager,
+    std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<GUILayout> debugGUILayout,
     std::shared_ptr<InventoryUI> inventoryUILayout);
   ~GameScreen() override;
@@ -44,6 +45,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystemsGroup;
   std::shared_ptr<LevelsManager> m_levelsManager;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::unique_ptr<Game> m_game;
 

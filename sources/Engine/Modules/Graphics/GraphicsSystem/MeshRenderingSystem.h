@@ -3,13 +3,13 @@
 #include <memory>
 
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
-#include "SharedGraphicsState.h"
 #include "RenderingSystem.h"
 
 class MeshRenderingSystem : public RenderingSystem {
  public:
-  MeshRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+  MeshRenderingSystem(
+    std::shared_ptr<GLGraphicsContext> graphicsContext,
+    std::shared_ptr<GraphicsScene> graphicsScene);
 
   ~MeshRenderingSystem() override;
 
@@ -20,6 +20,5 @@ class MeshRenderingSystem : public RenderingSystem {
 
   void renderForward() override;
   void renderDeferred() override;
-
 
 };

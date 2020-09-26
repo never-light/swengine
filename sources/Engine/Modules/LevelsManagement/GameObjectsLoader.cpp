@@ -131,9 +131,6 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
   auto& meshRendererComponent = *gameObject.addComponent<MeshRendererComponent>().get();
 
-  // TODO: remove isStatic option and use isStatic from TransformComponent
-  meshRendererComponent.getAttributes().isStatic = transformComponent.isStatic();
-
   auto meshName = data.attribute("mesh").as_string();
 
   std::shared_ptr<Mesh> meshInstance =
@@ -150,7 +147,8 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
   meshRendererComponent.setMeshInstance(meshInstance);
 
-  meshRendererComponent.updateBounds(transformComponent.getTransform().getTransformationMatrix());
+  transformComponent.setBounds(meshInstance->getAABB());
+  transformComponent.updateBounds(transformComponent.getTransform().getTransformationMatrix());
 
   auto materialsData = data.child("materials");
 

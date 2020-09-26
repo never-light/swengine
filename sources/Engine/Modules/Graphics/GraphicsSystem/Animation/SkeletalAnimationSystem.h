@@ -17,9 +17,8 @@ class SkeletalAnimationSystem : public GameSystem {
   void update(float delta) override;
 
  private:
-  void updateAnimationStateMachine(AnimationStatesMachine& stateMachine, float delta);
-  void updateObjectBounds(TransformComponent& transformComponent,
+  static void updateAnimationStateMachine(AnimationStatesMachine& stateMachine, float delta);
+  static void updateObjectBounds(TransformComponent& transformComponent,
     SkeletalAnimationComponent& skeletalAnimationComponent,
-    MeshRendererComponent& meshRendererComponent,
     float delta);
 };

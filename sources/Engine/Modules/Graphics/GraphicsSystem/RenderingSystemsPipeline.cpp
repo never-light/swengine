@@ -8,11 +8,12 @@
 #include "SharedGraphicsState.h"
 #include "DebugPainter.h"
 
-RenderingSystemsPipeline::RenderingSystemsPipeline(std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+RenderingSystemsPipeline::RenderingSystemsPipeline(
+  std::shared_ptr<GLGraphicsContext> graphicsContext,
+  std::shared_ptr<GraphicsScene> graphicsScene)
   : GameSystemsGroup(),
     m_graphicsContext(std::move(graphicsContext)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState)),
+    m_sharedGraphicsState(graphicsScene->getSharedGraphicsState()),
     m_deferredAccumulationMaterial(std::make_shared<Material>(std::make_unique<GLMaterial>()))
 {
   GLMaterial& gpuMaterial = m_deferredAccumulationMaterial->getGpuMaterial();

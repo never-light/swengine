@@ -18,7 +18,7 @@
 
 #include "Modules/Graphics/GraphicsSystem/RenderingSystemsPipeline.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
-#include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"
+#include "Modules/Graphics/GraphicsSystem/GraphicsSceneManagementSystem.h"
 #include "Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h"
 
 #include "Modules/Physics/PhysicsSystem.h"
@@ -74,6 +74,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<InputSystem> m_inputSystem;
 
   std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;

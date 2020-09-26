@@ -12,6 +12,21 @@
 
 #include "Utility/xml.h"
 
+// TODO: get rid of two-level indirection with Resource/ResourceInstance classes.
+//  Store generic resource instance for each resource type. Get rid of dynamic memory
+//  allocations for resources and, probably, use objects pool or even own pool for
+//  each resource type.
+//  Remove getResourceInstance/getResourceFromInstance methods and use single getResource
+//  to get handle of a required resource. Resource instance should have reference counter
+//  and handle should update it on copying and destroying. Add automatic resource unloading
+//  according to references counter value.
+//  Do not use resource manager as resource loader only. It should be responsible for
+//  resources memory management. Store resources handles in game components instead of direct pointers
+//  to meshes, textures, sounds, etc...
+//  Implement lazy resources loading. Decrease references counter value on game object or game object component
+//  destroying. To avoid unnecessary loading/unloading cycles for some assets, add some state flags.
+
+
 class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
  public:
   ResourceManager();
@@ -42,7 +57,6 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
 
  private:
   void loadResourcesMap(const pugi::xml_node& declarationsList);
-
 
  private:
   std::unordered_map<std::string, ResourceDeclaration> m_resourcesDeclarations;

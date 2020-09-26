@@ -5,16 +5,18 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
 
-FreeCameraControlSystem::FreeCameraControlSystem(std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+FreeCameraControlSystem::FreeCameraControlSystem(
+  std::shared_ptr<InputModule> inputModule,
+  std::shared_ptr<GraphicsScene> graphicsScene)
   : m_inputModule(std::move(inputModule)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState)),
+    m_graphicsScene(std::move(graphicsScene)),
     m_freeCamera(std::make_shared<Camera>())
 {
   m_freeCamera->setNearClipDistance(0.1f);
   m_freeCamera->setFarClipDistance(100.0f);
   // TODO: replace usage of deferred frame buffer here with something like settings class
-  m_freeCamera->setAspectRatio(m_sharedGraphicsState->getDeferredFramebuffer().getAspectRatio());
+  m_freeCamera->setAspectRatio(
+    m_graphicsScene->getSharedGraphicsState()->getDeferredFramebuffer().getAspectRatio());
   m_freeCamera->setFOVy(glm::pi<float>() / 4);
 
   m_freeCamera->getTransform()->setPosition(0, 0, 0);
@@ -42,7 +44,7 @@ void FreeCameraControlSystem::activate()
 
   getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
 
-  m_sharedGraphicsState->setActiveCamera(m_freeCamera);
+  m_graphicsScene->setActiveCamera(m_freeCamera);
 
 }
 

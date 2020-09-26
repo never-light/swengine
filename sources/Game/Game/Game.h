@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/Input/InputModule.h>
 #include <Engine/Modules/Graphics/OpenGL/GLGraphicsContext.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
 #include <Engine/Modules/ResourceManagement/ResourceManager.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
@@ -20,7 +20,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GUILayout> gameUILayout,
@@ -40,7 +40,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<ResourceManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
 

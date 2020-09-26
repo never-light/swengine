@@ -10,6 +10,7 @@
 #include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Mesh.h"
 #include "Modules/Graphics/GraphicsSystem/Camera.h"
+#include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
 
 #include "Modules/Graphics/Resources/MeshResource.h"
 #include "Modules/Graphics/Resources/ShaderResource.h"
@@ -18,6 +19,11 @@
 #include "Modules/Graphics/OpenGL/GLShadersPipeline.h"
 
 #include "Modules/Math/geometry.h"
+
+// TODO: get rid of recreating geometry buffers for every triangle.
+//  use preprocessed meshes for spheres and boxes. Create one buffer for
+//  all triangles and add them to it with one memory copying call.
+//  Do not use DebugPainter for invisible objects, perform culling firstly.
 
 struct DebugRenderQueueItem {
   GLGeometryStore* geometry;
@@ -32,7 +38,7 @@ class DebugPainter {
   DebugPainter() = delete;
 
   static void initialize(std::shared_ptr<ResourceManager> resourceManager,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<GraphicsScene> graphicsScene);
 
   static void renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color);
   static void renderVector(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color);
@@ -73,7 +79,7 @@ class DebugPainter {
   static std::shared_ptr<GLShadersPipeline> s_debugShaderPipeline;
   static std::unique_ptr<GLMaterial> s_debugMaterial;
 
-  static std::shared_ptr<SharedGraphicsState> s_sharedGraphicsState;
+  static std::shared_ptr<GraphicsScene> s_graphicsScene;
 
   static std::vector<std::unique_ptr<GLGeometryStore>> s_primitivesGeometry;
   static std::vector<DebugRenderQueueItem> s_debugRenderQueue;

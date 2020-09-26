@@ -3,7 +3,7 @@
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/Application/GameConsole.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
 #include <Engine/Modules/Input/InputModule.h>
 
 #include "Game/Inventory/InventoryUI.h"
@@ -17,7 +17,7 @@ class PlayerControlSystem : public GameSystem,
  public:
   explicit PlayerControlSystem(
     std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<GUILayout> playerUILayout,
     std::shared_ptr<InventoryUI> inventoryUILayout);
   ~PlayerControlSystem() override = default;
@@ -53,7 +53,7 @@ class PlayerControlSystem : public GameSystem,
   int16_t m_idleAnimationStateId = -1;
 
   std::shared_ptr<InputModule> m_inputModule;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GUILayout> m_uiLayout;
   std::shared_ptr<InventoryUI> m_inventoryUI;
