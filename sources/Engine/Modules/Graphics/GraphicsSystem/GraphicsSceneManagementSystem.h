@@ -38,8 +38,6 @@ class GraphicsSceneManagementSystem : public GameSystem,
   void configure() override;
   void unconfigure() override;
 
-  void beforeRender() override;
-
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const LoadSceneCommandEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const UnloadSceneCommandEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const AddObjectToSceneCommandEvent& event) override;

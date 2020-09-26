@@ -98,3 +98,8 @@ void TransformComponent::setBounds(const AABB& bounds)
   m_originalBounds = bounds;
 }
 
+const AABB& TransformComponent::getOriginalBounds() const
+{
+  return m_originalBounds;
+}
+

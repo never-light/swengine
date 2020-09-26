@@ -10,8 +10,8 @@
 #include "Game/Inventory/InventoryUI.h"
 
 class GameScreen : public BaseGameScreen,
-  public EventsListener<InputActionToggleEvent>,
-  public EventsListener<GameConsoleChangeVisibilityEvent> {
+                   public EventsListener<InputActionToggleEvent>,
+                   public EventsListener<GameConsoleChangeVisibilityEvent> {
  public:
   GameScreen(
     std::shared_ptr<InputModule> inputModule,
@@ -19,7 +19,7 @@ class GameScreen : public BaseGameScreen,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<GUILayout> debugGUILayout,
-    std::shared_ptr<InventoryUI> inventoryUILayout);
+    PlayerUILayout playerUILayout);
   ~GameScreen() override;
 
   void activate() override;
@@ -56,5 +56,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<GUIText> m_primivitesCountText;
   std::shared_ptr<GUIText> m_subMeshesCountText;
   std::shared_ptr<GUIText> m_culledSubMeshesCountText;
+
+  PlayerUILayout m_playerUILayout;
 };
 

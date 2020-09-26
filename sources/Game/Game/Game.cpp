@@ -12,7 +12,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<ResourceManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager,
   std::shared_ptr<GUILayout> gameUILayout,
-  std::shared_ptr<InventoryUI> inventoryUILayout)
+  const PlayerUILayout& playerUILayout)
   : m_gameWorld(gameWorld),
     m_inputModule(inputModule),
     m_graphicsContext(graphicsContext),
@@ -23,13 +23,16 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
     m_playerControlSystem(std::make_shared<PlayerControlSystem>(inputModule,
       graphicsScene,
-      gameUILayout,
-      inventoryUILayout)),
+      playerUILayout)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, graphicsScene)),
-    m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager))
+    m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager)),
+    m_interactiveObjectsControlSystem(std::make_shared<InteractiveObjectsControlSystem>()),
+    m_gameUILayout(std::move(gameUILayout)),
+    m_playerUILayout(playerUILayout)
 {
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
   m_gameModeSystems->addGameSystem(m_inventoryControlSystem);
+  m_gameModeSystems->addGameSystem(m_interactiveObjectsControlSystem);
 
   m_level = std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager, levelsManager);
 
@@ -41,10 +44,12 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
 void Game::activate()
 {
   m_gameWorld->subscribeEventsListener<GameConsoleCommandEvent>(this);
+  m_gameUILayout->addChildWidget(m_playerUILayout.playerUILayout);
 }
 
 void Game::deactivate()
 {
+  m_gameUILayout->removeChildWidget(m_playerUILayout.playerUILayout);
   m_gameWorld->unsubscribeEventsListener<GameConsoleCommandEvent>(this);
 }
 

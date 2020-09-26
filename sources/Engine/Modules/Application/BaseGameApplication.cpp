@@ -143,8 +143,13 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
 
     return EventProcessStatus::Processed;
   }
-  else if (event.command == "physics-debug-draw") {
+  else if (event.command == "debug-draw-physics") {
     m_physicsSystem->enableDebugDrawing(!m_physicsSystem->isDebugDrawingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
+  else if (event.command == "debug-draw-bounds") {
+    m_meshRenderingSystem->enableBoundsRendering(!m_meshRenderingSystem->isBoundsRenderingEnabled());
 
     return EventProcessStatus::Processed;
   }
@@ -275,9 +280,9 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
   // Mesh rendering system
-  auto meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+  m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
     m_graphicsScene);
-  m_renderingSystemsPipeline->addGameSystem(meshRenderingSystem);
+  m_renderingSystemsPipeline->addGameSystem(m_meshRenderingSystem);
 
   // Environment rendering
   auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),

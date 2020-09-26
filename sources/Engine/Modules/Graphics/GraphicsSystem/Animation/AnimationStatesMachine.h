@@ -34,6 +34,8 @@ class AnimationStatesMachine {
   void switchToNextState(int16_t stateId);
 
   void setActiveState(int16_t stateId);
+  void setActiveState(const std::string& stateName);
+
   [[nodiscard]] const AnimationState& getActiveState() const;
   [[nodiscard]] AnimationState& getActiveState();
 

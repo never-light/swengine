@@ -13,6 +13,7 @@
 
 #include "Game/Inventory/InventoryUI.h"
 #include "Game/Inventory/InventoryControlSystem.h"
+#include "Game/Dynamic/InteractiveObjectsControlSystem.h"
 
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
@@ -24,7 +25,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GUILayout> gameUILayout,
-    std::shared_ptr<InventoryUI> inventoryUILayout);
+    const PlayerUILayout& playerUILayout);
 
   ~Game() override = default;
 
@@ -52,9 +53,11 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
   std::shared_ptr<InventoryControlSystem> m_inventoryControlSystem;
+  std::shared_ptr<InteractiveObjectsControlSystem> m_interactiveObjectsControlSystem;
 
   std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
   std::shared_ptr<GameSystem> m_activeCameraControlSystem;
 
   std::shared_ptr<GUILayout> m_gameUILayout;
+  PlayerUILayout m_playerUILayout;
 };

@@ -26,6 +26,7 @@ class TransformComponent {
   [[nodiscard]] const Sphere& getBoundingSphere() const;
 
   void setBounds(const AABB& bounds);
+  [[nodiscard]] const AABB& getOriginalBounds() const;
 
  private:
   std::shared_ptr<Transform> m_transform;

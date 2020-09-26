@@ -63,6 +63,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
 
   GameObjectsLoader& getObjectsLoader();
 
+  std::shared_ptr<GameWorld> getGameWorld() const;
+
  private:
   static std::shared_ptr<pugi::xml_document> openLevelDescriptionFile(const std::string& levelName,
     const std::string& descriptionFile,

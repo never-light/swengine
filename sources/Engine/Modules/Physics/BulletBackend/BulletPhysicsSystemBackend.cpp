@@ -104,9 +104,6 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
     return EventProcessStatus::Skipped;
   }
 
-  const auto& ev = event.component.get();
-  LOCAL_VALUE_UNUSED(ev);
-
   const auto* bulletRigidBodyComponent =
     dynamic_cast<const BulletRigidBodyComponent*>(&event.component->getBackend());
 

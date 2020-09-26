@@ -78,6 +78,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
+  std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 
   std::shared_ptr<GUISystem> m_guiSystem;
 

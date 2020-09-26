@@ -45,8 +45,9 @@ void GraphicsScene::removeObject(GameObject object)
     m_drawableObjectsCount--;
   }
 
+  m_accelerationStructure->removeObject(object);
+
   object.removeComponent<ObjectSceneNodeComponent>();
-  m_accelerationStructure->addObject(object);
 }
 
 void GraphicsScene::queryNearestDynamicNeighbors(

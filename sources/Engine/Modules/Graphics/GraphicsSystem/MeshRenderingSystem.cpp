@@ -122,12 +122,24 @@ void MeshRenderingSystem::renderDeferred()
         &sharedGraphicsState.getDeferredFramebuffer()
       });
 
-      if (transformComponent.isStatic()) {
-        DebugPainter::renderAABB(transformComponent.getBoundingBox());
-      }
-      else {
-        DebugPainter::renderSphere(transformComponent.getBoundingSphere());
+      if (m_isBoundsRenderingEnabled) {
+        if (transformComponent.isStatic()) {
+          DebugPainter::renderAABB(transformComponent.getBoundingBox());
+        }
+        else {
+          DebugPainter::renderSphere(transformComponent.getBoundingSphere());
+        }
       }
     }
   }
+}
+
+void MeshRenderingSystem::enableBoundsRendering(bool isEnabled)
+{
+  m_isBoundsRenderingEnabled = isEnabled;
+}
+
+bool MeshRenderingSystem::isBoundsRenderingEnabled() const
+{
+  return m_isBoundsRenderingEnabled;
 }

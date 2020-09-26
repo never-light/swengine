@@ -45,41 +45,6 @@ void GraphicsSceneManagementSystem::unconfigure()
   gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
-void GraphicsSceneManagementSystem::beforeRender()
-{
-//  for (GameObject obj : getGameWorld()->allWith<MeshRendererComponent>()) {
-//    auto meshComponent = obj.getComponent<MeshRendererComponent>();
-//
-//    std::shared_ptr<Camera> activeCamera = m_sharedGraphicsState->getActiveCamera();
-//
-//    bool isVisible = false;
-//
-//    if (meshComponent->getAttributes().isStatic) {
-//      isVisible = GeometryUtils::isAABBFrustumIntersecting(meshComponent->getBoundingBox(),
-//        activeCamera->getFrustum());
-//    }
-//    else {
-//      isVisible = GeometryUtils::isSphereFrustumIntersecting(meshComponent->getBoundingSphere(),
-//        activeCamera->getFrustum());
-//    }
-//
-//    if (!isVisible) {
-//      meshComponent->cull();
-//
-//      m_sharedGraphicsState->getFrameStats()
-//        .increaseCulledSubMeshesCount(meshComponent->getMeshInstance()->getSubMeshesCount());
-//    }
-//
-//    // TODO: draw bounds only for visible objects
-//    if (meshComponent->getAttributes().isStatic) {
-//      DebugPainter::renderAABB(meshComponent->getBoundingBox());
-//    }
-//    else {
-//      DebugPainter::renderSphere(meshComponent->getBoundingSphere());
-//    }
-//  }
-}
-
 EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(
   GameWorld* gameWorld,
   const LoadSceneCommandEvent& event)

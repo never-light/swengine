@@ -12,7 +12,7 @@ GameScreen::GameScreen(
   std::shared_ptr<LevelsManager> levelsManager,
   std::shared_ptr<GraphicsScene> graphicsScene,
   std::shared_ptr<GUILayout> debugGUILayout,
-  std::shared_ptr<InventoryUI> inventoryUILayout)
+  PlayerUILayout playerUILayout)
   : BaseGameScreen(GameScreenType::Game),
     m_inputModule(std::move(inputModule)),
     m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
@@ -20,7 +20,7 @@ GameScreen::GameScreen(
     m_graphicsScene(std::move(graphicsScene)),
     m_gameGUILayout(std::make_shared<GUILayout>()),
     m_debugGUILayout(std::move(debugGUILayout)),
-    m_inventoryUILayout(std::move(inventoryUILayout))
+    m_playerUILayout(std::move(playerUILayout))
 {
 }
 
@@ -118,7 +118,7 @@ void GameScreen::initializeGame()
     m_resourceManager,
     m_levelsManager,
     m_gameGUILayout,
-    m_inventoryUILayout);
+    m_playerUILayout);
 
   spdlog::info("Game is loaded...");
 }

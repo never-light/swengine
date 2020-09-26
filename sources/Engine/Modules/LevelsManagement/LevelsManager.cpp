@@ -151,3 +151,8 @@ std::shared_ptr<pugi::xml_document> LevelsManager::openLevelDescriptionFile(cons
 
   return levelDescription;
 }
+
+std::shared_ptr<GameWorld> LevelsManager::getGameWorld() const
+{
+  return m_gameWorld;
+}
