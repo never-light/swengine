@@ -412,6 +412,8 @@ void InventoryUI::onShow()
   m_tooltip->hide();
   m_detailedDesc->hide();
   m_contextMenu->hide();
+
+  syncGUIWithOwnerInventory();
 }
 
 void InventoryUI::setInventoryOwner(const GameObject& inventoryOwner)

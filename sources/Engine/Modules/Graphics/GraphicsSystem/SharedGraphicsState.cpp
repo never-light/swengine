@@ -43,16 +43,6 @@ SharedGraphicsState::SharedGraphicsState(std::shared_ptr<GLGraphicsContext> grap
     std::vector{forwardAlbedo}, depthStencil);
 }
 
-void SharedGraphicsState::setActiveCamera(std::shared_ptr<Camera> camera)
-{
-  m_activeCamera = camera;
-}
-
-std::shared_ptr<Camera> SharedGraphicsState::getActiveCamera() const
-{
-  return m_activeCamera;
-}
-
 const FrameStats& SharedGraphicsState::getFrameStats() const
 {
   return m_frameStats;
@@ -65,12 +55,12 @@ FrameStats& SharedGraphicsState::getFrameStats()
 
 GLFramebuffer& SharedGraphicsState::getDeferredFramebuffer() const
 {
-  return *m_deferredFramebuffer.get();
+  return *m_deferredFramebuffer;
 }
 
 GLFramebuffer& SharedGraphicsState::getForwardFramebuffer() const
 {
-  return *m_forwardFramebuffer.get();
+  return *m_forwardFramebuffer;
 }
 
 void FrameStats::reset()

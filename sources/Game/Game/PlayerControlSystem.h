@@ -3,12 +3,19 @@
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/Application/GameConsole.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
 #include <Engine/Modules/Input/InputModule.h>
 
 #include "Game/Inventory/InventoryUI.h"
 
 #include "PlayerComponent.h"
+
+struct PlayerUILayout {
+  std::shared_ptr<GUILayout> playerUILayout;
+  std::shared_ptr<InventoryUI> inventoryUI;
+  std::shared_ptr<GUILayout> interactionUI;
+  std::shared_ptr<GUIText> interactionUIText;
+};
 
 class PlayerControlSystem : public GameSystem,
                             public EventsListener<MouseWheelEvent>,
@@ -17,9 +24,8 @@ class PlayerControlSystem : public GameSystem,
  public:
   explicit PlayerControlSystem(
     std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-    std::shared_ptr<GUILayout> playerUILayout,
-    std::shared_ptr<InventoryUI> inventoryUILayout);
+    std::shared_ptr<GraphicsScene> graphicsScene,
+    PlayerUILayout  uiLayout);
   ~PlayerControlSystem() override = default;
 
   void configure() override;
@@ -46,6 +52,11 @@ class PlayerControlSystem : public GameSystem,
   void showGUIWindow(std::shared_ptr<GUILayout> window);
   void hideGUIWindow(std::shared_ptr<GUILayout> window);
 
+  void processNearestInteractiveObjects(const Transform& playerTransform);
+  GameObject findNearestInteractiveObject(const Transform& playerTransform);
+
+  void performInteractiveAction();
+
  private:
   GameObject m_playerObject;
 
@@ -53,10 +64,9 @@ class PlayerControlSystem : public GameSystem,
   int16_t m_idleAnimationStateId = -1;
 
   std::shared_ptr<InputModule> m_inputModule;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 
-  std::shared_ptr<GUILayout> m_uiLayout;
-  std::shared_ptr<InventoryUI> m_inventoryUI;
+  PlayerUILayout m_uiLayout;
 
   bool m_isMovementControlEnabled{};
   bool m_isUIModeActive{};

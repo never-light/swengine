@@ -58,9 +58,9 @@ class BulletPhysicsSystemBackend :
 
   void nearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
-  CollisionCallback getCollisionsCallback(GameObject& object) const;
+  static CollisionCallback getCollisionsCallback(GameObject& object) ;
 
-  void synchronizeTransforms(GameObject& object, const btTransform& transform);
+  static void synchronizeTransforms(GameObject& object, const btTransform& transform);
 
  private:
   static void physicsNearCallback(btBroadphasePair& collisionPair,

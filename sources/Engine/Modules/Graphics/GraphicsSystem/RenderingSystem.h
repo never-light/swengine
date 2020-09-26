@@ -4,11 +4,12 @@
 
 #include "Modules/ECS/GameSystem.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
+#include "GraphicsScene.h"
 
 class RenderingSystem : public GameSystem {
  public:
   RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+    std::shared_ptr<GraphicsScene> graphicsScene);
 
   virtual void renderDeferred();
   virtual void renderForward();
@@ -18,6 +19,6 @@ class RenderingSystem : public GameSystem {
 
  protected:
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 };
 

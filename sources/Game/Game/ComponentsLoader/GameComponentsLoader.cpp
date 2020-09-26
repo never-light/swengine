@@ -7,6 +7,7 @@
 
 #include "Game/PlayerComponent.h"
 #include "Game/Inventory/InventoryComponent.h"
+#include "Game/Dynamic/InteractiveObjectComponent.h"
 
 GameComponentsLoader::GameComponentsLoader(
   std::shared_ptr<GameWorld> gameWorld,
@@ -63,5 +64,25 @@ void GameComponentsLoader::loadInventoryData(GameObject& gameObject, const pugi:
       {gameObject,
         InventoryItemActionTriggerType::RelocateToInventory,
         itemObject});
+  }
+}
+
+void GameComponentsLoader::loadInteractiveData(GameObject& gameObject, const pugi::xml_node& data)
+{
+  auto& interactiveComponent = *gameObject.addComponent<InteractiveObjectComponent>().get();
+
+  std::string objectName = data.attribute("name").as_string();
+  interactiveComponent.setName(objectName);
+
+  pugi::xml_node takeableConditions = data.child("takeable");
+
+  if (takeableConditions) {
+    interactiveComponent.setTakeable(true);
+  }
+
+  pugi::xml_node usableConditions = data.child("usable");
+
+  if (usableConditions) {
+    interactiveComponent.setUsable(true);
   }
 }

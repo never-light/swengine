@@ -16,18 +16,17 @@
 #include <utility>
 
 #include "PlayerComponent.h"
+#include "Game/Dynamic/InteractiveObjectComponent.h"
 
 // TODO: PlayerControlSystem class methods uses some magic numbers.
 // Consider replacing them with constants or moving to configuration files
 
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-  std::shared_ptr<GUILayout> playerUILayout,
-  std::shared_ptr<InventoryUI> inventoryUILayout)
+  std::shared_ptr<GraphicsScene> graphicsScene,
+  PlayerUILayout uiLayout)
   : m_inputModule(std::move(inputModule)),
-    m_sharedGraphicsState(std::move(sharedGraphicsState)),
-    m_uiLayout(std::move(playerUILayout)),
-    m_inventoryUI(std::move(inventoryUILayout))
+    m_graphicsScene(std::move(graphicsScene)),
+    m_uiLayout(std::move(uiLayout))
 {
 
 }
@@ -54,7 +53,7 @@ void PlayerControlSystem::configure()
 
     skeletalAnimationComponent.getAnimationStatesMachineRef().setActiveState(m_walkAnimationStateId);
 
-    m_inventoryUI->setInventoryOwner(m_playerObject);
+    m_uiLayout.inventoryUI->setInventoryOwner(m_playerObject);
   }
 
 }
@@ -65,13 +64,16 @@ void PlayerControlSystem::unconfigure()
 
 void PlayerControlSystem::activate()
 {
-  m_uiLayout->addChildWidget(m_inventoryUI);
-  m_inventoryUI->hide();
+  m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.inventoryUI);
+  m_uiLayout.inventoryUI->hide();
+
+  m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.interactionUI);
+  m_uiLayout.interactionUI->hide();
 
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
-  m_sharedGraphicsState->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
+  m_graphicsScene->setActiveCamera(m_playerObject.getComponent<CameraComponent>()->getCamera());
 
   getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
   getGameWorld()->subscribeEventsListener<KeyboardEvent>(this);
@@ -90,10 +92,11 @@ void PlayerControlSystem::deactivate()
 
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 
-  m_uiLayout->removeChildWidget(m_inventoryUI);
+  m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.interactionUI);
+  m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.inventoryUI);
 
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
-  // m_sharedGraphicsState->setActiveCamera(nullptr);
+  // m_graphicsScene->setActiveCamera(nullptr);
 
 }
 
@@ -172,6 +175,40 @@ void PlayerControlSystem::update(float delta)
 
   playerCameraTransform.lookAt(playerOrigin);
   m_playerObject.getComponent<KinematicCharacterComponent>()->setTransform(playerTransform);
+
+  processNearestInteractiveObjects(playerTransform);
+}
+
+void PlayerControlSystem::processNearestInteractiveObjects(const Transform& playerTransform)
+{
+  if (m_isUIModeActive) {
+    return;
+  }
+
+  GameObject interactiveObject = findNearestInteractiveObject(playerTransform);
+
+  if (!interactiveObject.isFormed()) {
+    if (m_uiLayout.interactionUI->isShown()) {
+      m_uiLayout.interactionUI->hide();
+    }
+
+    return;
+  }
+
+  auto& interactiveObjectComponent = *interactiveObject.getComponent<InteractiveObjectComponent>().get();
+
+  if (interactiveObjectComponent.isUsable()) {
+    m_uiLayout.interactionUIText->setText(
+      fmt::format("{} - press F to interact", interactiveObjectComponent.getName()));
+  }
+  else if (interactiveObjectComponent.isTakeable()) {
+    m_uiLayout.interactionUIText->setText(
+      fmt::format("{} - press F to take", interactiveObjectComponent.getName()));
+  }
+
+  if (!m_uiLayout.interactionUI->isShown()) {
+    m_uiLayout.interactionUI->show();
+  }
 }
 
 Camera& PlayerControlSystem::getPlayerCamera()
@@ -285,6 +322,10 @@ void PlayerControlSystem::disableMovementControl()
 
 void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)
 {
+  if (m_uiLayout.interactionUI->isShown()) {
+    m_uiLayout.interactionUI->hide();
+  }
+
   disableMovementControl();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 
@@ -309,14 +350,63 @@ EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const
 
   if (event.type == KeyboardEventType::KeyDown) {
     if (event.keyCode == SDLK_i) {
-      if (m_inventoryUI->isShown()) {
-        hideGUIWindow(m_inventoryUI);
+      if (m_uiLayout.inventoryUI->isShown()) {
+        hideGUIWindow(m_uiLayout.inventoryUI);
       }
       else {
-        showGUIWindow(m_inventoryUI);
+        if (!m_isUIModeActive) {
+          showGUIWindow(m_uiLayout.inventoryUI);
+        }
+      }
+    }
+    else if (event.keyCode == SDLK_f) {
+      if (!m_isUIModeActive) {
+        performInteractiveAction();
       }
     }
   }
 
   return EventProcessStatus::Processed;
+}
+
+GameObject PlayerControlSystem::findNearestInteractiveObject(const Transform& playerTransform)
+{
+  static std::vector<GameObject> nearestNeighbors;
+  nearestNeighbors.reserve(64);
+  nearestNeighbors.clear();
+
+  m_graphicsScene->queryNearestDynamicNeighbors(playerTransform.getPosition(), 1.5f, nearestNeighbors);
+
+  for (GameObject& object : nearestNeighbors) {
+    if (object.hasComponent<InteractiveObjectComponent>()) {
+      auto& interactiveObjectComponent = *object.getComponent<InteractiveObjectComponent>().get();
+
+      if (interactiveObjectComponent.isUsable() || interactiveObjectComponent.isTakeable()) {
+        return object;
+      }
+    }
+  }
+
+  return GameObject();
+}
+
+void PlayerControlSystem::performInteractiveAction()
+{
+  GameObject interactiveObject = findNearestInteractiveObject(
+    m_playerObject.getComponent<TransformComponent>()->getTransform());
+
+  if (!interactiveObject.isFormed()) {
+    return;
+  }
+
+  auto& interactiveObjectComponent = *interactiveObject.getComponent<InteractiveObjectComponent>().get();
+
+  if (interactiveObjectComponent.isUsable()) {
+    getGameWorld()->emitEvent(InteractiveObjectActionTriggeredEvent(
+      m_playerObject, interactiveObject,InteractiveObjectActionType::Use));
+  }
+  else if (interactiveObjectComponent.isTakeable()) {
+    getGameWorld()->emitEvent(InteractiveObjectActionTriggeredEvent(
+      m_playerObject, interactiveObject,InteractiveObjectActionType::Take));
+  }
 }

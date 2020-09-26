@@ -1,10 +1,15 @@
 #include "InventoryControlSystem.h"
 
+#include <utility>
+
 #include <Engine/Modules/Graphics/GraphicsSystem/MeshRendererComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsSceneManagementSystem.h>
 #include <Engine/Modules/Physics/RigidBodyComponent.h>
 
 InventoryControlSystem::InventoryControlSystem(std::shared_ptr<LevelsManager> levelsManager)
-  : m_levelsManager(levelsManager) {
+  : m_levelsManager(std::move(levelsManager))
+{
 
 }
 
@@ -89,6 +94,11 @@ void InventoryControlSystem::relocateObjectToInventory(
   if (takeCallback) {
     takeCallback(inventoryOwner, objectToRelocate);
   }
+
+  if (objectToRelocate.hasComponent<ObjectSceneNodeComponent>()) {
+    getGameWorld()->emitEvent<RemoveObjectFromSceneCommandEvent>(
+      RemoveObjectFromSceneCommandEvent{objectToRelocate});
+  }
 }
 
 void InventoryControlSystem::dropObjectFromInventory(
@@ -114,6 +124,25 @@ void InventoryControlSystem::dropObjectFromInventory(
   //  for storing Time To Live property. Set the object life start timestamp here.
 
   inventoryComponent.removeItem(objectToDrop);
+
+  auto& inventoryOwnerTransform = *inventoryOwner.getComponent<TransformComponent>().get();
+
+  if (objectToDrop.hasComponent<RigidBodyComponent>()) {
+    auto& rigidBodyComponent = *objectToDrop.getComponent<RigidBodyComponent>().get();
+    auto& objectToDropLastTransform = *objectToDrop.getComponent<TransformComponent>().get();
+
+    Transform transform = objectToDropLastTransform.getTransform();
+    transform.setPosition(inventoryOwnerTransform.getBoundingSphere().getOrigin());
+
+    rigidBodyComponent.setTransform(transform);
+  }
+  else if (objectToDrop.hasComponent<TransformComponent>()) {
+    objectToDrop.getComponent<TransformComponent>()->getTransform().setPosition(
+      inventoryOwnerTransform.getBoundingSphere().getOrigin());
+  }
+
+  getGameWorld()->emitEvent<AddObjectToSceneCommandEvent>(
+    AddObjectToSceneCommandEvent{objectToDrop});
 
   const auto& dropCallback = inventoryItemComponent.getDropCallback();
 

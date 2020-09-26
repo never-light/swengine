@@ -14,6 +14,7 @@ class GameComponentsLoader {
   void loadPlayerData(GameObject& gameObject, const pugi::xml_node& data);
   void loadInventoryItemData(GameObject& gameObject, const pugi::xml_node& data);
   void loadInventoryData(GameObject& gameObject, const pugi::xml_node& data);
+  void loadInteractiveData(GameObject& gameObject, const pugi::xml_node& data);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

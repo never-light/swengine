@@ -29,7 +29,6 @@ void SkeletalAnimationSystem::update(float delta)
       if (obj.hasComponent<MeshRendererComponent>()) {
         updateObjectBounds(*obj.getComponent<TransformComponent>().get(),
           *animationComponent.get(),
-          *obj.getComponent<MeshRendererComponent>().get(),
           delta);
       }
     }
@@ -43,7 +42,6 @@ void SkeletalAnimationSystem::updateAnimationStateMachine(AnimationStatesMachine
 
 void SkeletalAnimationSystem::updateObjectBounds(TransformComponent& transformComponent,
   SkeletalAnimationComponent& skeletalAnimationComponent,
-  MeshRendererComponent& meshRendererComponent,
   float delta)
 {
   ARG_UNUSED(delta);
@@ -51,5 +49,5 @@ void SkeletalAnimationSystem::updateObjectBounds(TransformComponent& transformCo
   glm::mat4 boundTransformation = transformComponent.getTransform().getTransformationMatrix() *
     skeletalAnimationComponent.getMatrixPalette().bonesTransforms[0];
 
-  meshRendererComponent.updateBounds(boundTransformation);
+  transformComponent.updateBounds(boundTransformation);
 }

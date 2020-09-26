@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/Input/InputModule.h>
 #include <Engine/Modules/Graphics/OpenGL/GLGraphicsContext.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
 #include <Engine/Modules/ResourceManagement/ResourceManager.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
@@ -13,6 +13,7 @@
 
 #include "Game/Inventory/InventoryUI.h"
 #include "Game/Inventory/InventoryControlSystem.h"
+#include "Game/Dynamic/InteractiveObjectsControlSystem.h"
 
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
@@ -20,11 +21,11 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+    std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<ResourceManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GUILayout> gameUILayout,
-    std::shared_ptr<InventoryUI> inventoryUILayout);
+    const PlayerUILayout& playerUILayout);
 
   ~Game() override = default;
 
@@ -40,7 +41,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<ResourceManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
 
@@ -52,9 +53,11 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
   std::shared_ptr<InventoryControlSystem> m_inventoryControlSystem;
+  std::shared_ptr<InteractiveObjectsControlSystem> m_interactiveObjectsControlSystem;
 
   std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
   std::shared_ptr<GameSystem> m_activeCameraControlSystem;
 
   std::shared_ptr<GUILayout> m_gameUILayout;
+  PlayerUILayout m_playerUILayout;
 };

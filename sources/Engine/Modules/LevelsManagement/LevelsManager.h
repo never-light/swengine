@@ -10,64 +10,19 @@
 
 #include "GameObjectsLoader.h"
 
-struct LevelLoadUnloadEvent {
+struct LevelData {
  public:
-  explicit LevelLoadUnloadEvent(GameObject levelObject)
-    : m_levelObject(levelObject)
-  {
-
-  }
-
-  [[nodiscard]] GameObject getObject() const
-  {
-    return m_levelObject;
-  }
-
- private:
-  GameObject m_levelObject;
-};
-
-struct LevelLoadEvent : public LevelLoadUnloadEvent {
- public:
-  explicit LevelLoadEvent(GameObject levelObject) : LevelLoadUnloadEvent(levelObject)
-  {}
-};
-
-struct LevelUnloadEvent : public LevelLoadUnloadEvent {
- public:
-  explicit LevelUnloadEvent(GameObject levelObject) : LevelLoadUnloadEvent(levelObject)
-  {}
-};
-
-struct LevelComponent {
- public:
-  explicit LevelComponent(
-    std::vector<GameObject> staticObjects,
-    std::vector<GameObject> dynamicObjects,
+  explicit LevelData(
     std::shared_ptr<pugi::xml_document> levelStaticData,
     std::shared_ptr<pugi::xml_document> levelSpawnData)
-    : m_staticObjectsList(std::move(staticObjects)),
-      m_dynamicObjectsList(std::move(dynamicObjects)),
-      m_levelStaticData(std::move(levelStaticData)),
-      m_levelSpawnData(std::move(levelSpawnData))
+    :
+    m_levelStaticData(std::move(levelStaticData)),
+    m_levelSpawnData(std::move(levelSpawnData))
   {}
 
-  ~LevelComponent() = default;
-
-  [[nodiscard]] const std::vector<GameObject>& getStaticObjectsList() const
-  {
-    return m_staticObjectsList;
-  }
-
-  [[nodiscard]] const std::vector<GameObject>& getDynamicObjectsList() const
-  {
-    return m_dynamicObjectsList;
-  }
+  ~LevelData() = default;
 
  private:
-  std::vector<GameObject> m_staticObjectsList;
-  std::vector<GameObject> m_dynamicObjectsList;
-
   std::shared_ptr<pugi::xml_document> m_levelStaticData;
   std::shared_ptr<pugi::xml_document> m_levelSpawnData;
 };
@@ -96,7 +51,7 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
   ~LevelsManager();
 
   void loadLevel(const std::string& name);
-  void unloadCurrentLevel();
+  void unloadLevel();
 
   template<class T>
   inline void loadGameObjectComponent(GameObject object)
@@ -107,6 +62,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
   }
 
   GameObjectsLoader& getObjectsLoader();
+
+  std::shared_ptr<GameWorld> getGameWorld() const;
 
  private:
   static std::shared_ptr<pugi::xml_document> openLevelDescriptionFile(const std::string& levelName,
@@ -124,5 +81,5 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
 
   GameObjectsLoader m_gameObjectsLoader;
 
-  GameObject m_currentLevel{};
+  std::shared_ptr<LevelData> m_currentLevelData;
 };
