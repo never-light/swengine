@@ -66,27 +66,6 @@ void GLGraphicsContext::disableWritingToDepthBuffer()
   applyContextChange();
 }
 
-void GLGraphicsContext::enableScissorTest()
-{
-  glEnable(GL_SCISSOR_TEST);
-  applyContextChange();
-}
-
-void GLGraphicsContext::disableScissorTest()
-{
-  glDisable(GL_SCISSOR_TEST);
-  applyContextChange();
-}
-
-void GLGraphicsContext::setScissorRectangle(const RectI& rectangle)
-{
-  glScissor(rectangle.getOriginX(),
-    m_defaultFramebuffer->getWidth() - rectangle.getOriginY() - rectangle.getHeight(),
-    rectangle.getWidth(), rectangle.getHeight());
-
-  applyContextChange();
-}
-
 void GLGraphicsContext::swapBuffers()
 {
   SDL_GL_SwapWindow(m_window);
@@ -216,6 +195,9 @@ void GLGraphicsContext::applyMaterial(const GLMaterial& material)
   // Depth writing mode
   setDepthWritingMode(material.getDepthWritingMode());
 
+  // Scissors test mode
+  setupScissorsTest(material.getScissorsTestMode());
+
   // Parameters
   GLShadersPipeline* shadersPipeline = material.getShadersPipeline().get();
 
@@ -272,6 +254,12 @@ void GLGraphicsContext::executeRenderTask(const RenderTask& task)
     applyMaterial(*task.material);
 
     m_currentMaterial = task.material;
+  }
+
+  if (task.material->getScissorsTestMode() == ScissorsTestMode::Enabled) {
+    glScissor(task.scissorsRect.getOriginX(),
+      m_defaultFramebuffer->getHeight() - task.scissorsRect.getOriginY() - task.scissorsRect.getHeight(),
+      task.scissorsRect.getWidth(), task.scissorsRect.getHeight());
   }
 
   task.geometryStore->drawRange(task.startOffset, task.partsCount, task.primitivesType);
@@ -380,4 +368,22 @@ void APIENTRY GLGraphicsContext::debugOutputCallback(GLenum source,
       spdlog::debug(debugMessage);
       break;
   }
+}
+
+void GLGraphicsContext::setupScissorsTest(ScissorsTestMode mode)
+{
+  switch (mode) {
+    case ScissorsTestMode::Disabled:
+      glDisable(GL_SCISSOR_TEST);
+      break;
+
+    case ScissorsTestMode::Enabled:
+      glEnable(GL_SCISSOR_TEST);
+      break;
+
+    default:
+      break;
+  }
+
+  applyContextChange();
 }

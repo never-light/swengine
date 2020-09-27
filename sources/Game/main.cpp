@@ -6,7 +6,7 @@
 #include <Engine/Exceptions/exceptions.h>
 #include "Core/GameApplication.h"
 
-#ifdef GAME_AS_STATIC_LIB
+#ifndef GAME_AS_STATIC_LIB
 int main(int argc, char* argv[])
 #else
 int gameMain(int argc, char* argv[])

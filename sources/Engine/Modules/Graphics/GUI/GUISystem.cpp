@@ -49,6 +49,7 @@ GUISystem::GUISystem(
   m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
   m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
   m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
+  m_guiMaterial->setScissorsTestMode(ScissorsTestMode::Enabled);
 }
 
 void GUISystem::configure()
@@ -181,6 +182,13 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
   task.startOffset = m_guiNDCQuad->getSubMeshIndicesOffset(0);
   task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
   task.material = m_guiMaterial.get();
+
+  if (widget->getParent() != nullptr) {
+    task.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
+  }
+  else {
+    task.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
+  }
 
   return task;
 }

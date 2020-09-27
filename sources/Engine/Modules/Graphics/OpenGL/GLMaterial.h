@@ -16,6 +16,8 @@
 #include "Modules/Graphics/Resources/ShaderResource.h"
 #include "Modules/ResourceManagement/ResourceInstance.h"
 
+#include "Modules/Math/Rect.h"
+
 enum class DepthTestMode {
   Disabled, Unspecified, Less, LessOrEqual, NotEqual
 };
@@ -33,6 +35,10 @@ enum class BlendingMode {
 };
 
 enum class DepthWritingMode {
+  Disabled, Unspecified, Enabled
+};
+
+enum class ScissorsTestMode {
   Disabled, Unspecified, Enabled
 };
 
@@ -86,6 +92,9 @@ class GLMaterial {
   void setDepthWritingMode(DepthWritingMode mode);
   [[nodiscard]] DepthWritingMode getDepthWritingMode() const;
 
+  void setScissorsTestMode(ScissorsTestMode mode);
+  [[nodiscard]] ScissorsTestMode getScissorsTestMode() const;
+
   void setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value);
   [[nodiscard]] const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
 
@@ -99,6 +108,7 @@ class GLMaterial {
   PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Unspecified;
   BlendingMode m_materialBlendingMode = BlendingMode::Unspecified;
   DepthWritingMode m_depthWritingMode = DepthWritingMode::Unspecified;
+  ScissorsTestMode m_scissorsTestMode = ScissorsTestMode::Disabled;
 
  private:
   friend class GLGraphicsContext;
