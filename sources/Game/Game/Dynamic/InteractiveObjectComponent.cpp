@@ -54,3 +54,13 @@ const std::string& InteractiveObjectComponent::getName() const
 {
   return m_name;
 }
+
+void InteractiveObjectComponent::setTalkable(bool isTalkable)
+{
+  m_isTalkable = isTalkable;
+}
+
+bool InteractiveObjectComponent::isTalkable() const
+{
+  return m_isTalkable;
+}

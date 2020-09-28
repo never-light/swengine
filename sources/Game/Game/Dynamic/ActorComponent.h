@@ -3,6 +3,29 @@
 #include <string>
 #include <vector>
 
+#include <Engine/Modules/ECS/ECS.h>
+
+/**
+ * @brief Command to initiate dialogue between player (initiator)
+ * and specified NPC (target).
+ *
+ * This command intended to be handled in player controlling system.
+ */
+struct ActorTalkTriggerCommandEvent {
+ public:
+  ActorTalkTriggerCommandEvent(GameObject initiator,
+    GameObject target)
+    : initiator(initiator),
+      target(target)
+  {
+
+  }
+
+ public:
+  GameObject initiator;
+  GameObject target;
+};
+
 struct ActorDialogue {
  public:
   ActorDialogue(std::string dialogueId, bool isStartedByNCP);

@@ -80,9 +80,13 @@ void GUISystem::update(float delta)
 {
   ARG_UNUSED(delta);
 
+  m_eventsQueue.clear();
+
   if (m_activeLayout != nullptr) {
     updateGUIWidget(m_activeLayout.get());
   }
+
+  executeEventsQueue(m_eventsQueue);
 }
 
 void GUISystem::render()
@@ -207,6 +211,8 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
 {
   ARG_UNUSED(gameWorld);
 
+  m_eventsQueue.clear();
+
   if (m_activeLayout != nullptr) {
     processGUIWidgetMouseButtonEvent(m_activeLayout.get(), event);
 
@@ -218,12 +224,16 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
     }
   }
 
+  executeEventsQueue(m_eventsQueue);
+
   return EventProcessStatus::Processed;
 }
 
 EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
 {
   ARG_UNUSED(gameWorld);
+
+  m_eventsQueue.clear();
 
   if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {
     GUIKeyboardEvent guiEvent{};
@@ -232,7 +242,9 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
     guiEvent.repeated = event.repeated;
     guiEvent.keyModifiers = event.keyModifiers;
 
-    m_focusedWidget->triggerKeyboardEvent(guiEvent);
+    m_focusedWidget->triggerKeyboardEvent(guiEvent, m_eventsQueue);
+
+    executeEventsQueue(m_eventsQueue);
 
     return EventProcessStatus::Prevented;
   }
@@ -251,7 +263,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
       widget->m_isHovered = true;
 
       GUIMouseEnterEvent event;
-      widget->triggerMouseEnterEvent(event);
+      widget->triggerMouseEnterEvent(event, m_eventsQueue);
     }
   }
   else {
@@ -259,7 +271,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
       widget->m_isHovered = false;
 
       GUIMouseLeaveEvent event;
-      widget->triggerMouseLeaveEvent(event);
+      widget->triggerMouseLeaveEvent(event, m_eventsQueue);
     }
   }
 
@@ -300,7 +312,7 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
     mouseEvent.button = event.button;
     mouseEvent.isExclusive = isExclusive;
 
-    widget->triggerMouseButtonEvent(mouseEvent);
+    widget->triggerMouseButtonEvent(mouseEvent, m_eventsQueue);
   }
 }
 
@@ -344,4 +356,11 @@ GUIWidgetStylesheet GUISystem::loadStylesheet(const std::string& stylesheetPath)
 GUIWidgetsLoader* GUISystem::getWidgetsLoader() const
 {
   return m_widgetsLoader.get();
+}
+
+void GUISystem::executeEventsQueue(const std::vector<std::function<void()>>& queue)
+{
+  for (const auto& eventHandler : queue) {
+    eventHandler();
+  }
 }

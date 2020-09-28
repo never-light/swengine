@@ -66,6 +66,8 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
 
   void renderGUIWidget(GUIWidget* widget);
 
+  void executeEventsQueue(const std::vector<std::function<void()>>& queue);
+
  private:
   std::unique_ptr<Mesh> m_guiNDCQuad;
 
@@ -85,5 +87,7 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   std::unique_ptr<GLMaterial> m_guiMaterial;
 
   std::unique_ptr<GUIWidgetsLoader> m_widgetsLoader;
+
+  std::vector<std::function<void()>> m_eventsQueue;
 };
 

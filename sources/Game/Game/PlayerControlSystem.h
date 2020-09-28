@@ -7,6 +7,8 @@
 #include <Engine/Modules/Input/InputModule.h>
 
 #include "Game/Inventory/InventoryUI.h"
+#include "Game/Dynamic/DialoguesUI.h"
+#include "Game/Dynamic/ActorComponent.h"
 
 #include "PlayerComponent.h"
 
@@ -15,17 +17,19 @@ struct PlayerUILayout {
   std::shared_ptr<InventoryUI> inventoryUI;
   std::shared_ptr<GUILayout> interactionUI;
   std::shared_ptr<GUIText> interactionUIText;
+  std::shared_ptr<DialoguesUI> dialoguesUI;
 };
 
 class PlayerControlSystem : public GameSystem,
                             public EventsListener<MouseWheelEvent>,
                             public EventsListener<InputActionToggleEvent>,
-                            public EventsListener<KeyboardEvent> {
+                            public EventsListener<KeyboardEvent>,
+                            public EventsListener<ActorTalkTriggerCommandEvent> {
  public:
   explicit PlayerControlSystem(
     std::shared_ptr<InputModule> inputModule,
     std::shared_ptr<GraphicsScene> graphicsScene,
-    PlayerUILayout  uiLayout);
+    PlayerUILayout uiLayout);
   ~PlayerControlSystem() override = default;
 
   void configure() override;
@@ -42,6 +46,7 @@ class PlayerControlSystem : public GameSystem,
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
   EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
+  EventProcessStatus receiveEvent(GameWorld* gameWorld, const ActorTalkTriggerCommandEvent& event) override;
 
   void disableMovementControl();
   void enableMovementControl();
@@ -50,10 +55,12 @@ class PlayerControlSystem : public GameSystem,
   [[nodiscard]] Camera& getPlayerCamera();
 
   void showGUIWindow(std::shared_ptr<GUILayout> window);
-  void hideGUIWindow(std::shared_ptr<GUILayout> window);
+  void hideGUIWindow();
+
+  [[nodiscard]] bool isGUIWindowModeActive() const;
 
   void processNearestInteractiveObjects(const Transform& playerTransform);
-  GameObject findNearestInteractiveObject(const Transform& playerTransform);
+  [[nodiscard]] GameObject findNearestInteractiveObject(const Transform& playerTransform);
 
   void performInteractiveAction();
 
@@ -68,7 +75,8 @@ class PlayerControlSystem : public GameSystem,
 
   PlayerUILayout m_uiLayout;
 
+  std::shared_ptr<GUILayout> m_activeGUIWindow;
+
   bool m_isMovementControlEnabled{};
-  bool m_isUIModeActive{};
 };
 

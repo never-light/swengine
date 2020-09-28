@@ -112,6 +112,9 @@ bool DialoguesManager::hasDialogue(const std::string& id) const
 void DialoguesManager::loadFromFile(const std::string& path)
 {
   std::string dialogueDescriptionPath = FileUtils::getGameResourcePath("dialogues/" + path + ".xml");
+
+  spdlog::debug("Load dialogues list from {}", dialogueDescriptionPath);
+
   auto dialogueDescription = XMLUtils::openDescriptionFile(dialogueDescriptionPath, "dialogues");
 
   pugi::xml_node dialoguesListNode = std::get<1>(dialogueDescription);

@@ -11,6 +11,7 @@
 #include "Game/Screens/MainMenuScreen.h"
 
 #include "Game/Inventory/InventoryUI.h"
+#include "Game/Dynamic/DialoguesUI.h"
 
 GameApplication::GameApplication(int argc, char* argv[])
   : BaseGameApplication(argc, argv, "Game", 1280, 720)
@@ -54,9 +55,22 @@ void GameApplication::load()
       m_componentsLoader->loadInteractiveData(gameObject, data);
     });
 
+  m_levelsManager->getObjectsLoader().registerGenericComponentLoader("actor",
+    [this](GameObject& gameObject, const pugi::xml_node& data) {
+      m_componentsLoader->loadActorData(gameObject, data);
+    });
+
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui", [this](const pugi::xml_node& widgetData) {
     ARG_UNUSED(widgetData);
     return std::make_shared<InventoryUI>(m_gameWorld, m_inputModule);
+  });
+
+  m_dialoguesManager = std::make_shared<DialoguesManager>();
+  m_dialoguesManager->loadFromFile("dialogues_general");
+
+  m_guiSystem->getWidgetsLoader()->registerWidgetLoader("dialogues_ui", [this](const pugi::xml_node& widgetData) {
+    ARG_UNUSED(widgetData);
+    return std::make_shared<DialoguesUI>(m_gameWorld, m_dialoguesManager);
   });
 
   auto gameScreenDebugUILayout = m_guiSystem->loadScheme(
@@ -72,6 +86,8 @@ void GameApplication::load()
     FileUtils::getGUISchemePath("game_ui_interaction")));
   playerUILayout.interactionUIText = std::dynamic_pointer_cast<GUIText>(
     playerUILayout.interactionUI->findChildByName("game_ui_interaction_action_text"));
+  playerUILayout.dialoguesUI = std::dynamic_pointer_cast<DialoguesUI>(m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("game_ui_dialogues")));
 
   m_screenManager->registerScreen(
     std::make_shared<GameScreen>(m_inputModule,

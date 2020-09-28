@@ -8,6 +8,7 @@
 #include "Game/PlayerComponent.h"
 #include "Game/Inventory/InventoryComponent.h"
 #include "Game/Dynamic/InteractiveObjectComponent.h"
+#include "Game/Dynamic/ActorComponent.h"
 
 GameComponentsLoader::GameComponentsLoader(
   std::shared_ptr<GameWorld> gameWorld,
@@ -84,5 +85,28 @@ void GameComponentsLoader::loadInteractiveData(GameObject& gameObject, const pug
 
   if (usableConditions) {
     interactiveComponent.setUsable(true);
+  }
+
+  pugi::xml_node talkableConditions = data.child("talkable");
+
+  if (talkableConditions) {
+    interactiveComponent.setTalkable(true);
+  }
+}
+
+void GameComponentsLoader::loadActorData(GameObject& gameObject, const pugi::xml_node& data)
+{
+  auto& actorComponent = *gameObject.addComponent<ActorComponent>().get();
+
+  std::string actorName = data.attribute("name").as_string();
+  actorComponent.setName(actorName);
+
+  pugi::xml_node dialoguesNode = data.child("dialogues");
+
+  for (pugi::xml_node dialogueNode : dialoguesNode.children("dialogue")) {
+    std::string dialogueId = dialogueNode.attribute("id").as_string();
+    bool isStartedByNPC = dialogueNode.attribute("npc_start").as_bool(false);
+
+    actorComponent.addDialogue(ActorDialogue(dialogueId, isStartedByNPC));
   }
 }

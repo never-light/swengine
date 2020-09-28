@@ -22,4 +22,5 @@ class InteractiveObjectsControlSystem : public GameSystem,
  private:
   void handleTakeObjectAction(GameObject initiator, GameObject target);
   void handleUseObjectAction(GameObject initiator, GameObject target);
+  void handleTalkWithObjectAction(GameObject initiator, GameObject target);
 };
