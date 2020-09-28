@@ -81,10 +81,8 @@ void GameScreen::render()
   DebugPainter::renderBasis({0.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 2.0f});
 }
 
-EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus GameScreen::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.actionName == "toggle_menu" && event.newState == InputActionState::Active) {
     activateNextScreen(GameScreenType::MainMenu);
   }
@@ -92,10 +90,8 @@ EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const InputAct
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GameScreen::receiveEvent(GameWorld* gameWorld, const GameConsoleChangeVisibilityEvent& event)
+EventProcessStatus GameScreen::receiveEvent(const GameConsoleChangeVisibilityEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.isVisible) {
     m_game->enterConsoleMode();
   }

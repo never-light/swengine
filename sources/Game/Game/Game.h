@@ -35,7 +35,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   void enterConsoleMode();
   void leaveConsoleMode();
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

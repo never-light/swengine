@@ -16,7 +16,7 @@ class MainMenuScreen : public BaseGameScreen,
   void load() override;
   void unload() override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
 
  private:
   void initializeGUI();

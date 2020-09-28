@@ -24,7 +24,7 @@ class FreeCameraControlSystem : public GameSystem,
 
   void update(float delta) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
 
  private:
   std::shared_ptr<InputModule> m_inputModule;

@@ -8,6 +8,7 @@
 #include <Engine/Modules/ScreenManagement/ScreenManager.h>
 
 #include "Game/ComponentsLoader/GameComponentsLoader.h"
+#include "Game/Dynamic/DialoguesManager.h"
 
 class GameApplication : public BaseGameApplication,
                         public EventsListener<ScreenSwitchEvent> {
@@ -21,9 +22,10 @@ class GameApplication : public BaseGameApplication,
   void unload() override;
 
  public:
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const ScreenSwitchEvent& event) override;
+  EventProcessStatus receiveEvent(const ScreenSwitchEvent& event) override;
 
  private:
   std::unique_ptr<GameComponentsLoader> m_componentsLoader;
+  std::shared_ptr<DialoguesManager> m_dialoguesManager;
 };
 

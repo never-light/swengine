@@ -134,10 +134,8 @@ int BaseGameApplication::execute()
   return 0;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
+EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.command == "exit") {
     shutdown();
 
@@ -157,10 +155,8 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   return EventProcessStatus::Skipped;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus BaseGameApplication::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.actionName == "console" && event.newState == InputActionState::Active) {
     if (m_gameConsole->getGUIConsole()->isShown()) {
       m_gameConsole->getGUIConsole()->hide();

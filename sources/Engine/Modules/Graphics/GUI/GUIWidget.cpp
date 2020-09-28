@@ -18,6 +18,10 @@ GUIWidget::GUIWidget(std::string className)
   defaultVisualParameters.setBorderWidth(0);
 }
 
+GUIWidget::~GUIWidget()
+{
+}
+
 void GUIWidget::setOrigin(const glm::ivec2& origin)
 {
   m_origin = origin;
@@ -69,6 +73,7 @@ void GUIWidget::addChildWidget(std::shared_ptr<GUIWidget> widget)
   widget->setParent(weak_from_this());
 
   orderChildrenByZIndex();
+  updateChildStyles(widget);
 }
 
 void GUIWidget::removeChildWidget(const std::shared_ptr<GUIWidget>& widget)
@@ -84,6 +89,10 @@ const std::vector<std::shared_ptr<GUIWidget>>& GUIWidget::getChildrenWidgets() c
 
 void GUIWidget::removeChildren()
 {
+  for (const auto& widget : m_widgets) {
+    widget->setParent({});
+  }
+
   m_widgets.clear();
 }
 
@@ -187,33 +196,41 @@ void GUIWidget::processKeyboardEvent(const GUIKeyboardEvent& event)
   ARG_UNUSED(event);
 }
 
-void GUIWidget::triggerMouseButtonEvent(const GUIMouseButtonEvent& event)
+void GUIWidget::triggerMouseButtonEvent(
+  const GUIMouseButtonEvent& event,
+  std::vector<std::function<void()>>& eventsQueue)
 {
   if (m_mouseButtonCallback) {
-    m_mouseButtonCallback(event);
+    eventsQueue.emplace_back([this, event]() { m_mouseButtonCallback(event); });
   }
 }
 
-void GUIWidget::triggerMouseEnterEvent(const GUIMouseEnterEvent& event)
+void GUIWidget::triggerMouseEnterEvent(
+  const GUIMouseEnterEvent& event,
+  std::vector<std::function<void()>>& eventsQueue)
 {
   if (m_mouseEnterCallback) {
-    m_mouseEnterCallback(event);
+    eventsQueue.emplace_back([this, event]() { m_mouseEnterCallback(event); });
   }
 }
 
-void GUIWidget::triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event)
+void GUIWidget::triggerMouseLeaveEvent(
+  const GUIMouseLeaveEvent& event,
+  std::vector<std::function<void()>>& eventsQueue)
 {
   if (m_mouseLeaveCallback) {
-    m_mouseLeaveCallback(event);
+    eventsQueue.emplace_back([this, event]() { m_mouseLeaveCallback(event); });
   }
 }
 
-void GUIWidget::triggerKeyboardEvent(const GUIKeyboardEvent& event)
+void GUIWidget::triggerKeyboardEvent(
+  const GUIKeyboardEvent& event,
+  std::vector<std::function<void()>>& eventsQueue)
 {
   processKeyboardEvent(event);
 
   if (m_keyboardEventCallback) {
-    m_keyboardEventCallback(event);
+    eventsQueue.emplace_back([this, event]() { m_keyboardEventCallback(event); });
   }
 }
 
@@ -353,6 +370,8 @@ void GUIWidget::applyStylesheetRuleToChildren(
 
 void GUIWidget::applyStylesheet(const GUIWidgetStylesheet& stylesheet)
 {
+  m_stylesheets.push_back(stylesheet);
+
   for (const GUIWidgetStylesheetRule& rule : stylesheet.getRules()) {
     applyStylesheetRuleWithSelector(rule, {});
   }
@@ -393,4 +412,17 @@ void GUIWidget::onShow()
 void GUIWidget::onHide()
 {
 
+}
+
+void GUIWidget::updateChildStyles(std::shared_ptr<GUIWidget> childWidget)
+{
+  std::vector<GUIWidgetStylesheetSelectorPart> currentPath;
+  // Increase current path
+  currentPath.emplace_back(m_className, m_name);
+
+  for (const auto& stylesheet : m_stylesheets) {
+    for (const GUIWidgetStylesheetRule& rule : stylesheet.getRules()) {
+      childWidget->applyStylesheetRuleWithSelector(rule, currentPath);
+    }
+  }
 }

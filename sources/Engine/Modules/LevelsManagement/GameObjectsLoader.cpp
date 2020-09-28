@@ -341,6 +341,12 @@ void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xm
 
   auto& animationComponent = *gameObject.addComponent<SkeletalAnimationComponent>(skeletonInstance).get();
   animationComponent.setAnimationStatesMachine(statesMachineInstance);
+
+  auto startStateAttribute = data.attribute("start_state");
+
+  if (startStateAttribute) {
+    statesMachineInstance->setActiveState(startStateAttribute.as_string());
+  }
 }
 
 void GameObjectsLoader::loadKinematicCharacterData(GameObject& gameObject, const pugi::xml_node& data)

@@ -83,3 +83,13 @@ const GLMaterial::GenericParameterValue& GLMaterial::getShaderParameterValue(con
 {
   return m_parameters.at(name).value;
 }
+
+void GLMaterial::setScissorsTestMode(ScissorsTestMode mode)
+{
+  m_scissorsTestMode = mode;
+}
+
+ScissorsTestMode GLMaterial::getScissorsTestMode() const
+{
+  return m_scissorsTestMode;
+}

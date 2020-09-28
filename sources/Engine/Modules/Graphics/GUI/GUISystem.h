@@ -47,8 +47,8 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   [[nodiscard]] int getScreenWidth() const;
   [[nodiscard]] int getScreenHeight() const;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
+  EventProcessStatus receiveEvent(const MouseButtonEvent& event) override;
+  EventProcessStatus receiveEvent(const KeyboardEvent& event) override;
 
   // TODO: the method suppose that default parent of the layout is the root layout, but
   //  it is not common case. Add ability to specify custom default parent layout.
@@ -65,6 +65,8 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   bool isMouseInWidgetArea(const GUIWidget* widget) const;
 
   void renderGUIWidget(GUIWidget* widget);
+
+  void executeEventsQueue(const std::vector<std::function<void()>>& queue);
 
  private:
   std::unique_ptr<Mesh> m_guiNDCQuad;
@@ -85,5 +87,7 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   std::unique_ptr<GLMaterial> m_guiMaterial;
 
   std::unique_ptr<GUIWidgetsLoader> m_widgetsLoader;
+
+  std::vector<std::function<void()>> m_eventsQueue;
 };
 

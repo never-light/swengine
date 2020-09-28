@@ -34,11 +34,8 @@ void InventoryControlSystem::deactivate()
 }
 
 EventProcessStatus InventoryControlSystem::receiveEvent(
-  GameWorld* gameWorld,
   const InventoryItemActionTriggeredEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   auto& inventoryItemComponent = *GameObject(event.item).getComponent<InventoryItemComponent>().get();
 
   switch (event.triggerType) {

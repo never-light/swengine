@@ -1,10 +1,16 @@
+#ifndef GAME_AS_STATIC_LIB
 #define SDL_MAIN_HANDLED
+#endif
 
 #include <iostream>
 #include <Engine/Exceptions/exceptions.h>
 #include "Core/GameApplication.h"
 
+#ifndef GAME_AS_STATIC_LIB
 int main(int argc, char* argv[])
+#else
+int gameMain(int argc, char* argv[])
+#endif
 {
   try {
     GameApplication app(argc, argv);

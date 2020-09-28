@@ -95,11 +95,9 @@ void BulletPhysicsSystemBackend::unconfigure()
   m_collisionConfiguration = nullptr;
 }
 
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectRemoveComponentEvent<RigidBodyComponent>& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (!isConfigured()) {
     return EventProcessStatus::Skipped;
   }
@@ -113,11 +111,9 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectAddComponentEvent<RigidBodyComponent>& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (!isConfigured()) {
     return EventProcessStatus::Skipped;
   }
@@ -150,11 +146,9 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (!isConfigured()) {
     return EventProcessStatus::Skipped;
   }
@@ -172,11 +166,9 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(GameWorld* gameWorld,
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectAddComponentEvent<KinematicCharacterComponent>& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (!isConfigured()) {
     return EventProcessStatus::Skipped;
   }

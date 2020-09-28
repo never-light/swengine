@@ -35,9 +35,8 @@ void MainMenuScreen::unload()
   deinitializeGUI();
 }
 
-EventProcessStatus MainMenuScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus MainMenuScreen::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;

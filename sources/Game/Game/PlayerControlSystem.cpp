@@ -21,6 +21,9 @@
 // TODO: PlayerControlSystem class methods uses some magic numbers.
 // Consider replacing them with constants or moving to configuration files
 
+// TODO: separate player movement and player UI controlling to different classes and
+//  use it here.
+
 PlayerControlSystem::PlayerControlSystem(std::shared_ptr<InputModule> inputModule,
   std::shared_ptr<GraphicsScene> graphicsScene,
   PlayerUILayout uiLayout)
@@ -70,6 +73,9 @@ void PlayerControlSystem::activate()
   m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.interactionUI);
   m_uiLayout.interactionUI->hide();
 
+  m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.dialoguesUI);
+  m_uiLayout.dialoguesUI->hide();
+
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
@@ -77,16 +83,22 @@ void PlayerControlSystem::activate()
 
   getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
   getGameWorld()->subscribeEventsListener<KeyboardEvent>(this);
+  getGameWorld()->subscribeEventsListener<ActorTalkTriggerCommandEvent>(this);
 
   enableMovementControl();
 }
 
 void PlayerControlSystem::deactivate()
 {
+  if (isGUIWindowModeActive()) {
+    hideGUIWindow();
+  }
+
   if (m_isMovementControlEnabled) {
     disableMovementControl();
   }
 
+  getGameWorld()->unsubscribeEventsListener<ActorTalkTriggerCommandEvent>(this);
   getGameWorld()->unsubscribeEventsListener<KeyboardEvent>(this);
   getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
 
@@ -94,6 +106,7 @@ void PlayerControlSystem::deactivate()
 
   m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.interactionUI);
   m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.inventoryUI);
+  m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.dialoguesUI);
 
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_graphicsScene->setActiveCamera(nullptr);
@@ -104,6 +117,12 @@ void PlayerControlSystem::update(float delta)
 {
   // TODO: getMouseDelta usage is unobvious and could lead to side effects. Fix it.
   auto mouseDeltaTemp = m_inputModule->getMouseDelta();
+
+  if (isGUIWindowModeActive()) {
+    if (m_activeGUIWindow == m_uiLayout.dialoguesUI) {
+      m_uiLayout.dialoguesUI->updatePendingResponses();
+    }
+  }
 
   if (!m_isMovementControlEnabled) {
     return;
@@ -181,7 +200,7 @@ void PlayerControlSystem::update(float delta)
 
 void PlayerControlSystem::processNearestInteractiveObjects(const Transform& playerTransform)
 {
-  if (m_isUIModeActive) {
+  if (isGUIWindowModeActive()) {
     return;
   }
 
@@ -205,6 +224,10 @@ void PlayerControlSystem::processNearestInteractiveObjects(const Transform& play
     m_uiLayout.interactionUIText->setText(
       fmt::format("{} - press F to take", interactiveObjectComponent.getName()));
   }
+  else if (interactiveObjectComponent.isTalkable()) {
+    m_uiLayout.interactionUIText->setText(
+      fmt::format("{} - press F to talk with", interactiveObjectComponent.getName()));
+  }
 
   if (!m_uiLayout.interactionUI->isShown()) {
     m_uiLayout.interactionUI->show();
@@ -221,19 +244,16 @@ void PlayerControlSystem::render()
   //DebugPainter::renderAABB(m_playerObject.getComponent<MeshRendererComponent>().getAABB());
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const MouseWheelEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   playerComponent.increaseDistanceToPlayer(event.wheelDelta * 0.2f);
 
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;
@@ -322,6 +342,8 @@ void PlayerControlSystem::disableMovementControl()
 
 void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)
 {
+  SW_ASSERT(m_activeGUIWindow == nullptr);
+
   if (m_uiLayout.interactionUI->isShown()) {
     m_uiLayout.interactionUI->hide();
   }
@@ -329,39 +351,44 @@ void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)
   disableMovementControl();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Absolute);
 
-  m_isUIModeActive = true;
+  m_activeGUIWindow = window;
 
   window->show();
 }
 
-void PlayerControlSystem::hideGUIWindow(std::shared_ptr<GUILayout> window)
+void PlayerControlSystem::hideGUIWindow()
 {
-  window->hide();
+  SW_ASSERT(m_activeGUIWindow != nullptr);
+
+  m_activeGUIWindow->hide();
 
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
   enableMovementControl();
 
-  m_isUIModeActive = false;
+  m_activeGUIWindow.reset();
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const KeyboardEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.type == KeyboardEventType::KeyDown) {
     if (event.keyCode == SDLK_i) {
-      if (m_uiLayout.inventoryUI->isShown()) {
-        hideGUIWindow(m_uiLayout.inventoryUI);
+      if (isGUIWindowModeActive() && m_activeGUIWindow == m_uiLayout.inventoryUI) {
+        hideGUIWindow();
       }
       else {
-        if (!m_isUIModeActive) {
+        if (!isGUIWindowModeActive()) {
           showGUIWindow(m_uiLayout.inventoryUI);
         }
       }
     }
     else if (event.keyCode == SDLK_f) {
-      if (!m_isUIModeActive) {
+      if (!isGUIWindowModeActive()) {
         performInteractiveAction();
+      }
+      else {
+        if (m_activeGUIWindow == m_uiLayout.dialoguesUI) {
+          hideGUIWindow();
+        }
       }
     }
   }
@@ -381,7 +408,8 @@ GameObject PlayerControlSystem::findNearestInteractiveObject(const Transform& pl
     if (object.hasComponent<InteractiveObjectComponent>()) {
       auto& interactiveObjectComponent = *object.getComponent<InteractiveObjectComponent>().get();
 
-      if (interactiveObjectComponent.isUsable() || interactiveObjectComponent.isTakeable()) {
+      if (interactiveObjectComponent.isUsable() || interactiveObjectComponent.isTakeable() ||
+        interactiveObjectComponent.isTalkable()) {
         return object;
       }
     }
@@ -403,10 +431,30 @@ void PlayerControlSystem::performInteractiveAction()
 
   if (interactiveObjectComponent.isUsable()) {
     getGameWorld()->emitEvent(InteractiveObjectActionTriggeredEvent(
-      m_playerObject, interactiveObject,InteractiveObjectActionType::Use));
+      m_playerObject, interactiveObject, InteractiveObjectActionType::Use));
   }
   else if (interactiveObjectComponent.isTakeable()) {
     getGameWorld()->emitEvent(InteractiveObjectActionTriggeredEvent(
-      m_playerObject, interactiveObject,InteractiveObjectActionType::Take));
+      m_playerObject, interactiveObject, InteractiveObjectActionType::Take));
   }
+  else if (interactiveObjectComponent.isTalkable()) {
+    getGameWorld()->emitEvent(InteractiveObjectActionTriggeredEvent(
+      m_playerObject, interactiveObject, InteractiveObjectActionType::Talk));
+  }
+}
+
+bool PlayerControlSystem::isGUIWindowModeActive() const
+{
+  return m_activeGUIWindow != nullptr;
+}
+
+EventProcessStatus PlayerControlSystem::receiveEvent(
+  const ActorTalkTriggerCommandEvent& event)
+{
+  SW_ASSERT(!isGUIWindowModeActive());
+
+  showGUIWindow(m_uiLayout.dialoguesUI);
+  m_uiLayout.dialoguesUI->startDialogue(event.initiator, event.target);
+
+  return EventProcessStatus::Processed;
 }

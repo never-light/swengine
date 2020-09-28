@@ -31,8 +31,8 @@ class GameScreen : public BaseGameScreen,
   void update(float delta) override;
   void render() override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleChangeVisibilityEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const GameConsoleChangeVisibilityEvent& event) override;
 
  private:
   void initializeGame();

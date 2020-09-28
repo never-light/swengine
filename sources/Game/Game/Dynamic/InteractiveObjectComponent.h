@@ -9,7 +9,8 @@
 
 enum class InteractiveObjectActionType {
   Use,
-  Take
+  Take,
+  Talk
 };
 
 struct InteractiveObjectActionTriggeredEvent {
@@ -48,6 +49,9 @@ struct InteractiveObjectComponent {
   void setUsable(bool isUsable);
   [[nodiscard]] bool isUsable() const;
 
+  void setTalkable(bool isTalkable);
+  [[nodiscard]] bool isTalkable() const;
+
   /*!
    * @brief Sets the use callback.
    *
@@ -74,6 +78,7 @@ struct InteractiveObjectComponent {
 
   bool m_isTakeable{};
   bool m_isUsable{};
+  bool m_isTalkable{};
 
   ActionCallback m_useCallback;
   ActionCallback m_takeCallback;

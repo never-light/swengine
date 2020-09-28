@@ -35,11 +35,14 @@ void RenderingSystemsPipeline::render()
 {
   // TODO: get rid of buffers clearing and copying as possible
   // Use depth swap trick to avoid depth buffer clearing
+
+  m_graphicsContext->setupScissorsTest(ScissorsTestMode::Disabled);
   m_sharedGraphicsState->getDeferredFramebuffer().clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 0);
   m_sharedGraphicsState->getDeferredFramebuffer().clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 1);
   m_sharedGraphicsState->getDeferredFramebuffer().clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 2);
 
   m_sharedGraphicsState->getDeferredFramebuffer().clearDepthStencil(1.0f, 0);
+  m_graphicsContext->setupScissorsTest(ScissorsTestMode::Enabled);
 
   for (auto& system : getGameSystems()) {
     auto* renderingSystem = dynamic_cast<RenderingSystem*>(system.get());
@@ -77,13 +80,18 @@ void RenderingSystemsPipeline::render()
     renderingSystem->renderPostProcess();
   }
 
+  m_graphicsContext->setupScissorsTest(ScissorsTestMode::Disabled);
+
   m_graphicsContext->getDefaultFramebuffer().clearColor({0.0f, 0.0f, 0.0f, 1.0f});
   m_graphicsContext->getDefaultFramebuffer().clearDepthStencil(0.0f, 0);
 
   m_sharedGraphicsState->getForwardFramebuffer().copyColor(m_graphicsContext->getDefaultFramebuffer());
   m_sharedGraphicsState->getForwardFramebuffer().copyDepthStencil(m_graphicsContext->getDefaultFramebuffer());
 
+  m_graphicsContext->setupScissorsTest(ScissorsTestMode::Enabled);
+
   DebugPainter::flushRenderQueue(m_graphicsContext.get());
+
 }
 
 void RenderingSystemsPipeline::setDeferredAccumulationShadersPipeline(std::shared_ptr<GLShadersPipeline> pipeline)

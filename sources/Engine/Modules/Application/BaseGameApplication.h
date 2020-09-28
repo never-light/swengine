@@ -44,8 +44,8 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   virtual int execute();
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
 
   void shutdown();
 

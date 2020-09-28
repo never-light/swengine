@@ -16,10 +16,10 @@ class InteractiveObjectsControlSystem : public GameSystem,
   void deactivate() override;
 
   EventProcessStatus receiveEvent(
-    GameWorld* gameWorld,
     const InteractiveObjectActionTriggeredEvent& event) override;
 
  private:
   void handleTakeObjectAction(GameObject initiator, GameObject target);
   void handleUseObjectAction(GameObject initiator, GameObject target);
+  void handleTalkWithObjectAction(GameObject initiator, GameObject target);
 };

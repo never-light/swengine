@@ -4,6 +4,7 @@
 #include <Engine/Modules/Physics/RigidBodyComponent.h>
 
 #include "Game/Inventory/InventoryComponent.h"
+#include "Game/Dynamic/ActorComponent.h"
 
 InteractiveObjectsControlSystem::InteractiveObjectsControlSystem() = default;
 
@@ -28,11 +29,8 @@ void InteractiveObjectsControlSystem::deactivate()
 }
 
 EventProcessStatus InteractiveObjectsControlSystem::receiveEvent(
-  GameWorld* gameWorld,
   const InteractiveObjectActionTriggeredEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   switch (event.triggerType) {
     case InteractiveObjectActionType::Take:
       handleTakeObjectAction(event.initiator, event.target);
@@ -40,6 +38,10 @@ EventProcessStatus InteractiveObjectsControlSystem::receiveEvent(
 
     case InteractiveObjectActionType::Use:
       handleUseObjectAction(event.initiator, event.target);
+      break;
+
+    case InteractiveObjectActionType::Talk:
+      handleTalkWithObjectAction(event.initiator, event.target);
       break;
 
     default:
@@ -79,4 +81,14 @@ void InteractiveObjectsControlSystem::handleUseObjectAction(GameObject initiator
   if (useCallback) {
     useCallback(initiator, target);
   }
+}
+
+void InteractiveObjectsControlSystem::handleTalkWithObjectAction(GameObject initiator, GameObject target)
+{
+  auto& interactiveObjectComponent = *target.getComponent<InteractiveObjectComponent>().get();
+
+  SW_ASSERT(interactiveObjectComponent.isTalkable());
+  SW_ASSERT(target.hasComponent<ActorComponent>());
+
+  getGameWorld()->emitEvent(ActorTalkTriggerCommandEvent(initiator, target));
 }

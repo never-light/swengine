@@ -38,12 +38,12 @@ class GraphicsSceneManagementSystem : public GameSystem,
   void configure() override;
   void unconfigure() override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const LoadSceneCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const UnloadSceneCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const AddObjectToSceneCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const RemoveObjectFromSceneCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectAddEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameObjectRemoveEvent& event) override;
+  EventProcessStatus receiveEvent(const LoadSceneCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const UnloadSceneCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const AddObjectToSceneCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const RemoveObjectFromSceneCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const GameObjectAddEvent& event) override;
+  EventProcessStatus receiveEvent(const GameObjectRemoveEvent& event) override;
 
  private:
   std::shared_ptr<GraphicsScene> m_graphicsScene;
