@@ -43,10 +43,10 @@ class PlayerControlSystem : public GameSystem,
 
   void render() override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const ActorTalkTriggerCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const MouseWheelEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const KeyboardEvent& event) override;
+  EventProcessStatus receiveEvent(const ActorTalkTriggerCommandEvent& event) override;
 
   void disableMovementControl();
   void enableMovementControl();

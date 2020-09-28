@@ -244,19 +244,16 @@ void PlayerControlSystem::render()
   //DebugPainter::renderAABB(m_playerObject.getComponent<MeshRendererComponent>().getAABB());
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const MouseWheelEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const MouseWheelEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
   playerComponent.increaseDistanceToPlayer(event.wheelDelta * 0.2f);
 
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;
@@ -371,10 +368,8 @@ void PlayerControlSystem::hideGUIWindow()
   m_activeGUIWindow.reset();
 }
 
-EventProcessStatus PlayerControlSystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+EventProcessStatus PlayerControlSystem::receiveEvent(const KeyboardEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.type == KeyboardEventType::KeyDown) {
     if (event.keyCode == SDLK_i) {
       if (isGUIWindowModeActive() && m_activeGUIWindow == m_uiLayout.inventoryUI) {
@@ -454,11 +449,8 @@ bool PlayerControlSystem::isGUIWindowModeActive() const
 }
 
 EventProcessStatus PlayerControlSystem::receiveEvent(
-  GameWorld* gameWorld,
   const ActorTalkTriggerCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   SW_ASSERT(!isGUIWindowModeActive());
 
   showGUIWindow(m_uiLayout.dialoguesUI);

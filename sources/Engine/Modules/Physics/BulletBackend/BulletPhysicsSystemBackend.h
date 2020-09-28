@@ -36,16 +36,16 @@ class BulletPhysicsSystemBackend :
   void update(float delta) override;
   void render() override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+  EventProcessStatus receiveEvent(
     const GameObjectAddComponentEvent<RigidBodyComponent>& event) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+  EventProcessStatus receiveEvent(
     const GameObjectRemoveComponentEvent<RigidBodyComponent>& event) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+  EventProcessStatus receiveEvent(
     const GameObjectAddComponentEvent<KinematicCharacterComponent>& event) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld,
+  EventProcessStatus receiveEvent(
     const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event) override;
 
   void enableDebugDrawing(bool enable) override;

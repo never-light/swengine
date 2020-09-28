@@ -126,9 +126,8 @@ void GameApplication::unload()
   m_gameWorld->unsubscribeEventsListener<ScreenSwitchEvent>(this);
 }
 
-EventProcessStatus GameApplication::receiveEvent(GameWorld* gameWorld, const ScreenSwitchEvent& event)
+EventProcessStatus GameApplication::receiveEvent(const ScreenSwitchEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   if (event.newScreen->getName() == "Game") {

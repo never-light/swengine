@@ -16,7 +16,6 @@ class InteractiveObjectsControlSystem : public GameSystem,
   void deactivate() override;
 
   EventProcessStatus receiveEvent(
-    GameWorld* gameWorld,
     const InteractiveObjectActionTriggeredEvent& event) override;
 
  private:

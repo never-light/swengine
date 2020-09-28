@@ -22,7 +22,7 @@ class GameApplication : public BaseGameApplication,
   void unload() override;
 
  public:
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const ScreenSwitchEvent& event) override;
+  EventProcessStatus receiveEvent(const ScreenSwitchEvent& event) override;
 
  private:
   std::unique_ptr<GameComponentsLoader> m_componentsLoader;

@@ -101,9 +101,8 @@ void FreeCameraControlSystem::update(float delta)
   m_freeCamera->getTransform()->move(movementDirection * MOVEMENT_SPEED * delta);
 }
 
-EventProcessStatus FreeCameraControlSystem::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus FreeCameraControlSystem::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;

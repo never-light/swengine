@@ -207,10 +207,8 @@ int GUISystem::getScreenHeight() const
   return m_graphicsContext->getDefaultFramebuffer().getHeight();
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
+EventProcessStatus GUISystem::receiveEvent(const MouseButtonEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   m_eventsQueue.clear();
 
   if (m_activeLayout != nullptr) {
@@ -229,10 +227,8 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+EventProcessStatus GUISystem::receiveEvent(const KeyboardEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   m_eventsQueue.clear();
 
   if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {

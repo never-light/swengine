@@ -21,8 +21,7 @@ class AudioSystem : public GameSystem,
   [[nodiscard]] AudioListener& getListener();
 
  private:
-  EventProcessStatus receiveEvent(GameWorld* gameWorld,
-    const GameObjectAddComponentEvent<AudioSourceComponent>& event) override;
+  EventProcessStatus receiveEvent(const GameObjectAddComponentEvent<AudioSourceComponent>& event) override;
 
  private:
   ALCdevice* m_audioDevice{};

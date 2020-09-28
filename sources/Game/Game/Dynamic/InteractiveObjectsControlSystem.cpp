@@ -29,11 +29,8 @@ void InteractiveObjectsControlSystem::deactivate()
 }
 
 EventProcessStatus InteractiveObjectsControlSystem::receiveEvent(
-  GameWorld* gameWorld,
   const InteractiveObjectActionTriggeredEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   switch (event.triggerType) {
     case InteractiveObjectActionType::Take:
       handleTakeObjectAction(event.initiator, event.target);

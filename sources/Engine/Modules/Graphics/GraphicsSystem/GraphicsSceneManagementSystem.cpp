@@ -45,12 +45,8 @@ void GraphicsSceneManagementSystem::unconfigure()
   gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(
-  GameWorld* gameWorld,
-  const LoadSceneCommandEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const LoadSceneCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   SW_ASSERT(m_graphicsScene->getObjectsCount() == 0);
 
   std::vector<GameObject> objectsList = event.sceneObjects;
@@ -59,10 +55,8 @@ EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWorld,
-  const UnloadSceneCommandEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const UnloadSceneCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   m_graphicsScene->clearObjects();
@@ -70,38 +64,27 @@ EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWo
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWorld,
-  const AddObjectToSceneCommandEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const AddObjectToSceneCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   m_graphicsScene->addObject(event.object);
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWorld,
-  const RemoveObjectFromSceneCommandEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const RemoveObjectFromSceneCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   m_graphicsScene->removeObject(event.object);
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWorld,
-  const GameObjectAddEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const GameObjectAddEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(GameWorld* gameWorld,
-  const GameObjectRemoveEvent& event)
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const GameObjectRemoveEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   GameObject object = event.gameObject;
 
   if (object.hasComponent<ObjectSceneNodeComponent>()) {
