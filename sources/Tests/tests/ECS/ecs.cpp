@@ -2,6 +2,7 @@
 
 #include <set>
 #include <Engine/Modules/ECS/ECS.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 
 bool operator<(const GameObject& lhs, const GameObject& rhs)
 {
@@ -227,4 +228,136 @@ TEST_CASE("game_events_handling", "[ecs]")
 
   gameWorld->emitEvent(TestEvent{20});
   REQUIRE(listener->getLastMessageCode() == 10);
+}
+
+TEST_CASE("game_objects_transform_components_management", "[ecs]")
+{
+    std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
+
+    std::vector<GameObject> gameObjects;
+    for(int i = 0; i < 100; i++) {
+        GameObject object = gameWorld->createGameObject();
+        object.addComponent<TransformComponent>();
+        gameObjects.push_back(object);
+    }
+
+    for(int i = 50; i < 60; i++) {
+        gameWorld->removeGameObject(gameObjects[i]);
+    }
+
+    for(int i = 0; i < 100; i++) {
+        GameObject object = gameWorld->createGameObject();
+        object.addComponent<TransformComponent>();
+        gameObjects.push_back(object);
+    }
+
+    int iterations = 190;
+    gameWorld->forEach([&iterations](const GameObject& object) {
+        REQUIRE(object.isAlive());
+        iterations--;
+    });
+    REQUIRE(!iterations);
+
+    iterations = 190;
+    GameObject foundObj = gameWorld->findGameObject([&iterations](const GameObject& object) {
+        REQUIRE(object.isAlive());
+        iterations--;
+        return false;
+    });
+    REQUIRE(!iterations);
+
+    iterations = 190;
+    auto gameObjectsSequentialView = gameWorld->all();
+    auto gameObjectsSequentialIterator = gameObjectsSequentialView.begin();
+    while(!gameObjectsSequentialIterator.isEnd()) {
+        REQUIRE(gameObjectsSequentialIterator.getGameObject().isAlive());
+        ++gameObjectsSequentialIterator;
+        iterations--;
+    }
+    REQUIRE(!iterations);
+
+    iterations = 190;
+    auto gameObjectsComponentsView = gameWorld->allWith<TransformComponent>();
+    auto gameObjectsComponentsIterator = gameObjectsComponentsView.begin();
+    while(!gameObjectsComponentsIterator.isEnd()) {
+        REQUIRE(gameObjectsComponentsIterator.getGameObject().isAlive());
+        ++gameObjectsComponentsIterator;
+        iterations--;
+    }
+    REQUIRE(!iterations);
+}
+
+
+TEST_CASE("game_objects_transform_components_management_with_delete_inside", "[ecs]")
+{
+    std::shared_ptr<GameWorld> gameWorld = GameWorld::createInstance();
+
+    std::vector<GameObject> gameObjects;
+    for(int i = 0; i < 100; i++) {
+        GameObject object = gameWorld->createGameObject();
+        object.addComponent<TransformComponent>();
+        gameObjects.push_back(object);
+    }
+
+    int iterationIndex = 0;
+    int iterations = 90;
+    gameWorld->forEach([&iterationIndex, &gameWorld, &gameObjects](const GameObject& object) {
+        if(iterationIndex == 5) {
+            for(int i = iterationIndex + 1; i < iterationIndex + 11; i++) {
+                gameWorld->removeGameObject(gameObjects[i]);
+            }
+        }
+        REQUIRE(object.isAlive());
+        iterationIndex++;
+    });
+    REQUIRE(iterationIndex == iterations);
+
+    iterationIndex = 0;
+    iterations-=10;
+    GameObject foundObj = gameWorld->findGameObject([&iterationIndex, &gameWorld, &gameObjects]
+            (const GameObject& object) {
+        if(iterationIndex == 5) {
+            for(int i = iterationIndex + 11; i < iterationIndex + 21; i++) {
+                gameWorld->removeGameObject(gameObjects[i]);
+            }
+        }
+        REQUIRE(object.isAlive());
+        iterationIndex++;
+        return false;
+    });
+    REQUIRE(iterationIndex == iterations);
+
+    iterationIndex = 0;
+    iterations -=10;
+    auto gameObjectsSequentialView = gameWorld->all();
+    for(auto it = gameObjectsSequentialView.begin(); it != gameObjectsSequentialView.end(); ++it, iterationIndex++) {
+        if(iterationIndex == 5) {
+            auto nextIt = ++it;
+            for (size_t removeCounter = 0; removeCounter < 10; removeCounter++) {
+                GameObject objectToRemove = *nextIt;
+                gameWorld->removeGameObject(objectToRemove);
+                ++nextIt;
+            }
+        }
+        REQUIRE(it.getGameObject().isAlive());
+
+    }
+    REQUIRE(iterationIndex == iterations);
+
+    iterationIndex = 0;
+    iterations -=10;
+    auto gameObjectsComponentsView = gameWorld->allWith<TransformComponent>();
+    for(auto it = gameObjectsComponentsView.begin(); it != gameObjectsComponentsView.end(); ++it, iterationIndex++) {
+        if(iterationIndex == 5) {
+            auto nextIt = ++it;
+            for (size_t removeCounter = 0; removeCounter < 10; removeCounter++) {
+                GameObject objectToRemove = *nextIt;
+                gameWorld->removeGameObject(objectToRemove);
+                ++nextIt;
+            }
+        }
+        REQUIRE(it.getGameObject().isAlive());
+
+    }
+    REQUIRE(iterationIndex == iterations);
 }
