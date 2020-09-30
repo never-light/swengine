@@ -63,10 +63,8 @@ class TestEventsListener : public EventsListener<TestEvent> {
   TestEventsListener() = default;
   ~TestEventsListener() override = default;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const TestEvent& event) override
+  EventProcessStatus receiveEvent(const TestEvent& event) override
   {
-    ARG_UNUSED(gameWorld);
-
     m_lastMessageCode = event.messageCode;
     return EventProcessStatus::Processed;
   }
