@@ -64,7 +64,7 @@ void InteractiveObjectsControlSystem::handleTakeObjectAction(GameObject initiato
     takeCallback(initiator, target);
   }
 
-  getGameWorld()->emitEvent(InventoryItemActionTriggeredEvent(
+  getGameWorld()->emitEvent(InventoryItemActionCommandEvent(
     initiator,
     InventoryItemActionTriggerType::RelocateToInventory,
     target));

@@ -139,7 +139,7 @@ void DialoguesManager::loadFromFile(const std::string& path)
       dialogue.addPhrase(phrase);
     }
 
-    // TODO: add dialog validation here
+    // TODO: add dialogue validation here
 
     addDialogue(dialogue);
   }

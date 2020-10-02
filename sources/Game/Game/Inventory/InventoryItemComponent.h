@@ -15,10 +15,14 @@ struct InventoryItemComponent {
  public:
   InventoryItemComponent(
     std::shared_ptr<GLTexture> icon,
+    std::string id,
     std::string name);
 
   void setIcon(std::shared_ptr<GLTexture> icon);
   [[nodiscard]] std::shared_ptr<GLTexture> getIcon() const;
+
+  void setId(const std::string& id);
+  [[nodiscard]] const std::string& getId() const;
 
   void setName(const std::string& name);
   [[nodiscard]] const std::string& getName() const;
@@ -104,6 +108,7 @@ struct InventoryItemComponent {
 
  private:
   std::shared_ptr<GLTexture> m_icon;
+  std::string m_id;
   std::string m_name;
   std::string m_shortDescription;
   std::string m_longDescription;

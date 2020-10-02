@@ -38,6 +38,16 @@ void ActorComponent::addDialogue(const ActorDialogue& dialogue)
   m_dialogues.push_back(dialogue);
 }
 
+ActorInfoportionsStorage& ActorComponent::getInfoportionsStorage()
+{
+  return m_infoportionsStorage;
+}
+
+const ActorInfoportionsStorage& ActorComponent::getInfoportionsStorage() const
+{
+  return m_infoportionsStorage;
+}
+
 const std::string& ActorDialogue::getDialogueId() const
 {
   return m_dialogueId;

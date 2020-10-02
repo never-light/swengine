@@ -10,9 +10,9 @@ enum class InventoryItemActionTriggerType {
   //Show
 };
 
-struct InventoryItemActionTriggeredEvent {
+struct InventoryItemActionEvent {
  public:
-  InventoryItemActionTriggeredEvent(GameObject inventoryOwner,
+  InventoryItemActionEvent(GameObject inventoryOwner,
     InventoryItemActionTriggerType triggerType,
     GameObject item)
     : inventoryOwner(inventoryOwner),
@@ -29,6 +29,48 @@ struct InventoryItemActionTriggeredEvent {
   GameObject item;
 };
 
+struct InventoryItemActionCommandEvent : public InventoryItemActionEvent {
+ public:
+  InventoryItemActionCommandEvent(GameObject inventoryOwner,
+    InventoryItemActionTriggerType triggerType,
+    GameObject item)
+    : InventoryItemActionEvent(inventoryOwner, triggerType, item)
+  {
+
+  }
+};
+
+struct InventoryItemTransferEvent {
+ public:
+  InventoryItemTransferEvent(
+    GameObject initiator,
+    GameObject target,
+    GameObject item)
+    : initiator(initiator),
+      target(target),
+      item(item)
+  {
+
+  }
+
+ public:
+  GameObject initiator;
+  GameObject target;
+  GameObject item;
+};
+
+struct InventoryItemTransferCommandEvent : public InventoryItemTransferEvent {
+ public:
+  InventoryItemTransferCommandEvent(
+    GameObject initiator,
+    GameObject target,
+    GameObject item)
+    : InventoryItemTransferEvent(initiator, target, item)
+  {
+
+  }
+};
+
 class InventoryComponent {
  public:
   InventoryComponent() = default;
@@ -37,6 +79,9 @@ class InventoryComponent {
   void removeItem(GameObject item);
 
   [[nodiscard]] const std::vector<GameObject>& getItems() const;
+
+  [[nodiscard]] bool hasItem(const std::string& itemId) const;
+  [[nodiscard]] GameObject getItem(const std::string& itemId) const;
 
  private:
   std::vector<GameObject> m_inventoryItems;

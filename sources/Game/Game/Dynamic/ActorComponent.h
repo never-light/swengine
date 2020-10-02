@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Engine/Modules/ECS/ECS.h>
+#include "InfoportionsSystem.h"
 
 /**
  * @brief Command to initiate dialogue between player (initiator)
@@ -50,7 +51,11 @@ struct ActorComponent {
 
   [[nodiscard]] bool hasDialogue(const std::string& dialogueId) const;
 
+  [[nodiscard]] ActorInfoportionsStorage& getInfoportionsStorage();
+  [[nodiscard]] const ActorInfoportionsStorage& getInfoportionsStorage() const;
+
  private:
   std::string m_name;
   std::vector<ActorDialogue> m_dialogues;
+  ActorInfoportionsStorage m_infoportionsStorage;
 };
