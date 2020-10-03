@@ -34,7 +34,7 @@ bool QuestsSystem::hasQuest(const std::string& questId) const
   return m_quests.contains(questId);
 }
 
-void QuestsSystem::loadFromFile(const std::string& path)
+void QuestsSystem::loadQuestsFromFile(const std::string& path)
 {
   std::string questsDescriptionPath = FileUtils::getGameResourcePath(
     "quests/" + path + ".xml");
@@ -92,6 +92,7 @@ void QuestsSystem::activate()
 {
   GameWorld* gameWorld = getGameWorld();
 
+  gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<ActorComponent>>(this);
   gameWorld->subscribeEventsListener<AddInfoportionEvent>(this);
   gameWorld->subscribeEventsListener<RemoveInfoportionEvent>(this);
   gameWorld->subscribeEventsListener<InventoryItemActionEvent>(this);
@@ -104,9 +105,10 @@ void QuestsSystem::deactivate()
   gameWorld->unsubscribeEventsListener<InventoryItemActionEvent>(this);
   gameWorld->unsubscribeEventsListener<RemoveInfoportionEvent>(this);
   gameWorld->unsubscribeEventsListener<AddInfoportionEvent>(this);
+  gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<ActorComponent>>(this);
 }
 
-EventProcessStatus QuestsSystem::receiveEvent(const GameObjectAddEvent& event)
+EventProcessStatus QuestsSystem::receiveEvent(const GameObjectAddComponentEvent<ActorComponent>& event)
 {
   if (event.gameObject.getName() == PLAYER_OBJECT_NAME) {
     setupActorQuestsState();
@@ -306,8 +308,6 @@ void QuestsSystem::updateNotStartedQuest(const Quest& quest, ActorQuestState& ac
         getGameWorld()->emitEvent<QuestStartedEvent>(QuestStartedEvent(getActor(), quest.getId()));
         getGameWorld()->emitEvent<QuestTaskStartedEvent>(
           QuestTaskStartedEvent(getActor(), quest.getId(), actorQuestState.getCurrentTaskId()));
-
-        // TODO: emit event about quest start
 
         updateStartedQuest(quest, actorQuestState);
         break;

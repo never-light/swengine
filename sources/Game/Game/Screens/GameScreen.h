@@ -18,8 +18,7 @@ class GameScreen : public BaseGameScreen,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GraphicsScene> graphicsScene,
-    std::shared_ptr<GUILayout> debugGUILayout,
-    PlayerUILayout playerUILayout);
+    std::shared_ptr<GUISystem> guiSystem);
   ~GameScreen() override;
 
   void activate() override;
@@ -46,6 +45,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystemsGroup;
   std::shared_ptr<LevelsManager> m_levelsManager;
   std::shared_ptr<GraphicsScene> m_graphicsScene;
+  std::shared_ptr<GUISystem> m_guiSystem;
 
   std::unique_ptr<Game> m_game;
 

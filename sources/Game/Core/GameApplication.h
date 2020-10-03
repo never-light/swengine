@@ -26,6 +26,5 @@ class GameApplication : public BaseGameApplication,
 
  private:
   std::unique_ptr<GameComponentsLoader> m_componentsLoader;
-  std::shared_ptr<DialoguesManager> m_dialoguesManager;
 };
 

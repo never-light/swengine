@@ -118,7 +118,7 @@ class QuestsSystem : public GameSystem,
                      public EventsListener<AddInfoportionEvent>,
                      public EventsListener<RemoveInfoportionEvent>,
                      public EventsListener<InventoryItemActionEvent>,
-                     public EventsListener<GameObjectAddEvent> {
+                     public EventsListener<GameObjectAddComponentEvent<ActorComponent>> {
  public:
   explicit QuestsSystem(std::shared_ptr<GameLogicConditionsManager> conditionsManager);
 
@@ -127,12 +127,12 @@ class QuestsSystem : public GameSystem,
 
   [[nodiscard]] bool hasQuest(const std::string& questId) const;
 
-  void loadFromFile(const std::string& path);
+  void loadQuestsFromFile(const std::string& path);
 
   void activate() override;
   void deactivate() override;
 
-  EventProcessStatus receiveEvent(const GameObjectAddEvent& event) override;
+  EventProcessStatus receiveEvent(const GameObjectAddComponentEvent<ActorComponent>& event) override;
   EventProcessStatus receiveEvent(const AddInfoportionEvent& event) override;
   EventProcessStatus receiveEvent(const RemoveInfoportionEvent& event) override;
   EventProcessStatus receiveEvent(const InventoryItemActionEvent& event) override;

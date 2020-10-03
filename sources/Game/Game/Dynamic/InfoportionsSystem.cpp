@@ -76,7 +76,7 @@ bool InfoportionsSystem::hasInfoportion(const std::string& infoportion) const
   return m_storage.contains(infoportion);
 }
 
-void InfoportionsSystem::loadFromFile(const std::string& path)
+void InfoportionsSystem::loadInfoportionsFromFile(const std::string& path)
 {
   std::string infoportionsDescriptionPath = FileUtils::getGameResourcePath(
     "quests/" + path + ".xml");
@@ -88,7 +88,7 @@ void InfoportionsSystem::loadFromFile(const std::string& path)
 
   pugi::xml_node infoportionsListNode = std::get<1>(infoportionsDescription);
 
-  for (pugi::xml_node infoportionNode : infoportionsListNode.children("dialogue")) {
+  for (pugi::xml_node infoportionNode : infoportionsListNode.children("infoportion")) {
     std::string infoportionId = infoportionNode.attribute("id").as_string();
 
     addInfoportion(infoportionId);

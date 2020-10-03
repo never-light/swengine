@@ -193,10 +193,10 @@ GameLogicCondition* GameLogicConditionsManager::parseConditionsNode(pugi::xml_no
   if (nodeName == "has_not_object") {
     return new GameLogicConditionHasNotObject(this, conditionsNode.child_value());
   }
-  else if (nodeName == "has_info") {
+  else if (nodeName == "has_infoportion") {
     return new GameLogicConditionHasInfoportion(this, conditionsNode.child_value());
   }
-  else if (nodeName == "has_not_info") {
+  else if (nodeName == "has_not_infoportion") {
     return new GameLogicConditionHasNotInfoportion(this, conditionsNode.child_value());
   }
   else if (nodeName == "all") {

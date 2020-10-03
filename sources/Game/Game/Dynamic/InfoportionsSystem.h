@@ -60,7 +60,7 @@ class InfoportionsSystem : public GameSystem,
   void addInfoportion(const std::string& infoportion);
   [[nodiscard]] bool hasInfoportion(const std::string& infoportion) const;
 
-  void loadFromFile(const std::string& path);
+  void loadInfoportionsFromFile(const std::string& path);
 
   void activate() override;
   void deactivate() override;
