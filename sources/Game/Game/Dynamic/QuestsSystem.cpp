@@ -4,6 +4,10 @@
 
 #include <Engine/Utility/files.h>
 #include <Engine/Utility/xml.h>
+#include <Engine/Exceptions/exceptions.h>
+
+#include "ActorComponent.h"
+#include "Quest.h"
 
 QuestsSystem::QuestsSystem(std::shared_ptr<GameLogicConditionsManager> conditionsManager)
   : m_conditionsManager(std::move(conditionsManager))
@@ -14,6 +18,10 @@ QuestsSystem::QuestsSystem(std::shared_ptr<GameLogicConditionsManager> condition
 void QuestsSystem::addQuest(const Quest& quest)
 {
   m_quests.insert({quest.getId(), quest});
+
+  if (getActor().isAlive()) {
+    setupActorQuestState(quest);
+  }
 }
 
 const Quest& QuestsSystem::getQuest(const std::string& questId) const
@@ -78,4 +86,274 @@ std::shared_ptr<GameLogicCondition> QuestsSystem::loadCondition(const pugi::xml_
   else {
     return nullptr;
   }
+}
+
+void QuestsSystem::activate()
+{
+  GameWorld* gameWorld = getGameWorld();
+
+  gameWorld->subscribeEventsListener<AddInfoportionEvent>(this);
+  gameWorld->subscribeEventsListener<RemoveInfoportionEvent>(this);
+  gameWorld->subscribeEventsListener<InventoryItemActionEvent>(this);
+}
+
+void QuestsSystem::deactivate()
+{
+  GameWorld* gameWorld = getGameWorld();
+
+  gameWorld->unsubscribeEventsListener<InventoryItemActionEvent>(this);
+  gameWorld->unsubscribeEventsListener<RemoveInfoportionEvent>(this);
+  gameWorld->unsubscribeEventsListener<AddInfoportionEvent>(this);
+}
+
+EventProcessStatus QuestsSystem::receiveEvent(const GameObjectAddEvent& event)
+{
+  if (event.gameObject.getName() == PLAYER_OBJECT_NAME) {
+    setupActorQuestsState();
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus QuestsSystem::receiveEvent(const AddInfoportionEvent& event)
+{
+  if (event.getActor() == getActor()) {
+    updateQuestsStates();
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus QuestsSystem::receiveEvent(const RemoveInfoportionEvent& event)
+{
+  if (event.getActor() == getActor()) {
+    updateQuestsStates();
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus QuestsSystem::receiveEvent(const InventoryItemActionEvent& event)
+{
+  if (event.inventoryOwner == getActor()) {
+    updateQuestsStates();
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+void QuestsSystem::updateQuestsStates()
+{
+  GameObject actorObject = getActor();
+  SW_ASSERT(actorObject.isAlive());
+
+  auto actor = actorObject.getComponent<ActorComponent>();
+
+  for (const auto&[questId, quest] : m_quests) {
+    ActorQuestState& actorQuestState = actor->getQuestState(questId);
+
+    switch (actorQuestState.getState()) {
+      case QuestState::NotStarted:
+        updateNotStartedQuest(quest, actorQuestState);
+        break;
+      case QuestState::Started:
+        updateStartedQuest(quest, actorQuestState);
+        break;
+
+      case QuestState::Completed:
+      case QuestState::Failed:
+        // Do nothing
+        break;
+
+      default:
+        SW_ASSERT(false);
+        break;
+    }
+  }
+}
+
+bool QuestsSystem::activateNewQuestTask(const Quest& quest, ActorQuestState& actorQuestState)
+{
+  SW_ASSERT(quest.getId() == actorQuestState.getQuestId());
+  SW_ASSERT(actorQuestState.getState() == QuestState::Started);
+
+  // Reset completed tasks to not started if completed condition
+  // are not true now
+  for (const auto&[taskId, task] : quest.getTasks()) {
+    ActorQuestTaskState& actorTaskState = actorQuestState.getTaskState(taskId);
+
+    if (actorTaskState.getState() == QuestTaskState::Completed) {
+      GameLogicCondition* taskCompletedCondition = task.getCompleteCondition();
+
+      if (taskCompletedCondition) {
+        if (!taskCompletedCondition->calculateValue()) {
+          actorTaskState.setState(QuestTaskState::NotStarted);
+
+          getGameWorld()->emitEvent<QuestTaskCancelledEvent>(
+            QuestTaskCancelledEvent(getActor(), quest.getId(), task.getId()));
+        }
+      }
+    }
+  }
+
+  for (const auto&[taskId, task] : quest.getTasks()) {
+    ActorQuestTaskState& actorTaskState = actorQuestState.getTaskState(taskId);
+
+    if (actorTaskState.getState() != QuestTaskState::NotStarted) {
+      continue;
+    }
+
+    GameLogicCondition* taskActiveCondition = task.getActiveCondition();
+
+    if (taskActiveCondition) {
+      if (taskActiveCondition->calculateValue()) {
+        // New task to activate is found
+
+        actorTaskState.setState(QuestTaskState::Started);
+        actorQuestState.setCurrentTaskId(task.getId());
+
+        getGameWorld()->emitEvent<QuestTaskStartedEvent>(QuestTaskStartedEvent(getActor(), quest.getId(),
+          task.getId()));
+
+        return true;
+      }
+    }
+    else {
+      // There is no active conditions, so just start the task
+      actorTaskState.setState(QuestTaskState::Started);
+      actorQuestState.setCurrentTaskId(task.getId());
+
+      getGameWorld()->emitEvent<QuestTaskStartedEvent>(QuestTaskStartedEvent(getActor(), quest.getId(),
+        task.getId()));
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void QuestsSystem::updateStartedQuest(const Quest& quest, ActorQuestState& actorQuestState)
+{
+  SW_ASSERT(actorQuestState.getTaskState(actorQuestState.getCurrentTaskId()).getState() ==
+    QuestTaskState::Started);
+
+  // Check for completeness of current active task
+  GameLogicCondition* activeTaskCompleteCondition =
+    quest.getTask(actorQuestState.getCurrentTaskId()).getCompleteCondition();
+
+  bool questIsFinished = false;
+
+  if (activeTaskCompleteCondition) {
+    if (activeTaskCompleteCondition->calculateValue()) {
+      actorQuestState.getTaskState(actorQuestState.getCurrentTaskId()).setState(QuestTaskState::Completed);
+
+      getGameWorld()->emitEvent<QuestTaskCompletedEvent>(
+        QuestTaskCompletedEvent(getActor(), quest.getId(), actorQuestState.getCurrentTaskId()));
+
+      bool isNewTaskActivated = activateNewQuestTask(quest, actorQuestState);
+
+      if (!isNewTaskActivated) {
+        // New active task is not found, so complete the quest
+
+        actorQuestState.setState(QuestState::Completed);
+        getGameWorld()->emitEvent<QuestCompletedEvent>(QuestCompletedEvent(getActor(), quest.getId()));
+        questIsFinished = true;
+      }
+    }
+  }
+
+  if (!questIsFinished) {
+    GameLogicCondition* taskActiveCondition = quest.getTask(actorQuestState.getCurrentTaskId()).getActiveCondition();
+
+    if (taskActiveCondition) {
+      if (!taskActiveCondition->calculateValue()) {
+        actorQuestState.getTaskState(actorQuestState.getCurrentTaskId()).setState(QuestTaskState::NotStarted);
+
+        getGameWorld()->emitEvent<QuestTaskCancelledEvent>(
+          QuestTaskCancelledEvent(getActor(), quest.getId(), actorQuestState.getCurrentTaskId()));
+
+        // Try to switch active quest task to another
+        bool isNewTaskActivated = activateNewQuestTask(quest, actorQuestState);
+
+        if (!isNewTaskActivated) {
+          THROW_EXCEPTION(EngineRuntimeException,
+            fmt::format("New active task for the quest {} is not found", quest.getId()));
+        }
+      }
+    }
+  }
+}
+
+void QuestsSystem::updateNotStartedQuest(const Quest& quest, ActorQuestState& actorQuestState)
+{
+  for (const auto&[questTaskId, questTask] : quest.getTasks()) {
+    ActorQuestTaskState& actorTaskState = actorQuestState.getTaskState(questTaskId);
+
+    SW_ASSERT(actorTaskState.getState() == QuestTaskState::NotStarted);
+
+    GameLogicCondition* taskAutostartCondition = questTask.getAutostartCondition();
+
+    if (taskAutostartCondition) {
+      if (taskAutostartCondition->calculateValue()) {
+        // Start quest and task
+
+        actorQuestState.setState(QuestState::Started);
+        actorTaskState.setState(QuestTaskState::Started);
+
+        actorQuestState.setCurrentTaskId(questTask.getId());
+
+        getGameWorld()->emitEvent<QuestStartedEvent>(QuestStartedEvent(getActor(), quest.getId()));
+        getGameWorld()->emitEvent<QuestTaskStartedEvent>(
+          QuestTaskStartedEvent(getActor(), quest.getId(), actorQuestState.getCurrentTaskId()));
+
+        // TODO: emit event about quest start
+
+        updateStartedQuest(quest, actorQuestState);
+        break;
+      }
+    }
+  }
+}
+
+GameObject QuestsSystem::getActor()
+{
+  return getGameWorld()->findGameObject(PLAYER_OBJECT_NAME);
+}
+
+void QuestsSystem::setupActorQuestsState()
+{
+  for (const auto& taskIt : m_quests) {
+    setupActorQuestState(taskIt.second);
+  }
+}
+
+void QuestsSystem::setupActorQuestState(const Quest& quest)
+{
+  auto actorComponent = getActor().getComponent<ActorComponent>();
+
+  actorComponent->addQuestState(quest.getId());
+  auto& actorQuestState = actorComponent->getQuestState(quest.getId());
+
+  for (const auto& [taskId, task] : quest.getTasks()) {
+    actorQuestState.addTaskState(taskId);
+
+    setupConditionsActor(task.getActiveCondition());
+    setupConditionsActor(task.getAutostartCondition());
+    setupConditionsActor(task.getCompleteCondition());
+  }
+}
+
+std::shared_ptr<GameLogicConditionsManager> QuestsSystem::getConditionsManager() const
+{
+  return m_conditionsManager;
+}
+
+void QuestsSystem::setupConditionsActor(GameLogicCondition* condition)
+{
+  m_conditionsManager->traverseConditionsTree(condition, [this] (GameLogicCondition* condition) {
+    if (auto actorCondition = dynamic_cast<GameLogicActorCondition*>(condition)) {
+      actorCondition->setActor(getActor());
+    }
+  });
 }

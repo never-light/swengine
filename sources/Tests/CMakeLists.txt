@@ -11,7 +11,7 @@ SET(GAME_SOURCES ${GAME_SOURCES} ${GAME_INCLUDES})
 add_library(game_static ${GAME_SOURCES})
 
 target_include_directories(game_static PUBLIC ../)
-target_include_directories(game_static PRIVATE ../Game/)
+target_include_directories(game_static PUBLIC ../Game/)
 
 target_compile_definitions(game_static PUBLIC GAME_AS_STATIC_LIB)
 

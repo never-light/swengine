@@ -35,19 +35,24 @@ void QuestTask::setActiveCondition(std::shared_ptr<GameLogicCondition> condition
   m_activeCondition = std::move(condition);
 }
 
-GameLogicCondition& QuestTask::getAutostartCondition()
+GameLogicCondition* QuestTask::getAutostartCondition() const
 {
-  return *m_autostartCondition;
+  return m_autostartCondition.get();
 }
 
-GameLogicCondition& QuestTask::getActiveCondition()
+GameLogicCondition* QuestTask::getActiveCondition() const
 {
-  return *m_activeCondition;
+  return m_activeCondition.get();
 }
 
-GameLogicCondition& QuestTask::geCompleteCondition()
+GameLogicCondition* QuestTask::getCompleteCondition() const
 {
-  return *m_completeCondition;
+  return m_completeCondition.get();
+}
+
+void QuestTask::setCompleteCondition(std::shared_ptr<GameLogicCondition> condition)
+{
+  m_completeCondition = std::move(condition);
 }
 
 Quest::Quest(std::string id, std::string name, std::string description)
@@ -75,11 +80,16 @@ const std::string& Quest::getDescription() const
 
 void Quest::addTask(const QuestTask& task)
 {
-  m_tasks.push_back(task);
+  m_tasks.insert({task.getId(), task});
 }
 
-const std::vector<QuestTask>& Quest::getTasks() const
+const std::unordered_map<std::string, QuestTask>& Quest::getTasks() const
 {
   return m_tasks;
+}
+
+const QuestTask& Quest::getTask(const std::string& taskId) const
+{
+  return m_tasks.at(taskId);
 }
 

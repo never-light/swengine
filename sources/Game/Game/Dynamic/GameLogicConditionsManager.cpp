@@ -24,6 +24,22 @@ bool GameLogicConditionHasObject::calculateValue()
   return getActor().getComponent<InventoryComponent>()->hasItem(m_objectId);
 }
 
+GameLogicConditionHasNotObject::GameLogicConditionHasNotObject(
+  GameLogicConditionsManager* conditionsManager,
+  std::string objectId)
+  : GameLogicActorCondition(conditionsManager),
+    m_objectId(std::move(objectId))
+{
+
+}
+
+bool GameLogicConditionHasNotObject::calculateValue()
+{
+  SW_ASSERT(getActor().isAlive());
+
+  return !getActor().getComponent<InventoryComponent>()->hasItem(m_objectId);
+}
+
 void GameLogicActorCondition::setActor(const GameObject& actor)
 {
   m_actor = actor;
@@ -77,8 +93,7 @@ bool GameLogicConditionHasNotInfoportion::calculateValue()
 GameLogicConditionAll::GameLogicConditionAll(
   GameLogicConditionsManager* conditionsManager,
   std::vector<std::unique_ptr<GameLogicCondition>> conditions)
-  : GameLogicCondition(conditionsManager),
-    m_conditions(std::move(conditions))
+  : GameLogicConditionBooleanBinary(conditionsManager, std::move(conditions))
 {
 
 }
@@ -86,7 +101,7 @@ GameLogicConditionAll::GameLogicConditionAll(
 bool GameLogicConditionAll::calculateValue()
 {
   // TODO: replace with std::ranges
-  for (auto& condition : m_conditions) {
+  for (auto& condition : getConditions()) {
     if (!condition->calculateValue()) {
       return false;
     }
@@ -98,8 +113,7 @@ bool GameLogicConditionAll::calculateValue()
 GameLogicConditionAny::GameLogicConditionAny(
   GameLogicConditionsManager* conditionsManager,
   std::vector<std::unique_ptr<GameLogicCondition>> conditions)
-  : GameLogicCondition(conditionsManager),
-    m_conditions(std::move(conditions))
+  : GameLogicConditionBooleanBinary(conditionsManager, std::move(conditions))
 {
 
 }
@@ -108,7 +122,7 @@ bool GameLogicConditionAny::calculateValue()
 {
   // TODO: replace with std::ranges
 
-  for (auto& condition : m_conditions) {
+  for (auto& condition : getConditions()) {
     if (condition->calculateValue()) {
       return true;
     }
@@ -120,8 +134,7 @@ bool GameLogicConditionAny::calculateValue()
 GameLogicConditionNot::GameLogicConditionNot(
   GameLogicConditionsManager* conditionsManager,
   std::unique_ptr<GameLogicCondition> condition)
-  : GameLogicCondition(conditionsManager),
-    m_condition(std::move(condition))
+  : GameLogicConditionBooleanUnary(conditionsManager, std::move(condition))
 {
 
 }
@@ -177,6 +190,9 @@ GameLogicCondition* GameLogicConditionsManager::parseConditionsNode(pugi::xml_no
   if (nodeName == "has_object") {
     return new GameLogicConditionHasObject(this, conditionsNode.child_value());
   }
+  if (nodeName == "has_not_object") {
+    return new GameLogicConditionHasNotObject(this, conditionsNode.child_value());
+  }
   else if (nodeName == "has_info") {
     return new GameLogicConditionHasInfoportion(this, conditionsNode.child_value());
   }
@@ -220,6 +236,24 @@ std::shared_ptr<GameLogicCondition> GameLogicConditionsManager::buildConditionsT
 GameWorld& GameLogicConditionsManager::getGameWorld()
 {
   return *m_gameWorld;
+}
+
+void GameLogicConditionsManager::traverseConditionsTree(GameLogicCondition* conditionNode,
+  const std::function<void(GameLogicCondition*)>& visitor)
+{
+  visitor(conditionNode);
+
+  if (auto unaryConditionNode = dynamic_cast<GameLogicConditionBooleanUnary*>(conditionNode)) {
+    traverseConditionsTree(unaryConditionNode->getCondition(), visitor);
+  }
+  else if (auto binaryConditionNode = dynamic_cast<GameLogicConditionBooleanBinary*>(conditionNode)) {
+    for (auto& condition : binaryConditionNode->getConditions()) {
+      traverseConditionsTree(condition.get(), visitor);
+    }
+  }
+  else {
+    /* Do nothing special here */
+  }
 }
 
 GameLogicActionDirected::GameLogicActionDirected(GameLogicConditionsManager* conditionsManager)
@@ -285,4 +319,14 @@ void GameLogicActorAction::setActor(const GameObject& actor)
 GameObject GameLogicActorAction::getActor() const
 {
   return m_actor;
+}
+
+std::vector<std::unique_ptr<GameLogicCondition>>& GameLogicConditionBooleanBinary::getConditions()
+{
+  return m_conditions;
+}
+
+GameLogicCondition* GameLogicConditionBooleanUnary::getCondition()
+{
+  return m_condition.get();
 }

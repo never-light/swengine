@@ -57,6 +57,19 @@ class GameLogicConditionHasObject : public GameLogicActorCondition {
   std::string m_objectId;
 };
 
+class GameLogicConditionHasNotObject : public GameLogicActorCondition {
+ public:
+  explicit GameLogicConditionHasNotObject(
+    GameLogicConditionsManager* conditionsManager,
+    std::string objectId);
+  ~GameLogicConditionHasNotObject() override = default;
+
+  [[nodiscard]] bool calculateValue() override;
+
+ private:
+  std::string m_objectId;
+};
+
 class GameLogicConditionHasInfoportion : public GameLogicActorCondition {
  public:
   explicit GameLogicConditionHasInfoportion(
@@ -70,7 +83,41 @@ class GameLogicConditionHasInfoportion : public GameLogicActorCondition {
   std::string m_infoportionName;
 };
 
-class GameLogicConditionAll : public GameLogicCondition {
+class GameLogicConditionBooleanUnary : public GameLogicCondition {
+ public:
+  explicit GameLogicConditionBooleanUnary(
+    GameLogicConditionsManager* conditionsManager,
+    std::unique_ptr<GameLogicCondition> condition)
+    : GameLogicCondition(conditionsManager),
+      m_condition(std::move(condition))
+  {
+
+  }
+
+  [[nodiscard]] GameLogicCondition* getCondition();
+
+ private:
+  std::unique_ptr<GameLogicCondition> m_condition;
+};
+
+class GameLogicConditionBooleanBinary : public GameLogicCondition {
+ public:
+  explicit GameLogicConditionBooleanBinary(
+    GameLogicConditionsManager* conditionsManager,
+    std::vector<std::unique_ptr<GameLogicCondition>> conditions)
+    : GameLogicCondition(conditionsManager),
+      m_conditions(std::move(conditions))
+  {
+
+  }
+
+  [[nodiscard]] std::vector<std::unique_ptr<GameLogicCondition>>& getConditions();
+
+ private:
+  std::vector<std::unique_ptr<GameLogicCondition>> m_conditions;
+};
+
+class GameLogicConditionAll : public GameLogicConditionBooleanBinary {
  public:
   explicit GameLogicConditionAll(
     GameLogicConditionsManager* conditionsManager,
@@ -79,12 +126,9 @@ class GameLogicConditionAll : public GameLogicCondition {
   ~GameLogicConditionAll() override = default;
 
   [[nodiscard]] bool calculateValue() override;
-
- private:
-  std::vector<std::unique_ptr<GameLogicCondition>> m_conditions;
 };
 
-class GameLogicConditionAny : public GameLogicCondition {
+class GameLogicConditionAny : public GameLogicConditionBooleanBinary {
  public:
   explicit GameLogicConditionAny(
     GameLogicConditionsManager* conditionsManager,
@@ -93,12 +137,9 @@ class GameLogicConditionAny : public GameLogicCondition {
   ~GameLogicConditionAny() override = default;
 
   [[nodiscard]] bool calculateValue() override;
-
- private:
-  std::vector<std::unique_ptr<GameLogicCondition>> m_conditions;
 };
 
-class GameLogicConditionNot : public GameLogicCondition {
+class GameLogicConditionNot : public GameLogicConditionBooleanUnary {
  public:
   explicit GameLogicConditionNot(
     GameLogicConditionsManager* conditionsManager,
@@ -232,6 +273,9 @@ class GameLogicConditionsManager {
   std::shared_ptr<GameLogicCondition> buildConditionsTree(pugi::xml_node conditionsNode);
 
   [[nodiscard]] GameWorld& getGameWorld();
+
+  void traverseConditionsTree(GameLogicCondition* conditionNode,
+    const std::function<void(GameLogicCondition*)>& visitor);
 
  private:
   GameLogicCondition* parseConditionsNode(pugi::xml_node conditionsNode);

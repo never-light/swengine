@@ -27,6 +27,57 @@ struct ActorTalkTriggerCommandEvent {
   GameObject target;
 };
 
+enum class QuestTaskState {
+  NotStarted,
+  Started,
+  Completed,
+  Failed
+};
+
+enum class QuestState {
+  NotStarted,
+  Started,
+  Completed,
+  Failed
+};
+
+struct ActorQuestTaskState {
+ public:
+  explicit ActorQuestTaskState(std::string taskId);
+
+  [[nodiscard]] const std::string& getTaskId() const;
+
+  void setState(QuestTaskState state);
+  [[nodiscard]] QuestTaskState getState() const;
+
+ private:
+  std::string m_taskId;
+  QuestTaskState m_taskState = QuestTaskState::NotStarted;
+};
+
+struct ActorQuestState {
+ public:
+  explicit ActorQuestState(std::string questId);
+
+  [[nodiscard]] const std::string& getQuestId() const;
+
+  void addTaskState(const std::string& taskId);
+  [[nodiscard]] ActorQuestTaskState& getTaskState(const std::string& taskId);
+
+  void setState(QuestState state);
+  [[nodiscard]] QuestState getState() const;
+
+  void setCurrentTaskId(const std::string& taskId);
+  [[nodiscard]] const std::string& getCurrentTaskId() const;
+
+ private:
+  std::string m_questId;
+  std::unordered_map<std::string, ActorQuestTaskState> m_tasksStates;
+  QuestState m_questState = QuestState::NotStarted;
+
+  std::string m_currentTaskId;
+};
+
 struct ActorDialogue {
  public:
   ActorDialogue(std::string dialogueId, bool isStartedByNCP);
@@ -54,8 +105,13 @@ struct ActorComponent {
   [[nodiscard]] ActorInfoportionsStorage& getInfoportionsStorage();
   [[nodiscard]] const ActorInfoportionsStorage& getInfoportionsStorage() const;
 
+  void addQuestState(const std::string& questId);
+  [[nodiscard]] ActorQuestState& getQuestState(const std::string& questId);
+
  private:
   std::string m_name;
   std::vector<ActorDialogue> m_dialogues;
   ActorInfoportionsStorage m_infoportionsStorage;
+
+  std::unordered_map<std::string, ActorQuestState> m_questsStates;
 };

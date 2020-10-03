@@ -13,13 +13,13 @@ class QuestTask {
   [[nodiscard]] const std::string& getDescription() const;
 
   void setAutostartCondition(std::shared_ptr<GameLogicCondition> condition);
-  [[nodiscard]] GameLogicCondition& getAutostartCondition();
+  [[nodiscard]] GameLogicCondition* getAutostartCondition() const;
 
   void setActiveCondition(std::shared_ptr<GameLogicCondition> condition);
-  [[nodiscard]] GameLogicCondition& getActiveCondition();
+  [[nodiscard]] GameLogicCondition* getActiveCondition() const;
 
   void setCompleteCondition(std::shared_ptr<GameLogicCondition> condition);
-  [[nodiscard]] GameLogicCondition& geCompleteCondition();
+  [[nodiscard]] GameLogicCondition* getCompleteCondition() const;
 
  private:
   std::string m_id;
@@ -40,12 +40,14 @@ class Quest {
   [[nodiscard]] const std::string& getDescription() const;
 
   void addTask(const QuestTask& task);
-  [[nodiscard]] const std::vector<QuestTask>& getTasks() const;
+
+  [[nodiscard]] const QuestTask& getTask(const std::string& taskId) const;
+  [[nodiscard]] const std::unordered_map<std::string, QuestTask>& getTasks() const;
 
  private:
   std::string m_id;
   std::string m_name;
   std::string m_description;
 
-  std::vector<QuestTask> m_tasks;
+  std::unordered_map<std::string, QuestTask> m_tasks;
 };
