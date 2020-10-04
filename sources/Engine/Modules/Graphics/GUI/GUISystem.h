@@ -16,6 +16,7 @@
 #include "GUIImage.h"
 #include "GUIText.h"
 #include "GUITextBox.h"
+#include "GUIProgressBar.h"
 
 #include "GUIWidgetsLoader.h"
 

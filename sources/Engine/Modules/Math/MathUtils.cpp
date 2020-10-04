@@ -69,21 +69,37 @@ bool MathUtils::isEqual(float a, float b, float eps)
   return glm::abs(a - b) <= eps;
 }
 
-bool MathUtils::isEqual(const Plane &a, const Plane &b) {
-    return isEqual(a.getNormal(), b.getNormal()) && isEqual(a.getDistance(), b.getDistance());
+bool MathUtils::isEqual(const Plane& a, const Plane& b)
+{
+  return isEqual(a.getNormal(), b.getNormal()) && isEqual(a.getDistance(), b.getDistance());
 }
 
-bool MathUtils::isMatrixIdentity(const glm::mat4& matrix, const float eps)
+bool MathUtils::isMatrixIdentity(const glm::mat4& matrix, float eps)
 {
   return isEqual(matrix, glm::identity<glm::mat4>(), eps);
 }
 
 std::tuple<glm::vec3, glm::vec3> MathUtils::quatToForwardUp(const glm::quat& q)
 {
-  return { q * AXIS_FORWARD, q * AXIS_UP };
+  return {q * AXIS_FORWARD, q * AXIS_UP};
 }
 
 glm::quat MathUtils::forwardUpToQuat(const glm::vec3& forward, const glm::vec3& up)
 {
   return glm::quatLookAt(forward, up);
+}
+
+bool MathUtils::isZero(float a, float eps)
+{
+  return glm::abs(a) <= eps;
+}
+
+float MathUtils::fractionToPercents(float numerator, float denominator)
+{
+  return (numerator / denominator) * 100.0f;
+}
+
+float MathUtils::fractionToPercents(int numerator, int denominator)
+{
+  return (static_cast<float>(numerator) / static_cast<float>(denominator)) * 100.0f;
 }

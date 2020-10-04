@@ -83,11 +83,7 @@ void QuestsSystem::loadQuestsFromFile(const std::string& path)
       quest.addTask(questTask);
     }
 
-    m_questsStorage->addQuest(quest);
-
-    if (getActor().isAlive()) {
-      setupActorQuestState(quest);
-    }
+    registerQuest(quest);
   }
 }
 
@@ -376,4 +372,13 @@ void QuestsSystem::setupConditionsActor(GameLogicCondition* condition)
 std::shared_ptr<QuestsStorage> QuestsSystem::getQuestsStorage() const
 {
   return m_questsStorage;
+}
+
+void QuestsSystem::registerQuest(const Quest& quest)
+{
+  m_questsStorage->addQuest(quest);
+
+  if (getActor().isAlive()) {
+    setupActorQuestState(quest);
+  }
 }

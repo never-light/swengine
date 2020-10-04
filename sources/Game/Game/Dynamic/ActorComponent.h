@@ -111,10 +111,24 @@ struct ActorComponent {
 
   [[nodiscard]] const ActorQuestState* getAnyActiveQuest() const;
 
+  void setHealth(float health);
+  [[nodiscard]] float getHealth() const;
+
+  void setHealthLimit(float health);
+  [[nodiscard]] float getHealthLimit() const;
+
+  void setDead(bool isDead = true);
+  [[nodiscard]] bool isDead() const;
+
  private:
   std::string m_name;
   std::vector<ActorDialogue> m_dialogues;
   ActorInfoportionsStorage m_infoportionsStorage;
 
   std::unordered_map<std::string, ActorQuestState> m_questsStates;
+
+  float m_currentHealth{};
+  float m_maxHealth{};
+
+  bool m_isDead{};
 };

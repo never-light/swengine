@@ -65,6 +65,7 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
   registerWidgetLoader("layout", WidgetClassLoadingData::genGenericWidgetLoader<GUILayout>());
   registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
   registerWidgetLoader("label", WidgetClassLoadingData::genGenericWidgetLoader<GUIText>());
+  registerWidgetLoader("progress_bar", WidgetClassLoadingData::genGenericWidgetLoader<GUIProgressBar>());
 }
 
 GUIWidgetsLoader::~GUIWidgetsLoader() = default;

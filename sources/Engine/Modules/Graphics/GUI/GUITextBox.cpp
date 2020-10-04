@@ -3,6 +3,8 @@
 #pragma hdrstop
 
 #include "GUITextBox.h"
+
+#include <utility>
 #include "GUISystem.h"
 
 GUITextBox::GUITextBox(std::shared_ptr<BitmapFont> font)
@@ -14,7 +16,7 @@ GUITextBox::GUITextBox(std::shared_ptr<BitmapFont> font)
 
 void GUITextBox::setFont(std::shared_ptr<BitmapFont> font)
 {
-  m_font = font;
+  m_font = std::move(font);
 }
 
 std::shared_ptr<BitmapFont> GUITextBox::getFont() const

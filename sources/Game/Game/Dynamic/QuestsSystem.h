@@ -142,6 +142,7 @@ class QuestsSystem : public GameSystem,
     std::shared_ptr<GameLogicConditionsManager> conditionsManager,
     std::shared_ptr<QuestsStorage> questsStorage);
 
+  void registerQuest(const Quest& quest);
   void loadQuestsFromFile(const std::string& path);
 
   void activate() override;

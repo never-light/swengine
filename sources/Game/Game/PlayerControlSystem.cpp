@@ -100,6 +100,15 @@ void PlayerControlSystem::activate()
 
   SW_ASSERT(m_questInfoTitle != nullptr && m_questInfoTaskTitle != nullptr);
 
+  m_healthInfoLayout = std::dynamic_pointer_cast<GUILayout>(
+    m_uiLayout.hudLayout->findChildByName("game_ui_actor_hud_layout_health_info"));
+  SW_ASSERT(m_questInfoLayout != nullptr);
+
+  m_healthProgressBar = std::dynamic_pointer_cast<GUIProgressBar>(m_healthInfoLayout
+    ->findChildByName("game_ui_actor_hud_layout_health_info_health"));
+
+  SW_ASSERT(m_healthProgressBar != nullptr);
+
   enableMovementControl();
 }
 
@@ -493,21 +502,32 @@ EventProcessStatus PlayerControlSystem::receiveEvent(const StopDialogueCommandEv
 void PlayerControlSystem::updateHUD()
 {
 //  if (m_inputModule->isActionActive("hud_quests")) {
-    std::shared_ptr<QuestsStorage> questsStorage = m_uiLayout.dialoguesUI->getQuestsStorage();
-    const auto* activeQuest = m_playerObject.getComponent<ActorComponent>()->getAnyActiveQuest();
+  std::shared_ptr<QuestsStorage> questsStorage = m_uiLayout.dialoguesUI->getQuestsStorage();
+  const auto* activeQuest = m_playerObject.getComponent<ActorComponent>()->getAnyActiveQuest();
 
-    if (activeQuest) {
-      m_questInfoTitle->setText(questsStorage->getQuest(activeQuest->getQuestId()).getName());
-      m_questInfoTaskTitle
-        ->setText(questsStorage->getQuest(activeQuest->getQuestId()).getTask(activeQuest->getCurrentTaskId())
-          .getName());
-    }
-    else {
-      m_questInfoTitle->setText("No active quest");
-      m_questInfoTaskTitle->setText("No active quest task");
-    }
+  // TODO: do not update these texts each frame. Handle appropriate signals and
+  //  update texts there
 
+  if (activeQuest) {
+    m_questInfoTitle->setText(questsStorage->getQuest(activeQuest->getQuestId()).getName());
+    m_questInfoTaskTitle
+      ->setText(questsStorage->getQuest(activeQuest->getQuestId()).getTask(activeQuest->getCurrentTaskId())
+        .getName());
+  }
+  else {
+    m_questInfoTitle->setText("No active quest");
+    m_questInfoTaskTitle->setText("No active quest task");
+  }
+
+  if (!m_questInfoLayout->isShown()) {
     m_questInfoLayout->show();
+  }
+
+  auto playerActor = m_playerObject.getComponent<ActorComponent>();
+
+  m_healthProgressBar->setValue(static_cast<int>(
+    MathUtils::fractionToPercents(playerActor->getHealth(), playerActor->getHealthLimit())));
+
 //  }
 //  else {
 //    if (!m_questInfoLayout->isShown()) {

@@ -4,6 +4,7 @@
 #include <Engine/Modules/Application/GameConsole.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
+#include <Engine/Modules/Graphics/GUI/GUIProgressBar.h>
 #include <Engine/Modules/Input/InputModule.h>
 
 #include "Game/Inventory/InventoryUI.h"
@@ -85,6 +86,9 @@ class PlayerControlSystem : public GameSystem,
   std::shared_ptr<GUILayout> m_questInfoLayout;
   std::shared_ptr<GUIText> m_questInfoTitle;
   std::shared_ptr<GUIText> m_questInfoTaskTitle;
+
+  std::shared_ptr<GUILayout> m_healthInfoLayout;
+  std::shared_ptr<GUIProgressBar> m_healthProgressBar;
 
   bool m_isMovementControlEnabled{};
 };
