@@ -311,7 +311,7 @@ inline EventProcessStatus GameWorld::emitEvent(const T& event)
 
   if (typeId < m_eventsListeners.size()) {
     for (BaseEventsListener* baseListener : m_eventsListeners[typeId]) {
-      auto* listener = reinterpret_cast<EventsListener<T>*>(baseListener);
+      auto* listener = dynamic_cast<EventsListener<T>*>(baseListener);
       EventProcessStatus processStatus = listener->receiveEvent(event);
 
       if (processStatus == EventProcessStatus::Prevented) {

@@ -275,24 +275,32 @@ bool GUIWidget::isPointInside(const glm::ivec2& point) const
 
 void GUIWidget::hideChildren(GUIWidget* parent)
 {
+  bool wasShown = parent->m_isShown;
+
   parent->m_isShown = false;
 
   for (auto& childWidget : parent->getChildrenWidgets()) {
     hideChildren(childWidget.get());
   }
 
-  parent->onHide();
+  if (wasShown) {
+    parent->onHide();
+  }
 }
 
 void GUIWidget::showChildren(GUIWidget* parent)
 {
+  bool wasShown = parent->m_isShown;
+
   parent->m_isShown = true;
 
   for (auto& childWidget : parent->getChildrenWidgets()) {
     showChildren(childWidget.get());
   }
 
-  parent->onShow();
+  if (!wasShown) {
+    parent->onShow();
+  }
 }
 
 glm::mat4 GUIWidget::updateTransformationMatrix()

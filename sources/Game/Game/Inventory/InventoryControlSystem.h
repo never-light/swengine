@@ -4,7 +4,8 @@
 #include "InventoryComponent.h"
 
 class InventoryControlSystem : public GameSystem,
-                               public EventsListener<InventoryItemActionTriggeredEvent> {
+                               public EventsListener<InventoryItemActionCommandEvent>,
+                               public EventsListener<InventoryItemTransferCommandEvent> {
  public:
   explicit InventoryControlSystem(std::shared_ptr<LevelsManager> levelsManager);
   ~InventoryControlSystem() override;
@@ -15,7 +16,8 @@ class InventoryControlSystem : public GameSystem,
   void activate() override;
   void deactivate() override;
 
-  EventProcessStatus receiveEvent(const InventoryItemActionTriggeredEvent& event) override;
+  EventProcessStatus receiveEvent(const InventoryItemActionCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const InventoryItemTransferCommandEvent& event) override;
 
  private:
   void relocateObjectToInventory(GameObject inventoryOwner, GameObject objectToRelocate);

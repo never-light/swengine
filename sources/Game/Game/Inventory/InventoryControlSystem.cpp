@@ -25,16 +25,18 @@ void InventoryControlSystem::unconfigure()
 
 void InventoryControlSystem::activate()
 {
-  getGameWorld()->subscribeEventsListener<InventoryItemActionTriggeredEvent>(this);
+  getGameWorld()->subscribeEventsListener<InventoryItemActionCommandEvent>(this);
+  getGameWorld()->subscribeEventsListener<InventoryItemTransferCommandEvent>(this);
 }
 
 void InventoryControlSystem::deactivate()
 {
-  getGameWorld()->unsubscribeEventsListener<InventoryItemActionTriggeredEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<InventoryItemTransferCommandEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<InventoryItemActionCommandEvent>(this);
 }
 
 EventProcessStatus InventoryControlSystem::receiveEvent(
-  const InventoryItemActionTriggeredEvent& event)
+  const InventoryItemActionCommandEvent& event)
 {
   auto& inventoryItemComponent = *GameObject(event.item).getComponent<InventoryItemComponent>().get();
 
@@ -53,6 +55,9 @@ EventProcessStatus InventoryControlSystem::receiveEvent(
       if (useCallback) {
         useCallback(event.inventoryOwner, event.item);
       }
+
+      getGameWorld()->emitEvent<InventoryItemActionEvent>(InventoryItemActionEvent(event.inventoryOwner,
+        InventoryItemActionTriggerType::Use, event.item));
 
       break;
     }
@@ -91,6 +96,9 @@ void InventoryControlSystem::relocateObjectToInventory(
   if (takeCallback) {
     takeCallback(inventoryOwner, objectToRelocate);
   }
+
+  getGameWorld()->emitEvent<InventoryItemActionEvent>(InventoryItemActionEvent(inventoryOwner,
+    InventoryItemActionTriggerType::RelocateToInventory, objectToRelocate));
 
   if (objectToRelocate.hasComponent<ObjectSceneNodeComponent>()) {
     getGameWorld()->emitEvent<RemoveObjectFromSceneCommandEvent>(
@@ -146,4 +154,46 @@ void InventoryControlSystem::dropObjectFromInventory(
   if (dropCallback) {
     dropCallback(inventoryOwner, objectToDrop);
   }
+
+  getGameWorld()->emitEvent<InventoryItemActionEvent>(InventoryItemActionEvent(inventoryOwner,
+    InventoryItemActionTriggerType::DropFromInventory, objectToDrop));
+}
+
+EventProcessStatus InventoryControlSystem::receiveEvent(const InventoryItemTransferCommandEvent& event)
+{
+  GameObject initiator = event.initiator;
+  GameObject target = event.target;
+  GameObject item = event.item;
+
+  auto& initiatorInventoryComponent = *initiator.getComponent<InventoryComponent>().get();
+  auto& targetInventoryComponent = *target.getComponent<InventoryComponent>().get();
+  auto& inventoryItemComponent = *item.getComponent<InventoryItemComponent>().get();
+
+  SW_ASSERT(initiatorInventoryComponent.hasItem(inventoryItemComponent.getId()));
+
+  const auto& dropCallback = inventoryItemComponent.getDropCallback();
+
+  if (dropCallback) {
+    dropCallback(initiator, item);
+  }
+
+  initiatorInventoryComponent.removeItem(item);
+
+  getGameWorld()->emitEvent<InventoryItemActionEvent>(InventoryItemActionEvent(initiator,
+    InventoryItemActionTriggerType::DropFromInventory, item));
+
+  targetInventoryComponent.addItem(item);
+
+  getGameWorld()->emitEvent<InventoryItemActionEvent>(InventoryItemActionEvent(target,
+    InventoryItemActionTriggerType::RelocateToInventory, item));
+
+  const auto& takeCallback = inventoryItemComponent.getTakeCallback();
+
+  if (takeCallback) {
+    takeCallback(initiator, item);
+  }
+
+  getGameWorld()->emitEvent<InventoryItemTransferEvent>(InventoryItemTransferEvent(initiator, target, item));
+
+  return EventProcessStatus::Processed;
 }

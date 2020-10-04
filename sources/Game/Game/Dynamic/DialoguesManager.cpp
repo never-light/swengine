@@ -94,6 +94,13 @@ const std::string& DialogueResponse::getPhraseId() const
   return m_phraseId;
 }
 
+DialoguesManager::DialoguesManager(
+  std::shared_ptr<GameLogicConditionsManager> conditionsManager)
+  : m_conditionsManager(conditionsManager)
+{
+
+}
+
 void DialoguesManager::addDialogue(const Dialogue& dialogue)
 {
   m_dialogues.insert({dialogue.getId(), dialogue});
@@ -136,10 +143,22 @@ void DialoguesManager::loadFromFile(const std::string& path)
         phrase.addResponse(responseId);
       }
 
+      pugi::xml_node preconditionsNode = phraseNode.child("preconditions");
+
+      if (preconditionsNode) {
+        phrase.setPrecondition(m_conditionsManager->buildConditionsTree(preconditionsNode));
+      }
+
+      pugi::xml_node actionsNode = phraseNode.child("actions");
+
+      if (actionsNode) {
+        phrase.setActions(m_conditionsManager->buildActionsList(actionsNode));
+      }
+
       dialogue.addPhrase(phrase);
     }
 
-    // TODO: add dialog validation here
+    // TODO: add dialogue validation here
 
     addDialogue(dialogue);
   }
@@ -266,7 +285,7 @@ std::vector<DialogueResponse> DialoguesManager::continueDialogue(
 
   DialoguePhrase actorResponse = Random::get(actorResponses);
 
-  applyPhrase(*activeDialogue, *playerResponsePhrase, response.getTarget(), response.getInitiator());
+  applyPhrase(*activeDialogue, actorResponse, response.getTarget(), response.getInitiator());
 
   state.setLastPhraseId(actorResponse.getId());
 
@@ -311,11 +330,19 @@ void DialoguesManager::applyPhrase(
   GameObject target)
 {
   ARG_UNUSED(dialogue);
-  ARG_UNUSED(phrase);
-  ARG_UNUSED(initiator);
-  ARG_UNUSED(target);
 
-  // TODO: add actions triggering here
+  const auto& actionsList = phrase.getActions();
+
+  if (initiator == m_conditionsManager->getPlayer()) {
+    m_conditionsManager->setupActionsCommunicators(actionsList, initiator, target);
+  }
+  else {
+    m_conditionsManager->setupActionsCommunicators(actionsList, target, initiator);
+  }
+
+  for (auto& action : actionsList) {
+    action->execute();
+  }
 }
 
 std::vector<DialoguePhrase> DialoguesManager::findAvailableResponses(
@@ -347,11 +374,19 @@ bool DialoguesManager::isPhraseAvailable(
   GameObject phraseTarget)
 {
   ARG_UNUSED(dialogue);
-  ARG_UNUSED(phrase);
-  ARG_UNUSED(phraseInitiator);
-  ARG_UNUSED(phraseTarget);
 
-  // TODO: check preconditions here
+  auto phrasePrecondition = phrase.getPrecondition();
+
+  if (phrasePrecondition) {
+    if (phraseInitiator == m_conditionsManager->getPlayer()) {
+      m_conditionsManager->setupConditionCommunicators(phrasePrecondition.get(), phraseInitiator, phraseTarget);
+    }
+    else {
+      m_conditionsManager->setupConditionCommunicators(phrasePrecondition.get(), phraseTarget, phraseInitiator);
+    }
+
+    return phrasePrecondition->calculateValue();
+  }
 
   return true;
 }

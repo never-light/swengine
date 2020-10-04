@@ -4,6 +4,8 @@
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
 
+#include <Engine/Utility/files.h>
+
 #include <utility>
 
 GameScreen::GameScreen(
@@ -11,17 +13,17 @@ GameScreen::GameScreen(
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
   std::shared_ptr<LevelsManager> levelsManager,
   std::shared_ptr<GraphicsScene> graphicsScene,
-  std::shared_ptr<GUILayout> debugGUILayout,
-  PlayerUILayout playerUILayout)
+  std::shared_ptr<GUISystem> guiSystem)
   : BaseGameScreen(GameScreenType::Game),
     m_inputModule(std::move(inputModule)),
     m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
     m_levelsManager(std::move(levelsManager)),
     m_graphicsScene(std::move(graphicsScene)),
-    m_gameGUILayout(std::make_shared<GUILayout>()),
-    m_debugGUILayout(std::move(debugGUILayout)),
-    m_playerUILayout(std::move(playerUILayout))
+    m_guiSystem(std::move(guiSystem)),
+    m_gameGUILayout(std::make_shared<GUILayout>())
 {
+  m_debugGUILayout = m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("screen_game_debug"));
 }
 
 GameScreen::~GameScreen() = default;
@@ -111,10 +113,10 @@ void GameScreen::initializeGame()
     m_inputModule,
     m_graphicsModule->getGraphicsContext(),
     m_graphicsScene,
+    m_guiSystem,
     m_resourceManager,
     m_levelsManager,
-    m_gameGUILayout,
-    m_playerUILayout);
+    m_gameGUILayout);
 
   spdlog::info("Game is loaded...");
 }

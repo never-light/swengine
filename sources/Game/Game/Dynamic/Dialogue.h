@@ -4,6 +4,8 @@
 #include <utility>
 #include <unordered_map>
 
+#include "GameLogicConditionsManager.h"
+
 class DialoguePhrase {
  public:
   DialoguePhrase(std::string id, std::string content);
@@ -17,11 +19,20 @@ class DialoguePhrase {
   void addResponse(const std::string& response);
   [[nodiscard]] const std::vector<std::string>& getResponses() const;
 
+  void setPrecondition(std::shared_ptr<GameLogicCondition> condition);
+  [[nodiscard]] std::shared_ptr<GameLogicCondition> getPrecondition() const;
+
+  void setActions(const GameLogicActionsList& actions);
+  [[nodiscard]] const GameLogicActionsList& getActions() const;
+
  private:
   std::string m_id;
   std::string m_content;
 
   std::vector<std::string> m_responses;
+
+  std::shared_ptr<GameLogicCondition> m_precondition;
+  GameLogicActionsList m_logicActions;
 };
 
 class Dialogue {

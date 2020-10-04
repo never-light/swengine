@@ -31,9 +31,11 @@ static std::shared_ptr<GameWorld> createTestGameWorld()
   return gameWorld;
 }
 
-static DialoguesManager createTestDialoguesManager()
+static DialoguesManager createTestDialoguesManager(const std::shared_ptr<GameWorld>& gameWorld)
 {
-  DialoguesManager manager;
+  auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+  DialoguesManager manager(conditionsManager);
   manager.loadFromFile("test_dialogues");
 
   return manager;
@@ -41,7 +43,7 @@ static DialoguesManager createTestDialoguesManager()
 
 TEST_CASE("game_dialogues_loading", "[game]")
 {
-  DialoguesManager dialoguesManager = createTestDialoguesManager();
+  DialoguesManager dialoguesManager = createTestDialoguesManager(GameWorld::createInstance());
 
   REQUIRE(dialoguesManager.hasDialogue("test_npc_hello_dialogue"));
   REQUIRE(dialoguesManager.hasDialogue("test_player_linear_dialogue"));
@@ -64,7 +66,7 @@ TEST_CASE("game_dialogues_loading", "[game]")
 
 TEST_CASE("game_dialogues_linear_started_by_npc", "[game]")
 {
-  DialoguesManager dialoguesManager = createTestDialoguesManager();
+  DialoguesManager dialoguesManager = createTestDialoguesManager(GameWorld::createInstance());
   std::shared_ptr<GameWorld> gameWorld = createTestGameWorld();
 
   GameObject player = gameWorld->findGameObject("player");
@@ -145,7 +147,7 @@ TEST_CASE("game_dialogues_linear_started_by_npc", "[game]")
 
 TEST_CASE("game_dialogues_branching_started_by_player", "[game]")
 {
-  DialoguesManager dialoguesManager = createTestDialoguesManager();
+  DialoguesManager dialoguesManager = createTestDialoguesManager(GameWorld::createInstance());
   std::shared_ptr<GameWorld> gameWorld = createTestGameWorld();
 
   GameObject player = gameWorld->findGameObject("player");

@@ -60,42 +60,12 @@ void GameApplication::load()
       m_componentsLoader->loadActorData(gameObject, data);
     });
 
-  m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui", [this](const pugi::xml_node& widgetData) {
-    ARG_UNUSED(widgetData);
-    return std::make_shared<InventoryUI>(m_gameWorld, m_inputModule);
-  });
-
-  m_dialoguesManager = std::make_shared<DialoguesManager>();
-  m_dialoguesManager->loadFromFile("dialogues_general");
-
-  m_guiSystem->getWidgetsLoader()->registerWidgetLoader("dialogues_ui", [this](const pugi::xml_node& widgetData) {
-    ARG_UNUSED(widgetData);
-    return std::make_shared<DialoguesUI>(m_gameWorld, m_dialoguesManager);
-  });
-
-  auto gameScreenDebugUILayout = m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("screen_game_debug"));
-
-  PlayerUILayout playerUILayout;
-  playerUILayout.playerUILayout = std::make_shared<GUILayout>();
-  playerUILayout.playerUILayout->setSize(m_guiSystem->getActiveLayout()->getSize());
-
-  playerUILayout.inventoryUI = std::dynamic_pointer_cast<InventoryUI>(m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("game_ui_inventory")));
-  playerUILayout.interactionUI = std::dynamic_pointer_cast<GUILayout>(m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("game_ui_interaction")));
-  playerUILayout.interactionUIText = std::dynamic_pointer_cast<GUIText>(
-    playerUILayout.interactionUI->findChildByName("game_ui_interaction_action_text"));
-  playerUILayout.dialoguesUI = std::dynamic_pointer_cast<DialoguesUI>(m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("game_ui_dialogues")));
-
   m_screenManager->registerScreen(
     std::make_shared<GameScreen>(m_inputModule,
       getGameApplicationSystemsGroup(),
       m_levelsManager,
       m_graphicsScene,
-      gameScreenDebugUILayout,
-      playerUILayout));
+      m_guiSystem));
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_main_menu"));
@@ -128,8 +98,6 @@ void GameApplication::unload()
 
 EventProcessStatus GameApplication::receiveEvent(const ScreenSwitchEvent& event)
 {
-  ARG_UNUSED(event);
-
   if (event.newScreen->getName() == "Game") {
     m_engineGameSystems->getGameSystem<SkeletalAnimationSystem>()->setActive(true);
     m_engineGameSystems->getGameSystem<PhysicsSystem>()->setActive(true);

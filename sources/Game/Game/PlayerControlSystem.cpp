@@ -76,6 +76,9 @@ void PlayerControlSystem::activate()
   m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.dialoguesUI);
   m_uiLayout.dialoguesUI->hide();
 
+  m_uiLayout.playerUILayout->addChildWidget(m_uiLayout.hudLayout);
+  m_uiLayout.hudLayout->show();
+
   m_inputModule->enableGlobalTracking();
   m_inputModule->setMouseMovementMode(MouseMovementMode::Relative);
 
@@ -83,7 +86,19 @@ void PlayerControlSystem::activate()
 
   getGameWorld()->subscribeEventsListener<InputActionToggleEvent>(this);
   getGameWorld()->subscribeEventsListener<KeyboardEvent>(this);
-  getGameWorld()->subscribeEventsListener<ActorTalkTriggerCommandEvent>(this);
+  getGameWorld()->subscribeEventsListener<ActorDialogueStartCommandEvent>(this);
+  getGameWorld()->subscribeEventsListener<StopDialogueCommandEvent>(this);
+
+  m_questInfoLayout = std::dynamic_pointer_cast<GUILayout>(
+    m_uiLayout.hudLayout->findChildByName("game_ui_actor_hud_layout_quest_info"));
+  SW_ASSERT(m_questInfoLayout != nullptr);
+
+  m_questInfoTitle = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
+    ->findChildByName("game_ui_actor_hud_layout_quest_info_title"));
+  m_questInfoTaskTitle = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
+    ->findChildByName("game_ui_actor_hud_layout_quest_info_task_title"));
+
+  SW_ASSERT(m_questInfoTitle != nullptr && m_questInfoTaskTitle != nullptr);
 
   enableMovementControl();
 }
@@ -98,7 +113,8 @@ void PlayerControlSystem::deactivate()
     disableMovementControl();
   }
 
-  getGameWorld()->unsubscribeEventsListener<ActorTalkTriggerCommandEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<StopDialogueCommandEvent>(this);
+  getGameWorld()->unsubscribeEventsListener<ActorDialogueStartCommandEvent>(this);
   getGameWorld()->unsubscribeEventsListener<KeyboardEvent>(this);
   getGameWorld()->unsubscribeEventsListener<InputActionToggleEvent>(this);
 
@@ -107,6 +123,7 @@ void PlayerControlSystem::deactivate()
   m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.interactionUI);
   m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.inventoryUI);
   m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.dialoguesUI);
+  m_uiLayout.playerUILayout->removeChildWidget(m_uiLayout.hudLayout);
 
   // TODO: Reset active camera here, add default camera and switch to it in upper layers in this case
   // m_graphicsScene->setActiveCamera(nullptr);
@@ -123,6 +140,8 @@ void PlayerControlSystem::update(float delta)
       m_uiLayout.dialoguesUI->updatePendingResponses();
     }
   }
+
+  updateHUD();
 
   if (!m_isMovementControlEnabled) {
     return;
@@ -322,6 +341,8 @@ void PlayerControlSystem::enableMovementControl()
   m_inputModule->registerAction("left", KeyboardInputAction(SDLK_a));
   m_inputModule->registerAction("right", KeyboardInputAction(SDLK_d));
 
+  m_inputModule->registerAction("hud_quests", KeyboardInputAction(SDLK_TAB));
+
   getGameWorld()->subscribeEventsListener<MouseWheelEvent>(this);
 }
 
@@ -331,16 +352,20 @@ void PlayerControlSystem::disableMovementControl()
 
   getGameWorld()->unsubscribeEventsListener<MouseWheelEvent>(this);
 
+  m_inputModule->unregisterAction("hud_quests");
   m_inputModule->unregisterAction("forward");
   m_inputModule->unregisterAction("backward");
   m_inputModule->unregisterAction("left");
   m_inputModule->unregisterAction("right");
 
-  auto& playerKinematicCharacterComponent = *m_playerObject.getComponent<KinematicCharacterComponent>().get();
-  playerKinematicCharacterComponent.setPositionIncrement(glm::vec3(0.0f));
+  auto playerKinematicCharacterComponent = m_playerObject.getComponent<KinematicCharacterComponent>();
+  playerKinematicCharacterComponent->setPositionIncrement(glm::vec3(0.0f));
+
+  auto playerAnimationComponent = m_playerObject.getComponent<SkeletalAnimationComponent>();
+  playerAnimationComponent->getAnimationStatesMachineRef().setActiveState(m_idleAnimationStateId);
 }
 
-void PlayerControlSystem::showGUIWindow(std::shared_ptr<GUILayout> window)
+void PlayerControlSystem::showGUIWindow(const std::shared_ptr<GUILayout>& window)
 {
   SW_ASSERT(m_activeGUIWindow == nullptr);
 
@@ -384,11 +409,6 @@ EventProcessStatus PlayerControlSystem::receiveEvent(const KeyboardEvent& event)
     else if (event.keyCode == SDLK_f) {
       if (!isGUIWindowModeActive()) {
         performInteractiveAction();
-      }
-      else {
-        if (m_activeGUIWindow == m_uiLayout.dialoguesUI) {
-          hideGUIWindow();
-        }
       }
     }
   }
@@ -449,7 +469,7 @@ bool PlayerControlSystem::isGUIWindowModeActive() const
 }
 
 EventProcessStatus PlayerControlSystem::receiveEvent(
-  const ActorTalkTriggerCommandEvent& event)
+  const ActorDialogueStartCommandEvent& event)
 {
   SW_ASSERT(!isGUIWindowModeActive());
 
@@ -457,4 +477,42 @@ EventProcessStatus PlayerControlSystem::receiveEvent(
   m_uiLayout.dialoguesUI->startDialogue(event.initiator, event.target);
 
   return EventProcessStatus::Processed;
+}
+
+EventProcessStatus PlayerControlSystem::receiveEvent(const StopDialogueCommandEvent& event)
+{
+  ARG_UNUSED(event);
+
+  if (m_activeGUIWindow == m_uiLayout.dialoguesUI) {
+    hideGUIWindow();
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+void PlayerControlSystem::updateHUD()
+{
+//  if (m_inputModule->isActionActive("hud_quests")) {
+    std::shared_ptr<QuestsStorage> questsStorage = m_uiLayout.dialoguesUI->getQuestsStorage();
+    const auto* activeQuest = m_playerObject.getComponent<ActorComponent>()->getAnyActiveQuest();
+
+    if (activeQuest) {
+      m_questInfoTitle->setText(questsStorage->getQuest(activeQuest->getQuestId()).getName());
+      m_questInfoTaskTitle
+        ->setText(questsStorage->getQuest(activeQuest->getQuestId()).getTask(activeQuest->getCurrentTaskId())
+          .getName());
+    }
+    else {
+      m_questInfoTitle->setText("No active quest");
+      m_questInfoTaskTitle->setText("No active quest task");
+    }
+
+    m_questInfoLayout->show();
+//  }
+//  else {
+//    if (!m_questInfoLayout->isShown()) {
+//      m_questInfoLayout->show();
+//    }
+//  }
+
 }
