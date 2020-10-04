@@ -11,15 +11,16 @@
 
 #include "GL.h"
 #include "GLTexture.h"
+#include "ShaderType.h"
 
 class GLShadersPipeline;
 
 class GLShader {
  public:
-  GLShader(GLenum type, const std::string& source);
+  GLShader(ShaderType type, const std::string& source);
   ~GLShader();
 
-  [[nodiscard]] GLenum getType() const;
+  [[nodiscard]] ShaderType getType() const;
 
   void setParameter(const std::string& name, bool value);
   void setParameter(const std::string& name, int value);
@@ -47,7 +48,7 @@ class GLShader {
 
  private:
   GLuint m_shaderProgram;
-  GLenum m_type;
+  ShaderType m_type;
 
   std::unordered_map<std::string, UniformInfo> m_uniformsCache;
 
