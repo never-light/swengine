@@ -1,12 +1,7 @@
-#ifndef STARWIND_SHADERTYPE_H
-#define STARWIND_SHADERTYPE_H
-
+#pragma once
 
 enum class ShaderType {
     Vertex,
     Fragment,
     Geometry
 };
-
-
-#endif //STARWIND_SHADERTYPE_H
