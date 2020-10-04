@@ -38,8 +38,10 @@ std::shared_ptr<BitmapFont> GUIText::getFont() const
 
 void GUIText::setText(const std::string& text)
 {
-  m_text = text;
-  resetTextGeometryCache();
+  if (m_text != text) {
+    m_text = text;
+    resetTextGeometryCache();
+  }
 }
 
 std::string GUIText::getText() const

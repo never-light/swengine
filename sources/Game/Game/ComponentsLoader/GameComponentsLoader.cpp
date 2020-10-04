@@ -110,4 +110,11 @@ void GameComponentsLoader::loadActorData(GameObject& gameObject, const pugi::xml
 
     actorComponent.addDialogue(ActorDialogue(dialogueId, isStartedByNPC));
   }
+
+  pugi::xml_node healthNode = data.child("health");
+
+  if (healthNode) {
+    actorComponent.setHealth(healthNode.attribute("value").as_float(0.0f));
+    actorComponent.setHealthLimit(healthNode.attribute("limit").as_float(100.0f));
+  }
 }

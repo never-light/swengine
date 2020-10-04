@@ -26,7 +26,8 @@ std::shared_ptr<GameWorld> TestGameWorldGenerator::buildTestGameWorld()
   gameWorld->getGameSystemsGroup()->addGameSystem(inventoryControlSystem);
 
   auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
-  auto questsSystem = std::make_shared<QuestsSystem>(conditionsManager);
+  auto questsStorage = std::make_shared<QuestsStorage>();
+  auto questsSystem = std::make_shared<QuestsSystem>(conditionsManager, questsStorage);
   gameWorld->getGameSystemsGroup()->addGameSystem(questsSystem);
 
   // Initialize player
@@ -85,7 +86,7 @@ std::shared_ptr<GameWorld> TestGameWorldGenerator::buildTestGameWorld()
 
   findMedkitQuest.addTask(transferMedkitTask);
 
-  questsSystem->addQuest(findMedkitQuest);
+  questsSystem->registerQuest(findMedkitQuest);
 
   return gameWorld;
 }

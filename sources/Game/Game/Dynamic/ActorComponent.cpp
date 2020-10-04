@@ -71,6 +71,36 @@ const ActorQuestState* ActorComponent::getAnyActiveQuest() const
   return nullptr;
 }
 
+void ActorComponent::setHealth(float health)
+{
+  m_currentHealth = health;
+}
+
+float ActorComponent::getHealth() const
+{
+  return m_currentHealth;
+}
+
+void ActorComponent::setHealthLimit(float health)
+{
+  m_maxHealth = health;
+}
+
+float ActorComponent::getHealthLimit() const
+{
+  return m_maxHealth;
+}
+
+void ActorComponent::setDead(bool isDead)
+{
+  m_isDead = isDead;
+}
+
+bool ActorComponent::isDead() const
+{
+  return m_isDead;
+}
+
 const std::string& ActorDialogue::getDialogueId() const
 {
   return m_dialogueId;
