@@ -159,6 +159,16 @@ Frustum Frustum::extractFromViewProjection(const glm::mat4x4& view, const glm::m
   return frustum;
 }
 
+Frustum Frustum::extractFromCorners(const std::array<glm::vec3, 8>& corners) {
+
+    return Frustum({GeometryUtils::getPlaneBy3Points(corners[7], corners[3], corners[0]), //left
+                   GeometryUtils::getPlaneBy3Points(corners[6], corners[2], corners[1]), //right
+                   GeometryUtils::getPlaneBy3Points(corners[5], corners[1], corners[0]), //top
+                   GeometryUtils::getPlaneBy3Points(corners[7], corners[3], corners[2]), //bottom
+                   GeometryUtils::getPlaneBy3Points(corners[3], corners[2], corners[1]), //near
+                   GeometryUtils::getPlaneBy3Points(corners[6], corners[5], corners[4])}); //far
+}
+
 Sphere::Sphere()
 {
 
