@@ -9,11 +9,10 @@
 struct ShaderResourceParameters : ResourceSourceParameters {
   ShaderResourceParameters() = default;
 
-  explicit ShaderResourceParameters(GLenum shaderType) : shaderType(shaderType)
+  explicit ShaderResourceParameters(ShaderType shaderType) : shaderType(shaderType)
   {}
 
-  // TODO: replace GLenum with abstract enum here. GL data types should be used only inside GL layer
-  GLenum shaderType;
+  ShaderType shaderType;
 };
 
 class ShaderResource : public Resource {

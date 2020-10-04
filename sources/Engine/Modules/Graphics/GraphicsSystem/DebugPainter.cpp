@@ -165,14 +165,14 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
       graphicsContext->setPolygonFillingMode(PolygonFillingMode::Fill);
     }
 
-    GLShader* vertexShader = s_debugShaderPipeline->getShader(GL_VERTEX_SHADER);
+    GLShader* vertexShader = s_debugShaderPipeline->getShader(ShaderType::Vertex);
     vertexShader->setParameter("transform.localToWorld", queueItem.transformationMatrix);
 
     Camera* camera = s_graphicsScene->getActiveCamera().get();
     vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
     vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
 
-    GLShader* fragmentShader = s_debugShaderPipeline->getShader(GL_FRAGMENT_SHADER);
+    GLShader* fragmentShader = s_debugShaderPipeline->getShader(ShaderType::Fragment);
     fragmentShader->setParameter("color", queueItem.color);
 
     s_graphicsScene->getSharedGraphicsState()->getFrameStats().increaseSubMeshesCount(1);

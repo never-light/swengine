@@ -84,7 +84,7 @@ void GUIText::render(GUISystem& guiSystem)
   task.startOffset = 0;
   task.partsCount = task.geometryStore->getIndicesCount();
 
-  GLShader* fragmentShader = task.material->getShadersPipeline()->getShader(GL_FRAGMENT_SHADER);
+  GLShader* fragmentShader = task.material->getShadersPipeline()->getShader(ShaderType::Fragment);
   fragmentShader->setParameter("widget.useColorAlphaTexture", true);
   fragmentShader->setParameter("widget.colorAlphaTexture", *m_font->getBitmap(), 1);
 

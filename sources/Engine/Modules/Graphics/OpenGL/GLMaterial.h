@@ -60,13 +60,13 @@ class GLMaterial {
   using GenericParameterValue = std::variant<int, float, glm::vec3, glm::vec4, glm::mat3, glm::mat4, TextureParameter>;
 
   struct GenericParameter {
-    GenericParameter(GLenum shaderType, GenericParameterValue value)
+    GenericParameter(ShaderType shaderType, GenericParameterValue value)
       : shaderType(shaderType), value(std::move(value))
     {
 
     }
 
-    GLenum shaderType;
+    ShaderType shaderType;
     GenericParameterValue value;
   };
 
@@ -95,7 +95,7 @@ class GLMaterial {
   void setScissorsTestMode(ScissorsTestMode mode);
   [[nodiscard]] ScissorsTestMode getScissorsTestMode() const;
 
-  void setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value);
+  void setShaderParameter(ShaderType shaderType, const std::string& name, const GenericParameterValue& value);
   [[nodiscard]] const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
 
  private:

@@ -18,7 +18,7 @@ GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
   glCreateProgramPipelines(1, &m_programPipeline);
 
   if (m_vertexShader != nullptr) {
-    if (m_vertexShader->getType() != GL_VERTEX_SHADER) {
+    if (m_vertexShader->getType() != ShaderType::Vertex) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for vertex shader in pipeline");
     }
 
@@ -26,7 +26,7 @@ GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
   }
 
   if (m_fragmentShader != nullptr) {
-    if (m_fragmentShader->getType() != GL_FRAGMENT_SHADER) {
+    if (m_fragmentShader->getType() != ShaderType::Fragment) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for fragment shader in pipeline");
     }
 
@@ -34,7 +34,7 @@ GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
   }
 
   if (m_geometryShader != nullptr) {
-    if (m_vertexShader->getType() != GL_GEOMETRY_SHADER) {
+    if (m_vertexShader->getType() != ShaderType::Geometry) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for geometry shader in pipeline");
     }
 
@@ -49,28 +49,28 @@ GLShadersPipeline::~GLShadersPipeline()
   glDeleteProgramPipelines(1, &m_programPipeline);
 }
 
-bool GLShadersPipeline::hasShader(GLenum type) const
+bool GLShadersPipeline::hasShader(ShaderType type) const
 {
   switch (type) {
-    case GL_VERTEX_SHADER:
+    case ShaderType::Vertex:
       return m_vertexShader != nullptr;
-    case GL_FRAGMENT_SHADER:
+    case ShaderType::Fragment:
       return m_fragmentShader != nullptr;
-    case GL_GEOMETRY_SHADER:
+    case ShaderType::Geometry:
       return m_geometryShader != nullptr;
   }
 
   THROW_EXCEPTION(EngineRuntimeException, "Trying to check existing of invalid shader type");
 }
 
-GLShader* GLShadersPipeline::getShader(GLenum type) const
+GLShader* GLShadersPipeline::getShader(ShaderType type) const
 {
   switch (type) {
-    case GL_VERTEX_SHADER:
+    case ShaderType::Vertex:
       return m_vertexShader.get();
-    case GL_FRAGMENT_SHADER:
+    case ShaderType::Fragment:
       return m_fragmentShader.get();
-    case GL_GEOMETRY_SHADER:
+    case ShaderType::Geometry:
       return m_geometryShader.get();
   }
 

@@ -9,20 +9,20 @@
 #include <memory>
 #include <vector>
 
-GLShader::GLShader(GLenum type, const std::string& source)
+GLShader::GLShader(ShaderType type, const std::string& source)
   : m_shaderProgram(0),
     m_type(type)
 {
   GLenum shader = 0;
 
   switch (type) {
-    case GL_VERTEX_SHADER:
+    case ShaderType::Vertex:
       shader = glCreateShader(GL_VERTEX_SHADER);
       break;
-    case GL_FRAGMENT_SHADER:
+    case ShaderType::Fragment:
       shader = glCreateShader(GL_FRAGMENT_SHADER);
       break;
-    case GL_GEOMETRY_SHADER:
+    case ShaderType::Geometry:
       shader = glCreateShader(GL_GEOMETRY_SHADER);
       break;
     default:
@@ -89,7 +89,7 @@ GLShader::~GLShader()
   }
 }
 
-GLenum GLShader::getType() const
+ShaderType GLShader::getType() const
 {
   return m_type;
 }
