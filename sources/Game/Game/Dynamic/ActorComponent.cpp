@@ -60,6 +60,17 @@ ActorQuestState& ActorComponent::getQuestState(const std::string& questId)
   return m_questsStates.at(questId);
 }
 
+const ActorQuestState* ActorComponent::getAnyActiveQuest() const
+{
+  for (const auto& questIt : m_questsStates) {
+    if (questIt.second.getState() == QuestState::Started) {
+      return &m_questsStates.at(questIt.first);
+    }
+  }
+
+  return nullptr;
+}
+
 const std::string& ActorDialogue::getDialogueId() const
 {
   return m_dialogueId;

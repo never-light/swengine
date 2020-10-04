@@ -4,6 +4,11 @@
 
 #include "Dialogue.h"
 #include "ActorComponent.h"
+#include "GameLogicConditionsManager.h"
+
+struct StopDialogueCommandEvent {
+
+};
 
 class DialogueState {
  public:
@@ -48,7 +53,7 @@ struct DialogueResponse {
 
 class DialoguesManager {
  public:
-  DialoguesManager() = default;
+  explicit DialoguesManager(std::shared_ptr<GameLogicConditionsManager> conditionsManager);
 
   void addDialogue(const Dialogue& dialogue);
   [[nodiscard]] const Dialogue& getDialogue(const std::string& id) const;
@@ -149,5 +154,6 @@ class DialoguesManager {
     GameObject actorObject);
 
  private:
+  std::shared_ptr<GameLogicConditionsManager> m_conditionsManager;
   std::unordered_map<std::string, Dialogue> m_dialogues;
 };

@@ -64,7 +64,7 @@ struct QuestTaskStateChangedEvent : public QuestStateChangedEvent {
   QuestTaskStateChangedEvent(const GameObject& actor, std::string questId,
     std::string taskId)
     : QuestStateChangedEvent(actor, std::move(questId)),
-    m_taskId(std::move(taskId))
+      m_taskId(std::move(taskId))
   {
 
   }
@@ -114,18 +114,33 @@ struct QuestTaskCancelledEvent : public QuestTaskStateChangedEvent {
   }
 };
 
+class QuestsStorage {
+ public:
+  QuestsStorage() = default;
+
+  void addQuest(const Quest& quest);
+  [[nodiscard]] const Quest& getQuest(const std::string& questId) const;
+
+  [[nodiscard]] bool hasQuest(const std::string& questId) const;
+
+  [[nodiscard]] const std::unordered_map<std::string, Quest>& getQuests() const;
+  [[nodiscard]] std::unordered_map<std::string, Quest>& getQuests();
+
+ private:
+
+  std::unordered_map<std::string, Quest> m_quests;
+
+};
+
 class QuestsSystem : public GameSystem,
                      public EventsListener<AddInfoportionEvent>,
                      public EventsListener<RemoveInfoportionEvent>,
                      public EventsListener<InventoryItemActionEvent>,
                      public EventsListener<GameObjectAddComponentEvent<ActorComponent>> {
  public:
-  explicit QuestsSystem(std::shared_ptr<GameLogicConditionsManager> conditionsManager);
-
-  void addQuest(const Quest& quest);
-  [[nodiscard]] const Quest& getQuest(const std::string& questId) const;
-
-  [[nodiscard]] bool hasQuest(const std::string& questId) const;
+  QuestsSystem(
+    std::shared_ptr<GameLogicConditionsManager> conditionsManager,
+    std::shared_ptr<QuestsStorage> questsStorage);
 
   void loadQuestsFromFile(const std::string& path);
 
@@ -137,7 +152,9 @@ class QuestsSystem : public GameSystem,
   EventProcessStatus receiveEvent(const RemoveInfoportionEvent& event) override;
   EventProcessStatus receiveEvent(const InventoryItemActionEvent& event) override;
 
-  std::shared_ptr<GameLogicConditionsManager> getConditionsManager() const;
+  [[nodiscard]] std::shared_ptr<GameLogicConditionsManager> getConditionsManager() const;
+
+  [[nodiscard]] std::shared_ptr<QuestsStorage> getQuestsStorage() const;
 
  private:
   void setupActorQuestsState();
@@ -156,9 +173,8 @@ class QuestsSystem : public GameSystem,
   std::shared_ptr<GameLogicCondition> loadCondition(const pugi::xml_node& conditionNode);
 
  private:
-  std::unordered_map<std::string, Quest> m_quests;
-
   std::shared_ptr<GameLogicConditionsManager> m_conditionsManager;
+  std::shared_ptr<QuestsStorage> m_questsStorage;
 
  private:
   static constexpr auto PLAYER_OBJECT_NAME = "player";

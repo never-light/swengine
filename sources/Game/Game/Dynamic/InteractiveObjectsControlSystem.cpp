@@ -90,5 +90,5 @@ void InteractiveObjectsControlSystem::handleTalkWithObjectAction(GameObject init
   SW_ASSERT(interactiveObjectComponent.isTalkable());
   SW_ASSERT(target.hasComponent<ActorComponent>());
 
-  getGameWorld()->emitEvent(ActorTalkTriggerCommandEvent(initiator, target));
+  getGameWorld()->emitEvent(ActorDialogueStartCommandEvent(initiator, target));
 }

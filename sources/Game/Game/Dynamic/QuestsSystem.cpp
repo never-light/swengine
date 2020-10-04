@@ -9,29 +9,38 @@
 #include "ActorComponent.h"
 #include "Quest.h"
 
-QuestsSystem::QuestsSystem(std::shared_ptr<GameLogicConditionsManager> conditionsManager)
-  : m_conditionsManager(std::move(conditionsManager))
-{
-
-}
-
-void QuestsSystem::addQuest(const Quest& quest)
+void QuestsStorage::addQuest(const Quest& quest)
 {
   m_quests.insert({quest.getId(), quest});
-
-  if (getActor().isAlive()) {
-    setupActorQuestState(quest);
-  }
 }
 
-const Quest& QuestsSystem::getQuest(const std::string& questId) const
+const Quest& QuestsStorage::getQuest(const std::string& questId) const
 {
   return m_quests.at(questId);
 }
 
-bool QuestsSystem::hasQuest(const std::string& questId) const
+bool QuestsStorage::hasQuest(const std::string& questId) const
 {
   return m_quests.contains(questId);
+}
+
+const std::unordered_map<std::string, Quest>& QuestsStorage::getQuests() const
+{
+  return m_quests;
+}
+
+std::unordered_map<std::string, Quest>& QuestsStorage::getQuests()
+{
+  return m_quests;
+}
+
+QuestsSystem::QuestsSystem(
+  std::shared_ptr<GameLogicConditionsManager> conditionsManager,
+  std::shared_ptr<QuestsStorage> questsStorage)
+  : m_conditionsManager(std::move(conditionsManager)),
+    m_questsStorage(questsStorage)
+{
+
 }
 
 void QuestsSystem::loadQuestsFromFile(const std::string& path)
@@ -74,7 +83,11 @@ void QuestsSystem::loadQuestsFromFile(const std::string& path)
       quest.addTask(questTask);
     }
 
-    addQuest(quest);
+    m_questsStorage->addQuest(quest);
+
+    if (getActor().isAlive()) {
+      setupActorQuestState(quest);
+    }
   }
 }
 
@@ -151,7 +164,7 @@ void QuestsSystem::updateQuestsStates()
 
   auto actor = actorObject.getComponent<ActorComponent>();
 
-  for (const auto&[questId, quest] : m_quests) {
+  for (const auto&[questId, quest] : m_questsStorage->getQuests()) {
     ActorQuestState& actorQuestState = actor->getQuestState(questId);
 
     switch (actorQuestState.getState()) {
@@ -262,6 +275,9 @@ void QuestsSystem::updateStartedQuest(const Quest& quest, ActorQuestState& actor
         getGameWorld()->emitEvent<QuestCompletedEvent>(QuestCompletedEvent(getActor(), quest.getId()));
         questIsFinished = true;
       }
+      else {
+        updateStartedQuest(quest, actorQuestState);
+      }
     }
   }
 
@@ -281,6 +297,9 @@ void QuestsSystem::updateStartedQuest(const Quest& quest, ActorQuestState& actor
         if (!isNewTaskActivated) {
           THROW_EXCEPTION(EngineRuntimeException,
             fmt::format("New active task for the quest {} is not found", quest.getId()));
+        }
+        else {
+          updateStartedQuest(quest, actorQuestState);
         }
       }
     }
@@ -323,7 +342,7 @@ GameObject QuestsSystem::getActor()
 
 void QuestsSystem::setupActorQuestsState()
 {
-  for (const auto& taskIt : m_quests) {
+  for (const auto& taskIt : m_questsStorage->getQuests()) {
     setupActorQuestState(taskIt.second);
   }
 }
@@ -335,7 +354,7 @@ void QuestsSystem::setupActorQuestState(const Quest& quest)
   actorComponent->addQuestState(quest.getId());
   auto& actorQuestState = actorComponent->getQuestState(quest.getId());
 
-  for (const auto& [taskId, task] : quest.getTasks()) {
+  for (const auto&[taskId, task] : quest.getTasks()) {
     actorQuestState.addTaskState(taskId);
 
     setupConditionsActor(task.getActiveCondition());
@@ -351,9 +370,10 @@ std::shared_ptr<GameLogicConditionsManager> QuestsSystem::getConditionsManager()
 
 void QuestsSystem::setupConditionsActor(GameLogicCondition* condition)
 {
-  m_conditionsManager->traverseConditionsTree(condition, [this] (GameLogicCondition* condition) {
-    if (auto actorCondition = dynamic_cast<GameLogicActorCondition*>(condition)) {
-      actorCondition->setActor(getActor());
-    }
-  });
+  m_conditionsManager->setupConditionCommunicators(condition, getActor(), GameObject());
+}
+
+std::shared_ptr<QuestsStorage> QuestsSystem::getQuestsStorage() const
+{
+  return m_questsStorage;
 }

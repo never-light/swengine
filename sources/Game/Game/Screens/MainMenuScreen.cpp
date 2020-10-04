@@ -59,6 +59,8 @@ void MainMenuScreen::initializeGUI()
         m_gameConsole->executeCommand("exit");
       }
     });
+
+  getGUILayout()->show();
 }
 
 void MainMenuScreen::deinitializeGUI()

@@ -5,6 +5,16 @@
 
 #include "InfoportionsSystem.h"
 
+enum class GameLogicCommunicatorRole {
+  Actor,
+  NPCActor
+};
+
+enum class GameLogicCommunicationDirection {
+  ToNPCActor,
+  ToActor
+};
+
 class GameLogicConditionsManager;
 
 class GameLogicCondition {
@@ -40,8 +50,12 @@ class GameLogicActorCondition : public GameLogicCondition {
   void setActor(const GameObject& actor);
   [[nodiscard]] GameObject getActor() const;
 
+  void setRole(GameLogicCommunicatorRole role);
+  [[nodiscard]] GameLogicCommunicatorRole getRole() const;
+
  private:
   GameObject m_actor{};
+  GameLogicCommunicatorRole m_role{};
 };
 
 class GameLogicConditionHasObject : public GameLogicActorCondition {
@@ -199,9 +213,12 @@ class GameLogicActorAction : public GameLogicAction {
   void setActor(const GameObject& actor);
   [[nodiscard]] GameObject getActor() const;
 
+  void setRole(GameLogicCommunicatorRole role);
+  [[nodiscard]] GameLogicCommunicatorRole getRole() const;
+
  private:
   GameObject m_actor{};
-
+  GameLogicCommunicatorRole m_role{};
 };
 
 class GameLogicActionAddInfoportion : public GameLogicActorAction {
@@ -242,9 +259,13 @@ class GameLogicActionDirected : public GameLogicAction {
   void setTarget(GameObject target);
   [[nodiscard]] GameObject getTarget() const;
 
+  void setDirection(GameLogicCommunicationDirection direction);
+  [[nodiscard]] GameLogicCommunicationDirection getDirection() const;
+
  private:
   GameObject m_initiator;
   GameObject m_target;
+  GameLogicCommunicationDirection m_direction{};
 };
 
 class GameLogicActionTransferItem : public GameLogicActionDirected {
@@ -263,6 +284,21 @@ class GameLogicActionTransferItem : public GameLogicActionDirected {
   std::string m_itemName;
 };
 
+class GameLogicActionStopDialogue : public GameLogicActorAction {
+ public:
+  explicit GameLogicActionStopDialogue(
+    GameLogicConditionsManager* conditionsManager);
+  ~GameLogicActionStopDialogue() override = default;
+
+  void execute() override;
+
+ private:
+  std::string m_infoportionName;
+};
+
+
+using GameLogicActionsList = std::vector<std::shared_ptr<GameLogicAction>>;
+
 class GameLogicConditionsManager {
  public:
   explicit GameLogicConditionsManager(
@@ -271,15 +307,22 @@ class GameLogicConditionsManager {
   [[nodiscard]] GameObject getPlayer() const;
 
   std::shared_ptr<GameLogicCondition> buildConditionsTree(pugi::xml_node conditionsNode);
+  void traverseConditionsTree(GameLogicCondition* conditionNode,
+    const std::function<void(GameLogicCondition*)>& visitor);
+
+  GameLogicActionsList buildActionsList(pugi::xml_node actionsNode);
 
   [[nodiscard]] GameWorld& getGameWorld();
 
-  void traverseConditionsTree(GameLogicCondition* conditionNode,
-    const std::function<void(GameLogicCondition*)>& visitor);
+  void setupConditionCommunicators(GameLogicCondition* condition, GameObject actor, GameObject npc);
+  void setupActionsCommunicators(const GameLogicActionsList& actionsList, GameObject actor, GameObject npc);
 
  private:
   GameLogicCondition* parseConditionsNode(pugi::xml_node conditionsNode);
   GameLogicCondition* parseConditionsNodeAll(pugi::xml_node conditionsNode);
+
+  GameLogicCommunicatorRole getCommunicatorRoleByName(const std::string& roleName);
+  GameLogicCommunicationDirection getCommunicationDirectionByName(const std::string& directionType);
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
 };

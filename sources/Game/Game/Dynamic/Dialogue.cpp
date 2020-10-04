@@ -2,6 +2,8 @@
 
 #include <Engine/Utility/containers.h>
 
+#include <utility>
+
 DialoguePhrase::DialoguePhrase(std::string id, std::string content)
   : m_id(std::move(id)),
     m_content(std::move(content))
@@ -40,8 +42,28 @@ const std::vector<std::string>& DialoguePhrase::getResponses() const
   return m_responses;
 }
 
+void DialoguePhrase::setPrecondition(std::shared_ptr<GameLogicCondition> condition)
+{
+  m_precondition = std::move(condition);
+}
+
+std::shared_ptr<GameLogicCondition> DialoguePhrase::getPrecondition() const
+{
+  return m_precondition;
+}
+
+void DialoguePhrase::setActions(const GameLogicActionsList& actions)
+{
+  m_logicActions = actions;
+}
+
+const GameLogicActionsList& DialoguePhrase::getActions() const
+{
+  return m_logicActions;
+}
+
 Dialogue::Dialogue(std::string id)
-  : m_id(id)
+  : m_id(std::move(id))
 {
 
 }

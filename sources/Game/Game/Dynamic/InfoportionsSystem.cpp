@@ -1,6 +1,8 @@
 #include "InfoportionsSystem.h"
 
 #include <utility>
+#include <spdlog/spdlog.h>
+
 #include <Engine/swdebug.h>
 #include <Engine/Utility/files.h>
 #include <Engine/Utility/xml.h>
@@ -116,11 +118,15 @@ EventProcessStatus InfoportionsSystem::receiveEvent(const AddInfoportionCommandE
   SW_ASSERT(hasInfoportion(event.getInfoportionName()));
 
   GameObject targetActor = event.getActor();
-  auto& targetActorInfoportionsStorage = targetActor.getComponent<ActorComponent>()->
-    getInfoportionsStorage();
+  auto targetActorComponent = targetActor.getComponent<ActorComponent>();
+  auto& targetActorInfoportionsStorage = targetActorComponent->getInfoportionsStorage();
 
   if (!targetActorInfoportionsStorage.hasInfoportion(event.getInfoportionName())) {
     targetActorInfoportionsStorage.addInfoportion(event.getInfoportionName());
+
+    // TODO: implement debug system to print such messages and move them there
+    spdlog::debug("Add infoportion {} to actor {} (object {}#{})",
+      event.getInfoportionName(), targetActorComponent->getName(), targetActor.getName(), targetActor.getId());
 
     getGameWorld()->emitEvent(AddInfoportionEvent(targetActor, event.getInfoportionName()));
   }
@@ -133,11 +139,16 @@ EventProcessStatus InfoportionsSystem::receiveEvent(const RemoveInfoportionComma
   SW_ASSERT(hasInfoportion(event.getInfoportionName()));
 
   GameObject targetActor = event.getActor();
-  auto& targetActorInfoportionsStorage = targetActor.getComponent<ActorComponent>()->
-    getInfoportionsStorage();
+  auto targetActorComponent = targetActor.getComponent<ActorComponent>();
+
+  auto& targetActorInfoportionsStorage = targetActorComponent->getInfoportionsStorage();
 
   if (targetActorInfoportionsStorage.hasInfoportion(event.getInfoportionName())) {
     targetActorInfoportionsStorage.removeInfoportion(event.getInfoportionName());
+
+    // TODO: implement debug system to print such messages and move them there
+    spdlog::debug("Remove infoportion {} from actor {} (object {}#{})",
+      event.getInfoportionName(), targetActorComponent->getName(), targetActor.getName(), targetActor.getId());
 
     getGameWorld()->emitEvent(RemoveInfoportionEvent(targetActor, event.getInfoportionName()));
   }

@@ -163,6 +163,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   std::vector<GUIWidgetVisualParameters> m_visualParameters =
     std::vector<GUIWidgetVisualParameters>(3, GUIWidgetVisualParameters{});
 
+  // TODO: set default widget state as not shown
   bool m_isShown = true;
 
   bool m_isHovered = false;

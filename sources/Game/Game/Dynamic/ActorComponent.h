@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <Engine/Modules/ECS/ECS.h>
 #include "InfoportionsSystem.h"
@@ -12,9 +13,9 @@
  *
  * This command intended to be handled in player controlling system.
  */
-struct ActorTalkTriggerCommandEvent {
+struct ActorDialogueStartCommandEvent {
  public:
-  ActorTalkTriggerCommandEvent(GameObject initiator,
+  ActorDialogueStartCommandEvent(GameObject initiator,
     GameObject target)
     : initiator(initiator),
       target(target)
@@ -107,6 +108,8 @@ struct ActorComponent {
 
   void addQuestState(const std::string& questId);
   [[nodiscard]] ActorQuestState& getQuestState(const std::string& questId);
+
+  [[nodiscard]] const ActorQuestState* getAnyActiveQuest() const;
 
  private:
   std::string m_name;

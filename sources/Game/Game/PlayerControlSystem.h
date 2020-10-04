@@ -14,6 +14,8 @@
 
 struct PlayerUILayout {
   std::shared_ptr<GUILayout> playerUILayout;
+
+  std::shared_ptr<GUILayout> hudLayout;
   std::shared_ptr<InventoryUI> inventoryUI;
   std::shared_ptr<GUILayout> interactionUI;
   std::shared_ptr<GUIText> interactionUIText;
@@ -24,7 +26,8 @@ class PlayerControlSystem : public GameSystem,
                             public EventsListener<MouseWheelEvent>,
                             public EventsListener<InputActionToggleEvent>,
                             public EventsListener<KeyboardEvent>,
-                            public EventsListener<ActorTalkTriggerCommandEvent> {
+                            public EventsListener<ActorDialogueStartCommandEvent>,
+                            public EventsListener<StopDialogueCommandEvent> {
  public:
   explicit PlayerControlSystem(
     std::shared_ptr<InputModule> inputModule,
@@ -46,7 +49,8 @@ class PlayerControlSystem : public GameSystem,
   EventProcessStatus receiveEvent(const MouseWheelEvent& event) override;
   EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
   EventProcessStatus receiveEvent(const KeyboardEvent& event) override;
-  EventProcessStatus receiveEvent(const ActorTalkTriggerCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const ActorDialogueStartCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const StopDialogueCommandEvent& event) override;
 
   void disableMovementControl();
   void enableMovementControl();
@@ -54,7 +58,7 @@ class PlayerControlSystem : public GameSystem,
  private:
   [[nodiscard]] Camera& getPlayerCamera();
 
-  void showGUIWindow(std::shared_ptr<GUILayout> window);
+  void showGUIWindow(const std::shared_ptr<GUILayout>& window);
   void hideGUIWindow();
 
   [[nodiscard]] bool isGUIWindowModeActive() const;
@@ -63,6 +67,7 @@ class PlayerControlSystem : public GameSystem,
   [[nodiscard]] GameObject findNearestInteractiveObject(const Transform& playerTransform);
 
   void performInteractiveAction();
+  void updateHUD();
 
  private:
   GameObject m_playerObject;
@@ -76,6 +81,10 @@ class PlayerControlSystem : public GameSystem,
   PlayerUILayout m_uiLayout;
 
   std::shared_ptr<GUILayout> m_activeGUIWindow;
+
+  std::shared_ptr<GUILayout> m_questInfoLayout;
+  std::shared_ptr<GUIText> m_questInfoTitle;
+  std::shared_ptr<GUIText> m_questInfoTaskTitle;
 
   bool m_isMovementControlEnabled{};
 };

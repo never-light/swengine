@@ -61,6 +61,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<InventoryControlSystem> m_inventoryControlSystem;
   std::shared_ptr<InteractiveObjectsControlSystem> m_interactiveObjectsControlSystem;
   std::shared_ptr<GameLogicConditionsManager> m_gameLogicConditionsManager;
+  std::shared_ptr<QuestsStorage> m_questsStorage;
   std::shared_ptr<QuestsSystem> m_questsSystem;
   std::shared_ptr<InfoportionsSystem> m_infoportionsSystem;
   std::shared_ptr<DialoguesManager> m_dialoguesManager;

@@ -26,7 +26,7 @@ struct EventsTypeInfo {
  * \brief Class for representing an event listener 
  */
 template<class T>
-class EventsListener : public BaseEventsListener {
+class EventsListener : virtual public BaseEventsListener {
  public:
   ~EventsListener() override = default;
 

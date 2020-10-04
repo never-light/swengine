@@ -4,6 +4,7 @@
 #include <Engine/Modules/Graphics/GUI/GUIText.h>
 
 #include "Game/PlayerComponent.h"
+#include "ActorComponent.h"
 
 DialoguesUIHistoryItem::DialoguesUIHistoryItem(std::string initiatorName, std::string phraseText)
   : m_initiatorName(std::move(initiatorName)),
@@ -22,11 +23,14 @@ const std::string& DialoguesUIHistoryItem::getPhraseText() const
   return m_phraseText;
 }
 
-DialoguesUI::DialoguesUI(std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<DialoguesManager> dialoguesManager)
+DialoguesUI::DialoguesUI(
+  std::shared_ptr<GameWorld> gameWorld,
+  std::shared_ptr<DialoguesManager> dialoguesManager,
+  std::shared_ptr<QuestsStorage> questsStorage)
   : GUILayout("dialogues_ui"),
     m_gameWorld(std::move(gameWorld)),
-    m_dialoguesManager(std::move(dialoguesManager))
+    m_dialoguesManager(std::move(dialoguesManager)),
+    m_questsStorage(std::move(questsStorage))
 {
 
 }
@@ -67,11 +71,22 @@ void DialoguesUI::onShow()
     SW_ASSERT(m_responsesLayout != nullptr &&
       "Specify responses layout in the dialogues UI description");
   }
+
+  m_gameWorld->subscribeEventsListener<QuestStartedEvent>(this);
+  m_gameWorld->subscribeEventsListener<QuestCompletedEvent>(this);
+  m_gameWorld->subscribeEventsListener<QuestFailedEvent>(this);
+  m_gameWorld->subscribeEventsListener<QuestTaskStartedEvent>(this);
+  m_gameWorld->subscribeEventsListener<QuestTaskCompletedEvent>(this);
+  m_gameWorld->subscribeEventsListener<QuestTaskFailedEvent>(this);
+  m_gameWorld->subscribeEventsListener<InventoryItemTransferEvent>(this);
+
 }
 
 void DialoguesUI::onHide()
 {
   stopDialogue();
+
+  m_gameWorld->cancelEventsListening(this);
 }
 
 void DialoguesUI::triggerResponsePhrase(const DialogueResponse& response)
@@ -135,40 +150,15 @@ void DialoguesUI::addPhrase(GameObject initiator, GameObject target, const Dialo
     initiator.getComponent<ActorComponent>()->getName(),
     phrase.getContent());
 
-  // Detach phrases layout and attach it again after layout formation
-  // to trigger stylesheet updating for its children
-  removeChildWidget(m_phrasesLayout);
-
-  auto phraseTextWidget = std::make_shared<GUIText>();
-  m_phrasesLayout->addChildWidget(phraseTextWidget);
-
-  addChildWidget(m_phrasesLayout);
-
   std::string initiatorName = initiator.getComponent<ActorComponent>()->getName();
 
   if (initiator.hasComponent<PlayerComponent>()) {
     initiatorName = "You";
   }
 
-  phraseTextWidget->setText(initiatorName + ": " + phrase.getContent());
+  std::string phraseText = initiatorName + ": " + phrase.getContent();
 
-  const auto& phrasesWidgets = m_phrasesLayout->getChildrenWidgets();
-  int totalHeight = 0;
-
-  for (const auto& phraseWidget : phrasesWidgets) {
-    totalHeight += phraseWidget->getSize().y + m_phrasesMargin.y;
-  }
-
-  glm::ivec2 offset = m_phrasesMargin;
-
-  if (totalHeight >= m_phrasesLayout->getSize().y) {
-    offset.y = -(totalHeight - m_phrasesLayout->getSize().y);
-  }
-
-  for (auto& phraseWidget : phrasesWidgets) {
-    phraseWidget->setOrigin(offset);
-    offset.y += phraseWidget->getSize().y + m_phrasesMargin.y;
-  }
+  addTextMessage(phraseText);
 }
 
 void DialoguesUI::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
@@ -224,4 +214,110 @@ void DialoguesUI::updatePendingResponses()
     triggerResponsePhrase(m_pendingResponse.value());
     m_pendingResponse.reset();
   }
+}
+
+void DialoguesUI::addNotification(const std::string& notification)
+{
+  addTextMessage("          " + notification);
+}
+
+void DialoguesUI::addTextMessage(const std::string& message)
+{
+  // Detach phrases layout and attach it again after layout formation
+  // to trigger stylesheet updating for its children
+  removeChildWidget(m_phrasesLayout);
+
+  auto phraseTextWidget = std::make_shared<GUIText>();
+  m_phrasesLayout->addChildWidget(phraseTextWidget);
+
+  addChildWidget(m_phrasesLayout);
+
+  phraseTextWidget->setText(message);
+
+  const auto& phrasesWidgets = m_phrasesLayout->getChildrenWidgets();
+  int totalHeight = 0;
+
+  for (const auto& phraseWidget : phrasesWidgets) {
+    totalHeight += phraseWidget->getSize().y + m_phrasesMargin.y;
+  }
+
+  glm::ivec2 offset = m_phrasesMargin;
+
+  if (totalHeight >= m_phrasesLayout->getSize().y) {
+    offset.y = -(totalHeight - m_phrasesLayout->getSize().y);
+  }
+
+  for (auto& phraseWidget : phrasesWidgets) {
+    phraseWidget->setOrigin(offset);
+    offset.y += phraseWidget->getSize().y + m_phrasesMargin.y;
+  }
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestStartedEvent& event)
+{
+  addNotification(fmt::format("Quest started: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestCompletedEvent& event)
+{
+  addNotification(fmt::format("Quest completed: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestFailedEvent& event)
+{
+  addNotification(fmt::format("Quest failed: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestTaskStartedEvent& event)
+{
+  addNotification(fmt::format("Quest task started: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getTask(event.getTaskId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestTaskCompletedEvent& event)
+{
+  addNotification(fmt::format("Quest task completed: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getTask(event.getTaskId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const QuestTaskFailedEvent& event)
+{
+  addNotification(fmt::format("Quest task failed: {}",
+    m_questsStorage->getQuest(event.getQuestId()).getTask(event.getTaskId()).getName()));
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus DialoguesUI::receiveEvent(const InventoryItemTransferEvent& event)
+{
+  if (event.initiator == m_initiator) {
+    addNotification(fmt::format("Inventory item {} is transferred to {}",
+      GameObject(event.item).getComponent<InventoryItemComponent>()->getName(),
+      GameObject(event.target).getComponent<ActorComponent>()->getName()));
+  }
+  else {
+    addNotification(fmt::format("Inventory item {} is received from {}",
+      GameObject(event.item).getComponent<InventoryItemComponent>()->getName(),
+      GameObject(event.target).getComponent<ActorComponent>()->getName()));
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+std::shared_ptr<QuestsStorage> DialoguesUI::getQuestsStorage() const
+{
+  return m_questsStorage;
 }

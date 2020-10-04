@@ -29,9 +29,10 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager)),
     m_interactiveObjectsControlSystem(std::make_shared<InteractiveObjectsControlSystem>()),
     m_gameLogicConditionsManager(std::make_shared<GameLogicConditionsManager>(gameWorld)),
-    m_questsSystem(std::make_shared<QuestsSystem>(m_gameLogicConditionsManager)),
+    m_questsStorage(std::make_shared<QuestsStorage>()),
+    m_questsSystem(std::make_shared<QuestsSystem>(m_gameLogicConditionsManager, m_questsStorage)),
     m_infoportionsSystem(std::make_shared<InfoportionsSystem>()),
-    m_dialoguesManager(std::make_shared<DialoguesManager>()),
+    m_dialoguesManager(std::make_shared<DialoguesManager>(m_gameLogicConditionsManager)),
     m_gameUILayout(std::move(gameUILayout))
 {
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui",
@@ -43,7 +44,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("dialogues_ui",
     [this](const pugi::xml_node& widgetData) {
       ARG_UNUSED(widgetData);
-      return std::make_shared<DialoguesUI>(m_gameWorld, m_dialoguesManager);
+      return std::make_shared<DialoguesUI>(m_gameWorld, m_dialoguesManager, m_questsStorage);
     });
 
   m_dialoguesManager->loadFromFile("dialogues_general");
@@ -51,6 +52,8 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   m_playerUILayout.playerUILayout = std::make_shared<GUILayout>();
   m_playerUILayout.playerUILayout->setSize(m_guiSystem->getActiveLayout()->getSize());
 
+  m_playerUILayout.hudLayout = std::dynamic_pointer_cast<GUILayout>(m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("game_ui_actor_hud")));
   m_playerUILayout.inventoryUI = std::dynamic_pointer_cast<InventoryUI>(m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("game_ui_inventory")));
   m_playerUILayout.interactionUI = std::dynamic_pointer_cast<GUILayout>(m_guiSystem->loadScheme(

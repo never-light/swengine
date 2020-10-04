@@ -32,14 +32,13 @@ void GameComponentsLoader::loadPlayerData(GameObject& gameObject,
 
 void GameComponentsLoader::loadInventoryItemData(GameObject& gameObject, const pugi::xml_node& data)
 {
-  std::string itemId = data.attribute("id").as_string();
-
-  std::string itemName = data.attribute("name").as_string();
-
+  std::string itemId = data.attribute("name").as_string();
+  std::string itemName = data.attribute("title").as_string();
   std::string iconName = data.attribute("icon").as_string();
+
   auto iconTexture = m_resourceManager->getResourceFromInstance<TextureResource>(iconName)->getTexture();
 
-  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemName, itemId).get();
+  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemId, itemName).get();
 
   inventoryItemComponent.setReadable(data.attribute("readable").as_bool());
   inventoryItemComponent.setUsable(data.attribute("usable").as_bool());
