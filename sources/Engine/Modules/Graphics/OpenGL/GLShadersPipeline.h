@@ -14,8 +14,8 @@ class GLShadersPipeline {
 
   ~GLShadersPipeline();
 
-  [[nodiscard]] bool hasShader(GLenum type) const;
-  [[nodiscard]] GLShader* getShader(GLenum type) const;
+  [[nodiscard]] bool hasShader(ShaderType type) const;
+  [[nodiscard]] GLShader* getShader(ShaderType type) const;
 
  private:
   GLuint m_programPipeline;

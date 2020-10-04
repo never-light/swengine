@@ -135,9 +135,9 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     {"wireframe", PolygonFillingMode::Wireframe},
   };
 
-  static std::unordered_map<std::string, GLenum> shaderTypesMap = {
-    {"vertex", GL_VERTEX_SHADER},
-    {"fragment", GL_FRAGMENT_SHADER},
+  static std::unordered_map<std::string, ShaderType> shaderTypesMap = {
+    {"vertex", ShaderType::Vertex},
+    {"fragment", ShaderType::Fragment},
   };
 
   static std::unordered_map<std::string, MaterialResourceParameters::ShaderParamType> paramTypesMap = {
@@ -225,7 +225,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
       param.shaderType = ResourceDeclHelpers::getFilteredParameterValue(shaderType,
         "shader",
         shaderTypesMap,
-        static_cast<GLenum>(GL_VERTEX_SHADER));
+        static_cast<ShaderType>(ShaderType::Vertex));
 
       param.name = paramNode.attribute("name").as_string();
 

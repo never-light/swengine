@@ -70,20 +70,20 @@ std::shared_ptr<GLShader> ShaderResource::loadFromRawString(const std::string& r
 ShaderResource::ParametersType ShaderResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
   const ParametersType& defaultParameters)
 {
-  static std::unordered_map<std::string, GLenum> shadersTypesMap = {
-    {"vertex", GL_VERTEX_SHADER},
-    {"fragment", GL_FRAGMENT_SHADER},
-    {"geometry", GL_GEOMETRY_SHADER},
+  static std::unordered_map<std::string, ShaderType> shadersTypesMap = {
+    {"vertex", ShaderType::Vertex},
+    {"fragment", ShaderType::Fragment},
+    {"geometry", ShaderType::Geometry},
   };
 
   ParametersType parameters = defaultParameters;
 
   // Shader type
   if (declarationNode.child("type")) {
-    GLenum shaderType = ResourceDeclHelpers::getFilteredParameterValue(declarationNode,
+    ShaderType shaderType = ResourceDeclHelpers::getFilteredParameterValue(declarationNode,
       "type",
       shadersTypesMap,
-      static_cast<GLenum>(GL_VERTEX_SHADER));
+      static_cast<ShaderType>(ShaderType::Vertex));
 
     parameters.shaderType = shaderType;
   }

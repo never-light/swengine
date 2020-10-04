@@ -50,7 +50,7 @@ void RenderingSystemsPipeline::render()
   }
 
   GLShadersPipeline* accumulationPipeline = m_deferredAccumulationMaterial->getGpuMaterial().getShadersPipeline().get();
-  GLShader* accumulationFragmentShader = accumulationPipeline->getShader(GL_FRAGMENT_SHADER);
+  GLShader* accumulationFragmentShader = accumulationPipeline->getShader(ShaderType::Fragment);
   const GLFramebuffer& deferredFramebuffer = m_sharedGraphicsState->getDeferredFramebuffer();
 
   accumulationFragmentShader->setParameter("gBuffer.albedo",

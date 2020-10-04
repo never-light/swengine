@@ -91,7 +91,7 @@ void GUISystem::update(float delta)
 
 void GUISystem::render()
 {
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
+  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
   vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
 
   if (m_activeLayout != nullptr) {
@@ -127,11 +127,11 @@ std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
 RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 {
   // Transformation
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
+  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
   vertexShader->setParameter("transform.localToScreen", widget->getTransformationMatrix());
 
   // Visual parameters
-  GLShader* fragmentShader = m_guiShadersPipeline->getShader(GL_FRAGMENT_SHADER);
+  GLShader* fragmentShader = m_guiShadersPipeline->getShader(ShaderType::Fragment);
 
   // Background
   GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;

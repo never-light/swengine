@@ -77,7 +77,7 @@ void MeshRenderingSystem::renderDeferred()
 
       SW_ASSERT(shadersPipeline != nullptr);
 
-      GLShader* vertexShader = shadersPipeline->getShader(GL_VERTEX_SHADER);
+      GLShader* vertexShader = shadersPipeline->getShader(ShaderType::Vertex);
 
       if (vertexShader->hasParameter("transform.localToWorld")) {
         vertexShader->setParameter("transform.localToWorld", transform.getTransformationMatrix());

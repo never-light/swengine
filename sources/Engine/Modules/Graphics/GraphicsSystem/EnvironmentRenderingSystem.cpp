@@ -58,7 +58,7 @@ void EnvironmentRenderingSystem::renderForward()
   Camera* camera = m_graphicsScene->getActiveCamera().get();
 
   if (camera != nullptr) {
-    GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(GL_VERTEX_SHADER);
+    GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(ShaderType::Vertex);
 
     if (vertexShader->hasParameter("scene.worldToCamera")) {
       glm::mat4 untranslatedViewMatrix = camera->getViewMatrix();
