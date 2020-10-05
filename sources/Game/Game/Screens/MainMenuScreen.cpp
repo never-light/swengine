@@ -53,6 +53,14 @@ void MainMenuScreen::initializeGUI()
       }
     });
 
+  m_guiLayout->findChildByName("main_menu_settings_button")
+    ->setMouseButtonCallback([=](const GUIMouseButtonEvent& event) {
+      if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
+        spdlog::debug("help");
+        this->activateNextScreen(GameScreenType::MainMenuSettings);
+      }
+    });
+
   m_guiLayout->findChildByName("main_menu_exit_button")
     ->setMouseButtonCallback([=](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {

@@ -17,6 +17,7 @@
 #include "GUIText.h"
 #include "GUITextBox.h"
 #include "GUIProgressBar.h"
+#include "GUIDropDownList.h"
 
 #include "GUIWidgetsLoader.h"
 

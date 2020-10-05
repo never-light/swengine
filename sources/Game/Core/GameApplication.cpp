@@ -9,12 +9,13 @@
 
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
+#include "Game/Screens/MainMenuSettingsScreen.h"
 
 #include "Game/Inventory/InventoryUI.h"
 #include "Game/Dynamic/DialoguesUI.h"
 
 GameApplication::GameApplication(int argc, char* argv[])
-  : BaseGameApplication(argc, argv, "Game", 1280, 720)
+  : BaseGameApplication(argc, argv, "Game")
 {
 
 }
@@ -73,6 +74,10 @@ void GameApplication::load()
     m_inputModule,
     mainMenuGUILayout,
     m_gameConsole));
+
+  auto mainMenuSettingsGUILayout = m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("screen_main_menu_settings"));
+  m_screenManager->registerScreen(std::make_shared<MainMenuSettingsScreen>(mainMenuSettingsGUILayout));
 
   GUIWidgetStylesheet commonStylesheet = m_guiSystem->loadStylesheet(
     FileUtils::getGUISchemePath("common.stylesheet"));

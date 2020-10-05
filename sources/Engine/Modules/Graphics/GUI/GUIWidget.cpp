@@ -200,6 +200,8 @@ void GUIWidget::triggerMouseButtonEvent(
   const GUIMouseButtonEvent& event,
   std::vector<std::function<void()>>& eventsQueue)
 {
+  processMouseButtonEvent(event);
+
   if (m_mouseButtonCallback) {
     eventsQueue.emplace_back([this, event]() { m_mouseButtonCallback(event); });
   }
@@ -242,16 +244,20 @@ void GUIWidget::setParent(std::weak_ptr<GUIWidget> parent)
 void GUIWidget::setFocus()
 {
   m_hasFocus = true;
+
+  onSetFocus();
 }
 
 void GUIWidget::resetFocus()
 {
   m_hasFocus = false;
+
+  onLostFocus();
 }
 
 void GUIWidget::orderChildrenByZIndex()
 {
-  std::sort(m_widgets.begin(),
+  std::stable_sort(m_widgets.begin(),
     m_widgets.end(),
     [](std::shared_ptr<GUIWidget> widget1, std::shared_ptr<GUIWidget> widget2) {
       return widget1->getZIndex() < widget2->getZIndex();
@@ -433,4 +439,19 @@ void GUIWidget::updateChildStyles(std::shared_ptr<GUIWidget> childWidget)
       childWidget->applyStylesheetRuleWithSelector(rule, currentPath);
     }
   }
+}
+
+void GUIWidget::onSetFocus()
+{
+
+}
+
+void GUIWidget::processMouseButtonEvent(const GUIMouseButtonEvent& event)
+{
+  ARG_UNUSED(event);
+}
+
+void GUIWidget::onLostFocus()
+{
+
 }
