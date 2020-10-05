@@ -53,7 +53,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<GUILayout> m_debugGUILayout;
   std::shared_ptr<InventoryUI> m_inventoryUILayout;
 
-  std::shared_ptr<GUIText> m_primivitesCountText;
+  std::shared_ptr<GUIText> m_primitivesCountText;
   std::shared_ptr<GUIText> m_subMeshesCountText;
   std::shared_ptr<GUIText> m_culledSubMeshesCountText;
 
