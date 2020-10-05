@@ -23,18 +23,18 @@
 
 #include "Modules/LevelsManagement/GameObjectsGenericClassLoader.h"
 
+#include "StartupSettings.h"
+
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
-  const std::string& windowTitle,
-  int windowWidth,
-  int windowHeight)
+  const std::string& windowTitle)
   : m_mainWindow(nullptr)
 {
   spdlog::set_level(spdlog::level::debug);
   std::set_terminate([]() { BaseGameApplication::handleAppTerminate(); });
 
   spdlog::info("Application start...");
-  initializePlatform(argc, argv, windowTitle, windowWidth, windowHeight);
+  initializePlatform(argc, argv, windowTitle);
   spdlog::info("Application is started");
 
   spdlog::info("Initialize engine modules...");
@@ -178,12 +178,12 @@ void BaseGameApplication::shutdown()
 
 void BaseGameApplication::initializePlatform(int argc,
   char* argv[],
-  const std::string& windowTitle,
-  int windowWidth,
-  int windowHeight)
+  const std::string& windowTitle)
 {
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
+
+  StartupSettings startupSettings = StartupSettings::loadFromFile();
 
   int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -204,8 +204,45 @@ void BaseGameApplication::initializePlatform(int argc,
 
   spdlog::info("Create main window...");
 
+  int windowWidth = 0;
+  int windowHeight = 0;
+
+  switch (startupSettings.getScreenDimension()) {
+    case StartupOptionScreenDimension::_1280x720:
+      windowWidth = 1280;
+      windowHeight = 720;
+      break;
+
+    case StartupOptionScreenDimension::_1366x768:
+      windowWidth = 1366;
+      windowHeight = 768;
+      break;
+
+    case StartupOptionScreenDimension::_1440x900:
+      windowWidth = 1440;
+      windowHeight = 900;
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
+
+  Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+
+  switch (startupSettings.getScreenMode()) {
+    case StartupOptionScreenMode::Windowed:
+      break;
+
+    case StartupOptionScreenMode::Fullscreen:
+      windowFlags |= SDL_WINDOW_FULLSCREEN;
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
+
   m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-    windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+    windowWidth, windowHeight, windowFlags);
 
   if (m_mainWindow == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));

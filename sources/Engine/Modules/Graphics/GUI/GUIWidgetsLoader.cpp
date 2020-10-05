@@ -66,6 +66,9 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
   registerWidgetLoader("button", WidgetClassLoadingData::genGenericWidgetLoader<GUIButton>());
   registerWidgetLoader("label", WidgetClassLoadingData::genGenericWidgetLoader<GUIText>());
   registerWidgetLoader("progress_bar", WidgetClassLoadingData::genGenericWidgetLoader<GUIProgressBar>());
+  registerWidgetLoader("drop_down_list", [this](const pugi::xml_node& widgetData) {
+    return loadDropDownListWidget(widgetData);
+  });
 }
 
 GUIWidgetsLoader::~GUIWidgetsLoader() = default;
@@ -281,4 +284,17 @@ GUIWidgetStylesheet GUIWidgetsLoader::loadStylesheet(const std::string& styleshe
   LOCAL_VALUE_UNUSED(stylesheetDescriptionDocument);
 
   return loadStylesheet(stylesheetDescription);
+}
+
+std::shared_ptr<GUIWidget> GUIWidgetsLoader::loadDropDownListWidget(const pugi::xml_node& widgetData)
+{
+  auto dropDownWidget = GUIDropDownList::create();
+
+  for (pugi::xml_node optionNode : widgetData.child("options").children("option")) {
+    dropDownWidget->addItem(
+      optionNode.attribute("name").as_string(),
+      optionNode.attribute("value").as_string());
+  }
+
+  return dropDownWidget;
 }

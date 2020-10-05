@@ -128,13 +128,20 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   void resetTransformationCache();
 
   [[nodiscard]] virtual glm::mat4 updateTransformationMatrix();
-  virtual void processKeyboardEvent(const GUIKeyboardEvent& event);
 
+ protected:
   const GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state) const;
   GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state);
 
   static bool isPathSatisfiesSelector(const std::vector<GUIWidgetStylesheetSelectorPart>& path,
     const std::vector<GUIWidgetStylesheetSelectorPart>& selector);
+
+ protected:
+  virtual void processKeyboardEvent(const GUIKeyboardEvent& event);
+  virtual void processMouseButtonEvent(const GUIMouseButtonEvent& event);
+
+  virtual void onSetFocus();
+  virtual void onLostFocus();
 
  private:
   void triggerMouseButtonEvent(const GUIMouseButtonEvent& event, std::vector<std::function<void()>>& eventsQueue);

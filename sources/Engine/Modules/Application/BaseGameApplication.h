@@ -33,7 +33,7 @@
 class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
                             public EventsListener<InputActionToggleEvent> {
  public:
-  BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
+  BaseGameApplication(int argc, char* argv[], const std::string& windowTitle);
   ~BaseGameApplication() override;
 
   virtual void load();
@@ -53,7 +53,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   [[nodiscard]] std::shared_ptr<GameSystemsGroup> getGameApplicationSystemsGroup() const;
 
  private:
-  void initializePlatform(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
+  void initializePlatform(int argc, char* argv[], const std::string& windowTitle);
   void initializeEngine();
   void initializeEngineSystems();
 

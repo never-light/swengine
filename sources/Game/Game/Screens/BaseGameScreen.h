@@ -4,12 +4,14 @@
 #include <Engine/Modules/ECS/ECS.h>
 
 enum class GameScreenType {
-  MainMenu, Game
+  MainMenu,
+  MainMenuSettings,
+  Game,
 };
 
 class BaseGameScreen : public Screen {
  public:
-  BaseGameScreen(GameScreenType type);
+  explicit BaseGameScreen(GameScreenType type);
 
  protected:
   void activateNextScreen(GameScreenType type);

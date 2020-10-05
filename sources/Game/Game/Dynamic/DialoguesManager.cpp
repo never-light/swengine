@@ -96,7 +96,7 @@ const std::string& DialogueResponse::getPhraseId() const
 
 DialoguesManager::DialoguesManager(
   std::shared_ptr<GameLogicConditionsManager> conditionsManager)
-  : m_conditionsManager(conditionsManager)
+  : m_conditionsManager(std::move(conditionsManager))
 {
 
 }

@@ -23,4 +23,6 @@ class FileUtils {
   static constexpr std::string_view RESOURCES_GAME_PATH = "./../resources/game";
   static constexpr std::string_view LEVELS_PATH = "./../resources/game/levels";
   static constexpr std::string_view GUI_SCHEMES_PATH = "./../resources/game/gui_schemes";
+
+  static constexpr std::string_view STARTUP_SETTINGS_PATH = "settings.xml";
 };
