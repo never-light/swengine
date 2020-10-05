@@ -74,7 +74,7 @@ DepthWritingMode GLMaterial::getDepthWritingMode() const
   return m_depthWritingMode;
 }
 
-void GLMaterial::setShaderParameter(GLenum shaderType, const std::string& name, const GenericParameterValue& value)
+void GLMaterial::setShaderParameter(ShaderType shaderType, const std::string& name, const GenericParameterValue& value)
 {
   m_parameters.insert({name, GenericParameter(shaderType, value)});
 }
@@ -82,4 +82,14 @@ void GLMaterial::setShaderParameter(GLenum shaderType, const std::string& name, 
 const GLMaterial::GenericParameterValue& GLMaterial::getShaderParameterValue(const std::string& name) const
 {
   return m_parameters.at(name).value;
+}
+
+void GLMaterial::setScissorsTestMode(ScissorsTestMode mode)
+{
+  m_scissorsTestMode = mode;
+}
+
+ScissorsTestMode GLMaterial::getScissorsTestMode() const
+{
+  return m_scissorsTestMode;
 }

@@ -17,12 +17,22 @@ class MathUtils {
   static bool isEqual(float a, float b, float eps = 1e-6f);
   static bool isEqual(const Plane& a, const Plane& b);
 
-  static bool isMatrixIdentity(const glm::mat4& matrix, const float eps = 1e-6f);
+  static bool isZero(float a, float eps = 1e-6f);
+
+  static bool isMatrixIdentity(const glm::mat4& matrix, float eps = 1e-6f);
 
   static glm::mat4 getTranslationMatrix(const glm::vec3& translation);
   static glm::mat4 getRotationMatrix(const glm::vec3& axis, float angle);
   static glm::mat4 getRotationMatrixFromYawPitchRoll(float yaw, float pitch, float roll);
   static glm::mat4 getScaleMatrix(const glm::vec3& scale);
+
+  static glm::mat4 getLookAtViewMatrix(const glm::vec3& viewerPosition, const glm::vec3& targetPosition,
+    const glm::vec3& upAxis = AXIS_Y);
+
+  static glm::mat4 getPerspectiveProjectionMatrix(float fovY,
+    float aspectRatio,
+    float nearDistance,
+    float farDistance);
 
   static glm::mat4 getYawMatrix(float angle);
   static glm::mat4 getPitchMatrix(float angle);
@@ -30,6 +40,9 @@ class MathUtils {
 
   static std::tuple<glm::vec3, glm::vec3> quatToForwardUp(const glm::quat& q);
   static glm::quat forwardUpToQuat(const glm::vec3& forward, const glm::vec3& up);
+
+  static float fractionToPercents(float numerator, float denominator);
+  static float fractionToPercents(int numerator, int denominator);
 
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};

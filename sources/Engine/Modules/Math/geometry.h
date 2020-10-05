@@ -19,6 +19,8 @@ struct Plane {
 
   void normalize();
 
+  [[nodiscard]] Plane getInverse() const;
+
   [[nodiscard]] static Plane fromUnnormalized(const glm::vec3& normal, float distance);
 
  private:
@@ -53,6 +55,7 @@ struct Frustum {
 
  public:
   static Frustum extractFromViewProjection(const glm::mat4x4& view, const glm::mat4x4 projection);
+  static Frustum extractFromCorners(const std::array<glm::vec3, 8>& corners);
 
  private:
   // Left, right, top, bottom, near, far

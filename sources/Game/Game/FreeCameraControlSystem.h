@@ -3,6 +3,7 @@
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/Application/GameConsole.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
 #include <Engine/Modules/Input/InputModule.h>
 
 #include "PlayerComponent.h"
@@ -10,8 +11,9 @@
 class FreeCameraControlSystem : public GameSystem,
                                 public EventsListener<InputActionToggleEvent> {
  public:
-  explicit FreeCameraControlSystem(std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+  explicit FreeCameraControlSystem(
+    std::shared_ptr<InputModule> inputModule,
+    std::shared_ptr<GraphicsScene> graphicsScene);
   ~FreeCameraControlSystem() override = default;
 
   void configure() override;
@@ -22,11 +24,11 @@ class FreeCameraControlSystem : public GameSystem,
 
   void update(float delta) override;
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
 
  private:
   std::shared_ptr<InputModule> m_inputModule;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<Camera> m_freeCamera;
 
  private:

@@ -27,7 +27,8 @@ class GameWorld {
  public:
   GameWorld(const GameWorld& gameWorld) = delete;
 
-  ~GameWorld() {
+  ~GameWorld()
+  {
     m_gameSystemsGroup->unconfigure();
     m_gameObjectsStorage.reset();
   }
@@ -40,7 +41,8 @@ class GameWorld {
  *
  * \param delta delta time
  */
-  void fixedUpdate(float delta) {
+  void fixedUpdate(float delta)
+  {
     m_gameSystemsGroup->fixedUpdate(delta);
   }
 
@@ -52,28 +54,32 @@ class GameWorld {
    *
    * \param delta delta time
    */
-  void update(float delta) {
+  void update(float delta)
+  {
     m_gameSystemsGroup->update(delta);
   }
 
   /*!
    * \brief Renders the game world
    */
-  void render() {
+  void render()
+  {
     m_gameSystemsGroup->render();
   }
 
   /*!
    * \brief It is called before rendering of the game world
    */
-  void beforeRender() {
+  void beforeRender()
+  {
     m_gameSystemsGroup->beforeRender();
   }
 
   /*!
    * \brief It is called after rendering of the game world
    */
-  void afterRender() {
+  void afterRender()
+  {
     m_gameSystemsGroup->afterRender();
   }
 
@@ -81,7 +87,8 @@ class GameWorld {
    * \brief getGameSystemsGroup Returns main game systems group
    * \return the main game systems group
    */
-  GameSystemsGroup* getGameSystemsGroup() const {
+  GameSystemsGroup* getGameSystemsGroup() const
+  {
     return m_gameSystemsGroup.get();
   }
 
@@ -90,7 +97,8 @@ class GameWorld {
    *
    * \return the object pointer
    */
-  GameObject createGameObject() {
+  GameObject createGameObject()
+  {
     GameObject gameObject = m_gameObjectsStorage->create();
     emitEvent(GameObjectAddEvent{gameObject});
 
@@ -102,7 +110,8 @@ class GameWorld {
  *
  * \return the object pointer
  */
-  GameObject createGameObject(const std::string& name) {
+  GameObject createGameObject(const std::string& name)
+  {
     GameObject gameObject = m_gameObjectsStorage->createNamed(name);
     emitEvent(GameObjectAddEvent{gameObject});
 
@@ -115,7 +124,8 @@ class GameWorld {
    * \param id Identifier of the game object
    * \return the object pointer
    */
-  [[nodiscard]] GameObject findGameObject(GameObjectId id) const {
+  [[nodiscard]] GameObject findGameObject(GameObjectId id) const
+  {
     return m_gameObjectsStorage->getById(id);
   }
 
@@ -125,7 +135,8 @@ class GameWorld {
    * \param id Name of the game object
    * \return the object pointer
    */
-  [[nodiscard]] GameObject findGameObject(const std::string& name) const {
+  [[nodiscard]] GameObject findGameObject(const std::string& name) const
+  {
     return m_gameObjectsStorage->getByName(name);
   }
 
@@ -135,7 +146,8 @@ class GameWorld {
    * \param predicate predicate for the object determination
    * \return the object pointer
    */
-  [[nodiscard]] GameObject findGameObject(const std::function<bool(const GameObject&)>& predicate) {
+  [[nodiscard]] GameObject findGameObject(const std::function<bool(const GameObject&)>& predicate)
+  {
     for (const GameObjectData& object : m_gameObjectsStorage->getGameObjects()) {
       GameObject gameObject(object.id, object.revision, m_gameObjectsStorage.get());
 
@@ -152,7 +164,8 @@ class GameWorld {
    *
    * \param gameObject removed game object
    */
-  void removeGameObject(GameObject& gameObject) {
+  void removeGameObject(GameObject& gameObject)
+  {
     m_gameObjectsStorage->remove(gameObject);
   }
 
@@ -161,7 +174,8 @@ class GameWorld {
    *
    * \param action action to perform
    */
-  void forEach(const std::function<void(GameObject&)>& action) {
+  void forEach(const std::function<void(GameObject&)>& action)
+  {
     for (GameObject gameObject : this->all()) {
       action(gameObject);
     }
@@ -172,7 +186,8 @@ class GameWorld {
    *
    * \return view for iterate over all game objects
    */
-  GameObjectsSequentialView all() {
+  GameObjectsSequentialView all()
+  {
     GameObjectsSequentialIterator begin(m_gameObjectsStorage.get(), 0, false);
     GameObjectsSequentialIterator end(m_gameObjectsStorage.get(), m_gameObjectsStorage->getSize(), true);
 
@@ -208,10 +223,10 @@ class GameWorld {
    *
    * \param listener events listener object
    */
-  void cancelEventsListening(BaseEventsListener* listener) {
-    for (auto& it : m_eventsListeners) {
-      std::vector<BaseEventsListener*>& listeners = it.second;
-      listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end());
+  void cancelEventsListening(BaseEventsListener* listener)
+  {
+    for (auto& eventListeners : m_eventsListeners) {
+      std::erase(eventListeners, listener);
     }
   }
 
@@ -224,7 +239,8 @@ class GameWorld {
   EventProcessStatus emitEvent(const T& event);
 
  public:
-  static std::shared_ptr<GameWorld> createInstance() {
+  static std::shared_ptr<GameWorld> createInstance()
+  {
     std::shared_ptr<GameWorld> gameWorld(new GameWorld());
     gameWorld->setGameSystemsGroup(std::make_unique<GameSystemsGroup>(gameWorld.get()));
     gameWorld->m_gameObjectsStorage = std::make_unique<GameObjectsStorage>(gameWorld.get());
@@ -242,7 +258,8 @@ class GameWorld {
  * \brief setGameSystemsGroup Sets main game systems group
  * \param group group to set
  */
-  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group) {
+  void setGameSystemsGroup(std::unique_ptr<GameSystemsGroup> group)
+  {
     m_gameSystemsGroup = std::move(group);
     m_gameSystemsGroup->configure();
     m_gameSystemsGroup->setActive(true);
@@ -252,7 +269,7 @@ class GameWorld {
   std::unique_ptr<GameSystemsGroup> m_gameSystemsGroup;
   std::unique_ptr<GameObjectsStorage> m_gameObjectsStorage;
 
-  std::unordered_map<std::type_index, std::vector<BaseEventsListener*>> m_eventsListeners;
+  std::vector<std::vector<BaseEventsListener*>> m_eventsListeners;
 
  private:
   friend class GameObject;
@@ -270,46 +287,32 @@ inline GameObjectsComponentsView<ComponentType> GameWorld::allWith()
 template<class T>
 inline void GameWorld::subscribeEventsListener(EventsListener<T>* listener)
 {
-  auto typeId = std::type_index(typeid(T));
+  size_t typeId = EventsTypeInfo::getTypeIndex<T>();
 
-  auto eventListenersListIt = m_eventsListeners.find(typeId);
+  if (typeId >= m_eventsListeners.size()) {
+    m_eventsListeners.resize(typeId + 1);
+  }
 
-  if (eventListenersListIt == m_eventsListeners.end()) {
-    m_eventsListeners.insert({typeId, std::vector<BaseEventsListener*>{listener}});
-  }
-  else {
-    eventListenersListIt->second.push_back(listener);
-  }
+  m_eventsListeners[typeId].push_back(listener);
 }
 
 template<class T>
 inline void GameWorld::unsubscribeEventsListener(EventsListener<T>* listener)
 {
-  auto typeId = std::type_index(typeid(T));
-
-  auto eventListenersListIt = m_eventsListeners.find(typeId);
-
-  if (eventListenersListIt == m_eventsListeners.end()) {
-    return;
-  }
-
-  eventListenersListIt->second.erase(std::remove(eventListenersListIt->second.begin(),
-    eventListenersListIt->second.end(), listener),
-    eventListenersListIt->second.end());
+  size_t typeId = EventsTypeInfo::getTypeIndex<T>();
+  std::erase(m_eventsListeners[typeId], listener);
 }
 
 template<class T>
 inline EventProcessStatus GameWorld::emitEvent(const T& event)
 {
   bool processed = false;
-  auto typeId = std::type_index(typeid(T));
+  size_t typeId = EventsTypeInfo::getTypeIndex<T>();
 
-  auto eventListenersListIt = m_eventsListeners.find(typeId);
-
-  if (eventListenersListIt != m_eventsListeners.end()) {
-    for (BaseEventsListener* baseListener : eventListenersListIt->second) {
-      auto* listener = reinterpret_cast<EventsListener<T>*>(baseListener);
-      EventProcessStatus processStatus = listener->receiveEvent(this, event);
+  if (typeId < m_eventsListeners.size()) {
+    for (BaseEventsListener* baseListener : m_eventsListeners[typeId]) {
+      auto* listener = dynamic_cast<EventsListener<T>*>(baseListener);
+      EventProcessStatus processStatus = listener->receiveEvent(event);
 
       if (processStatus == EventProcessStatus::Prevented) {
         return EventProcessStatus::Prevented;

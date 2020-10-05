@@ -14,16 +14,16 @@ std::shared_ptr<GLShadersPipeline> DebugPainter::s_debugShaderPipeline = nullptr
 
 std::unique_ptr<GLMaterial> DebugPainter::s_debugMaterial = nullptr;
 
-std::shared_ptr<SharedGraphicsState> DebugPainter::s_sharedGraphicsState = nullptr;
+std::shared_ptr<GraphicsScene> DebugPainter::s_graphicsScene = nullptr;
 
 std::vector<std::unique_ptr<GLGeometryStore>> DebugPainter::s_primitivesGeometry;
 
 std::vector<DebugRenderQueueItem> DebugPainter::s_debugRenderQueue;
 
 void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
+  std::shared_ptr<GraphicsScene> graphicsScene)
 {
-  s_sharedGraphicsState = sharedGraphicsState;
+  s_graphicsScene = graphicsScene;
 
   s_sphere = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh();
   s_box = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_box")->getMesh();
@@ -165,17 +165,17 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
       graphicsContext->setPolygonFillingMode(PolygonFillingMode::Fill);
     }
 
-    GLShader* vertexShader = s_debugShaderPipeline->getShader(GL_VERTEX_SHADER);
+    GLShader* vertexShader = s_debugShaderPipeline->getShader(ShaderType::Vertex);
     vertexShader->setParameter("transform.localToWorld", queueItem.transformationMatrix);
 
-    Camera* camera = s_sharedGraphicsState->getActiveCamera().get();
+    Camera* camera = s_graphicsScene->getActiveCamera().get();
     vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
     vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
 
-    GLShader* fragmentShader = s_debugShaderPipeline->getShader(GL_FRAGMENT_SHADER);
+    GLShader* fragmentShader = s_debugShaderPipeline->getShader(ShaderType::Fragment);
     fragmentShader->setParameter("color", queueItem.color);
 
-    s_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(1);
+    s_graphicsScene->getSharedGraphicsState()->getFrameStats().increaseSubMeshesCount(1);
 
     size_t primitivesCount = 0;
 
@@ -186,7 +186,7 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
       primitivesCount = queueItem.geometry->getIndicesCount() / 2;
     }
 
-    s_sharedGraphicsState->getFrameStats().increasePrimitivesCount(primitivesCount);
+    s_graphicsScene->getSharedGraphicsState()->getFrameStats().increasePrimitivesCount(primitivesCount);
 
     graphicsContext->executeRenderTask({s_debugMaterial.get(), queueItem.geometry,
       0, queueItem.geometry->getIndicesCount(),

@@ -10,11 +10,23 @@ enum class EventProcessStatus {
   Skipped
 };
 
+struct EventsTypeInfo {
+  template<class T>
+  static size_t getTypeIndex()
+  {
+    static size_t typeIndex = s_typeIndex++;
+
+    return typeIndex;
+  }
+
+  static size_t s_typeIndex;
+};
+
 /*!
  * \brief Class for representing an event listener 
  */
 template<class T>
-class EventsListener : public BaseEventsListener {
+class EventsListener : virtual public BaseEventsListener {
  public:
   ~EventsListener() override = default;
 
@@ -26,5 +38,5 @@ class EventsListener : public BaseEventsListener {
    *
    * \return event process status
    */
-  virtual EventProcessStatus receiveEvent(GameWorld* gameWorld, const T& event) = 0;
+  virtual EventProcessStatus receiveEvent(const T& event) = 0;
 };

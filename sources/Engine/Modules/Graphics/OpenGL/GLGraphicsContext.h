@@ -15,14 +15,16 @@ class SharedGraphicsState;
 class Transform;
 
 struct RenderTask {
-  GLMaterial* material;
-  GLGeometryStore* geometryStore;
+  GLMaterial* material{};
+  GLGeometryStore* geometryStore{};
 
-  size_t startOffset;
-  size_t partsCount;
+  size_t startOffset{};
+  size_t partsCount{};
 
   GLenum primitivesType = GL_TRIANGLES;
   GLFramebuffer* framebuffer = nullptr;
+
+  RectI scissorsRect{};
 };
 
 class GLGraphicsContext {
@@ -33,11 +35,6 @@ class GLGraphicsContext {
   void enableWritingToDepthBuffer();
   void disableWritingToDepthBuffer();
 
-  void enableScissorTest();
-  void disableScissorTest();
-
-  void setScissorRectangle(const RectI& rectangle);
-
   void swapBuffers();
 
   void setDepthTestMode(DepthTestMode mode);
@@ -45,6 +42,7 @@ class GLGraphicsContext {
   void setPolygonFillingMode(PolygonFillingMode mode);
   void setBlendingMode(BlendingMode mode);
   void setDepthWritingMode(DepthWritingMode mode);
+  void setupScissorsTest(ScissorsTestMode mode);
 
   void applyMaterial(const GLMaterial& material);
   void executeRenderTask(const RenderTask& task);

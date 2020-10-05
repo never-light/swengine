@@ -17,6 +17,8 @@ ScreenManager::ScreenManager(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GLGraphicsContext> graphicsContext = graphicsModule->getGraphicsContext();
   m_commonGUILayout->setSize({graphicsContext->getDefaultFramebuffer().getWidth(),
     graphicsContext->getDefaultFramebuffer().getHeight()});
+
+  m_commonGUILayout->show();
 }
 
 ScreenManager::~ScreenManager()

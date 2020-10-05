@@ -30,10 +30,7 @@ struct FrameStats {
 
 class SharedGraphicsState {
  public:
-  SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
-
-  void setActiveCamera(std::shared_ptr<Camera> camera);
-  [[nodiscard]] std::shared_ptr<Camera> getActiveCamera() const;
+  explicit SharedGraphicsState(std::shared_ptr<GLGraphicsContext> graphicsContext);
 
   [[nodiscard]] const FrameStats& getFrameStats() const;
   FrameStats& getFrameStats();
@@ -42,8 +39,6 @@ class SharedGraphicsState {
   [[nodiscard]] GLFramebuffer& getForwardFramebuffer() const;
 
  private:
-  std::shared_ptr<Camera> m_activeCamera;
-
   FrameStats m_frameStats;
 
   std::unique_ptr<GLFramebuffer> m_deferredFramebuffer;

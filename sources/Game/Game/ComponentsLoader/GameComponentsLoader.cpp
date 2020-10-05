@@ -7,6 +7,8 @@
 
 #include "Game/PlayerComponent.h"
 #include "Game/Inventory/InventoryComponent.h"
+#include "Game/Dynamic/InteractiveObjectComponent.h"
+#include "Game/Dynamic/ActorComponent.h"
 
 GameComponentsLoader::GameComponentsLoader(
   std::shared_ptr<GameWorld> gameWorld,
@@ -30,12 +32,13 @@ void GameComponentsLoader::loadPlayerData(GameObject& gameObject,
 
 void GameComponentsLoader::loadInventoryItemData(GameObject& gameObject, const pugi::xml_node& data)
 {
-  std::string itemName = data.attribute("name").as_string();
-
+  std::string itemId = data.attribute("name").as_string();
+  std::string itemName = data.attribute("title").as_string();
   std::string iconName = data.attribute("icon").as_string();
+
   auto iconTexture = m_resourceManager->getResourceFromInstance<TextureResource>(iconName)->getTexture();
 
-  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemName).get();
+  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemId, itemName).get();
 
   inventoryItemComponent.setReadable(data.attribute("readable").as_bool());
   inventoryItemComponent.setUsable(data.attribute("usable").as_bool());
@@ -59,9 +62,59 @@ void GameComponentsLoader::loadInventoryData(GameObject& gameObject, const pugi:
         fmt::format("Inventory item object {} is not alive at the loading time", itemObjectName));
     }
 
-    m_gameWorld->emitEvent<InventoryItemActionTriggeredEvent>(
+    m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
       {gameObject,
         InventoryItemActionTriggerType::RelocateToInventory,
         itemObject});
+  }
+}
+
+void GameComponentsLoader::loadInteractiveData(GameObject& gameObject, const pugi::xml_node& data)
+{
+  auto& interactiveComponent = *gameObject.addComponent<InteractiveObjectComponent>().get();
+
+  std::string objectName = data.attribute("name").as_string();
+  interactiveComponent.setName(objectName);
+
+  pugi::xml_node takeableConditions = data.child("takeable");
+
+  if (takeableConditions) {
+    interactiveComponent.setTakeable(true);
+  }
+
+  pugi::xml_node usableConditions = data.child("usable");
+
+  if (usableConditions) {
+    interactiveComponent.setUsable(true);
+  }
+
+  pugi::xml_node talkableConditions = data.child("talkable");
+
+  if (talkableConditions) {
+    interactiveComponent.setTalkable(true);
+  }
+}
+
+void GameComponentsLoader::loadActorData(GameObject& gameObject, const pugi::xml_node& data)
+{
+  auto& actorComponent = *gameObject.addComponent<ActorComponent>().get();
+
+  std::string actorName = data.attribute("name").as_string();
+  actorComponent.setName(actorName);
+
+  pugi::xml_node dialoguesNode = data.child("dialogues");
+
+  for (pugi::xml_node dialogueNode : dialoguesNode.children("dialogue")) {
+    std::string dialogueId = dialogueNode.attribute("id").as_string();
+    bool isStartedByNPC = dialogueNode.attribute("npc_start").as_bool(false);
+
+    actorComponent.addDialogue(ActorDialogue(dialogueId, isStartedByNPC));
+  }
+
+  pugi::xml_node healthNode = data.child("health");
+
+  if (healthNode) {
+    actorComponent.setHealth(healthNode.attribute("value").as_float(0.0f));
+    actorComponent.setHealthLimit(healthNode.attribute("limit").as_float(100.0f));
   }
 }

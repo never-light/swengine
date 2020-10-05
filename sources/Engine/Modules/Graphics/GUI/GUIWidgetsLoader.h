@@ -60,6 +60,9 @@ class GUIWidgetsLoader {
   [[nodiscard]] PropertyParser getPropertyTypeParser(const std::string& typeName) const;
 
  private:
+  std::shared_ptr<GUIWidget> loadDropDownListWidget(const pugi::xml_node& widgetData);
+
+ private:
   std::weak_ptr<GUISystem> m_guiSystem;
   std::shared_ptr<ResourceManager> m_resourceManager;
 

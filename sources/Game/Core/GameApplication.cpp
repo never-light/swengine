@@ -9,11 +9,13 @@
 
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
+#include "Game/Screens/MainMenuSettingsScreen.h"
 
 #include "Game/Inventory/InventoryUI.h"
+#include "Game/Dynamic/DialoguesUI.h"
 
 GameApplication::GameApplication(int argc, char* argv[])
-  : BaseGameApplication(argc, argv, "Game", 1280, 720)
+  : BaseGameApplication(argc, argv, "Game")
 {
 
 }
@@ -49,23 +51,22 @@ void GameApplication::load()
       m_componentsLoader->loadInventoryData(gameObject, data);
     });
 
-  m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui", [this](const pugi::xml_node& widgetData) {
-    ARG_UNUSED(widgetData);
-    return std::make_shared<InventoryUI>(m_gameWorld, m_inputModule);
-  });
+  m_levelsManager->getObjectsLoader().registerGenericComponentLoader("interactive",
+    [this](GameObject& gameObject, const pugi::xml_node& data) {
+      m_componentsLoader->loadInteractiveData(gameObject, data);
+    });
 
-  auto gameScreenDebugUILayout = m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("screen_game_debug"));
-
-  auto inventoryUILayout = std::dynamic_pointer_cast<InventoryUI>(m_guiSystem->loadScheme(
-    FileUtils::getGUISchemePath("game_ui_inventory")));
+  m_levelsManager->getObjectsLoader().registerGenericComponentLoader("actor",
+    [this](GameObject& gameObject, const pugi::xml_node& data) {
+      m_componentsLoader->loadActorData(gameObject, data);
+    });
 
   m_screenManager->registerScreen(
     std::make_shared<GameScreen>(m_inputModule,
       getGameApplicationSystemsGroup(),
       m_levelsManager,
-      gameScreenDebugUILayout,
-      inventoryUILayout));
+      m_graphicsScene,
+      m_guiSystem));
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_main_menu"));
@@ -73,6 +74,10 @@ void GameApplication::load()
     m_inputModule,
     mainMenuGUILayout,
     m_gameConsole));
+
+  auto mainMenuSettingsGUILayout = m_guiSystem->loadScheme(
+    FileUtils::getGUISchemePath("screen_main_menu_settings"));
+  m_screenManager->registerScreen(std::make_shared<MainMenuSettingsScreen>(mainMenuSettingsGUILayout));
 
   GUIWidgetStylesheet commonStylesheet = m_guiSystem->loadStylesheet(
     FileUtils::getGUISchemePath("common.stylesheet"));
@@ -96,11 +101,8 @@ void GameApplication::unload()
   m_gameWorld->unsubscribeEventsListener<ScreenSwitchEvent>(this);
 }
 
-EventProcessStatus GameApplication::receiveEvent(GameWorld* gameWorld, const ScreenSwitchEvent& event)
+EventProcessStatus GameApplication::receiveEvent(const ScreenSwitchEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-  ARG_UNUSED(event);
-
   if (event.newScreen->getName() == "Game") {
     m_engineGameSystems->getGameSystem<SkeletalAnimationSystem>()->setActive(true);
     m_engineGameSystems->getGameSystem<PhysicsSystem>()->setActive(true);

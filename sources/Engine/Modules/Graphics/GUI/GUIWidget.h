@@ -54,7 +54,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
  public:
   explicit GUIWidget(std::string className);
-  virtual ~GUIWidget() = default;
+  virtual ~GUIWidget();
 
   void setName(const std::string& name);
   [[nodiscard]] const std::string& getName() const;
@@ -122,24 +122,33 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   virtual void onShow();
   virtual void onHide();
 
+  void updateChildStyles(std::shared_ptr<GUIWidget> childWidget);
+
  protected:
   void resetTransformationCache();
 
   [[nodiscard]] virtual glm::mat4 updateTransformationMatrix();
-  virtual void processKeyboardEvent(const GUIKeyboardEvent& event);
 
+ protected:
   const GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state) const;
   GUIWidgetVisualParameters& getVisualParameters(GUIWidgetVisualState state);
 
   static bool isPathSatisfiesSelector(const std::vector<GUIWidgetStylesheetSelectorPart>& path,
     const std::vector<GUIWidgetStylesheetSelectorPart>& selector);
 
- private:
-  void triggerMouseButtonEvent(const GUIMouseButtonEvent& event);
-  void triggerMouseEnterEvent(const GUIMouseEnterEvent& event);
-  void triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event);
+ protected:
+  virtual void processKeyboardEvent(const GUIKeyboardEvent& event);
+  virtual void processMouseButtonEvent(const GUIMouseButtonEvent& event);
 
-  void triggerKeyboardEvent(const GUIKeyboardEvent& event);
+  virtual void onSetFocus();
+  virtual void onLostFocus();
+
+ private:
+  void triggerMouseButtonEvent(const GUIMouseButtonEvent& event, std::vector<std::function<void()>>& eventsQueue);
+  void triggerMouseEnterEvent(const GUIMouseEnterEvent& event, std::vector<std::function<void()>>& eventsQueue);
+  void triggerMouseLeaveEvent(const GUIMouseLeaveEvent& event, std::vector<std::function<void()>>& eventsQueue);
+
+  void triggerKeyboardEvent(const GUIKeyboardEvent& event, std::vector<std::function<void()>>& eventsQueue);
 
   void setParent(std::weak_ptr<GUIWidget> parent);
 
@@ -161,6 +170,7 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
   std::vector<GUIWidgetVisualParameters> m_visualParameters =
     std::vector<GUIWidgetVisualParameters>(3, GUIWidgetVisualParameters{});
 
+  // TODO: set default widget state as not shown
   bool m_isShown = true;
 
   bool m_isHovered = false;
@@ -178,6 +188,8 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   glm::mat4x4 m_transformationMatrixCache{};
   bool m_needTransformationMatrixCacheUpdate = true;
+
+  std::vector<GUIWidgetStylesheet> m_stylesheets;
 
  private:
   friend class GUISystem;

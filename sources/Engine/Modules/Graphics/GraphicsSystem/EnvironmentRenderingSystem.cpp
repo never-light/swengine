@@ -19,10 +19,11 @@ Material* EnvironmentComponent::getEnvironmentMaterial() const
   return m_environmentMaterial.get();
 }
 
-EnvironmentRenderingSystem::EnvironmentRenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
+EnvironmentRenderingSystem::EnvironmentRenderingSystem(
+  std::shared_ptr<GLGraphicsContext> graphicsContext,
+  std::shared_ptr<GraphicsScene> graphicsScene,
   std::shared_ptr<Mesh> environmentMesh)
-  : RenderingSystem(std::move(graphicsContext), std::move(sharedGraphicsState)),
+  : RenderingSystem(std::move(graphicsContext), std::move(graphicsScene)),
     m_environmentMesh(std::move(environmentMesh))
 {
 
@@ -54,10 +55,10 @@ void EnvironmentRenderingSystem::renderForward()
 
   Material* material = environmentObject.getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
 
-  Camera* camera = m_sharedGraphicsState->getActiveCamera().get();
+  Camera* camera = m_graphicsScene->getActiveCamera().get();
 
   if (camera != nullptr) {
-    GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(GL_VERTEX_SHADER);
+    GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(ShaderType::Vertex);
 
     if (vertexShader->hasParameter("scene.worldToCamera")) {
       glm::mat4 untranslatedViewMatrix = camera->getViewMatrix();
@@ -68,12 +69,14 @@ void EnvironmentRenderingSystem::renderForward()
     }
   }
 
-  m_sharedGraphicsState->getFrameStats().increaseSubMeshesCount(1);
-  m_sharedGraphicsState->getFrameStats().increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
+  auto& shaderGraphicsState = *m_graphicsScene->getSharedGraphicsState();
+
+  shaderGraphicsState.getFrameStats().increaseSubMeshesCount(1);
+  shaderGraphicsState.getFrameStats().increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
 
   m_graphicsContext->executeRenderTask(RenderTask{&material->getGpuMaterial(),
     m_environmentMesh->getGeometryStore(), 0, m_environmentMesh->getSubMeshIndicesCount(0),
-    GL_TRIANGLES, &m_sharedGraphicsState->getForwardFramebuffer()
+    GL_TRIANGLES, &shaderGraphicsState.getForwardFramebuffer()
   });
 
 }

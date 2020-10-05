@@ -23,18 +23,18 @@
 
 #include "Modules/LevelsManagement/GameObjectsGenericClassLoader.h"
 
+#include "StartupSettings.h"
+
 BaseGameApplication::BaseGameApplication(int argc,
   char* argv[],
-  const std::string& windowTitle,
-  int windowWidth,
-  int windowHeight)
+  const std::string& windowTitle)
   : m_mainWindow(nullptr)
 {
   spdlog::set_level(spdlog::level::debug);
   std::set_terminate([]() { BaseGameApplication::handleAppTerminate(); });
 
   spdlog::info("Application start...");
-  initializePlatform(argc, argv, windowTitle, windowWidth, windowHeight);
+  initializePlatform(argc, argv, windowTitle);
   spdlog::info("Application is started");
 
   spdlog::info("Initialize engine modules...");
@@ -134,17 +134,20 @@ int BaseGameApplication::execute()
   return 0;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event)
+EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.command == "exit") {
     shutdown();
 
     return EventProcessStatus::Processed;
   }
-  else if (event.command == "physics-debug-draw") {
+  else if (event.command == "debug-draw-physics") {
     m_physicsSystem->enableDebugDrawing(!m_physicsSystem->isDebugDrawingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
+  else if (event.command == "debug-draw-bounds") {
+    m_meshRenderingSystem->enableBoundsRendering(!m_meshRenderingSystem->isBoundsRenderingEnabled());
 
     return EventProcessStatus::Processed;
   }
@@ -152,10 +155,8 @@ EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const
   return EventProcessStatus::Skipped;
 }
 
-EventProcessStatus BaseGameApplication::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus BaseGameApplication::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
-
   if (event.actionName == "console" && event.newState == InputActionState::Active) {
     if (m_gameConsole->getGUIConsole()->isShown()) {
       m_gameConsole->getGUIConsole()->hide();
@@ -177,12 +178,12 @@ void BaseGameApplication::shutdown()
 
 void BaseGameApplication::initializePlatform(int argc,
   char* argv[],
-  const std::string& windowTitle,
-  int windowWidth,
-  int windowHeight)
+  const std::string& windowTitle)
 {
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
+
+  StartupSettings startupSettings = StartupSettings::loadFromFile();
 
   int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -203,8 +204,45 @@ void BaseGameApplication::initializePlatform(int argc,
 
   spdlog::info("Create main window...");
 
+  int windowWidth = 0;
+  int windowHeight = 0;
+
+  switch (startupSettings.getScreenDimension()) {
+    case StartupOptionScreenDimension::_1280x720:
+      windowWidth = 1280;
+      windowHeight = 720;
+      break;
+
+    case StartupOptionScreenDimension::_1366x768:
+      windowWidth = 1366;
+      windowHeight = 768;
+      break;
+
+    case StartupOptionScreenDimension::_1440x900:
+      windowWidth = 1440;
+      windowHeight = 900;
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
+
+  Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+
+  switch (startupSettings.getScreenMode()) {
+    case StartupOptionScreenMode::Windowed:
+      break;
+
+    case StartupOptionScreenMode::Fullscreen:
+      windowFlags |= SDL_WINDOW_FULLSCREEN;
+      break;
+
+    default:
+      SW_ASSERT(false);
+  }
+
   m_mainWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-    windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+    windowWidth, windowHeight, windowFlags);
 
   if (m_mainWindow == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
@@ -219,6 +257,7 @@ void BaseGameApplication::initializeEngine()
 
   m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
   m_sharedGraphicsState = std::make_shared<SharedGraphicsState>(m_graphicsModule->getGraphicsContext());
+  m_graphicsScene = std::make_shared<GraphicsScene>(m_sharedGraphicsState);
 
   m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
@@ -241,7 +280,7 @@ void BaseGameApplication::initializeEngine()
   m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
     m_sharedGraphicsState, resourceManager);
 
-  DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_sharedGraphicsState);
+  DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_graphicsScene);
 }
 
 void BaseGameApplication::initializeEngineSystems()
@@ -262,31 +301,26 @@ void BaseGameApplication::initializeEngineSystems()
   auto skeletalAnimationSystem = std::make_shared<SkeletalAnimationSystem>();
   m_engineGameSystems->addGameSystem(skeletalAnimationSystem);
 
+  // Scene management system
+  auto sceneManagementSystem = std::make_shared<GraphicsSceneManagementSystem>(m_graphicsScene);
+
+  m_engineGameSystems->addGameSystem(sceneManagementSystem);
+
   // Rendering pipeline
   m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext(),
-    m_sharedGraphicsState);
+    m_graphicsScene);
 
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
-  // Geometry culling
-  auto geometryCullingSystem = std::make_shared<GeometryCullingSystem>(m_graphicsModule->getGraphicsContext(),
-    m_sharedGraphicsState);
-
-  m_renderingSystemsPipeline->addGameSystem(geometryCullingSystem);
-
   // Mesh rendering system
-  auto meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-    m_sharedGraphicsState);
-  m_renderingSystemsPipeline->addGameSystem(meshRenderingSystem);
+  m_meshRenderingSystem = std::make_shared<MeshRenderingSystem>(m_graphicsModule->getGraphicsContext(),
+    m_graphicsScene);
+  m_renderingSystemsPipeline->addGameSystem(m_meshRenderingSystem);
 
   // Environment rendering
   auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
-    m_sharedGraphicsState,
-    resourceManager
-      ->getResourceFromInstance<
-        MeshResource>(
-        "mesh_identity_sphere")
-      ->getMesh());
+    m_graphicsScene,
+    resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh());
 
   m_renderingSystemsPipeline->addGameSystem(environmentRenderingSystem);
 
@@ -323,7 +357,7 @@ void BaseGameApplication::initializeEngineSystems()
   });
 
   // Audio system
-  m_audioSystem = std::make_shared<AudioSystem>(m_sharedGraphicsState);
+  m_audioSystem = std::make_shared<AudioSystem>(m_graphicsScene);
 
   m_engineGameSystems->addGameSystem(m_audioSystem);
 
@@ -350,28 +384,7 @@ void BaseGameApplication::initializeEngineSystems()
 
   m_gameConsole->setGUIConsole(guiConsole);
 
-//  glm::vec4 guiConsoleBackgroundColor = {0.168f, 0.172f, 0.25f, 0.8f};
-//
-//  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Default);
-//  guiConsole->setBackgroundColor(guiConsoleBackgroundColor, GUIWidgetVisualState::Hover);
-
   guiConsole->setWidth(m_guiSystem->getScreenWidth());
-
-//  glm::vec4 guiConsoleTextBoxBackgroundColor = {0.118f, 0.112f, 0.15f, 1.0f};
-
-//  auto textBoxWidget = guiConsole->getTextBox();
-
-//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Default);
-//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Hover);
-//  textBoxWidget->setBackgroundColor(guiConsoleTextBoxBackgroundColor, GUIWidgetVisualState::Focus);
-//
-//  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
-//  textBoxWidget->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
-//  guiConsole->getTextBox()->setTextFontSize(9);
-
-//  guiConsole->setTextFontSize(9);
-//  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Default);
-//  guiConsole->setTextColor({1.0f, 1.0f, 1.0f, 1.0f}, GUIWidgetVisualState::Hover);
 
   guiConsole->setZIndex(10);
   guiConsole->hide();

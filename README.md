@@ -38,7 +38,7 @@ mkdir bin
 
 ######  Install third-party dependencies
 ```bash
-conan remote add https://api.bintray.com/conan/bincrafters/public-conan
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
 mkdir build
 

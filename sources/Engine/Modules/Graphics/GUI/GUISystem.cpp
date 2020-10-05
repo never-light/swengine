@@ -49,6 +49,7 @@ GUISystem::GUISystem(
   m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
   m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
   m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
+  m_guiMaterial->setScissorsTestMode(ScissorsTestMode::Enabled);
 }
 
 void GUISystem::configure()
@@ -79,14 +80,18 @@ void GUISystem::update(float delta)
 {
   ARG_UNUSED(delta);
 
+  m_eventsQueue.clear();
+
   if (m_activeLayout != nullptr) {
     updateGUIWidget(m_activeLayout.get());
   }
+
+  executeEventsQueue(m_eventsQueue);
 }
 
 void GUISystem::render()
 {
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
+  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
   vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
 
   if (m_activeLayout != nullptr) {
@@ -122,11 +127,11 @@ std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
 RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 {
   // Transformation
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(GL_VERTEX_SHADER);
+  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
   vertexShader->setParameter("transform.localToScreen", widget->getTransformationMatrix());
 
   // Visual parameters
-  GLShader* fragmentShader = m_guiShadersPipeline->getShader(GL_FRAGMENT_SHADER);
+  GLShader* fragmentShader = m_guiShadersPipeline->getShader(ShaderType::Fragment);
 
   // Background
   GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
@@ -182,6 +187,13 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
   task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
   task.material = m_guiMaterial.get();
 
+  if (widget->getParent() != nullptr) {
+    task.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
+  }
+  else {
+    task.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
+  }
+
   return task;
 }
 
@@ -195,9 +207,9 @@ int GUISystem::getScreenHeight() const
   return m_graphicsContext->getDefaultFramebuffer().getHeight();
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButtonEvent& event)
+EventProcessStatus GUISystem::receiveEvent(const MouseButtonEvent& event)
 {
-  ARG_UNUSED(gameWorld);
+  m_eventsQueue.clear();
 
   if (m_activeLayout != nullptr) {
     processGUIWidgetMouseButtonEvent(m_activeLayout.get(), event);
@@ -210,12 +222,14 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const MouseButt
     }
   }
 
+  executeEventsQueue(m_eventsQueue);
+
   return EventProcessStatus::Processed;
 }
 
-EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardEvent& event)
+EventProcessStatus GUISystem::receiveEvent(const KeyboardEvent& event)
 {
-  ARG_UNUSED(gameWorld);
+  m_eventsQueue.clear();
 
   if (m_focusedWidget != nullptr && m_focusedWidget->isShown()) {
     GUIKeyboardEvent guiEvent{};
@@ -224,7 +238,9 @@ EventProcessStatus GUISystem::receiveEvent(GameWorld* gameWorld, const KeyboardE
     guiEvent.repeated = event.repeated;
     guiEvent.keyModifiers = event.keyModifiers;
 
-    m_focusedWidget->triggerKeyboardEvent(guiEvent);
+    m_focusedWidget->triggerKeyboardEvent(guiEvent, m_eventsQueue);
+
+    executeEventsQueue(m_eventsQueue);
 
     return EventProcessStatus::Prevented;
   }
@@ -243,7 +259,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
       widget->m_isHovered = true;
 
       GUIMouseEnterEvent event;
-      widget->triggerMouseEnterEvent(event);
+      widget->triggerMouseEnterEvent(event, m_eventsQueue);
     }
   }
   else {
@@ -251,7 +267,7 @@ void GUISystem::updateGUIWidget(GUIWidget* widget)
       widget->m_isHovered = false;
 
       GUIMouseLeaveEvent event;
-      widget->triggerMouseLeaveEvent(event);
+      widget->triggerMouseLeaveEvent(event, m_eventsQueue);
     }
   }
 
@@ -292,7 +308,7 @@ void GUISystem::processGUIWidgetMouseButtonEvent(GUIWidget* widget, const MouseB
     mouseEvent.button = event.button;
     mouseEvent.isExclusive = isExclusive;
 
-    widget->triggerMouseButtonEvent(mouseEvent);
+    widget->triggerMouseButtonEvent(mouseEvent, m_eventsQueue);
   }
 }
 
@@ -336,4 +352,11 @@ GUIWidgetStylesheet GUISystem::loadStylesheet(const std::string& stylesheetPath)
 GUIWidgetsLoader* GUISystem::getWidgetsLoader() const
 {
   return m_widgetsLoader.get();
+}
+
+void GUISystem::executeEventsQueue(const std::vector<std::function<void()>>& queue)
+{
+  for (const auto& eventHandler : queue) {
+    eventHandler();
+  }
 }

@@ -212,3 +212,8 @@ const AnimationState& AnimationStatesMachine::getState(const std::string& name) 
 {
   return getState(getStateIdByName(name));
 }
+
+void AnimationStatesMachine::setActiveState(const std::string& stateName)
+{
+  setActiveState(getStateIdByName(stateName));
+}

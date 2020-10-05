@@ -79,9 +79,6 @@ inline void GameObjectsStorage::removeComponent(GameObject& gameObject)
 
   m_componentsUtilities[typeId]->emitRemoveEvent(gameObject);
 
-  GameObjectComponentHandle<T> componentReference(gameObject.m_id, this);
-  m_gameWorld->emitEvent(GameObjectRemoveComponentEvent<T>{gameObject, componentReference});
-
   componentStorage->freeObject(gameObject.m_id);
   gameObjectData.componentsMask.reset(typeId);
 }

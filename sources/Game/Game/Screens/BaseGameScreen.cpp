@@ -2,6 +2,7 @@
 
 const std::unordered_map<GameScreenType, std::string> BaseGameScreen::s_gameScreensNames = {
   {GameScreenType::MainMenu, "MainMenu"},
+  {GameScreenType::MainMenuSettings, "MainMenuSettings"},
   {GameScreenType::Game, "Game"},
 };
 

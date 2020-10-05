@@ -2,9 +2,13 @@
 
 #include <utility>
 
-InventoryItemComponent::InventoryItemComponent(std::shared_ptr<GLTexture> icon, std::string name)
+InventoryItemComponent::InventoryItemComponent(
+  std::shared_ptr<GLTexture> icon,
+  std::string id,
+  std::string name)
   : m_icon(std::move(icon)),
-  m_name(std::move(name))
+    m_id(std::move(id)),
+    m_name(std::move(name))
 {
 
 }
@@ -17,6 +21,16 @@ void InventoryItemComponent::setIcon(std::shared_ptr<GLTexture> icon)
 std::shared_ptr<GLTexture> InventoryItemComponent::getIcon() const
 {
   return m_icon;
+}
+
+void InventoryItemComponent::setId(const std::string& id)
+{
+  m_id = id;
+}
+
+const std::string& InventoryItemComponent::getId() const
+{
+  return m_id;
 }
 
 void InventoryItemComponent::setName(const std::string& name)

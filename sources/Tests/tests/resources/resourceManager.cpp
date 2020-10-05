@@ -43,7 +43,7 @@ TEST_CASE("resources_maps_loading", "[resources]")
   auto shaderParams = shaderDeclaration.getParameters<ShaderResourceParameters>();
 
   REQUIRE(std::get<ResourceSourceFile>(shaderDeclaration.source).path == "../resources/shaders/debug_vertex_shader.glsl");
-  REQUIRE(shaderParams.shaderType == GL_VERTEX_SHADER);
+  REQUIRE(shaderParams.shaderType == ShaderType::Vertex);
 
   const auto& materialDeclaration = manager->getResourceDeclaration("material");
   auto materialParams = materialDeclaration.getParameters<MaterialResourceParameters>();
@@ -59,7 +59,7 @@ TEST_CASE("resources_maps_loading", "[resources]")
   REQUIRE(materialParams.gpuState.faceCullingMode == FaceCullingMode::Back);
   REQUIRE(materialParams.gpuState.polygonFillingMode == PolygonFillingMode::Fill);
 
-  REQUIRE(materialParams.parameters[0].shaderType == GL_FRAGMENT_SHADER);
+  REQUIRE(materialParams.parameters[0].shaderType == ShaderType::Fragment);
   REQUIRE(materialParams.parameters[0].name == "paramName");
   REQUIRE(materialParams.parameters[0].type == MaterialResourceParameters::ShaderParamType::Int);
   REQUIRE(std::get<int>(materialParams.parameters[0].value) == 50);

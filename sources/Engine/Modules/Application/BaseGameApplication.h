@@ -18,7 +18,7 @@
 
 #include "Modules/Graphics/GraphicsSystem/RenderingSystemsPipeline.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRenderingSystem.h"
-#include "Modules/Graphics/GraphicsSystem/GeometryCullingSystem.h"
+#include "Modules/Graphics/GraphicsSystem/GraphicsSceneManagementSystem.h"
 #include "Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h"
 
 #include "Modules/Physics/PhysicsSystem.h"
@@ -33,7 +33,7 @@
 class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
                             public EventsListener<InputActionToggleEvent> {
  public:
-  BaseGameApplication(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
+  BaseGameApplication(int argc, char* argv[], const std::string& windowTitle);
   ~BaseGameApplication() override;
 
   virtual void load();
@@ -44,8 +44,8 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   virtual int execute();
 
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const GameConsoleCommandEvent& event) override;
-  EventProcessStatus receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event) override;
+  EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
+  EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
 
   void shutdown();
 
@@ -53,7 +53,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   [[nodiscard]] std::shared_ptr<GameSystemsGroup> getGameApplicationSystemsGroup() const;
 
  private:
-  void initializePlatform(int argc, char* argv[], const std::string& windowTitle, int windowWidth, int windowHeight);
+  void initializePlatform(int argc, char* argv[], const std::string& windowTitle);
   void initializeEngine();
   void initializeEngineSystems();
 
@@ -74,9 +74,11 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<InputSystem> m_inputSystem;
 
   std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
+  std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 
   std::shared_ptr<GUISystem> m_guiSystem;
 

@@ -41,3 +41,8 @@ std::string FileUtils::getGUISchemePath(const std::string& schemeName)
 {
   return std::string(GUI_SCHEMES_PATH) + "/" + schemeName + ".xml";
 }
+
+std::string FileUtils::getGameResourcePath(const std::string& resourceLocalPath)
+{
+  return std::string(RESOURCES_GAME_PATH) + "/" + resourceLocalPath;
+}

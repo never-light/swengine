@@ -11,7 +11,7 @@
 #include "Exceptions/exceptions.h"
 #include "ALDebug.h"
 
-AudioSystem::AudioSystem(std::shared_ptr<SharedGraphicsState> environmentState)
+AudioSystem::AudioSystem(std::shared_ptr<GraphicsScene> environmentState)
   : m_environmentState(std::move(environmentState))
 {
 
@@ -105,11 +105,8 @@ AudioListener& AudioSystem::getListener()
   return *m_audioListener;
 }
 
-EventProcessStatus AudioSystem::receiveEvent(GameWorld* gameWorld,
-  const GameObjectAddComponentEvent<AudioSourceComponent>& event)
+EventProcessStatus AudioSystem::receiveEvent(const GameObjectAddComponentEvent<AudioSourceComponent>& event)
 {
-  ARG_UNUSED(gameWorld);
-
   auto& transform = event.gameObject.getComponent<TransformComponent>()->getTransform();
   auto source = event.component->getSourcePtr();
 

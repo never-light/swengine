@@ -131,9 +131,6 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
   auto& meshRendererComponent = *gameObject.addComponent<MeshRendererComponent>().get();
 
-  // TODO: remove isStatic option and use isStatic from TransformComponent
-  meshRendererComponent.getAttributes().isStatic = transformComponent.isStatic();
-
   auto meshName = data.attribute("mesh").as_string();
 
   std::shared_ptr<Mesh> meshInstance =
@@ -150,7 +147,8 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
   meshRendererComponent.setMeshInstance(meshInstance);
 
-  meshRendererComponent.updateBounds(transformComponent.getTransform().getTransformationMatrix());
+  transformComponent.setBounds(meshInstance->getAABB());
+  transformComponent.updateBounds(transformComponent.getTransform().getTransformationMatrix());
 
   auto materialsData = data.child("materials");
 
@@ -167,13 +165,36 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
 void GameObjectsLoader::loadRigidBodyData(GameObject& gameObject, const pugi::xml_node& data)
 {
-  auto collisionModelName = data.attribute("collision_model").as_string();
+  std::string collisionModelName = data.attribute("collision_model").as_string();
 
-  std::shared_ptr<CollisionShape> collisionShape =
-    m_resourceManager->getResourceFromInstance<CollisionDataResource>(collisionModelName)->getCollisionShape();
+  std::shared_ptr<CollisionShape> collisionShape;
 
-  // Set zero mass to mark rigid body as static body
-  auto& rigidBodyComponent = *gameObject.addComponent<RigidBodyComponent>(0.0f, collisionShape).get();
+  auto transformComponent = gameObject.getComponent<TransformComponent>();
+
+  if (collisionModelName == "visual_aabb") {
+    collisionShape = CollisionShapesFactory::createBox(
+      transformComponent->getOriginalBounds().getSize() * 0.5f);
+  }
+  else if (collisionModelName == "visual_sphere") {
+    collisionShape = CollisionShapesFactory::createSphere(
+      transformComponent->getOriginalBounds().toSphere().getRadius());
+  }
+  else {
+    collisionShape =
+      m_resourceManager->getResourceFromInstance<CollisionDataResource>(collisionModelName)->getCollisionShape();
+  }
+
+  RigidBodyComponent* rigidBodyComponent = nullptr;
+
+  if (transformComponent->isStatic()) {
+    // Set zero mass to mark rigid body as static body
+    rigidBodyComponent = gameObject.addComponent<RigidBodyComponent>(0.0f, collisionShape).get();
+  }
+  else {
+    float mass = data.attribute("mass").as_float();
+    rigidBodyComponent = gameObject.addComponent<RigidBodyComponent>(mass, collisionShape).get();
+  }
+
   LOCAL_VALUE_UNUSED(rigidBodyComponent);
 }
 
@@ -303,12 +324,29 @@ void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xm
 
   std::string stateMachineName = data.attribute("state_machine").as_string();
 
-  auto animationStatesMachineInstance =
+  auto statesMachineInstance =
     m_resourceManager->getResourceFromInstance<AnimationStatesMachineResource>(stateMachineName)->
       getMachine();
 
+  /*bool sharedStatesMachine = data.attribute("shared_state").as_bool(false);
+  std::shared_ptr<AnimationStatesMachine> statesMachineInstance;
+
+  if (sharedStatesMachine) {
+    statesMachineInstance = sharedStatesMachineInstance;
+  }
+  else {
+    statesMachineInstance =
+      std::make_shared<AnimationStatesMachine>(AnimationStatesMachine(*sharedStatesMachineInstance));
+  }*/
+
   auto& animationComponent = *gameObject.addComponent<SkeletalAnimationComponent>(skeletonInstance).get();
-  animationComponent.setAnimationStatesMachine(animationStatesMachineInstance);
+  animationComponent.setAnimationStatesMachine(statesMachineInstance);
+
+  auto startStateAttribute = data.attribute("start_state");
+
+  if (startStateAttribute) {
+    statesMachineInstance->setActiveState(startStateAttribute.as_string());
+  }
 }
 
 void GameObjectsLoader::loadKinematicCharacterData(GameObject& gameObject, const pugi::xml_node& data)

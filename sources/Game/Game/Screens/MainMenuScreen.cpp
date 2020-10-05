@@ -35,9 +35,8 @@ void MainMenuScreen::unload()
   deinitializeGUI();
 }
 
-EventProcessStatus MainMenuScreen::receiveEvent(GameWorld* gameWorld, const InputActionToggleEvent& event)
+EventProcessStatus MainMenuScreen::receiveEvent(const InputActionToggleEvent& event)
 {
-  ARG_UNUSED(gameWorld);
   ARG_UNUSED(event);
 
   return EventProcessStatus::Processed;
@@ -54,12 +53,22 @@ void MainMenuScreen::initializeGUI()
       }
     });
 
+  m_guiLayout->findChildByName("main_menu_settings_button")
+    ->setMouseButtonCallback([=](const GUIMouseButtonEvent& event) {
+      if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
+        spdlog::debug("help");
+        this->activateNextScreen(GameScreenType::MainMenuSettings);
+      }
+    });
+
   m_guiLayout->findChildByName("main_menu_exit_button")
     ->setMouseButtonCallback([=](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
         m_gameConsole->executeCommand("exit");
       }
     });
+
+  getGUILayout()->show();
 }
 
 void MainMenuScreen::deinitializeGUI()

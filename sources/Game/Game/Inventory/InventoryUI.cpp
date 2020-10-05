@@ -311,7 +311,7 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
 
     m_contextUseLink->setMouseButtonCallback([this, itemObject](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
-        m_gameWorld->emitEvent<InventoryItemActionTriggeredEvent>(
+        m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
           {m_inventoryOwner,
             InventoryItemActionTriggerType::Use,
             itemObject});
@@ -328,7 +328,7 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
 
     m_contextDropLink->setMouseButtonCallback([this, itemObject](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
-        m_gameWorld->emitEvent<InventoryItemActionTriggeredEvent>(
+        m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
           {m_inventoryOwner,
             InventoryItemActionTriggerType::DropFromInventory,
             itemObject});
@@ -412,6 +412,8 @@ void InventoryUI::onShow()
   m_tooltip->hide();
   m_detailedDesc->hide();
   m_contextMenu->hide();
+
+  syncGUIWithOwnerInventory();
 }
 
 void InventoryUI::setInventoryOwner(const GameObject& inventoryOwner)
