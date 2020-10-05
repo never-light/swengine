@@ -156,3 +156,24 @@ TEST_CASE("frustum_sphere_intersection", "[math]")
     REQUIRE(MathUtils::isEqual(GeometryUtils::isSphereFrustumIntersecting(sphere, frustum), false));
   }
 }
+
+TEST_CASE("frustum_corners_extraction", "[math]")
+{
+  std::array<glm::vec3, 8> corners = {glm::vec3{2.0f, 0.0f, 2.0f},
+    glm::vec3{-2.0f, 0.0f, 2.0f},
+    glm::vec3{-2.0f, 0.0f, -2.0f},
+    glm::vec3{2.0f, 0.0f, -2.0f},
+    glm::vec3{4.0f, 4.0f, 4.0f},
+    glm::vec3{-4.0f, 4.0f, 4.0f},
+    glm::vec3{-4.0f, 4.0f, -4.0f},
+    glm::vec3{4.0f, 4.0f, -4.0f}};
+
+  Frustum frustum = Frustum::extractFromCorners(corners);
+
+  std::array<glm::vec3, 8> extractedCorners = frustum.getCorners();
+
+  for (size_t cornerIndex = 0; cornerIndex < 8; cornerIndex++) {
+    REQUIRE(MathUtils::isEqual(corners[cornerIndex], extractedCorners[cornerIndex]));
+  }
+}
+
