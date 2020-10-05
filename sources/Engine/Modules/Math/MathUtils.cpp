@@ -103,3 +103,19 @@ float MathUtils::fractionToPercents(int numerator, int denominator)
 {
   return (static_cast<float>(numerator) / static_cast<float>(denominator)) * 100.0f;
 }
+
+glm::mat4 MathUtils::getLookAtViewMatrix(
+  const glm::vec3& viewerPosition,
+  const glm::vec3& targetPosition,
+  const glm::vec3& upAxis)
+{
+  return glm::lookAt(viewerPosition, targetPosition, upAxis);
+}
+
+glm::mat4 MathUtils::getPerspectiveProjectionMatrix(float fovY,
+  float aspectRatio,
+  float nearDistance,
+  float farDistance)
+{
+  return glm::perspective(fovY, aspectRatio, nearDistance, farDistance);
+}

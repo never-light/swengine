@@ -26,6 +26,14 @@ class MathUtils {
   static glm::mat4 getRotationMatrixFromYawPitchRoll(float yaw, float pitch, float roll);
   static glm::mat4 getScaleMatrix(const glm::vec3& scale);
 
+  static glm::mat4 getLookAtViewMatrix(const glm::vec3& viewerPosition, const glm::vec3& targetPosition,
+    const glm::vec3& upAxis = AXIS_Y);
+
+  static glm::mat4 getPerspectiveProjectionMatrix(float fovY,
+    float aspectRatio,
+    float nearDistance,
+    float farDistance);
+
   static glm::mat4 getYawMatrix(float angle);
   static glm::mat4 getPitchMatrix(float angle);
   static glm::mat4 getRollMatrix(float angle);

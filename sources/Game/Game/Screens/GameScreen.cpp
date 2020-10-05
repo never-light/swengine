@@ -73,7 +73,7 @@ void GameScreen::update(float delta)
 
   const FrameStats& stats = m_sharedGraphicsState->getFrameStats();
 
-  m_primivitesCountText->setText("Primitives: " + std::to_string(stats.getPrimitivesCount()));
+  m_primitivesCountText->setText("Primitives: " + std::to_string(stats.getPrimitivesCount()));
   m_subMeshesCountText->setText("Meshes: " + std::to_string(stats.getSubMeshesCount()));
   m_culledSubMeshesCountText->setText("Culled: " + std::to_string(stats.getCulledSubMeshesCount()));
 }
@@ -131,21 +131,21 @@ void GameScreen::deinitializeGame()
 void GameScreen::initializeDebugGUI()
 {
   m_gameGUILayout->addChildWidget(m_debugGUILayout);
-  m_primivitesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
+  m_primitivesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
     ->findChildByName("game_debug_ui_layout_frame_stat_primitives_count"));
   m_subMeshesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
     ->findChildByName("game_debug_ui_layout_frame_stat_meshes_count"));
   m_culledSubMeshesCountText = std::dynamic_pointer_cast<GUIText>(m_debugGUILayout
     ->findChildByName("game_debug_ui_layout_frame_stat_culled_meshes_count"));
 
-  SW_ASSERT(m_primivitesCountText != nullptr &&
+  SW_ASSERT(m_primitivesCountText != nullptr &&
     m_subMeshesCountText != nullptr &&
     m_culledSubMeshesCountText != nullptr);
 }
 
 void GameScreen::deinitializeDebugGUI()
 {
-  m_primivitesCountText.reset();
+  m_primitivesCountText.reset();
   m_subMeshesCountText.reset();
   m_subMeshesCountText.reset();
 

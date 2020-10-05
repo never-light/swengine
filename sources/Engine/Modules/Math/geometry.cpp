@@ -53,6 +53,11 @@ Plane Plane::fromUnnormalized(const glm::vec3& normal, float distance)
   return plane;
 }
 
+Plane Plane::getInverse() const
+{
+  return Plane(-m_normal, -m_distance);
+}
+
 Frustum::Frustum()
 {
 
@@ -98,15 +103,13 @@ std::array<glm::vec3, 8> Frustum::getCorners() const
 {
   return {
     GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
-    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
     GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
-    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near),
-      getPlane(FrustumPlane::Right),
-      getPlane(FrustumPlane::Bottom)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Near), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
     GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Bottom)),
-    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
-    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
     GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Bottom)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Right), getPlane(FrustumPlane::Top)),
+    GeometryUtils::getPlanesIntersection(getPlane(FrustumPlane::Far), getPlane(FrustumPlane::Left), getPlane(FrustumPlane::Top)),
   };
 }
 
@@ -162,11 +165,11 @@ Frustum Frustum::extractFromViewProjection(const glm::mat4x4& view, const glm::m
 Frustum Frustum::extractFromCorners(const std::array<glm::vec3, 8>& corners) {
 
     return Frustum({GeometryUtils::getPlaneBy3Points(corners[7], corners[3], corners[0]), //left
-                   GeometryUtils::getPlaneBy3Points(corners[6], corners[2], corners[1]), //right
-                   GeometryUtils::getPlaneBy3Points(corners[5], corners[1], corners[0]), //top
-                   GeometryUtils::getPlaneBy3Points(corners[7], corners[3], corners[2]), //bottom
+                   GeometryUtils::getPlaneBy3Points(corners[6], corners[5], corners[1]), //right
+                   GeometryUtils::getPlaneBy3Points(corners[3], corners[7], corners[6]), //top
+                   GeometryUtils::getPlaneBy3Points(corners[1], corners[5], corners[4]), //bottom
                    GeometryUtils::getPlaneBy3Points(corners[3], corners[2], corners[1]), //near
-                   GeometryUtils::getPlaneBy3Points(corners[6], corners[5], corners[4])}); //far
+                   GeometryUtils::getPlaneBy3Points(corners[6], corners[7], corners[4])}); //far
 }
 
 Sphere::Sphere()

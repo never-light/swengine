@@ -19,6 +19,8 @@ struct Plane {
 
   void normalize();
 
+  [[nodiscard]] Plane getInverse() const;
+
   [[nodiscard]] static Plane fromUnnormalized(const glm::vec3& normal, float distance);
 
  private:
