@@ -177,3 +177,28 @@ TEST_CASE("frustum_corners_extraction", "[math]")
   }
 }
 
+TEST_CASE("frustum_extraction_from_view_projection", "[math]")
+{
+  glm::mat4 viewMatrix = MathUtils::getLookAtViewMatrix({0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 5.0f});
+
+  glm::mat4 projectionMatrix = MathUtils::getPerspectiveProjectionMatrix(glm::radians(45.0f),
+    4.0f / 3.0f, 0.1f, 100.0f);
+
+  Frustum frustum = Frustum::extractFromViewProjection(viewMatrix, projectionMatrix);
+
+  std::array<Plane, 6> planes = {
+    Plane({-8.75370013e-01f, 0.00000000e+00f, 4.83453555e-01f}, 0.00000000e+00f),
+    Plane({8.75370013e-01f, 0.00000000e+00f, 4.83453555e-01f}, 0.00000000e+00f),
+    Plane({0.00000000e+00f, -9.23879501e-01f, 3.82683508e-01f}, 0.00000000e+00f),
+    Plane({0.00000000e+00f, 9.23879501e-01f, 3.82683508e-01f}, 0.00000000e+00f),
+    Plane({0.00000000e+00f, 0.00000000e+00f, 1.00000000e+00f}, -9.99999001e-02f),
+    Plane({0.00000000e+00f, 0.00000000e+00f, -1.00000000e+00f}, 1.00000000e+02f),
+  };
+
+  for (size_t planeIndex = 0; planeIndex < 6; planeIndex++) {
+    REQUIRE(MathUtils::isEqual(frustum.getPlane(planeIndex).getNormal(), planes[planeIndex].getNormal(), 1e-4f));
+    REQUIRE(MathUtils::isEqual(frustum.getPlane(planeIndex).getDistance(), planes[planeIndex].getDistance(), 1e-4f));
+  }
+}
+
