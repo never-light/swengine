@@ -29,8 +29,20 @@ class GameWorld {
 
   ~GameWorld()
   {
-    m_gameSystemsGroup->unconfigure();
-    m_gameObjectsStorage.reset();
+    reset();
+  }
+
+  void reset()
+  {
+    if (m_gameSystemsGroup->isConfigured()) {
+      m_gameSystemsGroup->unconfigure();
+
+      for (auto& system : m_gameSystemsGroup->getGameSystems()) {
+        m_gameSystemsGroup->removeGameSystem(system);
+      }
+
+      m_gameObjectsStorage.reset();
+    }
   }
 
   /*!

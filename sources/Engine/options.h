@@ -19,7 +19,7 @@ constexpr bool IS_DEBUG_MODE = true;
 constexpr bool IS_DEBUG_MODE = false;
 #endif
 
-constexpr bool LOG_RESOURCES_LOADING = false;
-constexpr bool LOG_RESOURCES_MANAGEMENT = false;
+constexpr bool LOG_RESOURCES_LOADING = true;
+constexpr bool LOG_RESOURCES_MANAGEMENT = true;
 
 constexpr bool LOG_GPU_ADDITIONAL_DEBUG_INFO_MESSAGES = false;

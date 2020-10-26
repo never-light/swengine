@@ -418,6 +418,9 @@ void BaseGameApplication::performUnload()
 
   m_screenManager.reset();
 
+  m_levelsManager->unloadLevel();
+  m_gameWorld->reset();
+
   SDL_Quit();
 }
 

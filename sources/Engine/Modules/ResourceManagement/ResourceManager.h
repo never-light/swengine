@@ -353,8 +353,10 @@ class ResourcesManager {
 
       ResourceState& resourceState = m_resourcesManagers[resourceTypeId]->getResourceState(resourceId);
 
-      if (resourceState.getReferencesCount() != 0) {
-        spdlog::warn("Resource memory leak, {}:{}:{}", resourceTypeId, resourceId, resourceIt.first);
+      if constexpr (LOG_RESOURCES_MANAGEMENT) {
+        if (resourceState.getReferencesCount() != 0) {
+          spdlog::warn("Resource was not unloaded, {}:{}:{}", resourceTypeId, resourceId, resourceIt.first);
+        }
       }
     }
   }
