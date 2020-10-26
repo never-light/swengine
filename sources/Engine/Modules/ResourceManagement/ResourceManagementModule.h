@@ -10,8 +10,8 @@ class ResourceManagementModule final {
   ResourceManagementModule();
   ~ResourceManagementModule();
 
-  [[nodiscard]] std::shared_ptr<ResourceManager> getResourceManager() const;
+  [[nodiscard]] std::shared_ptr<ResourcesManager> getResourceManager() const;
 
  private:
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 };

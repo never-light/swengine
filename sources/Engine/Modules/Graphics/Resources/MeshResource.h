@@ -4,35 +4,21 @@
 #include <string>
 #include <memory>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Mesh.h"
 
-struct MeshResourceParameters : ResourceSourceParameters {
+struct MeshResourceParameters {
+  MeshResourceParameters() = default;
+
+  std::string resourcePath;
   std::optional<std::string> skeletonResourceId;
 };
 
-class MeshResource : public Resource {
+class MeshResource : public ResourceTypeManager<Mesh, MeshResourceParameters> {
  public:
-  using ParametersType = MeshResourceParameters;
-
- public:
-  MeshResource();
+  explicit MeshResource(ResourcesManager* resourcesManager);
   ~MeshResource() override;
 
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static std::shared_ptr<Mesh> loadFromFile(const std::string& path,
-    const MeshResourceParameters& parameters);
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<Mesh> getMesh() const;
-
- private:
-  std::shared_ptr<Mesh> m_mesh;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 };

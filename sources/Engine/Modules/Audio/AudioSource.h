@@ -5,6 +5,7 @@
 
 #include <glm/vec3.hpp>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "AudioClip.h"
 
 enum class AudioSourceState {
@@ -13,7 +14,7 @@ enum class AudioSourceState {
 
 class AudioSource {
  public:
-  explicit AudioSource(std::shared_ptr<AudioClip> clip);
+  explicit AudioSource(ResourceHandle<AudioClip> clip);
   AudioSource(const AudioSource& source);
 
   ~AudioSource();
@@ -24,8 +25,8 @@ class AudioSource {
   void setVolume(float volume);
   [[nodiscard]] float getVolume() const;
 
-  void setClip(std::shared_ptr<AudioClip> clip);
-  [[nodiscard]] std::shared_ptr<AudioClip> getClip() const;
+  void setClip(ResourceHandle<AudioClip> clip);
+  [[nodiscard]] ResourceHandle<AudioClip> getClip() const;
 
   void setPosition(const glm::vec3& position);
   [[nodiscard]] glm::vec3 getPosition() const;
@@ -48,7 +49,7 @@ class AudioSource {
   void stop();
   [[nodiscard]] bool isStopped() const;
 
-  void playOnce(std::shared_ptr<AudioClip> clip);
+  void playOnce(ResourceHandle<AudioClip> clip);
 
  private:
   [[nodiscard]] ALuint getALSource() const;
@@ -59,7 +60,7 @@ class AudioSource {
   ALuint m_source{};
   AudioSourceState m_sourceState{AudioSourceState::Stopped};
 
-  std::shared_ptr<AudioClip> m_audioClip;
+  ResourceHandle<AudioClip> m_audioClip;
 
   std::list<AudioSource> m_subSources;
 

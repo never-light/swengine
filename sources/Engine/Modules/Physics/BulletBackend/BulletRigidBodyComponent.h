@@ -3,6 +3,8 @@
 #include <memory>
 #include <btBulletDynamicsCommon.h>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
+
 #include "Modules/Physics/BaseBackend/RigidBodyComponentBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
@@ -14,7 +16,7 @@ class BulletPhysicsSystemBackend;
 
 class BulletRigidBodyComponent : public RigidBodyComponentBackend {
  public:
-  BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
+  BulletRigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape);
   ~BulletRigidBodyComponent() override;
 
   void setMass(float mass) override;

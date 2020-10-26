@@ -12,58 +12,43 @@ ENABLE_WARNINGS()
 
 #include "Exceptions/exceptions.h"
 
-AudioClipResource::AudioClipResource() = default;
-
-AudioClipResource::~AudioClipResource()
+AudioClipResource::AudioClipResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<AudioClip, AudioClipResourceConfig>(resourcesManager)
 {
-  SW_ASSERT(m_audioClip.use_count() <= 1);
+
 }
 
-void AudioClipResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+AudioClipResource::~AudioClipResource() = default;
+
+void AudioClipResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ARG_UNUSED(resourceManager);
+  AudioClipResourceConfig* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  SW_ASSERT(m_audioClip == nullptr);
-
-  auto parameters = declaration.getParameters<ParametersType>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_audioClip = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load audio clip resource from invalid source");
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Audio clip resource refer to not existing file", resourceConfig->resourcePath));
   }
 }
 
-void AudioClipResource::unload()
+
+void AudioClipResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_audioClip.use_count() == 1);
+  AudioClipResourceConfig* config = getResourceConfig(resourceIndex);
 
-  m_audioClip.reset();
-}
-
-bool AudioClipResource::isBusy() const
-{
-  return m_audioClip.use_count() > 1;
-}
-
-std::shared_ptr<AudioClip> AudioClipResource::loadFromFile(const std::string& path,
-  const ParametersType& parameters)
-{
-  ARG_UNUSED(parameters);
-
-  std::byte *audioData;
+  std::byte* audioData;
   int channelsCount = 0;
   int sampleRate = 0;
 
   // NOTE: dataLength is number of samples in the audio file
-  int dataLength = stb_vorbis_decode_filename(path.c_str(),
+  int dataLength = stb_vorbis_decode_filename(config->resourcePath.c_str(),
     &channelsCount,
     &sampleRate,
     reinterpret_cast<short**>(&audioData));
 
   if (dataLength <= 0) {
-    THROW_EXCEPTION(EngineRuntimeException, std::string("Trying to load invalid sound file ") + path);
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Trying to load invalid sound file {}", config->resourcePath));
   }
 
   AudioClipFormat format;
@@ -80,25 +65,7 @@ std::shared_ptr<AudioClip> AudioClipResource::loadFromFile(const std::string& pa
     THROW_EXCEPTION(EngineRuntimeException, "Audio file has invalid number of audio channels");
   }
 
-  auto audioClip = std::make_shared<AudioClip>(format, audioData, dataLength, sampleRate);
+  allocateResource<AudioClip>(resourceIndex, format, audioData, dataLength, sampleRate);
 
   free(audioData);
-
-  return audioClip;
-}
-
-AudioClipResource::ParametersType AudioClipResource::buildDeclarationParameters(
-  const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
-{
-  ARG_UNUSED(declarationNode);
-
-  ParametersType parameters = defaultParameters;
-
-  return parameters;
-}
-
-std::shared_ptr<AudioClip> AudioClipResource::getAudioClip() const
-{
-  return m_audioClip;
 }

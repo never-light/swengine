@@ -36,7 +36,7 @@ class GUIWidgetsLoader {
  public:
   explicit GUIWidgetsLoader(
     std::weak_ptr<GUISystem> guiSystem,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
   ~GUIWidgetsLoader();
 
   void registerWidgetLoader(
@@ -64,7 +64,7 @@ class GUIWidgetsLoader {
 
  private:
   std::weak_ptr<GUISystem> m_guiSystem;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
   std::unordered_map<std::string, WidgetClassLoadingData> m_widgetsLoaders;
   std::unordered_map<std::string, PropertyParser> m_propertiesTypeParsers;

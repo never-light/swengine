@@ -6,8 +6,8 @@
 
 #include <utility>
 
-AudioSourceComponent::AudioSourceComponent(std::shared_ptr<AudioClip> clip)
-  : m_source(std::make_shared<AudioSource>(std::move(clip)))
+AudioSourceComponent::AudioSourceComponent(ResourceHandle<AudioClip> clip)
+  : m_source(std::make_shared<AudioSource>(clip))
 {
 
 }

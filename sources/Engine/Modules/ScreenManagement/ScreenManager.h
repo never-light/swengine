@@ -16,7 +16,7 @@ class ScreenManager : public std::enable_shared_from_this<ScreenManager> {
   ScreenManager(std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<GraphicsModule> graphicsModule,
     std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
 
   ~ScreenManager();
 
@@ -40,7 +40,7 @@ class ScreenManager : public std::enable_shared_from_this<ScreenManager> {
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<GraphicsModule> m_graphicsModule;
   std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
   std::shared_ptr<GUILayout> m_commonGUILayout;
 };

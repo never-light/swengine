@@ -2,15 +2,18 @@
 
 #include <string>
 #include <memory>
+#include <optional>
+
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "GLShader.h"
 
 class GLGraphicsContext;
 
 class GLShadersPipeline {
  public:
-  GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
-    std::shared_ptr<GLShader> fragmentShader,
-    std::shared_ptr<GLShader> geometrySHader);
+  GLShadersPipeline(std::optional<ResourceHandle<GLShader>> vertexShader,
+    std::optional<ResourceHandle<GLShader>> fragmentShader,
+    std::optional<ResourceHandle<GLShader>> geometryShader);
 
   ~GLShadersPipeline();
 
@@ -20,9 +23,9 @@ class GLShadersPipeline {
  private:
   GLuint m_programPipeline;
 
-  std::shared_ptr<GLShader> m_vertexShader;
-  std::shared_ptr<GLShader> m_fragmentShader;
-  std::shared_ptr<GLShader> m_geometryShader;
+  std::optional<ResourceHandle<GLShader>> m_vertexShader;
+  std::optional<ResourceHandle<GLShader>> m_fragmentShader;
+  std::optional<ResourceHandle<GLShader>> m_geometryShader;
 
  private:
   friend class GLGraphicsContext;

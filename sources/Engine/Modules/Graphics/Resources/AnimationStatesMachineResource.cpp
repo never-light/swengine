@@ -15,106 +15,81 @@
 #include "SkeletalAnimationResource.h"
 #include "SkeletonResource.h"
 
-AnimationStatesMachineResource::AnimationStatesMachineResource() = default;
-
-AnimationStatesMachineResource::~AnimationStatesMachineResource()
+AnimationStatesMachineResource::AnimationStatesMachineResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<AnimationStatesMachine, AnimationStatesMachineParameters>(resourcesManager)
 {
-  SW_ASSERT(m_machine.use_count() <= 1);
+
 }
 
-void AnimationStatesMachineResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+AnimationStatesMachineResource::~AnimationStatesMachineResource() = default;
+
+
+void AnimationStatesMachineResource::load(size_t resourceIndex)
 {
-  using MachineParams = AnimationStatesMachineParameters;
+  AnimationStatesMachineParameters* config = getResourceConfig(resourceIndex);
 
-  SW_ASSERT(m_machine == nullptr);
+  ResourceHandle<Skeleton> skeleton =
+    getResourceManager()->getResource<Skeleton>(config->skeletonName);
 
-  ARG_UNUSED(declaration);
+  auto* statesMachine = allocateResource<AnimationStatesMachine>(resourceIndex, skeleton);
 
-  auto parameters = declaration.getParameters<MachineParams>();
+  auto& animationVariablesSet = statesMachine->getVariablesSet();
 
-  if (std::get_if<ResourceSourceDeclaration>(&declaration.source)) {
-    std::shared_ptr<Skeleton> skeleton =
-      resourceManager.getResourceFromInstance<SkeletonResource>(parameters.skeletonName)->getSkeleton();
+  for (const auto& variableDefinition : config->variables) {
+    RETURN_VALUE_UNUSED(animationVariablesSet.registerVariable(variableDefinition.name, variableDefinition.value));
+  }
 
-    std::shared_ptr<AnimationStatesMachine> statesMachine = std::make_shared<AnimationStatesMachine>(skeleton);
+  for (const auto& stateParameters : config->states) {
+    statesMachine->addState(stateParameters.name,
+      stateParameters.animationsTreeRoot->getPoseNode(skeleton,
+        animationVariablesSet, *getResourceManager()));
+  }
 
-    auto& animationVariablesSet = statesMachine->getVariablesSet();
+  for (const auto& stateParameters : config->states) {
+    auto& state = statesMachine->getState(stateParameters.name);
 
-    for (const auto& variableDefinition : parameters.variables) {
-      RETURN_VALUE_UNUSED(animationVariablesSet.registerVariable(variableDefinition.name, variableDefinition.value));
+    // Final action
+    state.setFinalAction(stateParameters.finalAction.type);
+
+    switch (stateParameters.finalAction.type) {
+      case AnimationFinalAction::SwitchState:
+        state.setFinalTransitionStateId(statesMachine->getStateIdByName(stateParameters.finalAction.nextStateName));
+        break;
+
+      case AnimationFinalAction::Repeat:
+      case AnimationFinalAction::Stop:
+        break;
+
+      default:
+        THROW_EXCEPTION(NotImplementedException, "Animation final action is not supported: " +
+          std::to_string(static_cast<int>(stateParameters.finalAction.type)));
     }
 
-    for (const auto& stateParameters : parameters.states) {
-      statesMachine->addState(stateParameters.name, stateParameters.animationsTreeRoot->getPoseNode(skeleton,
-        animationVariablesSet, resourceManager));
-    }
+    // Transitions
 
-    for (const auto& stateParameters : parameters.states) {
-      auto& state = statesMachine->getState(stateParameters.name);
+    for (const auto& transitionParameters : stateParameters.transitions) {
+      AnimationTransition transition(transitionParameters.type, transitionParameters.duration);
 
-      // Final action
-      state.setFinalAction(stateParameters.finalAction.type);
-
-      switch (stateParameters.finalAction.type) {
-        case AnimationFinalAction::SwitchState:
-          state.setFinalTransitionStateId(statesMachine->getStateIdByName(stateParameters.finalAction.nextStateName));
+      switch (transitionParameters.type) {
+        case AnimationStatesTransitionType::SmoothLinear:
           break;
 
-        case AnimationFinalAction::Repeat:
-        case AnimationFinalAction::Stop:
+        case AnimationStatesTransitionType::Straight:
           break;
 
         default:
-          THROW_EXCEPTION(NotImplementedException, "Animation final action is not supported: " +
-            std::to_string(static_cast<int>(stateParameters.finalAction.type)));
+          THROW_EXCEPTION(NotImplementedException, "Transition type is not supported: " +
+            std::to_string(static_cast<int>(transitionParameters.type)));
       }
 
-      // Transitions
-
-      for (const auto& transitionParameters : stateParameters.transitions) {
-        AnimationTransition transition(transitionParameters.type, transitionParameters.duration);
-
-        switch (transitionParameters.type) {
-          case AnimationStatesTransitionType::SmoothLinear:
-            break;
-
-          case AnimationStatesTransitionType::Straight:
-            break;
-
-          default:
-            THROW_EXCEPTION(NotImplementedException, "Transition type is not supported: " +
-              std::to_string(static_cast<int>(transitionParameters.type)));
-        }
-
-        statesMachine->setTransition(statesMachine->getStateIdByName(stateParameters.name),
-          statesMachine->getStateIdByName(transitionParameters.targetStateName),
-          transition);
-      }
+      statesMachine->setTransition(statesMachine->getStateIdByName(stateParameters.name),
+        statesMachine->getStateIdByName(transitionParameters.targetStateName),
+        transition);
     }
-
-      m_machine = statesMachine;
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load animation states machine "
-                                            "resource from invalid source");
   }
 }
 
-void AnimationStatesMachineResource::unload()
-{
-  SW_ASSERT(m_machine.use_count() == 1);
-
-  m_machine.reset();
-}
-
-bool AnimationStatesMachineResource::isBusy() const
-{
-  return m_machine.use_count() > 1;
-}
-
-AnimationStatesMachineResource::ParametersType AnimationStatesMachineResource::buildDeclarationParameters(
-  const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void AnimationStatesMachineResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
   using MachineParams = AnimationStatesMachineParameters;
 
@@ -129,24 +104,24 @@ AnimationStatesMachineResource::ParametersType AnimationStatesMachineResource::b
     {"smooth_linear", AnimationStatesTransitionType::SmoothLinear},
   };
 
-  MachineParams parameters = defaultParameters;
+  MachineParams* resourceConfig = createResourceConfig(resourceIndex);
 
   // Skeleton
-  parameters.skeletonName = declarationNode.child("skeleton").attribute("id").as_string();
+  resourceConfig->skeletonName = configNode.child("skeleton").attribute("id").as_string();
 
   // Variables
-  pugi::xml_node variablesNode = declarationNode.child("variables");
+  pugi::xml_node variablesNode = configNode.child("variables");
 
   for (auto variableNode : variablesNode.children()) {
     std::string name = variableNode.attribute("name").as_string();
     float value = variableNode.attribute("value").as_float();
 
-    parameters.variables.emplace_back(name, value);
+    resourceConfig->variables.emplace_back(name, value);
   }
 
   // States
 
-  pugi::xml_node statesNode = declarationNode.child("states");
+  pugi::xml_node statesNode = configNode.child("states");
 
   for (auto stateNode : statesNode.children()) {
     MachineParams::State state;
@@ -209,11 +184,10 @@ AnimationStatesMachineResource::ParametersType AnimationStatesMachineResource::b
     }
 
     // States compound
-    parameters.states.push_back(std::move(state));
+    resourceConfig->states.push_back(std::move(state));
   }
-
-  return parameters;
 }
+
 
 std::shared_ptr<AnimationStatesMachineParameters::Node> AnimationStatesMachineResource::createAnimationNode(
   const pugi::xml_node& node)
@@ -254,15 +228,10 @@ std::shared_ptr<AnimationStatesMachineParameters::Node> AnimationStatesMachineRe
   }
 }
 
-std::shared_ptr<AnimationStatesMachine> AnimationStatesMachineResource::getMachine() const
-{
-  return m_machine;
-}
-
 std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::BlendClipsNode::getPoseNode(
-  std::shared_ptr<Skeleton> skeleton,
+  ResourceHandle<Skeleton> skeleton,
   AnimationStatesMachineVariables& variablesSet,
-  ResourceManager& resourceManager) const
+  ResourcesManager& resourceManager) const
 {
   return std::make_shared<AnimationBlendPoseNode>(first->getPoseNode(skeleton, variablesSet, resourceManager),
     second->getPoseNode(skeleton, variablesSet, resourceManager),
@@ -271,16 +240,15 @@ std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::BlendClipsN
 }
 
 std::shared_ptr<AnimationPoseNode> AnimationStatesMachineParameters::ClipNode::getPoseNode(
-  std::shared_ptr<Skeleton> skeleton,
+  ResourceHandle<Skeleton> skeleton,
   AnimationStatesMachineVariables& variablesSet,
-  ResourceManager& resourceManager) const
+  ResourcesManager& resourceManager) const
 {
   ARG_UNUSED(variablesSet);
 
-  std::shared_ptr<AnimationClip> animationClip =
-    resourceManager.getResourceFromInstance<SkeletalAnimationResource>(clip.name)->getClip();
+  ResourceHandle<AnimationClip> animationClipResource = resourceManager.getResource<AnimationClip>(clip.name);
 
-  AnimationClipInstance clipInstance(skeleton, animationClip);
+  AnimationClipInstance clipInstance(skeleton, animationClipResource);
   clipInstance.setScale(clip.scale);
 
   return std::make_shared<SkeletalAnimationClipPoseNode>(clipInstance);

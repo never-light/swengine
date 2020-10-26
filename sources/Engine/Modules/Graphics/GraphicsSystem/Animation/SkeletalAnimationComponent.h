@@ -6,10 +6,10 @@
 
 class SkeletalAnimationComponent {
  public:
-  explicit SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton);
+  explicit SkeletalAnimationComponent(ResourceHandle<AnimationStatesMachine> animationStatesMachine);
 
-  void setAnimationStatesMachine(std::shared_ptr<AnimationStatesMachine> statesMachine);
-  [[nodiscard]] std::shared_ptr<AnimationStatesMachine> getAnimationStatesMachine() const;
+  void setAnimationStatesMachine(ResourceHandle<AnimationStatesMachine> statesMachine);
+  [[nodiscard]] ResourceHandle<AnimationStatesMachine> getAnimationStatesMachine() const;
 
   AnimationStatesMachine& getAnimationStatesMachineRef();
   [[nodiscard]] const AnimationStatesMachine& getAnimationStatesMachineRef() const;
@@ -17,6 +17,6 @@ class SkeletalAnimationComponent {
   [[nodiscard]] const AnimationMatrixPalette& getMatrixPalette() const;
 
  private:
-  std::shared_ptr<AnimationStatesMachine> m_animationStatesMachine;
+  ResourceHandle<AnimationStatesMachine> m_animationStatesMachine;
 };
 

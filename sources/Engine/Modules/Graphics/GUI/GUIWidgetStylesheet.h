@@ -26,8 +26,8 @@ struct GUIWidgetStylesheetProperty {
  public:
   using Value = std::variant<
     std::string,
-    std::shared_ptr<GLTexture>,
-    std::shared_ptr<BitmapFont>,
+    ResourceHandle<GLTexture>,
+    ResourceHandle<BitmapFont>,
     glm::vec4,
     glm::ivec2,
     int,

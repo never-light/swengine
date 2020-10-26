@@ -3,11 +3,12 @@
 #include <memory>
 #include <glm/vec3.hpp>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "AudioSource.h"
 
 class AudioSourceComponent {
  public:
-  explicit AudioSourceComponent(std::shared_ptr<AudioClip> clip);
+  explicit AudioSourceComponent(ResourceHandle<AudioClip> clip);
   ~AudioSourceComponent();
 
   [[nodiscard]] const AudioSource& getSource() const;

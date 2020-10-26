@@ -7,10 +7,10 @@
 #include <utility>
 #include "GUISystem.h"
 
-GUIImage::GUIImage(std::shared_ptr<GLTexture> image)
+GUIImage::GUIImage(ResourceHandle<GLTexture> image)
   : GUIWidget("image")
 {
-  getVisualParameters(GUIWidgetVisualState::Default).setBackgroundImage(std::move(image));
+  getVisualParameters(GUIWidgetVisualState::Default).setBackgroundImage(image);
 }
 
 void GUIImage::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
@@ -23,7 +23,7 @@ void GUIImage::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule
       std::visit(GUIWidgetStylesheetPropertyVisitor{
         [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
         // Background image
-        [this, visualState](const std::shared_ptr<GLTexture>& image) {
+        [this, visualState](const ResourceHandle<GLTexture>& image) {
           this->setImage(image, visualState);
         },
       }, property.getValue());

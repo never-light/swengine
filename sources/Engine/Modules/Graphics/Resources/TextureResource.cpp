@@ -14,50 +14,22 @@
 
 #include "Utility/strings.h"
 
-TextureResource::TextureResource()
+TextureResource::TextureResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<GLTexture, TextureResourceParameters>(resourcesManager)
 {
 
 }
 
-TextureResource::~TextureResource()
+TextureResource::~TextureResource() = default;
+
+void TextureResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_texture.use_count() <= 1);
-}
+  TextureResourceParameters* config = getResourceConfig(resourceIndex);
 
-void TextureResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_texture == nullptr);
-
-  TextureResourceParameters parameters = declaration.getParameters<TextureResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_texture = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load shader resource from invalid source");
-  }
-}
-
-void TextureResource::unload()
-{
-  SW_ASSERT(m_texture.use_count() == 1);
-
-  m_texture.reset();
-}
-
-bool TextureResource::isBusy() const
-{
-  return m_texture.use_count() > 1;
-}
-
-std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path,
-  const TextureResourceParameters& parameters)
-{
   int width, height;
   int nrChannels;
-  std::byte* data = reinterpret_cast<std::byte*>(stbi_load(path.c_str(), &width, &height, &nrChannels, 0));
+  auto* data = reinterpret_cast<std::byte*>(
+    stbi_load(config->resourcePath.c_str(), &width, &height, &nrChannels, 0));
 
   if (data == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string("Texture file has invalid format: ") +
@@ -82,28 +54,26 @@ std::shared_ptr<GLTexture> TextureResource::loadFromFile(const std::string& path
     THROW_EXCEPTION(EngineRuntimeException, "Texture file has invalid format");
   }
 
-  std::shared_ptr<GLTexture>
-    texture = std::make_shared<GLTexture>(parameters.type, width, height, parameters.internalFormat);
+  auto* texture = allocateResource<GLTexture>(resourceIndex, config->type, width, height,
+    config->internalFormat);
+
   texture->setData(pixelFormat, GL_UNSIGNED_BYTE, data);
 
-  if (parameters.autoGenerateMipmaps) {
+  if (config->autoGenerateMipmaps) {
     texture->generateMipMaps();
   }
 
-  texture->setMinificationFilter(parameters.minificationFilter);
-  texture->setMagnificationFilter(parameters.magnificationFilter);
+  texture->setMinificationFilter(config->minificationFilter);
+  texture->setMagnificationFilter(config->magnificationFilter);
 
-  texture->setWrapModeU(parameters.wrapModeU);
-  texture->setWrapModeV(parameters.wrapModeV);
-  texture->setWrapModeW(parameters.wrapModeW);
+  texture->setWrapModeU(config->wrapModeU);
+  texture->setWrapModeV(config->wrapModeV);
+  texture->setWrapModeW(config->wrapModeW);
 
   texture->enableAnisotropicFiltering(4.0f);
-
-  return texture;
 }
 
-TextureResource::ParametersType TextureResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void TextureResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
   static std::unordered_map<std::string, GLTextureInternalFormat> internalFormatsMap = {
     {"r8", GLTextureInternalFormat::R8},
@@ -123,85 +93,86 @@ TextureResource::ParametersType TextureResource::buildDeclarationParameters(cons
     {"repeat", GL_REPEAT},
   };
 
-  ParametersType parameters = defaultParameters;
+  TextureResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+
+  // Texture path
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
+
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Texture resource refer to not existing file", resourceConfig->resourcePath));
+  }
 
   // Texture type
-  if (declarationNode.child("type")) {
-    GLTextureType textureType = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "type", {
+  if (configNode.child("type")) {
+    GLTextureType textureType = ResourceDeclHelpers::getFilteredParameterValue(configNode, "type", {
       {"2d", GLTextureType::Texture2D},
     }, GLTextureType::Texture2D);
 
-    parameters.type = textureType;
+    resourceConfig->type = textureType;
   }
 
   // Internal format
-  if (declarationNode.child("format")) {
-    GLTextureInternalFormat internalFormat = ResourceDeclHelpers::getFilteredParameterValue(declarationNode,
+  if (configNode.child("format")) {
+    GLTextureInternalFormat internalFormat = ResourceDeclHelpers::getFilteredParameterValue(configNode,
       "format",
       internalFormatsMap,
       GLTextureInternalFormat::RGB8);
 
-    parameters.internalFormat = internalFormat;
+    resourceConfig->internalFormat = internalFormat;
   }
 
   // Auto generate mipmaps
-  if (declarationNode.child("generate_mipmaps")) {
-    bool autoGenerateMipmaps = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "generate_mipmaps", {
+  if (configNode.child("generate_mipmaps")) {
+    bool autoGenerateMipmaps = ResourceDeclHelpers::getFilteredParameterValue(configNode, "generate_mipmaps", {
       {"true", true},
       {"false", false},
     }, true);
 
-    parameters.autoGenerateMipmaps = autoGenerateMipmaps;
+    resourceConfig->autoGenerateMipmaps = autoGenerateMipmaps;
   }
 
   // Minification filter
-  if (declarationNode.child("min_filter")) {
-    GLint minFilter = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "min_filter",
+  if (configNode.child("min_filter")) {
+    GLint minFilter = ResourceDeclHelpers::getFilteredParameterValue(configNode, "min_filter",
       filtersMap, GL_LINEAR_MIPMAP_LINEAR);
 
-    parameters.minificationFilter = minFilter;
+    resourceConfig->minificationFilter = minFilter;
   }
 
   // Magnification filter
-  if (declarationNode.child("mag_filter")) {
-    GLint magFilter = ResourceDeclHelpers::getFilteredParameterValue(declarationNode, "mag_filter",
+  if (configNode.child("mag_filter")) {
+    GLint magFilter = ResourceDeclHelpers::getFilteredParameterValue(configNode, "mag_filter",
       filtersMap, GL_LINEAR);
 
-    parameters.magnificationFilter = magFilter;
+    resourceConfig->magnificationFilter = magFilter;
   }
 
   // Wrap
-  if (declarationNode.child("wrap")) {
-    if (declarationNode.child("wrap").attribute("u")) {
+  if (configNode.child("wrap")) {
+    if (configNode.child("wrap").attribute("u")) {
       GLint wrapModeU =
-        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("u").as_string(),
+        ResourceDeclHelpers::getFilteredParameterValue(configNode.child("wrap").attribute("u").as_string(),
           "wrap_u", wrapModesMap, GL_CLAMP_TO_EDGE);
 
-      parameters.wrapModeU = wrapModeU;
+      resourceConfig->wrapModeU = wrapModeU;
     }
 
-    if (declarationNode.child("wrap").attribute("v")) {
+    if (configNode.child("wrap").attribute("v")) {
       GLint wrapModeV =
-        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("v").as_string(),
+        ResourceDeclHelpers::getFilteredParameterValue(configNode.child("wrap").attribute("v").as_string(),
           "wrap_v", wrapModesMap, GL_CLAMP_TO_EDGE);
 
-      parameters.wrapModeV = wrapModeV;
+      resourceConfig->wrapModeV = wrapModeV;
     }
 
-    if (declarationNode.child("wrap").attribute("w")) {
+    if (configNode.child("wrap").attribute("w")) {
       GLint wrapModeW =
-        ResourceDeclHelpers::getFilteredParameterValue(declarationNode.child("wrap").attribute("w").as_string(),
+        ResourceDeclHelpers::getFilteredParameterValue(configNode.child("wrap").attribute("w").as_string(),
           "wrap_w", wrapModesMap, GL_CLAMP_TO_EDGE);
 
-      parameters.wrapModeW = wrapModeW;
+      resourceConfig->wrapModeW = wrapModeW;
     }
   }
-
-  return parameters;
-}
-
-std::shared_ptr<GLTexture> TextureResource::getTexture() const
-{
-  return m_texture;
 }
 

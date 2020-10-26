@@ -15,7 +15,7 @@ class GameObjectsLoader {
 
  public:
   GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
   ~GameObjectsLoader();
 
   template<class T>
@@ -48,7 +48,7 @@ class GameObjectsLoader {
   void registerGenericComponentLoader(const std::string& componentName, const ComponentLoaderCallback& loader);
 
   [[nodiscard]] ComponentLoaderCallback getComponentLoader(const std::string& componentName) const;
-  ResourceManager& getResourceManager();
+  ResourcesManager& getResourceManager();
 
   GameObject loadGameObject(const pugi::xml_node& objectNode);
 
@@ -72,7 +72,7 @@ class GameObjectsLoader {
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
   std::unordered_map<std::string, std::unique_ptr<GameObjectsClassLoader>> m_classesLoaders;
   std::unordered_map<std::string, ComponentLoaderCallback> m_componentsLoaders;

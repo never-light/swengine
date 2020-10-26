@@ -37,7 +37,7 @@ class DebugPainter {
  public:
   DebugPainter() = delete;
 
-  static void initialize(std::shared_ptr<ResourceManager> resourceManager,
+  static void initialize(std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<GraphicsScene> graphicsScene);
 
   static void renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color);
@@ -73,8 +73,8 @@ class DebugPainter {
   static GLGeometryStore* createGeometryStore(const std::vector<glm::vec3>& points);
 
  private:
-  static std::shared_ptr<Mesh> s_sphere;
-  static std::shared_ptr<Mesh> s_box;
+  static ResourceHandle<Mesh> s_sphere;
+  static ResourceHandle<Mesh> s_box;
 
   static std::shared_ptr<GLShadersPipeline> s_debugShaderPipeline;
   static std::unique_ptr<GLMaterial> s_debugMaterial;

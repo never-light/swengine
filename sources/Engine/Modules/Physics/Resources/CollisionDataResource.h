@@ -3,34 +3,20 @@
 #include <string>
 #include <memory>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Physics/CollisionShapes.h"
 
-struct CollisionDataResourceParameters : ResourceSourceParameters {
+struct CollisionDataResourceConfig {
+  CollisionDataResourceConfig() = default;
+
+  std::string resourcePath;
 };
 
-class CollisionDataResource : public Resource {
+class CollisionDataResource : public ResourceTypeManager<CollisionShape, CollisionDataResourceConfig> {
  public:
-  using ParametersType = CollisionDataResourceParameters;
-
- public:
-  CollisionDataResource();
+  explicit CollisionDataResource(ResourcesManager* resourcesManager);
   ~CollisionDataResource() override;
 
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static std::shared_ptr<CollisionShape> loadFromFile(const std::string& path,
-    const CollisionDataResourceParameters& parameters);
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<CollisionShape> getCollisionShape() const;
-
- private:
-  std::shared_ptr<CollisionShape> m_collisionShape;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 };

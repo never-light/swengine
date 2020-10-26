@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 #include "BaseBackend/RigidBodyComponentBackend.h"
 
@@ -10,7 +11,7 @@
 
 struct RigidBodyComponent {
  public:
-  RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
+  RigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape);
 
   void setMass(float mass);
   [[nodiscard]] float getMass() const;

@@ -4,11 +4,11 @@
 
 #include "DebugPainter.h"
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
-std::shared_ptr<Mesh> DebugPainter::s_sphere = nullptr;
-
-std::shared_ptr<Mesh> DebugPainter::s_box = nullptr;
+ResourceHandle<Mesh> DebugPainter::s_sphere{};
+ResourceHandle<Mesh> DebugPainter::s_box{};
 
 std::shared_ptr<GLShadersPipeline> DebugPainter::s_debugShaderPipeline = nullptr;
 
@@ -20,21 +20,24 @@ std::vector<std::unique_ptr<GLGeometryStore>> DebugPainter::s_primitivesGeometry
 
 std::vector<DebugRenderQueueItem> DebugPainter::s_debugRenderQueue;
 
-void DebugPainter::initialize(std::shared_ptr<ResourceManager> resourceManager,
+void DebugPainter::initialize(std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<GraphicsScene> graphicsScene)
 {
   s_graphicsScene = graphicsScene;
 
-  s_sphere = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh();
-  s_box = resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_box")->getMesh();
+  s_sphere = resourceManager->getResource<Mesh>("mesh_identity_sphere");
+  s_box = resourceManager->getResource<Mesh>("mesh_identity_box");
 
-  std::shared_ptr<GLShader> vertexShader = resourceManager->
-    getResourceFromInstance<ShaderResource>("debug_vertex_shader")->getShader();
+  ResourceHandle<GLShader> vertexShader = resourceManager->
+    getResource<GLShader>("debug_vertex_shader");
 
-  std::shared_ptr<GLShader> fragmentShader = resourceManager
-    ->getResourceFromInstance<ShaderResource>("debug_fragment_shader")->getShader();
+  ResourceHandle<GLShader> fragmentShader = resourceManager
+    ->getResource<GLShader>("debug_fragment_shader");
 
-  s_debugShaderPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
+  SW_ASSERT(fragmentShader->getType() == ShaderType::Fragment);
+
+  s_debugShaderPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader,
+    std::optional<ResourceHandle<GLShader>>());
 
   s_debugMaterial = std::make_unique<GLMaterial>();
   s_debugMaterial->setShadersPipeline(s_debugShaderPipeline);

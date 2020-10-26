@@ -13,51 +13,20 @@
 
 #include "Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h"
 
-SkeletalAnimationResource::SkeletalAnimationResource()
+SkeletalAnimationResource::SkeletalAnimationResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<AnimationClip, SkeletalAnimationResourceParameters>(resourcesManager)
 {
 
 }
 
-SkeletalAnimationResource::~SkeletalAnimationResource()
+SkeletalAnimationResource::~SkeletalAnimationResource() = default;
+
+void SkeletalAnimationResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_clip.use_count() <= 1);
-}
-
-void SkeletalAnimationResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_clip == nullptr);
-
-  SkeletalAnimationResourceParameters parameters = declaration.getParameters<SkeletalAnimationResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_clip = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeletal animation resource from invalid source");
-  }
-}
-
-void SkeletalAnimationResource::unload()
-{
-  SW_ASSERT(m_clip.use_count() == 1);
-
-  m_clip.reset();
-}
-
-bool SkeletalAnimationResource::isBusy() const
-{
-  return m_clip.use_count() > 1;
-}
-
-std::shared_ptr<AnimationClip> SkeletalAnimationResource::loadFromFile(const std::string& path,
-  const SkeletalAnimationResourceParameters& parameters)
-{
-  ARG_UNUSED(parameters);
+  SkeletalAnimationResourceParameters* config = getResourceConfig(resourceIndex);
 
   // Read raw mesh
-  RawSkeletalAnimationClip rawClip = RawSkeletalAnimationClip::readFromFile(path);
+  RawSkeletalAnimationClip rawClip = RawSkeletalAnimationClip::readFromFile(config->resourcePath);
 
   // Convert raw animation clip to internal animation clip object
   const uint16_t skeletonBonesCount = rawClip.header.skeletonBonesCount;
@@ -76,32 +45,26 @@ std::shared_ptr<AnimationClip> SkeletalAnimationResource::loadFromFile(const std
       MemoryUtils::createBinaryCompatibleVector<RawBoneOrientationFrame, BoneAnimationOrientationFrame>(channel
         .orientationFrames);
 
-    animationChannels.push_back(BoneAnimationChannel(positionFrames, orientationFrames));
+    animationChannels.emplace_back(positionFrames, orientationFrames);
   }
 
   std::string animationName = rawClip.header.name;
   float animationDuration = rawClip.header.duration;
   float animationRate = rawClip.header.rate;
 
-  std::shared_ptr<AnimationClip> animationClip = std::make_shared<AnimationClip>(animationName,
+  allocateResource<AnimationClip>(resourceIndex, animationName,
     animationDuration,
     animationRate,
     animationChannels);
-
-  return animationClip;
 }
 
-SkeletalAnimationResource::ParametersType SkeletalAnimationResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void SkeletalAnimationResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ARG_UNUSED(declarationNode);
+  SkeletalAnimationResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  ParametersType parameters = defaultParameters;
-
-  return parameters;
-}
-
-std::shared_ptr<AnimationClip> SkeletalAnimationResource::getClip() const
-{
-  return m_clip;
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Animation clip resource refer to not existing file", resourceConfig->resourcePath));
+  }
 }

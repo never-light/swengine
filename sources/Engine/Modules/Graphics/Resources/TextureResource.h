@@ -6,24 +6,13 @@
 
 #include <pugixml.hpp>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
-struct TextureResourceParameters : ResourceSourceParameters {
+struct TextureResourceParameters {
   TextureResourceParameters() = default;
 
-  TextureResourceParameters(GLTextureType type, GLTextureInternalFormat internalFormat, bool autoGenerateMipmaps,
-    GLint minificationFilter, GLint magnificationFilter,
-    GLint wrapModeU, GLint wrapModeV, GLint wrapModeW)
-    : type(type),
-      internalFormat(internalFormat),
-      autoGenerateMipmaps(autoGenerateMipmaps),
-      minificationFilter(minificationFilter),
-      magnificationFilter(magnificationFilter),
-      wrapModeU(wrapModeU),
-      wrapModeV(wrapModeV),
-      wrapModeW(wrapModeW)
-  {}
+  std::string resourcePath;
 
   GLTextureType type = GLTextureType::Texture2D;
   GLTextureInternalFormat internalFormat = GLTextureInternalFormat::RGB8;
@@ -35,28 +24,12 @@ struct TextureResourceParameters : ResourceSourceParameters {
   GLint wrapModeW = GL_CLAMP_TO_EDGE;
 };
 
-class TextureResource : public Resource {
- public:
-  using ParametersType = TextureResourceParameters;
 
+class TextureResource : public ResourceTypeManager<GLTexture, TextureResourceParameters> {
  public:
-  TextureResource();
+  explicit TextureResource(ResourcesManager* resourcesManager);
   ~TextureResource() override;
 
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static std::shared_ptr<GLTexture> loadFromFile(const std::string& path,
-    const TextureResourceParameters& parameters);
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<GLTexture> getTexture() const;
-
- private:
-  std::shared_ptr<GLTexture> m_texture;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 };

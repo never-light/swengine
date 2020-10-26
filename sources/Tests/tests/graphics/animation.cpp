@@ -4,10 +4,10 @@ Skeleton generateTestSkeleton()
 {
   std::vector<Bone> bones;
 
-  bones.push_back(Bone("root", Bone::ROOT_BONE_PARENT_ID,
-    glm::inverse(MathUtils::getTranslationMatrix({1.0f, 0.0f, 0.0f}))));
-  bones.push_back(Bone("spin", 0, glm::inverse(MathUtils::getTranslationMatrix({0.0f, 1.0f, 0.0f}))));
-  bones.push_back(Bone("spin_child", 1, glm::inverse(MathUtils::getTranslationMatrix({0.0f, 0.0f, 1.0f}))));
+  bones.emplace_back("root", Bone::ROOT_BONE_PARENT_ID,
+    glm::inverse(MathUtils::getTranslationMatrix({1.0f, 0.0f, 0.0f})));
+  bones.emplace_back("spin", uint8_t(0), glm::inverse(MathUtils::getTranslationMatrix({0.0f, 1.0f, 0.0f})));
+  bones.emplace_back("spin_child", uint8_t(1), glm::inverse(MathUtils::getTranslationMatrix({0.0f, 0.0f, 1.0f})));
 
   Skeleton skeleton(bones);
 
@@ -44,10 +44,10 @@ AnimationClip generateTestAnimationClip()
   return animationClip;
 }
 
-AnimationClipInstance generateTestAnimationClipInstance()
+AnimationClipInstance generateTestAnimationClipInstance(ResourcesManager& resourcesManager)
 {
-  auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
-  auto clip = std::make_shared<AnimationClip>(generateTestAnimationClip());
+  auto skeleton = resourcesManager.createResourceInPlace<Skeleton>(generateTestSkeleton());
+  auto clip = resourcesManager.createResourceInPlace<AnimationClip>(generateTestAnimationClip());
 
   AnimationClipInstance clipInstance(skeleton, clip);
 

@@ -5,10 +5,10 @@
 #include <utility>
 #include <vector>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/AnimationStatesMachine.h"
 
-struct AnimationStatesMachineParameters : ResourceSourceParameters {
+struct AnimationStatesMachineParameters {
   struct Variable {
     Variable(std::string name, float value) : name(std::move(name)), value(value)
     {};
@@ -30,9 +30,9 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
     virtual ~Node() = default;
 
     virtual std::shared_ptr<AnimationPoseNode> getPoseNode(
-      std::shared_ptr<Skeleton> skeleton,
+      ResourceHandle<Skeleton> skeleton,
       AnimationStatesMachineVariables& variablesSet,
-      ResourceManager& resourceManager) const = 0;
+      ResourcesManager& resourceManager) const = 0;
   };
 
   struct ClipNode : Node {
@@ -41,9 +41,9 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
     ~ClipNode() override = default;
 
     std::shared_ptr<AnimationPoseNode> getPoseNode(
-      std::shared_ptr<Skeleton> skeleton,
+      ResourceHandle<Skeleton> skeleton,
       AnimationStatesMachineVariables& variablesSet,
-      ResourceManager& resourceManager) const override;
+      ResourcesManager& resourceManager) const override;
 
     Clip clip;
   };
@@ -61,9 +61,9 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
     ~BlendClipsNode() override = default;
 
     std::shared_ptr<AnimationPoseNode> getPoseNode(
-      std::shared_ptr<Skeleton> skeleton,
+      ResourceHandle<Skeleton> skeleton,
       AnimationStatesMachineVariables& variablesSet,
-      ResourceManager& resourceManager) const override;
+      ResourcesManager& resourceManager) const override;
 
     std::shared_ptr<Node> first;
     std::shared_ptr<Node> second;
@@ -95,28 +95,15 @@ struct AnimationStatesMachineParameters : ResourceSourceParameters {
   std::vector<State> states;
 };
 
-class AnimationStatesMachineResource : public Resource {
+class AnimationStatesMachineResource
+  : public ResourceTypeManager<AnimationStatesMachine, AnimationStatesMachineParameters> {
  public:
-  using ParametersType = AnimationStatesMachineParameters;
-
- public:
-  AnimationStatesMachineResource();
+  explicit AnimationStatesMachineResource(ResourcesManager* resourcesManager);
   ~AnimationStatesMachineResource() override;
 
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<AnimationStatesMachine> getMachine() const;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 
  private:
   static std::shared_ptr<AnimationStatesMachineParameters::Node> createAnimationNode(const pugi::xml_node& node);
-
- private:
-  std::shared_ptr<AnimationStatesMachine> m_machine;
 };

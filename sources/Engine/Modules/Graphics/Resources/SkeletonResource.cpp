@@ -12,48 +12,20 @@
 
 #include "Modules/Graphics/Resources/Raw/RawSkeleton.h"
 
-SkeletonResource::SkeletonResource() = default;
-
-SkeletonResource::~SkeletonResource()
+SkeletonResource::SkeletonResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<Skeleton, SkeletonResourceParameters>(resourcesManager)
 {
-  SW_ASSERT(m_skeleton.use_count() <= 1);
+
 }
 
-void SkeletonResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+SkeletonResource::~SkeletonResource() = default;
+
+void SkeletonResource::load(size_t resourceIndex)
 {
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_skeleton == nullptr);
-
-  SkeletonResourceParameters parameters = declaration.getParameters<SkeletonResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_skeleton = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load skeleton resource from invalid source");
-  }
-}
-
-void SkeletonResource::unload()
-{
-  SW_ASSERT(m_skeleton.use_count() == 1);
-
-  m_skeleton.reset();
-}
-
-bool SkeletonResource::isBusy() const
-{
-  return m_skeleton.use_count() > 1;
-}
-
-std::shared_ptr<Skeleton> SkeletonResource::loadFromFile(const std::string& path,
-  const SkeletonResourceParameters& parameters)
-{
-  ARG_UNUSED(parameters);
+  SkeletonResourceParameters* config = getResourceConfig(resourceIndex);
 
   // Read raw mesh
-  RawSkeleton rawSkeleton = RawSkeleton::readFromFile(path);
+  RawSkeleton rawSkeleton = RawSkeleton::readFromFile(config->resourcePath);
 
   // Convert raw skeleton to internal skeleton object
   std::vector<Bone> bones(rawSkeleton.bones.size());
@@ -66,22 +38,16 @@ std::shared_ptr<Skeleton> SkeletonResource::loadFromFile(const std::string& path
     bones[boneIndex].setInverseBindPoseMatrix(rawMatrix4ToGLMMatrix4(rawBone.inverseBindPoseMatrix));
   }
 
-  std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(bones);
-
-  return skeleton;
+  allocateResource<Skeleton>(resourceIndex, bones);
 }
 
-SkeletonResource::ParametersType SkeletonResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void SkeletonResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ARG_UNUSED(declarationNode);
+  SkeletonResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  ParametersType parameters = defaultParameters;
-
-  return parameters;
-}
-
-std::shared_ptr<Skeleton> SkeletonResource::getSkeleton() const
-{
-  return m_skeleton;
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Skeleton resource refer to not existing file", resourceConfig->resourcePath));
+  }
 }

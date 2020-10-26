@@ -84,9 +84,9 @@ void GameApplication::load()
   m_screenManager->getCommonGUILayout()->applyStylesheet(commonStylesheet);
 
   std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
-    resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
-    resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),
-    nullptr);
+    resourceMgr->getResource<GLShader>("deferred_accum_pass_vertex_shader"),
+    resourceMgr->getResource<GLShader>("deferred_accum_pass_fragment_shader"),
+    std::optional<ResourceHandle<GLShader>>());
 
   m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
 

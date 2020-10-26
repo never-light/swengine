@@ -2,11 +2,13 @@
 
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/OpenGL/GLMaterial.h"
 
-class Material {
+class Material : public Resource {
  public:
-  Material(std::unique_ptr<GLMaterial> gpuMaterial);
+  explicit Material(std::unique_ptr<GLMaterial> gpuMaterial);
+  ~Material() override = default;
 
   [[nodiscard]] const GLMaterial& getGpuMaterial() const;
   [[nodiscard]] GLMaterial& getGpuMaterial();

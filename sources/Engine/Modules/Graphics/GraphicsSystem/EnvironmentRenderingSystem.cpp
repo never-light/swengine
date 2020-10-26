@@ -9,9 +9,9 @@
 
 EnvironmentComponent::EnvironmentComponent() = default;
 
-void EnvironmentComponent::setEnvironmentMaterial(std::shared_ptr<Material> material)
+void EnvironmentComponent::setEnvironmentMaterial(ResourceHandle<Material> material)
 {
-  m_environmentMaterial = std::move(material);
+  m_environmentMaterial = material;
 }
 
 Material* EnvironmentComponent::getEnvironmentMaterial() const
@@ -22,9 +22,9 @@ Material* EnvironmentComponent::getEnvironmentMaterial() const
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GraphicsScene> graphicsScene,
-  std::shared_ptr<Mesh> environmentMesh)
+  ResourceHandle<Mesh> environmentMesh)
   : RenderingSystem(std::move(graphicsContext), std::move(graphicsScene)),
-    m_environmentMesh(std::move(environmentMesh))
+    m_environmentMesh(environmentMesh)
 {
 
 }

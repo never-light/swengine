@@ -47,7 +47,7 @@ struct GameObjectDeclarationComponent {
 class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
  public:
   LevelsManager(std::shared_ptr<GameWorld> gameWorld,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
   ~LevelsManager();
 
   void loadLevel(const std::string& name);
@@ -77,7 +77,7 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
   GameObjectsLoader m_gameObjectsLoader;
 

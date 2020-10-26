@@ -4,34 +4,20 @@
 #include <string>
 #include <memory>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/AnimationClip.h"
 
-struct SkeletalAnimationResourceParameters : ResourceSourceParameters {
+struct SkeletalAnimationResourceParameters {
+  SkeletalAnimationResourceParameters() = default;
+
+  std::string resourcePath;
 };
 
-class SkeletalAnimationResource : public Resource {
+class SkeletalAnimationResource : public ResourceTypeManager<AnimationClip, SkeletalAnimationResourceParameters> {
  public:
-  using ParametersType = SkeletalAnimationResourceParameters;
-
- public:
-  SkeletalAnimationResource();
+  explicit SkeletalAnimationResource(ResourcesManager* resourcesManager);
   ~SkeletalAnimationResource() override;
 
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static std::shared_ptr<AnimationClip> loadFromFile(const std::string& path,
-    const SkeletalAnimationResourceParameters& parameters);
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<AnimationClip> getClip() const;
-
- private:
-  std::shared_ptr<AnimationClip> m_clip;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 };

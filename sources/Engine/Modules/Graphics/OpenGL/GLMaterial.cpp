@@ -4,6 +4,8 @@
 
 #include "GLMaterial.h"
 
+#include <utility>
+
 GLMaterial::GLMaterial()
 {
 
@@ -16,7 +18,7 @@ GLMaterial::~GLMaterial()
 
 void GLMaterial::setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline)
 {
-  m_shadersPipeline = shadersPipeline;
+  m_shadersPipeline = std::move(shadersPipeline);
 }
 
 std::shared_ptr<GLShadersPipeline> GLMaterial::getShadersPipeline() const

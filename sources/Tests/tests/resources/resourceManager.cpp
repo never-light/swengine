@@ -4,11 +4,13 @@
 #include <Engine/Modules/Graphics/Resources/ShaderResource.h>
 #include <Engine/Modules/Graphics/Resources/MaterialResource.h>
 
+#include <Engine/Modules/Math/MathUtils.h>
+
+#include "utility/resourcesUtility.h"
+
 TEST_CASE("resources_maps_loading", "[resources]")
 {
-  std::shared_ptr<ResourceManager> manager = std::make_shared<ResourceManager>();
-  manager->declareResourceType<ShaderResource>("shader");
-  manager->declareResourceType<MaterialResource>("material");
+  std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
 
   manager->loadResourcesMap("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                             "<resources>\n"
@@ -39,28 +41,36 @@ TEST_CASE("resources_maps_loading", "[resources]")
                             "    </resource>\n"
                             "</resources>");
 
-  const auto& shaderDeclaration = manager->getResourceDeclaration("vertex");
-  auto shaderParams = shaderDeclaration.getParameters<ShaderResourceParameters>();
+  const auto& shaderDeclaration = manager->getResourceConfig<GLShader, ShaderResourceParameters>("vertex");
 
-  REQUIRE(std::get<ResourceSourceFile>(shaderDeclaration.source).path == "../resources/shaders/debug_vertex_shader.glsl");
-  REQUIRE(shaderParams.shaderType == ShaderType::Vertex);
+  REQUIRE(shaderDeclaration->resourcePath == "../resources/shaders/debug_vertex_shader.glsl");
+  REQUIRE(shaderDeclaration->shaderType == ShaderType::Vertex);
 
-  const auto& materialDeclaration = manager->getResourceDeclaration("material");
-  auto materialParams = materialDeclaration.getParameters<MaterialResourceParameters>();
+  const auto& materialDeclaration = manager->getResourceConfig<Material, MaterialResourceParameters>("material");
 
-  REQUIRE(std::get_if<ResourceSourceDeclaration>(&materialDeclaration.source));
+  REQUIRE(materialDeclaration->shadersPipeline.vertexShaderId == "vertex");
+  REQUIRE(materialDeclaration->shadersPipeline.fragmentShaderId == "fragment");
 
-  REQUIRE(materialParams.shadersPipeline.vertexShaderId == "vertex");
-  REQUIRE(materialParams.shadersPipeline.fragmentShaderId == "fragment");
+  REQUIRE(materialDeclaration->gpuState.blendingMode == BlendingMode::Alpha_OneMinusAlpha);
+  REQUIRE(materialDeclaration->gpuState.depthWritingMode == DepthWritingMode::Enabled);
+  REQUIRE(materialDeclaration->gpuState.depthTestMode == DepthTestMode::Less);
+  REQUIRE(materialDeclaration->gpuState.faceCullingMode == FaceCullingMode::Back);
+  REQUIRE(materialDeclaration->gpuState.polygonFillingMode == PolygonFillingMode::Fill);
 
-  REQUIRE(materialParams.gpuState.blendingMode == BlendingMode::Alpha_OneMinusAlpha);
-  REQUIRE(materialParams.gpuState.depthWritingMode == DepthWritingMode::Enabled);
-  REQUIRE(materialParams.gpuState.depthTestMode == DepthTestMode::Less);
-  REQUIRE(materialParams.gpuState.faceCullingMode == FaceCullingMode::Back);
-  REQUIRE(materialParams.gpuState.polygonFillingMode == PolygonFillingMode::Fill);
+  REQUIRE(materialDeclaration->parameters[0].shaderType == ShaderType::Fragment);
+  REQUIRE(materialDeclaration->parameters[0].name == "paramName");
+  REQUIRE(materialDeclaration->parameters[0].type == MaterialResourceParameters::ShaderParamType::Int);
+  REQUIRE(std::get<int>(materialDeclaration->parameters[0].value) == 50);
+}
 
-  REQUIRE(materialParams.parameters[0].shaderType == ShaderType::Fragment);
-  REQUIRE(materialParams.parameters[0].name == "paramName");
-  REQUIRE(materialParams.parameters[0].type == MaterialResourceParameters::ShaderParamType::Int);
-  REQUIRE(std::get<int>(materialParams.parameters[0].value) == 50);
+
+TEST_CASE("resource_inplace_creation", "[resources]")
+{
+  std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
+
+  ResourceHandle<CollisionShape> shape =
+    manager->createResourceInPlace<CollisionShape>(CollisionShapeSphere(1.0f));
+
+  REQUIRE(shape.get() != nullptr);
+  REQUIRE(MathUtils::isEqual(std::get<CollisionShapeSphere>(*shape).getRadius(), 1.0f));
 }

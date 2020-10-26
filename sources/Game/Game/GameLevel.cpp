@@ -27,7 +27,7 @@
 
 GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager)
   : m_gameWorld(std::move(gameWorld)),
     m_graphicsContext(std::move(graphicsContext)),

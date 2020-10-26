@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "GUIWidget.h"
 #include "BitmapFont.h"
@@ -12,10 +13,10 @@ class GUITextBox;
 class GUIText : public GUIWidget {
  public:
   GUIText();
-  GUIText(std::shared_ptr<BitmapFont> font, std::string text);
+  GUIText(ResourceHandle<BitmapFont> font, std::string text);
 
-  void setFont(std::shared_ptr<BitmapFont> font);
-  [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;
+  void setFont(ResourceHandle<BitmapFont> font);
+  [[nodiscard]] ResourceHandle<BitmapFont> getFont() const;
 
   void setText(const std::string& text);
   [[nodiscard]] std::string getText() const;
@@ -49,7 +50,7 @@ class GUIText : public GUIWidget {
   GLGeometryStore* createStringGeometryBuffer(const std::string& str);
 
  private:
-  std::shared_ptr<BitmapFont> m_font;
+  ResourceHandle<BitmapFont> m_font;
 
   std::string m_text;
 

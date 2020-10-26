@@ -4,9 +4,9 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <btBulletDynamicsCommon.h>
-#include <Modules/Graphics/GraphicsSystem/Transform.h>
 
-struct CollisionShape;
+#include "Modules/Graphics/GraphicsSystem/Transform.h"
+#include "Modules/Physics/CollisionShapes.h"
 
 class BulletUtils {
  public:
@@ -41,5 +41,6 @@ class BulletUtils {
   }
 
   static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);
+  static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShapeData& shape);
 };
 

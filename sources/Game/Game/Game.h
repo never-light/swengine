@@ -25,7 +25,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<GUISystem> guiSystem,
-    std::shared_ptr<ResourceManager> resourceManager,
+    std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GUILayout> gameUILayout);
 
@@ -48,7 +48,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<GUISystem> m_guiSystem;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
 
   std::shared_ptr<GameLevel> m_level;

@@ -6,6 +6,7 @@
 
 #include <Exceptions/exceptions.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
@@ -261,18 +262,27 @@ void BaseGameApplication::initializeEngine()
 
   m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
-  std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
-  resourceManager->declareResourceType<ShaderResource>("shader");
-  resourceManager->declareResourceType<MeshResource>("mesh");
-  resourceManager->declareResourceType<TextureResource>("texture");
-  resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
-  resourceManager->declareResourceType<MaterialResource>("material");
-  resourceManager->declareResourceType<SkeletonResource>("skeleton");
-  resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
-  resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
-
-  resourceManager->declareResourceType<CollisionDataResource>("collision");
-  resourceManager->declareResourceType<AudioClipResource>("audio");
+  std::shared_ptr<ResourcesManager> resourceManager = m_resourceManagementModule->getResourceManager();
+  resourceManager->registerResourceType<GLShader>("shader",
+    std::make_unique<ShaderResource>(resourceManager.get()));
+  resourceManager->registerResourceType<Mesh>("mesh",
+    std::make_unique<MeshResource>(resourceManager.get()));
+  resourceManager->registerResourceType<GLTexture>("texture",
+    std::make_unique<TextureResource>(resourceManager.get()));
+  resourceManager->registerResourceType<BitmapFont>("bitmap_font",
+    std::make_unique<BitmapFontResource>(resourceManager.get()));
+  resourceManager->registerResourceType<Material>("material",
+    std::make_unique<MaterialResource>(resourceManager.get()));
+  resourceManager->registerResourceType<Skeleton>("skeleton",
+    std::make_unique<SkeletonResource>(resourceManager.get()));
+  resourceManager->registerResourceType<AnimationClip>("animation",
+    std::make_unique<SkeletalAnimationResource>(resourceManager.get()));
+  resourceManager->registerResourceType<AnimationStatesMachine>("animation_states_machine",
+    std::make_unique<AnimationStatesMachineResource>(resourceManager.get()));
+  resourceManager->registerResourceType<CollisionShape>("collision",
+    std::make_unique<CollisionDataResource>(resourceManager.get()));
+  resourceManager->registerResourceType<AudioClip>("audio",
+    std::make_unique<AudioClipResource>(resourceManager.get()));
 
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
@@ -285,7 +295,7 @@ void BaseGameApplication::initializeEngine()
 
 void BaseGameApplication::initializeEngineSystems()
 {
-  std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+  std::shared_ptr<ResourcesManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
   m_engineGameSystems = std::make_shared<GameSystemsGroup>();
   m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
@@ -320,19 +330,19 @@ void BaseGameApplication::initializeEngineSystems()
   // Environment rendering
   auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
     m_graphicsScene,
-    resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh());
+    resourceManager->getResource<Mesh>("mesh_identity_sphere"));
 
   m_renderingSystemsPipeline->addGameSystem(environmentRenderingSystem);
 
   // GUI system
-  std::shared_ptr<GLShader> guiVertexShader = resourceManager->
-    getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
+  ResourceHandle<GLShader> guiVertexShader = resourceManager->
+    getResource<GLShader>("gui_vertex_shader");
 
-  std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
-    getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
+  ResourceHandle<GLShader> guiFragmentShader = resourceManager->
+    getResource<GLShader>("gui_fragment_shader");
 
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
-    guiVertexShader, guiFragmentShader, nullptr);
+    guiVertexShader, guiFragmentShader, std::optional<ResourceHandle<GLShader>>());
 
   m_guiSystem = std::make_shared<GUISystem>(
     m_inputModule,
@@ -340,8 +350,8 @@ void BaseGameApplication::initializeEngineSystems()
     m_graphicsModule->getGraphicsContext(),
     guiShadersPipeline);
 
-  std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
-    getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+  ResourceHandle<BitmapFont> guiDefaultFont = resourceManager->
+    getResource<BitmapFont>("gui_default_font");
   m_guiSystem->setDefaultFont(guiDefaultFont);
   m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 

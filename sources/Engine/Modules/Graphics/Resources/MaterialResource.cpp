@@ -15,92 +15,74 @@
 #include "TextureResource.h"
 #include "ShaderResource.h"
 
-MaterialResource::MaterialResource() = default;
-
-MaterialResource::~MaterialResource()
+MaterialResource::MaterialResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<Material, MaterialResourceParameters>(resourcesManager)
 {
-  SW_ASSERT(m_material.use_count() <= 1);
+
 }
 
-void MaterialResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+MaterialResource::~MaterialResource() = default;
+
+void MaterialResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_material == nullptr);
+  MaterialResourceParameters* config = getResourceConfig(resourceIndex);
 
-  ARG_UNUSED(declaration);
+  std::unique_ptr<GLMaterial> gpuMaterial = std::make_unique<GLMaterial>();
 
-  auto parameters = declaration.getParameters<MaterialResourceParameters>();
+  auto vertexShader = getResourceManager()->
+    getResource<GLShader>(config->shadersPipeline.vertexShaderId);
+  auto fragmentShader = getResourceManager()->
+    getResource<GLShader>(config->shadersPipeline.fragmentShaderId);
 
-  if (std::get_if<ResourceSourceDeclaration>(&declaration.source)) {
-    std::unique_ptr<GLMaterial> gpuMaterial = std::make_unique<GLMaterial>();
+  std::shared_ptr<GLShadersPipeline>
+    shadersPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader,
+      std::optional<ResourceHandle<GLShader>>());
 
-    auto vertexShader = resourceManager.
-      getResourceFromInstance<ShaderResource>(parameters.shadersPipeline.vertexShaderId)->getShader();
-    auto fragmentShader = resourceManager.
-      getResourceFromInstance<ShaderResource>(parameters.shadersPipeline.fragmentShaderId)->getShader();
+  gpuMaterial->setShadersPipeline(shadersPipeline);
 
-    std::shared_ptr<GLShadersPipeline>
-      shadersPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader, nullptr);
+  gpuMaterial->setBlendingMode(config->gpuState.blendingMode);
+  gpuMaterial->setDepthTestMode(config->gpuState.depthTestMode);
+  gpuMaterial->setDepthWritingMode(config->gpuState.depthWritingMode);
+  gpuMaterial->setFaceCullingMode(config->gpuState.faceCullingMode);
+  gpuMaterial->setPolygonFillingMode(config->gpuState.polygonFillingMode);
 
-    gpuMaterial->setShadersPipeline(shadersPipeline);
+  for (const auto& param : config->parameters) {
+    switch (param.type) {
+      case MaterialResourceParameters::ShaderParamType::Int:
+        gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<int>(param.value));
+        break;
 
-    gpuMaterial->setBlendingMode(parameters.gpuState.blendingMode);
-    gpuMaterial->setDepthTestMode(parameters.gpuState.depthTestMode);
-    gpuMaterial->setDepthWritingMode(parameters.gpuState.depthWritingMode);
-    gpuMaterial->setFaceCullingMode(parameters.gpuState.faceCullingMode);
-    gpuMaterial->setPolygonFillingMode(parameters.gpuState.polygonFillingMode);
+      case MaterialResourceParameters::ShaderParamType::Float:
+        gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<float>(param.value));
+        break;
 
-    for (const auto& param : parameters.parameters) {
-      switch (param.type) {
-        case MaterialResourceParameters::ShaderParamType::Int:
-          gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<int>(param.value));
-          break;
+      case MaterialResourceParameters::ShaderParamType::Boolean:
+        gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<int>(param.value));
+        break;
 
-        case MaterialResourceParameters::ShaderParamType::Float:
-          gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<float>(param.value));
-          break;
+      case MaterialResourceParameters::ShaderParamType::Texture: {
+        auto textureParam = std::get<MaterialResourceParameters::ShaderParamTexture>(param.value);
 
-        case MaterialResourceParameters::ShaderParamType::Boolean:
-          gpuMaterial->setShaderParameter(param.shaderType, param.name, std::get<int>(param.value));
-          break;
-
-        case MaterialResourceParameters::ShaderParamType::Texture: {
-          auto textureParam = std::get<MaterialResourceParameters::ShaderParamTexture>(param.value);
-
-          gpuMaterial->setShaderParameter(param.shaderType, param.name,
-            GLMaterial::TextureParameter(resourceManager
-                .getResourceFromInstance<TextureResource>(
-                  textureParam.id)->getTexture(),
-              textureParam.slotIndex));
-          break;
-        }
-
-        default:
-          SW_ASSERT(false);
-          break;
+        gpuMaterial->setShaderParameter(param.shaderType, param.name,
+          GLMaterial::TextureParameter(getResourceManager()
+              ->getResource<GLTexture>(
+                textureParam.id),
+            textureParam.slotIndex));
+        break;
       }
+
+      default:
+        SW_ASSERT(false);
+        break;
     }
-
-    m_material = std::make_shared<Material>(std::move(gpuMaterial));
   }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh resource from invalid source");
-  }
+
+  allocateResource<Material>(resourceIndex, std::move(gpuMaterial));
 }
 
-void MaterialResource::unload()
-{
-  SW_ASSERT(m_material.use_count() == 1);
 
-  m_material.reset();
-}
 
-bool MaterialResource::isBusy() const
-{
-  return m_material.use_count() > 1 || m_material->getGpuMaterial().getShadersPipeline().use_count() > 1;
-}
-
-MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void MaterialResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
   static std::unordered_map<std::string, BlendingMode> blendingModesMap = {
     {"disabled", BlendingMode::Disabled},
@@ -147,33 +129,33 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     {"texture", MaterialResourceParameters::ShaderParamType::Texture},
   };
 
-  MaterialResourceParameters parameters = defaultParameters;
+  MaterialResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
 
   // Shaders pipeline
-  pugi::xml_node shadersNode = declarationNode.child("shaders_pipeline");
+  pugi::xml_node shadersNode = configNode.child("shaders_pipeline");
 
   if (shadersNode) {
     pugi::xml_node vertexShaderNode = shadersNode.child("vertex");
 
     if (vertexShaderNode) {
-      parameters.shadersPipeline.vertexShaderId = vertexShaderNode.attribute("id").as_string();
+      resourceConfig->shadersPipeline.vertexShaderId = vertexShaderNode.attribute("id").as_string();
     }
 
     pugi::xml_node fragmentShaderNode = shadersNode.child("fragment");
 
     if (fragmentShaderNode) {
-      parameters.shadersPipeline.fragmentShaderId = fragmentShaderNode.attribute("id").as_string();
+      resourceConfig->shadersPipeline.fragmentShaderId = fragmentShaderNode.attribute("id").as_string();
     }
   }
 
   // GPU state
-  pugi::xml_node gpuStateNode = declarationNode.child("gpu_state");
+  pugi::xml_node gpuStateNode = configNode.child("gpu_state");
 
   if (gpuStateNode) {
     if (gpuStateNode.child("blending")) {
       std::string
         blendingValue = StringUtils::toLowerCase(gpuStateNode.child("blending").attribute("mode").as_string());
-      parameters.gpuState.blendingMode = ResourceDeclHelpers::getFilteredParameterValue(blendingValue,
+      resourceConfig->gpuState.blendingMode = ResourceDeclHelpers::getFilteredParameterValue(blendingValue,
         "blending",
         blendingModesMap,
         BlendingMode::Unspecified);
@@ -184,7 +166,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
 
       if (depthNode.attribute("testMode")) {
         std::string depthTestMode = StringUtils::toLowerCase(depthNode.attribute("testMode").as_string());
-        parameters.gpuState.depthTestMode = ResourceDeclHelpers::getFilteredParameterValue(depthTestMode,
+        resourceConfig->gpuState.depthTestMode = ResourceDeclHelpers::getFilteredParameterValue(depthTestMode,
           "testMode",
           depthTestModesMap,
           DepthTestMode::Unspecified);
@@ -192,7 +174,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
 
       if (depthNode.attribute("write")) {
         std::string depthWriteMode = StringUtils::toLowerCase(depthNode.attribute("write").as_string());
-        parameters.gpuState.depthWritingMode =
+        resourceConfig->gpuState.depthWritingMode =
           ResourceDeclHelpers::getFilteredParameterValue(depthWriteMode, "write", depthWritingModesMap,
             DepthWritingMode::Unspecified);
       }
@@ -201,7 +183,7 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     if (gpuStateNode.child("face_culling")) {
       std::string
         faceCullingMode = StringUtils::toLowerCase(gpuStateNode.child("face_culling").attribute("mode").as_string());
-      parameters.gpuState.faceCullingMode = ResourceDeclHelpers::getFilteredParameterValue(faceCullingMode,
+      resourceConfig->gpuState.faceCullingMode = ResourceDeclHelpers::getFilteredParameterValue(faceCullingMode,
         "face_culling",
         faceCullingModesMap,
         FaceCullingMode::Unspecified);
@@ -210,15 +192,15 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
     if (gpuStateNode.child("polygon_filling")) {
       std::string polygonFillingMode =
         StringUtils::toLowerCase(gpuStateNode.child("polygon_filling").attribute("mode").as_string());
-      parameters.gpuState.polygonFillingMode =
+      resourceConfig->gpuState.polygonFillingMode =
         ResourceDeclHelpers::getFilteredParameterValue(polygonFillingMode, "polygon_filling", polygonFillingModesMap,
           PolygonFillingMode::Unspecified);
     }
   }
 
   // Shaders parameters
-  if (declarationNode.child("params")) {
-    for (auto paramNode : declarationNode.child("params").children()) {
+  if (configNode.child("params")) {
+    for (auto paramNode : configNode.child("params").children()) {
       MaterialResourceParameters::ShaderParam param;
 
       std::string shaderType = StringUtils::toLowerCase(paramNode.attribute("shader").as_string());
@@ -260,24 +242,17 @@ MaterialResource::ParametersType MaterialResource::buildDeclarationParameters(co
           break;
       }
 
-      auto parameterIt = std::find_if(parameters.parameters.begin(), parameters.parameters.end(),
-        [&param](MaterialResourceParameters::ShaderParam existingParam) {
+      auto parameterIt = std::find_if(resourceConfig->parameters.begin(), resourceConfig->parameters.end(),
+        [&param](const MaterialResourceParameters::ShaderParam& existingParam) {
           return existingParam.name == param.name;
         });
 
-      if (parameterIt != parameters.parameters.end()) {
+      if (parameterIt != resourceConfig->parameters.end()) {
         *parameterIt = param;
       }
       else {
-        parameters.parameters.push_back(param);
+        resourceConfig->parameters.push_back(param);
       }
     }
   }
-
-  return parameters;
-}
-
-std::shared_ptr<Material> MaterialResource::getMaterial() const
-{
-  return m_material;
 }

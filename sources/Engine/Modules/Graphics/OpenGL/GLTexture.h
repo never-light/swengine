@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Modules/ResourceManagement/ResourceManager.h"
+
 #include "GL.h"
 #include "types.h"
 
@@ -25,10 +27,10 @@ enum class GLTextureInternalFormat {
   Depth24Stencil8 = GL_DEPTH24_STENCIL8
 };
 
-class GLTexture {
+class GLTexture : public Resource {
  public:
   GLTexture(GLTextureType type, int width, int height, GLTextureInternalFormat internalFormat);
-  ~GLTexture();
+  ~GLTexture() override;
 
   void setData(GLenum dataFormat, GLenum dataType, const std::byte* data, size_t lodIndex = 0);
   void setCubemapFaceData(size_t faceIndex,

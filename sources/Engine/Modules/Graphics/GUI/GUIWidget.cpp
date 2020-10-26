@@ -12,7 +12,7 @@ GUIWidget::GUIWidget(std::string className)
   : m_className(std::move(className))
 {
   auto& defaultVisualParameters = getVisualParameters(GUIWidgetVisualState::Default);
-  defaultVisualParameters.setBackgroundImage(nullptr);
+  defaultVisualParameters.setBackgroundImage(std::optional<ResourceHandle<GLTexture>>());
   defaultVisualParameters.setBackgroundColor(glm::vec4(0.0f));
   defaultVisualParameters.setBorderColor(glm::vec4(0.0f));
   defaultVisualParameters.setBorderWidth(0);

@@ -7,19 +7,19 @@
 #include <utility>
 #include "GUISystem.h"
 
-GUITextBox::GUITextBox(std::shared_ptr<BitmapFont> font)
+GUITextBox::GUITextBox(ResourceHandle<BitmapFont> font)
   : GUIWidgetRect("textbox"),
     m_font(font),
     m_text(std::make_unique<GUIText>(font, ""))
 {
 }
 
-void GUITextBox::setFont(std::shared_ptr<BitmapFont> font)
+void GUITextBox::setFont(ResourceHandle<BitmapFont> font)
 {
   m_font = std::move(font);
 }
 
-std::shared_ptr<BitmapFont> GUITextBox::getFont() const
+ResourceHandle<BitmapFont> GUITextBox::getFont() const
 {
   return m_font;
 }
@@ -142,10 +142,10 @@ void GUITextBox::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRu
       // Font family
       std::visit(GUIWidgetStylesheetPropertyVisitor{
         [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
-        [this, visualState](std::shared_ptr<BitmapFont> font) {
+        [this, visualState](ResourceHandle<BitmapFont> font) {
           SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
 
-          this->setFont(std::move(font));
+          this->setFont(font);
         },
       }, property.getValue());
     }

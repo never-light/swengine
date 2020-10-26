@@ -15,56 +15,20 @@
 #include "Utility/strings.h"
 #include "TextureResource.h"
 
-BitmapFontResource::BitmapFontResource()
+BitmapFontResource::BitmapFontResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<BitmapFont, BitmapFontResourceParameters>(resourcesManager)
 {
 
 }
 
-BitmapFontResource::~BitmapFontResource()
+BitmapFontResource::~BitmapFontResource() = default;
+
+void BitmapFontResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_font.use_count() <= 1);
-}
-
-void BitmapFontResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_font == nullptr);
-
-  BitmapFontResourceParameters parameters = declaration.getParameters<BitmapFontResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_font = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load shader resource from invalid source");
-  }
-}
-
-void BitmapFontResource::unload()
-{
-  SW_ASSERT(m_font.use_count() == 1);
-
-  m_font.reset();
-}
-
-bool BitmapFontResource::isBusy() const
-{
-  return m_font.use_count() > 1 || m_font->getBitmap().use_count() > 1;
-}
-
-std::shared_ptr<BitmapFont> BitmapFontResource::getFont() const
-{
-  return m_font;
-}
-
-std::shared_ptr<BitmapFont> BitmapFontResource::loadFromFile(const std::string& path,
-  const BitmapFontResourceParameters& parameters)
-{
-  ARG_UNUSED(parameters);
+  BitmapFontResourceParameters* config = getResourceConfig(resourceIndex);
 
   pugi::xml_document fontDescription;
-  pugi::xml_parse_result result = fontDescription.load_file(path.c_str());
+  pugi::xml_parse_result result = fontDescription.load_file(config->resourcePath.c_str());
 
   if (!result) {
     THROW_EXCEPTION(EngineRuntimeException, "Trying to load font resource from invalid source");
@@ -95,28 +59,25 @@ std::shared_ptr<BitmapFont> BitmapFontResource::loadFromFile(const std::string& 
     fontCharacters[characterIndex].xOffset = offset.x;
     fontCharacters[characterIndex].yOffset = offset.y;
     fontCharacters[characterIndex].xAdvance = xAdvance;
-    fontCharacters[characterIndex].isMapped = true;
   }
 
-  std::string bitmapFilename = fontNode.attribute("bitmap").as_string();
-  TextureResourceParameters bitmapParameters(GLTextureType::Texture2D, GLTextureInternalFormat::R8,
-    false, GL_LINEAR, GL_LINEAR,
-    GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-  std::shared_ptr<GLTexture> bitmap = TextureResource::loadFromFile(bitmapFilename, bitmapParameters);
+  std::string bitmapResourceName = fontNode.attribute("bitmap").as_string();
+
+  auto bitmapResource = getResourceManager()->getResource<GLTexture>(bitmapResourceName);
 
   unsigned int baseSize = fontNode.attribute("size").as_uint();
   unsigned int height = fontNode.attribute("height").as_uint();
 
-  return std::make_shared<BitmapFont>(bitmap, fontCharacters, baseSize, height);
+  allocateResource<BitmapFont>(resourceIndex, bitmapResource, fontCharacters, baseSize, height);
 }
 
-BitmapFontResource::ParametersType BitmapFontResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void BitmapFontResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ARG_UNUSED(declarationNode);
+  BitmapFontResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  ParametersType parameters = defaultParameters;
-
-  return parameters;
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Bitmap font resource refer to not existing file", resourceConfig->resourcePath));
+  }
 }
-

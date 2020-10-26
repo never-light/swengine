@@ -16,7 +16,7 @@ std::shared_ptr<GameWorld> TestGameWorldGenerator::buildTestGameWorld()
 {
   // Initialize game world and general gameplay systems
   auto gameWorld = GameWorld::createInstance();
-  auto resourcesManager = std::make_shared<ResourceManager>();
+  auto resourcesManager = std::make_shared<ResourcesManager>();
   auto levelsManager = std::make_shared<LevelsManager>(gameWorld, resourcesManager);
 
   auto infoportionsSystem = std::make_shared<InfoportionsSystem>();
@@ -52,7 +52,7 @@ std::shared_ptr<GameWorld> TestGameWorldGenerator::buildTestGameWorld()
   // Initialize misc game objects
   GameObject medkit = gameWorld->createGameObject("medkit");
   medkit.addComponent<TransformComponent>();
-  medkit.addComponent<InventoryItemComponent>(nullptr, "objet_class_medkit", "medkit");
+  medkit.addComponent<InventoryItemComponent>(ResourceHandle<GLTexture>(), "objet_class_medkit", "medkit");
 
   // Initialize infoportions
   infoportionsSystem->addInfoportion("infoportion_id_test_1");

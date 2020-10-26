@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 #include "BaseBackend/KinematicCharacterComponentBackend.h"
 
@@ -10,7 +11,7 @@
 
 struct KinematicCharacterComponent {
  public:
-  explicit KinematicCharacterComponent(std::shared_ptr<CollisionShape> collisionShape);
+  explicit KinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape);
 
   void setTransform(const Transform& transform);
 

@@ -18,83 +18,46 @@
 
 #include "Modules/Graphics/Resources/Raw/RawMesh.h"
 
-MeshResource::MeshResource()
+MeshResource::MeshResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<Mesh, MeshResourceParameters>(resourcesManager)
 {
 
 }
 
-MeshResource::~MeshResource()
+MeshResource::~MeshResource() = default;
+
+void MeshResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_mesh.use_count() <= 1);
-}
-
-void MeshResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_mesh == nullptr);
-
-  MeshResourceParameters parameters = declaration.getParameters<MeshResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_mesh = loadFromFile(sourceFile->path, parameters);
-
-    if (parameters.skeletonResourceId.has_value()) {
-      std::shared_ptr<Skeleton> skeleton = resourceManager.getResourceFromInstance<SkeletonResource>(
-        parameters.skeletonResourceId.value())->getSkeleton();
-
-      m_mesh->setSkeleton(skeleton);
-    }
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load mesh resource from invalid source");
-  }
-}
-
-void MeshResource::unload()
-{
-  SW_ASSERT(m_mesh.use_count() == 1);
-
-  m_mesh.reset();
-}
-
-bool MeshResource::isBusy() const
-{
-  return m_mesh.use_count() > 1;
-}
-
-std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const MeshResourceParameters& parameters)
-{
-  ARG_UNUSED(parameters);
+  MeshResourceParameters* config = getResourceConfig(resourceIndex);
 
   // Read raw mesh
-  RawMesh rawMesh = RawMesh::readFromFile(path);
+  RawMesh rawMesh = RawMesh::readFromFile(config->resourcePath);
 
   // Convert raw mesh to internal mesh object
-  std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+  auto mesh = allocateResource<Mesh>(resourceIndex);
 
-  if (rawMesh.positions.size() != 0) {
+  if (!rawMesh.positions.empty()) {
     std::vector<glm::vec3> positions =
       MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.positions);
 
     mesh->setVertices(positions);
   }
 
-  if (rawMesh.normals.size() != 0) {
+  if (!rawMesh.normals.empty()) {
     std::vector<glm::vec3> normals =
       MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.normals);
 
     mesh->setNormals(normals);
   }
 
-  if (rawMesh.uv.size() != 0) {
+  if (!rawMesh.uv.empty()) {
     std::vector<glm::vec2> uv =
       MemoryUtils::createBinaryCompatibleVector<RawVector2, glm::vec2>(rawMesh.uv);
 
     mesh->setUV(uv);
   }
 
-  if (rawMesh.tangents.size() != 0) {
+  if (!rawMesh.tangents.empty()) {
     std::vector<glm::vec3> tangents =
       MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawMesh.tangents);
 
@@ -116,15 +79,26 @@ std::shared_ptr<Mesh> MeshResource::loadFromFile(const std::string& path, const 
   mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
   mesh->setAABB(rawMesh.aabb);
 
-  return mesh;
+  if (config->skeletonResourceId.has_value()) {
+    ResourceHandle<Skeleton> skeleton = getResourceManager()->getResource<Skeleton>(
+      config->skeletonResourceId.value());
+
+    mesh->setSkeleton(skeleton);
+  }
+
 }
 
-MeshResource::ParametersType MeshResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void MeshResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ParametersType parameters = defaultParameters;
+  MeshResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  pugi::xml_node skeletonNode = declarationNode.child("skeleton");
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Mesh resource refer to not existing file", resourceConfig->resourcePath));
+  }
+
+  pugi::xml_node skeletonNode = configNode.child("skeleton");
 
   if (skeletonNode) {
     pugi::xml_attribute skeletonId = skeletonNode.attribute("id");
@@ -134,13 +108,6 @@ MeshResource::ParametersType MeshResource::buildDeclarationParameters(const pugi
         "Skeleton attribute for a mesh is added, but resource id is not specified");
     }
 
-    parameters.skeletonResourceId = skeletonId.as_string();
+    resourceConfig->skeletonResourceId = skeletonId.as_string();
   }
-
-  return parameters;
-}
-
-std::shared_ptr<Mesh> MeshResource::getMesh() const
-{
-  return m_mesh;
 }

@@ -10,90 +10,21 @@
 
 #include "Utility/files.h"
 
-ShaderResource::ShaderResource()
+ShaderResource::ShaderResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<GLShader, ShaderResourceParameters>(resourcesManager)
 {
 
 }
 
-ShaderResource::~ShaderResource()
+ShaderResource::~ShaderResource() = default;
+
+void ShaderResource::load(size_t resourceIndex)
 {
-  SW_ASSERT(m_shader.use_count() <= 1);
-}
+  ShaderResourceParameters* config = getResourceConfig(resourceIndex);
 
-void ShaderResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
-{
-  ARG_UNUSED(resourceManager);
+  std::string source = preprocessShaderSource(FileUtils::readFile(config->resourcePath));
 
-  SW_ASSERT(m_shader == nullptr);
-
-  ShaderResourceParameters parameters = declaration.getParameters<ShaderResourceParameters>();
-
-  if (auto sourceString = std::get_if<ResourceSourceRawString>(&declaration.source)) {
-    m_shader = loadFromRawString(sourceString->data, parameters);
-  }
-  else if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_shader = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load shader resource from invalid source");
-  }
-}
-
-void ShaderResource::unload()
-{
-  SW_ASSERT(m_shader.use_count() == 1);
-
-  m_shader.reset();
-}
-
-bool ShaderResource::isBusy() const
-{
-  return m_shader.use_count() > 1;
-}
-
-std::shared_ptr<GLShader> ShaderResource::loadFromFile(const std::string& path,
-  const ShaderResourceParameters& parameters)
-{
-  std::string source = preprocessShaderSource(FileUtils::readFile(path));
-
-  return std::make_shared<GLShader>(parameters.shaderType, source);
-}
-
-std::shared_ptr<GLShader> ShaderResource::loadFromRawString(const std::string& rawString,
-  const ShaderResourceParameters& parameters)
-{
-  std::string source = preprocessShaderSource(rawString);
-
-  return std::make_shared<GLShader>(parameters.shaderType, source);
-}
-
-ShaderResource::ParametersType ShaderResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
-{
-  static std::unordered_map<std::string, ShaderType> shadersTypesMap = {
-    {"vertex", ShaderType::Vertex},
-    {"fragment", ShaderType::Fragment},
-    {"geometry", ShaderType::Geometry},
-  };
-
-  ParametersType parameters = defaultParameters;
-
-  // Shader type
-  if (declarationNode.child("type")) {
-    ShaderType shaderType = ResourceDeclHelpers::getFilteredParameterValue(declarationNode,
-      "type",
-      shadersTypesMap,
-      static_cast<ShaderType>(ShaderType::Vertex));
-
-    parameters.shaderType = shaderType;
-  }
-
-  return parameters;
-}
-
-std::shared_ptr<GLShader> ShaderResource::getShader() const
-{
-  return m_shader;
+  allocateResource<GLShader>(resourceIndex, config->shaderType, source);
 }
 
 std::string ShaderResource::preprocessShaderSource(const std::string& source)
@@ -148,3 +79,31 @@ std::string ShaderResource::processMacros(const std::string& source)
 
   return processedSource;
 }
+
+void ShaderResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
+{
+  ShaderResourceParameters* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
+
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Animation clip resource refer to not existing file", resourceConfig->resourcePath));
+  }
+
+  static std::unordered_map<std::string, ShaderType> shadersTypesMap = {
+    {"vertex", ShaderType::Vertex},
+    {"fragment", ShaderType::Fragment},
+    {"geometry", ShaderType::Geometry},
+  };
+
+  // Shader type
+  if (configNode.child("type")) {
+    ShaderType shaderType = ResourceDeclHelpers::getFilteredParameterValue(configNode,
+      "type",
+      shadersTypesMap,
+      static_cast<ShaderType>(ShaderType::Vertex));
+
+    resourceConfig->shaderType = shaderType;
+  }
+}
+

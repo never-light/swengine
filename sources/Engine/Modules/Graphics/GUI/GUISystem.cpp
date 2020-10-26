@@ -10,7 +10,7 @@
 
 GUISystem::GUISystem(
   std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
   : m_inputModule(std::move(inputModule)),
@@ -109,12 +109,12 @@ std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
   return m_activeLayout;
 }
 
-void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font)
+void GUISystem::setDefaultFont(ResourceHandle<BitmapFont> font)
 {
   m_defaultFont = std::move(font);
 }
 
-std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const
+ResourceHandle<BitmapFont> GUISystem::getDefaultFont() const
 {
   return m_defaultFont;
 }
@@ -155,15 +155,15 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 
   auto backgroundTexture = currentVisualParameters.getBackgroundImage();
 
-  if (backgroundTexture == nullptr) {
+  if (!backgroundTexture.has_value()) {
     backgroundTexture = defaultVisualParameters.getBackgroundImage();
   }
 
   fragmentShader->setParameter("widget.backgroundColor", backgroundColor.value());
-  fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture != nullptr);
+  fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture.has_value());
 
-  if (backgroundTexture != nullptr) {
-    fragmentShader->setParameter("widget.backgroundTexture", *backgroundTexture, 0);
+  if (backgroundTexture.has_value()) {
+    fragmentShader->setParameter("widget.backgroundTexture", *backgroundTexture.value(), 0);
   }
 
   fragmentShader->setParameter("widget.useColorAlphaTexture", false);

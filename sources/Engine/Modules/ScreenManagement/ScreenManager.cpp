@@ -7,7 +7,7 @@
 ScreenManager::ScreenManager(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GraphicsModule> graphicsModule,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(gameWorld),
     m_graphicsModule(graphicsModule),
     m_sharedGraphicsState(sharedGraphicsState),

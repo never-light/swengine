@@ -12,69 +12,38 @@
 
 #include "Utility/memory.h"
 
-CollisionDataResource::CollisionDataResource() = default;
-
-CollisionDataResource::~CollisionDataResource()
+CollisionDataResource::CollisionDataResource(ResourcesManager* resourcesManager)
+  : ResourceTypeManager<CollisionShape, CollisionDataResourceConfig>(resourcesManager)
 {
-  SW_ASSERT(m_collisionShape.use_count() <= 1);
+
 }
 
-void CollisionDataResource::load(const ResourceDeclaration& declaration, ResourceManager& resourceManager)
+CollisionDataResource::~CollisionDataResource() = default;
+
+void CollisionDataResource::load(size_t resourceIndex)
 {
-  ARG_UNUSED(resourceManager);
-
-  SW_ASSERT(m_collisionShape == nullptr);
-
-  auto parameters = declaration.getParameters<CollisionDataResourceParameters>();
-
-  if (auto sourceFile = std::get_if<ResourceSourceFile>(&declaration.source)) {
-    m_collisionShape = loadFromFile(sourceFile->path, parameters);
-  }
-  else {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to load collision data resource from invalid source");
-  }
-}
-
-void CollisionDataResource::unload()
-{
-  SW_ASSERT(m_collisionShape.use_count() == 1);
-
-  m_collisionShape.reset();
-}
-
-bool CollisionDataResource::isBusy() const
-{
-  return m_collisionShape.use_count() > 1;
-}
-
-std::shared_ptr<CollisionShape> CollisionDataResource::loadFromFile(const std::string& path,
-  const CollisionDataResourceParameters& parameters)
-{
-  ARG_UNUSED(parameters);
+  CollisionDataResourceConfig* config = getResourceConfig(resourceIndex);
 
   // Read raw mesh
-  RawMeshCollisionData rawCollisionData = RawMeshCollisionData::readFromFile(path);
+  RawMeshCollisionData rawCollisionData = RawMeshCollisionData::readFromFile(config->resourcePath);
 
   // Convert raw collision shapes to internal collision shapes objects
   std::vector<CollisionShapeCompoundChild> collisionShapes;
 
   for (const auto& rawShape : rawCollisionData.collisionShapes) {
-    CollisionShapeCompoundChild childShape;
-
     switch (rawShape.type) {
       case RawMeshCollisionShapeType::AABB: {
         glm::vec3 min = {rawShape.aabb.min.x, rawShape.aabb.min.y, rawShape.aabb.min.z};
         glm::vec3 max = {rawShape.aabb.max.x, rawShape.aabb.max.y, rawShape.aabb.max.z};
 
-        childShape.shape = std::make_shared<CollisionShapeBox>((max - min) / 2.0f);
-        childShape.origin = (max + min) / 2.0f;
+        collisionShapes.push_back({CollisionShapeBox((max - min) / 2.0f), (max + min) / 2.0f});
 
         break;
       }
 
       case RawMeshCollisionShapeType::Sphere: {
-        childShape.shape = std::make_shared<CollisionShapeSphere>(rawShape.sphere.radius);
-        childShape.origin = {rawShape.sphere.origin.x, rawShape.sphere.origin.y, rawShape.sphere.origin.z};
+        collisionShapes.push_back({CollisionShapeSphere(rawShape.sphere.radius),
+          {rawShape.sphere.origin.x, rawShape.sphere.origin.y, rawShape.sphere.origin.z}});
 
         break;
       }
@@ -83,8 +52,7 @@ std::shared_ptr<CollisionShape> CollisionDataResource::loadFromFile(const std::s
         std::vector<glm::vec3> vertices =
           MemoryUtils::createBinaryCompatibleVector<RawVector3, glm::vec3>(rawShape.triangleMesh.vertices);
 
-        childShape.shape = std::make_shared<CollisionShapeTriangleMesh>(vertices);
-        childShape.origin = {0.0f, 0.0f, 0.0f};
+        collisionShapes.push_back({CollisionShapeTriangleMesh(vertices), {0.0f, 0.0f, 0.0f}});
 
         break;
       }
@@ -93,38 +61,32 @@ std::shared_ptr<CollisionShape> CollisionDataResource::loadFromFile(const std::s
         SW_ASSERT(false);
         break;
     }
-
-    collisionShapes.push_back(childShape);
   }
 
-  std::shared_ptr<CollisionShape> collisionShape;
+  CollisionShape collisionShape;
 
   SW_ASSERT(!collisionShapes.empty());
 
   if (collisionShapes.size() == 1) {
     // Assume that if the mesh has only one collider, it should be located in center of local coordinate system
-    SW_ASSERT(MathUtils::isEqual(collisionShapes.begin()->origin, { 0.0f, 0.0f, 0.0f }, 1e-2f));
+    SW_ASSERT(MathUtils::isEqual(collisionShapes.begin()->origin, {0.0f, 0.0f, 0.0f}, 1e-2f));
 
-    collisionShape = collisionShapes.begin()->shape;
+    collisionShape = CollisionShape(collisionShapes.begin()->shape);
   }
   else {
-    collisionShape = std::make_shared<CollisionShapeCompound>(collisionShapes);
+    collisionShape = CollisionShape(CollisionShapeCompound(collisionShapes));
   }
 
-  return collisionShape;
+  allocateResource<CollisionShape>(resourceIndex, collisionShape);
 }
 
-CollisionDataResource::ParametersType CollisionDataResource::buildDeclarationParameters(const pugi::xml_node& declarationNode,
-  const ParametersType& defaultParameters)
+void CollisionDataResource::parseConfig(size_t resourceIndex, pugi::xml_node configNode)
 {
-  ARG_UNUSED(declarationNode);
+  CollisionDataResourceConfig* resourceConfig = createResourceConfig(resourceIndex);
+  resourceConfig->resourcePath = configNode.attribute("source").as_string();
 
-  ParametersType parameters = defaultParameters;
-
-  return parameters;
-}
-
-std::shared_ptr<CollisionShape> CollisionDataResource::getCollisionShape() const
-{
-  return m_collisionShape;
+  if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Collision shape resource refer to not existing file", resourceConfig->resourcePath));
+  }
 }

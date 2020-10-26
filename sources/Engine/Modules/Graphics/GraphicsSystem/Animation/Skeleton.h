@@ -6,12 +6,13 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Bone.h"
 
 /**
  * @brief The call represents collection of bones for skeletal animation of skinned mesh
  */
-class Skeleton {
+class Skeleton : public Resource {
  public:
   /**
    * @brief Constructor
@@ -28,7 +29,7 @@ class Skeleton {
   /**
    * @brief Destructor
    */
-  ~Skeleton() = default;
+  ~Skeleton() override = default;
 
   /**
    * @brief Returns the root bone

@@ -5,6 +5,7 @@
 #include <functional>
 
 #include <Engine/Modules/ECS/ECS.h>
+#include <Engine/Modules/ResourceManagement/ResourceManager.h>
 #include <Engine/Modules/Graphics/OpenGL/GLTexture.h>
 
 struct InventoryItemComponent {
@@ -14,12 +15,12 @@ struct InventoryItemComponent {
 
  public:
   InventoryItemComponent(
-    std::shared_ptr<GLTexture> icon,
+    ResourceHandle<GLTexture> icon,
     std::string id,
     std::string name);
 
-  void setIcon(std::shared_ptr<GLTexture> icon);
-  [[nodiscard]] std::shared_ptr<GLTexture> getIcon() const;
+  void setIcon(ResourceHandle<GLTexture> icon);
+  [[nodiscard]] ResourceHandle<GLTexture> getIcon() const;
 
   void setId(const std::string& id);
   [[nodiscard]] const std::string& getId() const;
@@ -107,7 +108,7 @@ struct InventoryItemComponent {
   [[nodiscard]] ActionCallback getReadCallback() const;
 
  private:
-  std::shared_ptr<GLTexture> m_icon;
+  ResourceHandle<GLTexture> m_icon;
   std::string m_id;
   std::string m_name;
   std::string m_shortDescription;

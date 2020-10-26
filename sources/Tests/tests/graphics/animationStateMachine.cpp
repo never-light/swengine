@@ -4,7 +4,9 @@
 
 TEST_CASE("state_machine_variables_get_set", "[graphics]animation]")
 {
-  auto skeleton = std::make_shared<Skeleton>(generateTestSkeleton());
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+
+  auto skeleton = resourcesManager->createResourceInPlace<Skeleton>(generateTestSkeleton());
   AnimationStatesMachine stateMachine(skeleton);
 
   AnimationStatesMachineVariables& variablesSet = stateMachine.getVariablesSet();
@@ -19,7 +21,9 @@ TEST_CASE("state_machine_variables_get_set", "[graphics]animation]")
 
 TEST_CASE("state_machine_states_clip_pose_node", "[graphics][animation]")
 {
-  SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance());
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+
+  SkeletalAnimationClipPoseNode clipPoseNode(generateTestAnimationClipInstance(*resourcesManager));
   AnimationStatesMachineVariables variablesSet;
 
   clipPoseNode.startAnimation();
@@ -43,11 +47,13 @@ TEST_CASE("state_machine_states_clip_pose_node", "[graphics][animation]")
 
 TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
 {
-  std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+
+  ResourceHandle<Skeleton> skeleton = resourcesManager->createResourceInPlace<Skeleton>(
     std::vector<Bone>({Bone("root", Bone::ROOT_BONE_PARENT_ID, MathUtils::IDENTITY_MATRIX4)}));
 
-  std::shared_ptr<AnimationClip> firstAnimationClip =
-    std::make_shared<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+  ResourceHandle<AnimationClip> firstAnimationClip =
+    resourcesManager->createResourceInPlace<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
       BoneAnimationChannel({
         BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
         BoneAnimationPositionFrame{30.0f, {30.0f, 0.0f, 0.0f}},
@@ -56,8 +62,8 @@ TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
 
   AnimationClipInstance firstAnimationClipInstance(skeleton, firstAnimationClip);
 
-  std::shared_ptr<AnimationClip> secondAnimationClip =
-    std::make_shared<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+  ResourceHandle<AnimationClip> secondAnimationClip =
+    resourcesManager->createResourceInPlace<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
       BoneAnimationChannel({
         BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
         BoneAnimationPositionFrame{30.0f, {0.0f, 30.0f, 0.0f}},
@@ -107,8 +113,8 @@ TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
   }
 
   SECTION("additive_blending") {
-    std::shared_ptr<AnimationClip> mainAnimationClip =
-      std::make_shared<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+    ResourceHandle<AnimationClip> mainAnimationClip =
+      resourcesManager->createResourceInPlace<AnimationClip>("first", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
         BoneAnimationChannel({
           BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
           BoneAnimationPositionFrame{60.0f, {0.0f, 0.0f, 0.0f}}
@@ -119,8 +125,8 @@ TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
 
     AnimationClipInstance mainAnimationClipInstance(skeleton, mainAnimationClip);
 
-    std::shared_ptr<AnimationClip> additiveAnimationClip =
-      std::make_shared<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
+    ResourceHandle<AnimationClip> additiveAnimationClip =
+      resourcesManager->createResourceInPlace<AnimationClip>("second", 60.0f, 30.0f, std::vector<BoneAnimationChannel>{
         BoneAnimationChannel({
           BoneAnimationPositionFrame{0.0f, {0.0f, 0.0f, 0.0f}},
           BoneAnimationPositionFrame{30.0f, {10.0f, 20.0f, 30.0f}},
@@ -163,7 +169,9 @@ TEST_CASE("state_machine_states_blend_pose_node", "[graphics][animation]")
 
 TEST_CASE("state_machine_conditional_transitions", "[graphics][animation]")
 {
-  auto clipInstance = generateTestAnimationClipInstance();
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+
+  auto clipInstance = generateTestAnimationClipInstance(*resourcesManager);
 
   AnimationStatesMachine statesMachine(clipInstance.getSkeletonPtr());
 

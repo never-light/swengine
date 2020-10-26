@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Modules/ResourceManagement/ResourceManager.h"
+
 #include "BaseBackend/RigidBodyComponentBackend.h"
 #include "BaseBackend/KinematicCharacterComponentBackend.h"
 #include "BaseBackend/PhysicsSystemBackend.h"
@@ -14,9 +16,9 @@ class PhysicsBackendFactory {
   static std::shared_ptr<PhysicsSystemBackend> createPhysicsSystem(GameWorld* gameWorld);
 
   static std::shared_ptr<RigidBodyComponentBackend> createRigidBodyComponent(float mass,
-    std::shared_ptr<CollisionShape> collisionShape);
+    ResourceHandle<CollisionShape> collisionShape);
 
   static std::shared_ptr<KinematicCharacterComponentBackend> createKinematicCharacterComponent(
-    std::shared_ptr<CollisionShape> collisionShape);
+    ResourceHandle<CollisionShape> collisionShape);
 
 };

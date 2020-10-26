@@ -4,6 +4,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <BulletDynamics/Character/btKinematicCharacterController.h>
 
+#include "Modules/ResourceManagement/ResourceManager.h"
 #include "Modules/Physics/BaseBackend/KinematicCharacterComponentBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
@@ -15,7 +16,7 @@ class BulletPhysicsSystemBackend;
 
 class BulletKinematicCharacterComponent : public KinematicCharacterComponentBackend {
  public:
-  explicit BulletKinematicCharacterComponent(std::shared_ptr<CollisionShape> collisionShape);
+  explicit BulletKinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape);
   ~BulletKinematicCharacterComponent() override;
 
   void setTransform(const Transform& transform) override;

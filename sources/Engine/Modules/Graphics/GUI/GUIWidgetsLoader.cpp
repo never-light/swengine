@@ -12,7 +12,7 @@
 #include "GUISystem.h"
 
 GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_guiSystem(std::move(guiSystem)),
     m_resourceManager(std::move(resourceManager))
 {
@@ -27,7 +27,7 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
     [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
       std::string imageResourceName = propertyNode.attribute("value").as_string();
 
-      return m_resourceManager->getResourceFromInstance<TextureResource>(imageResourceName)->getTexture();
+      return m_resourceManager->getResource<GLTexture>(imageResourceName);
     });
 
   // Font property
@@ -35,7 +35,7 @@ GUIWidgetsLoader::GUIWidgetsLoader(std::weak_ptr<GUISystem> guiSystem,
     [this](const pugi::xml_node& propertyNode) -> GUIWidgetStylesheetProperty::Value {
       std::string fontResourceName = propertyNode.attribute("value").as_string();
 
-      return m_resourceManager->getResourceFromInstance<BitmapFontResource>(fontResourceName)->getFont();
+      return m_resourceManager->getResource<BitmapFont>(fontResourceName);
     });
 
   // Color property
