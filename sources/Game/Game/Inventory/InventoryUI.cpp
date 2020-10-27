@@ -6,7 +6,7 @@
 #include <utility>
 
 InventoryUI::InventoryUI(
-  std::shared_ptr<GameWorld> gameWorld,
+  std::weak_ptr<GameWorld> gameWorld,
   std::shared_ptr<InputModule> inputModule)
   : GUILayout("inventory_ui"),
     m_gameWorld(std::move(gameWorld)),
@@ -311,7 +311,7 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
 
     m_contextUseLink->setMouseButtonCallback([this, itemObject](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
-        m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
+        m_gameWorld.lock()->emitEvent<InventoryItemActionCommandEvent>(
           {m_inventoryOwner,
             InventoryItemActionTriggerType::Use,
             itemObject});
@@ -328,7 +328,7 @@ void InventoryUI::showContextActionMenu(const glm::ivec2& origin, GameObject ite
 
     m_contextDropLink->setMouseButtonCallback([this, itemObject](const GUIMouseButtonEvent& event) {
       if (event.type == MouseButtonEventType::ButtonDown && event.button == SDL_BUTTON_LEFT) {
-        m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
+        m_gameWorld.lock()->emitEvent<InventoryItemActionCommandEvent>(
           {m_inventoryOwner,
             InventoryItemActionTriggerType::DropFromInventory,
             itemObject});

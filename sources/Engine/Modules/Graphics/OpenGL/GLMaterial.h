@@ -13,9 +13,8 @@
 
 #include "GLTexture.h"
 
-#include "Modules/Graphics/Resources/ShaderResource.h"
-#include "Modules/ResourceManagement/ResourceInstance.h"
-
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
 #include "Modules/Math/Rect.h"
 
 enum class DepthTestMode {
@@ -44,16 +43,16 @@ enum class ScissorsTestMode {
 
 class GLGraphicsContext;
 
-class GLMaterial {
+class GLMaterial : public Resource {
  public:
   struct TextureParameter {
-    TextureParameter(std::shared_ptr<GLTexture> texture, size_t slotIndex)
+    TextureParameter(ResourceHandle<GLTexture> texture, size_t slotIndex)
       : texture(texture), slotIndex(slotIndex)
     {
 
     }
 
-    std::shared_ptr<GLTexture> texture;
+    ResourceHandle<GLTexture> texture;
     size_t slotIndex;
   };
 
@@ -72,7 +71,7 @@ class GLMaterial {
 
  public:
   GLMaterial();
-  ~GLMaterial();
+  ~GLMaterial() override;
 
   void setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline);
   [[nodiscard]] std::shared_ptr<GLShadersPipeline> getShadersPipeline() const;

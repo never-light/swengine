@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Skeleton.h"
 #include "BoneAnimationChannel.h"
 #include "Bone.h"
@@ -16,14 +17,14 @@ struct AnimationMatrixPalette {
   std::vector<glm::mat4> bonesTransforms;
 };
 
-class AnimationClip {
+class AnimationClip : public Resource {
  public:
   AnimationClip(const std::string& name,
     float duration,
     float rate,
     const std::vector<BoneAnimationChannel>& bonesAnimationChannels);
 
-  ~AnimationClip() = default;
+  ~AnimationClip() override = default;
 
   [[nodiscard]] const std::string& getName() const;
 

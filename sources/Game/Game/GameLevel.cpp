@@ -10,16 +10,16 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h>
 
-#include <Engine/Modules/Graphics/Resources/MaterialResource.h>
-#include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
-#include <Engine/Modules/Graphics/Resources/SkeletalAnimationResource.h>
-#include <Engine/Modules/Graphics/Resources/AnimationStatesMachineResource.h>
+#include <Engine/Modules/Graphics/Resources/MaterialResourceManager.h>
+#include <Engine/Modules/Graphics/Resources/SkeletonResourceManager.h>
+#include <Engine/Modules/Graphics/Resources/SkeletalAnimationResourceManager.h>
+#include <Engine/Modules/Graphics/Resources/AnimationStatesMachineResourceManager.h>
 
 #include <Engine/Modules/Physics/PhysicsSystem.h>
-#include <Engine/Modules/Physics/Resources/CollisionDataResource.h>
+#include <Engine/Modules/Physics/Resources/CollisionShapeResourceManager.h>
 
 #include <Engine/Modules/Audio/AudioSourceComponent.h>
-#include <Engine/Modules/Audio/Resources/AudioClipResource.h>
+#include <Engine/Modules/Audio/Resources/AudioClipResourceManager.h>
 
 #include <utility>
 
@@ -27,7 +27,7 @@
 
 GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager)
   : m_gameWorld(std::move(gameWorld)),
     m_graphicsContext(std::move(graphicsContext)),

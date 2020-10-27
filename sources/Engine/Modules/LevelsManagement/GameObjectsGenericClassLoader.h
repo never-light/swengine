@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Modules/ECS/ECS.h"
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 #include "Utility/xml.h"
 

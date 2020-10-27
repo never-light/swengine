@@ -9,9 +9,8 @@
 #include "AnimationClipInstance.h"
 #include "AnimationPose.h"
 
-AnimationStatesMachine::AnimationStatesMachine(std::shared_ptr<Skeleton> skeleton)
-  : m_skeleton(skeleton),
-    m_fadingPose(skeleton),
+AnimationStatesMachine::AnimationStatesMachine(ResourceHandle<Skeleton> skeleton)
+  : m_fadingPose(skeleton),
     m_smoothedPose(skeleton)
 {
 

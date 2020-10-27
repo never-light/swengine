@@ -3,22 +3,24 @@
 #include <memory>
 
 #include "GUIWidget.h"
+
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
 class GUIImage : public GUIWidget {
  public:
-  explicit GUIImage(std::shared_ptr<GLTexture> image);
+  explicit GUIImage(ResourceHandle<GLTexture> image);
 
-  inline void setImage(std::shared_ptr<GLTexture> image,
+  inline void setImage(ResourceHandle<GLTexture> image,
     GUIWidgetVisualState visualState = GUIWidgetVisualState::Default)
   {
-    return getVisualParameters(visualState).setBackgroundImage(std::move(image));
+    return getVisualParameters(visualState).setBackgroundImage(image);
   }
 
-  [[nodiscard]] inline std::shared_ptr<GLTexture> getImage(
+  [[nodiscard]] inline ResourceHandle<GLTexture> getImage(
     GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const
   {
-    return getVisualParameters(visualState).getBackgroundImage();
+    return getVisualParameters(visualState).getBackgroundImage().value();
   }
 
   void applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule) override;

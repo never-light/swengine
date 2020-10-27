@@ -27,7 +27,7 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
                   public EventsListener<KeyboardEvent> {
  public:
   GUISystem(std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<ResourceManager> resourceManager,
+    std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GLShadersPipeline> guiShadersPipeline);
 
@@ -40,8 +40,8 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   void setActiveLayout(std::shared_ptr<GUILayout> layout);
   [[nodiscard]] std::shared_ptr<GUILayout> getActiveLayout();
 
-  void setDefaultFont(std::shared_ptr<BitmapFont> font);
-  [[nodiscard]] std::shared_ptr<BitmapFont> getDefaultFont() const;
+  void setDefaultFont(ResourceHandle<BitmapFont> font);
+  [[nodiscard]] ResourceHandle<BitmapFont> getDefaultFont() const;
 
   [[nodiscard]] std::shared_ptr<GLGraphicsContext> getGraphicsContext() const;
   [[nodiscard]] RenderTask getRenderTaskTemplate(GUIWidget* widget) const;
@@ -76,11 +76,11 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
   std::shared_ptr<GUILayout> m_activeLayout;
 
   std::shared_ptr<InputModule> m_inputModule;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<GLShadersPipeline> m_guiShadersPipeline;
-  std::shared_ptr<BitmapFont> m_defaultFont;
+  ResourceHandle<BitmapFont> m_defaultFont;
 
   std::shared_ptr<GUIWidget> m_focusedWidget;
 

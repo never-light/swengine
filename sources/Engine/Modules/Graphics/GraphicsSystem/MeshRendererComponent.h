@@ -3,8 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "Modules/Graphics/Resources/MeshResource.h"
-#include "Modules/ResourceManagement/ResourceInstance.h"
+#include "Modules/Graphics/Resources/MeshResourceManager.h"
 
 #include "Transform.h"
 #include "Material.h"
@@ -16,20 +15,20 @@ class MeshRendererComponent {
  public:
   MeshRendererComponent();
 
-  void setMeshInstance(std::shared_ptr<Mesh> instance);
-  [[nodiscard]] std::shared_ptr<Mesh> getMeshInstance() const;
+  void setMeshInstance(ResourceHandle<Mesh> instance);
+  [[nodiscard]] ResourceHandle<Mesh> getMeshInstance() const;
 
-  void setMaterialsInstances(const std::vector<std::shared_ptr<Material>>& instances);
-  void setMaterialInstance(size_t subMeshIndex, std::shared_ptr<Material> instance);
+  void setMaterialsInstances(const std::vector<ResourceHandle<Material>>& instances);
+  void setMaterialInstance(size_t subMeshIndex, ResourceHandle<Material> instance);
 
-  [[nodiscard]] std::shared_ptr<Material> getMaterialInstance(size_t subMeshIndex) const;
+  [[nodiscard]] ResourceHandle<Material> getMaterialInstance(size_t subMeshIndex) const;
 
   [[nodiscard]] const MeshRenderingAttributes& getAttributes() const;
   [[nodiscard]] MeshRenderingAttributes& getAttributes();
 
  private:
-  std::shared_ptr<Mesh> m_meshInstance;
-  std::vector<std::shared_ptr<Material>> m_materialsInstances;
+  ResourceHandle<Mesh> m_meshInstance;
+  std::vector<ResourceHandle<Material>> m_materialsInstances;
 
   MeshRenderingAttributes m_renderingAttributes;
 };

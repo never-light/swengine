@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
 #include "Material.h"
@@ -13,11 +14,11 @@ class EnvironmentComponent {
  public:
   EnvironmentComponent();
 
-  void setEnvironmentMaterial(std::shared_ptr<Material> material);
+  void setEnvironmentMaterial(ResourceHandle<Material> material);
   [[nodiscard]] Material* getEnvironmentMaterial() const;
 
  private:
-  std::shared_ptr<Material> m_environmentMaterial;
+  ResourceHandle<Material> m_environmentMaterial;
 };
 
 class EnvironmentRenderingSystem : public RenderingSystem {
@@ -25,7 +26,7 @@ class EnvironmentRenderingSystem : public RenderingSystem {
   EnvironmentRenderingSystem(
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GraphicsScene> graphicsScene,
-    std::shared_ptr<Mesh> environmentMesh);
+    ResourceHandle<Mesh> environmentMesh);
 
   ~EnvironmentRenderingSystem() override;
 
@@ -36,7 +37,7 @@ class EnvironmentRenderingSystem : public RenderingSystem {
   void renderForward() override;
 
  private:
-  std::shared_ptr<Mesh> m_environmentMesh;
+  ResourceHandle<Mesh> m_environmentMesh;
 };
 
 

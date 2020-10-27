@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine/Modules/ECS/ECS.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Engine/Utility/xml.h>
 
@@ -9,7 +9,7 @@ class GameComponentsLoader {
  public:
   explicit GameComponentsLoader(
     std::shared_ptr<GameWorld> gameWorld,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
 
   void loadPlayerData(GameObject& gameObject, const pugi::xml_node& data);
   void loadInventoryItemData(GameObject& gameObject, const pugi::xml_node& data);
@@ -19,5 +19,5 @@ class GameComponentsLoader {
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 };

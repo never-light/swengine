@@ -11,13 +11,13 @@
 
 GUIText::GUIText()
   : GUIWidget("label"),
-    m_font(nullptr),
+    m_font(ResourceHandle<BitmapFont>()),
     m_fontSize(0)
 {
 
 }
 
-GUIText::GUIText(std::shared_ptr<BitmapFont> font, std::string text)
+GUIText::GUIText(ResourceHandle<BitmapFont> font, std::string text)
   : GUIWidget("label"),
     m_font(font),
     m_text(std::move(text)),
@@ -25,13 +25,13 @@ GUIText::GUIText(std::shared_ptr<BitmapFont> font, std::string text)
 {
 }
 
-void GUIText::setFont(std::shared_ptr<BitmapFont> font)
+void GUIText::setFont(ResourceHandle<BitmapFont> font)
 {
-  m_font = std::move(font);
+  m_font = font;
   resetTextGeometryCache();
 }
 
-std::shared_ptr<BitmapFont> GUIText::getFont() const
+ResourceHandle<BitmapFont> GUIText::getFont() const
 {
   return m_font;
 }
@@ -109,7 +109,7 @@ void GUIText::resetTextGeometryCache()
 std::tuple<std::vector<VertexPos3Norm3UV>,
            std::vector<uint16_t>, glm::ivec2> GUIText::getStringGeometryStoreParams(const std::string& str) const
 {
-  SW_ASSERT(m_font != nullptr && "It is required to set font for the text line before rendering");
+  SW_ASSERT(m_font.get() != nullptr && "It is required to set font for the text line before rendering");
   SW_ASSERT(!str.empty() && "It is impossible to create geometry buffer for the empty text string");
 
   std::vector<VertexPos3Norm3UV> vertices;
@@ -294,10 +294,10 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
           ARG_UNUSED(arg);
           SW_ASSERT(false);
         },
-        [this, visualState](std::shared_ptr<BitmapFont> font) {
+        [this, visualState](ResourceHandle<BitmapFont> font) {
           SW_ASSERT(visualState == GUIWidgetVisualState::Default && "Font-family is supported only for default state");
 
-          this->setFont(std::move(font));
+          this->setFont(font);
         },
       }, property.getValue());
     }
@@ -306,7 +306,7 @@ void GUIText::applyStylesheetRule(const GUIWidgetStylesheetRule& stylesheetRule)
     }
   });
 
-  if (m_font != nullptr && m_fontSize > 0 && !m_text.empty()) {
+  if (m_font.get() != nullptr && m_fontSize > 0 && !m_text.empty()) {
     RETURN_VALUE_UNUSED(updateAndGetGeometryStore());
   }
 }

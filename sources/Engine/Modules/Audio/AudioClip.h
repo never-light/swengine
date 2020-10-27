@@ -6,6 +6,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "types.h"
 
 enum class AudioClipFormat {
@@ -17,10 +18,10 @@ enum class AudioClipFormat {
 
 class AudioSource;
 
-class AudioClip {
+class AudioClip : public Resource {
  public:
   AudioClip(AudioClipFormat format, const std::byte* samples, size_t samplesSize, uint32_t frequency);
-  ~AudioClip();
+  ~AudioClip() override;
 
  private:
   [[nodiscard]] ALuint getALBuffer() const;

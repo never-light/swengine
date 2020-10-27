@@ -4,7 +4,7 @@
 
 #include "AnimationPose.h"
 
-AnimationPose::AnimationPose(std::shared_ptr<Skeleton> skeleton)
+AnimationPose::AnimationPose(ResourceHandle<Skeleton> skeleton)
   : m_skeleton(skeleton),
     m_bonesLocalPoses(std::vector<BonePose>(skeleton->getBonesCount())),
     m_matrixPalette(std::vector<glm::mat4>(skeleton->getBonesCount(), glm::identity<glm::mat4>()))
@@ -12,7 +12,7 @@ AnimationPose::AnimationPose(std::shared_ptr<Skeleton> skeleton)
 
 }
 
-AnimationPose::AnimationPose(std::shared_ptr<Skeleton> skeleton,
+AnimationPose::AnimationPose(ResourceHandle<Skeleton> skeleton,
   const std::vector<BonePose>& bonesPoses)
   : m_skeleton(skeleton),
     m_bonesLocalPoses(bonesPoses),
@@ -98,7 +98,12 @@ void AnimationPose::interpolate(const AnimationPose& first,
 
 }
 
-std::shared_ptr<Skeleton> AnimationPose::getSkeleton() const
+const Skeleton* AnimationPose::getSkeleton() const
 {
-  return m_skeleton;
+  return m_skeleton.get();
+}
+
+Skeleton* AnimationPose::getSkeleton()
+{
+  return m_skeleton.get();
 }

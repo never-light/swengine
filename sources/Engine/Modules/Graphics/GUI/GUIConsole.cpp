@@ -7,13 +7,13 @@
 #include <utility>
 
 GUIConsole::GUIConsole(std::shared_ptr<GUIConsoleCommandsExecutor> commandsExecutor, int historySize,
-  std::shared_ptr<BitmapFont> font)
+  ResourceHandle<BitmapFont> font)
   : GUILayout("console"),
     m_commandsExecutor(std::move(commandsExecutor)),
     m_historySize(historySize),
     m_textFontSize(font->getBaseSize())
 {
-  SW_ASSERT(m_commandsExecutor != nullptr && font != nullptr);
+  SW_ASSERT(m_commandsExecutor != nullptr && font.get() != nullptr);
   SW_ASSERT(historySize >= 0);
 
   for (size_t textLineIndex = 0; textLineIndex < static_cast<size_t>(historySize); textLineIndex++) {

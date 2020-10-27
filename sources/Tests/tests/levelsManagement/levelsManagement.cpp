@@ -8,7 +8,7 @@ TEST_CASE("loading_levels_game_objects", "[levels_management]")
     std::shared_ptr<GameWorld> m_gameWorld = GameWorld::createInstance();
 
     std::shared_ptr<ResourceManagementModule> m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
-    std::shared_ptr<ResourceManager> m_resourceManager = m_resourceManagementModule->getResourceManager();
+    std::shared_ptr<ResourcesManager> m_resourceManager = m_resourceManagementModule->getResourceManager();
 
     std::shared_ptr<LevelsManager> m_levelsManager =
             std::make_shared<LevelsManager>(m_gameWorld, m_resourceManagementModule->getResourceManager());

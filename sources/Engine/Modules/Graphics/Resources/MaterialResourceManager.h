@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
-#include "Modules/ResourceManagement/Resource.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/GraphicsSystem/Material.h"
 
-struct MaterialResourceParameters : ResourceSourceParameters {
+struct MaterialResourceConfig {
   enum class ShaderParamType {
     Texture, Int, Float, Boolean
   };
@@ -40,25 +40,11 @@ struct MaterialResourceParameters : ResourceSourceParameters {
   std::vector<ShaderParam> parameters;
 };
 
-class MaterialResource : public Resource {
+class MaterialResourceManager : public ResourceManager<Material, MaterialResourceConfig> {
  public:
-  using ParametersType = MaterialResourceParameters;
+  explicit MaterialResourceManager(ResourcesManager* resourcesManager);
+  ~MaterialResourceManager() override;
 
- public:
-  MaterialResource();
-  ~MaterialResource() override;
-
-  void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) override;
-  void unload() override;
-
-  [[nodiscard]] bool isBusy() const override;
-
-  static ParametersType buildDeclarationParameters(const pugi::xml_node& declarationNode,
-    const ParametersType& defaultParameters);
-
- public:
-  [[nodiscard]] std::shared_ptr<Material> getMaterial() const;
-
- private:
-  std::shared_ptr<Material> m_material;
+  void load(size_t resourceIndex) override;
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override;
 };

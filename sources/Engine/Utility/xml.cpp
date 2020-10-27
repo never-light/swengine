@@ -7,7 +7,6 @@
 #include "Exceptions/exceptions.h"
 #include "files.h"
 
-
 std::tuple<pugi::xml_document, pugi::xml_node> XMLUtils::openDescriptionFile(const std::string& resourcePath,
   const std::string& descriptionNodeName)
 {

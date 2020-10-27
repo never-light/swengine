@@ -11,7 +11,7 @@
 #include "Utility/files.h"
 
 LevelsManager::LevelsManager(std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(gameWorld),
     m_resourceManager(resourceManager),
     m_gameObjectsLoader(gameWorld, resourceManager)

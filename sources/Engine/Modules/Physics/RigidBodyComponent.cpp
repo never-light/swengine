@@ -7,8 +7,8 @@
 #include <utility>
 #include "PhysicsBackendFactory.h"
 
-RigidBodyComponent::RigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
-  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, std::move(collisionShape)))
+RigidBodyComponent::RigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape)
+  : m_backend(PhysicsBackendFactory::createRigidBodyComponent(mass, collisionShape))
 {
 
 }

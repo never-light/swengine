@@ -1,6 +1,6 @@
 #include "GameScreen.h"
 
-#include <Engine/Modules/Graphics/Resources/BitmapFontResource.h>
+#include <Engine/Modules/Graphics/Resources/BitmapFontResourceManager.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/DebugPainter.h>
 

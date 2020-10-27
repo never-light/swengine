@@ -4,8 +4,9 @@
 
 #include "SkeletalAnimationComponent.h"
 
-SkeletalAnimationComponent::SkeletalAnimationComponent(std::shared_ptr<Skeleton> skeleton)
-  : m_animationStatesMachine(std::make_shared<AnimationStatesMachine>(skeleton))
+SkeletalAnimationComponent::SkeletalAnimationComponent(
+  ResourceHandle<AnimationStatesMachine> animationStatesMachine)
+  : m_animationStatesMachine(animationStatesMachine)
 {
 
 }
@@ -25,12 +26,12 @@ const AnimationMatrixPalette& SkeletalAnimationComponent::getMatrixPalette() con
   return m_animationStatesMachine->getCurrentMatrixPalette();
 }
 
-void SkeletalAnimationComponent::setAnimationStatesMachine(std::shared_ptr<AnimationStatesMachine> statesMachine)
+void SkeletalAnimationComponent::setAnimationStatesMachine(ResourceHandle<AnimationStatesMachine> statesMachine)
 {
   m_animationStatesMachine = statesMachine;
 }
 
-std::shared_ptr<AnimationStatesMachine> SkeletalAnimationComponent::getAnimationStatesMachine() const
+ResourceHandle<AnimationStatesMachine> SkeletalAnimationComponent::getAnimationStatesMachine() const
 {
   return m_animationStatesMachine;
 }

@@ -13,3 +13,5 @@
 #else
 #define SW_ASSERT(condition) ((void)(condition))
 #endif
+
+#define SW_STATIC_ASSERT static_assert

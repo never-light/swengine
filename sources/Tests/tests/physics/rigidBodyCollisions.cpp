@@ -6,6 +6,8 @@
 #include <Engine/Modules/Math/MathUtils.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 
+#include "utility/resourcesUtility.h"
+
 std::shared_ptr<GameWorld> createCollisionsPhysicsGameWorld()
 {
   auto gameWorld = GameWorld::createInstance();
@@ -17,7 +19,7 @@ std::shared_ptr<GameWorld> createCollisionsPhysicsGameWorld()
   return gameWorld;
 }
 
-std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
+std::shared_ptr<GameWorld> createCollisionsFloorSimulation(ResourcesManager& resourcesManager)
 {
   auto gameWorld = GameWorld::createInstance();
   auto physicsSystem = std::make_shared<PhysicsSystem>();
@@ -31,7 +33,8 @@ std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
   fallingTransformComponent.getTransform().setPosition(0.0f, 10.0f, 0.0f);
 
   fallingBody.addComponent<RigidBodyComponent>(RigidBodyComponent(1.0f,
-    CollisionShapesFactory::createSphere(1.0f)));
+    resourcesManager.createResourceInPlace<CollisionShape>(
+      CollisionShapeSphere(1.0f))));
 
   GameObject floorBody = gameWorld->createGameObject();
 
@@ -39,14 +42,16 @@ std::shared_ptr<GameWorld> createCollisionsFloorSimulation()
   floorTransformComponent.getTransform().setPosition(0.0f, 0.0f, 0.0f);
 
   floorBody.addComponent<RigidBodyComponent>(RigidBodyComponent(0.0f,
-    CollisionShapesFactory::createBox(glm::vec3(0.5f, 0.5f, 0.5f))));
+    resourcesManager.createResourceInPlace<CollisionShape>(
+      CollisionShapeBox(glm::vec3(0.5f, 0.5f, 0.5f)))));
 
   return gameWorld;
 }
 
 TEST_CASE("rigid_bodies_collision", "[physics]")
 {
-  std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation();
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+  std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation(*resourcesManager);
 
   const auto& fallingTransformComponent = *gameWorld->findGameObject(1).getComponent<TransformComponent>().get();
 
@@ -60,7 +65,8 @@ TEST_CASE("rigid_bodies_collision", "[physics]")
 
 TEST_CASE("rigid_bodies_collision_callback", "[physics]")
 {
-  std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation();
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+  std::shared_ptr<GameWorld> gameWorld = createCollisionsFloorSimulation(*resourcesManager);
 
   bool collisionDetected1 = false;
   bool collisionVerified1 = true;

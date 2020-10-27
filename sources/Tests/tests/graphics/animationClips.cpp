@@ -71,8 +71,10 @@ TEST_CASE("getting_clip_bones_poses", "[graphics][animation]")
 
 TEST_CASE("clip_instance_increasing_time", "[graphics][animation]")
 {
-  AnimationClipInstance clipInstance = generateTestAnimationClipInstance();
-  std::shared_ptr<Skeleton> skeleton = clipInstance.getSkeletonPtr();
+  std::shared_ptr<ResourcesManager> resourcesManager = generateTestResourcesManager();
+
+  AnimationClipInstance clipInstance = generateTestAnimationClipInstance(*resourcesManager);
+  ResourceHandle<Skeleton> skeleton = clipInstance.getSkeletonPtr();
 
   SECTION("clip_zero_time") {
     AnimationPose pose = clipInstance.getAnimationPose();

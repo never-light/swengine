@@ -3,10 +3,12 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <optional>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
 #include "Modules/Math/geometry.h"
@@ -21,10 +23,10 @@ enum class MeshAttributes {
   BonesWeights = 32,
 };
 
-class Mesh {
+class Mesh : public Resource {
  public:
   Mesh();
-  ~Mesh();
+  ~Mesh() override;
 
   [[nodiscard]] size_t addSubMesh(const std::vector<uint16_t>& indices);
   void setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex);
@@ -54,8 +56,8 @@ class Mesh {
   void setAABB(const AABB& aabb);
   [[nodiscard]] const AABB& getAABB() const;
 
-  void setSkeleton(std::shared_ptr<Skeleton> skeleton);
-  [[nodiscard]] std::shared_ptr<Skeleton> getSkeleton() const;
+  void setSkeleton(ResourceHandle<Skeleton> skeleton);
+  [[nodiscard]] ResourceHandle<Skeleton> getSkeleton() const;
 
  private:
   void calculateSubMeshesOffsets();
@@ -83,7 +85,7 @@ class Mesh {
 
   AABB m_aabb;
 
-  std::shared_ptr<Skeleton> m_skeleton;
+  std::optional<ResourceHandle<Skeleton>> m_skeleton;
 };
 
 inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b)

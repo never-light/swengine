@@ -8,7 +8,7 @@
 #include <utility>
 #include "BulletUtils.h"
 
-BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
+BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape)
   : m_collisionShape(BulletUtils::convertCollisionShapeToBulletShape(*collisionShape))
 {
   btTransform defaultTransform;

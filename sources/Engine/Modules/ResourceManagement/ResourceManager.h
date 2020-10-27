@@ -1,129 +1,167 @@
 #pragma once
 
-#include <unordered_map>
-#include <type_traits>
-#include <typeindex>
-#include <functional>
 #include <memory>
-#include <string>
+#include <spdlog/spdlog.h>
 
-#include "Resource.h"
-#include "ResourceInstance.h"
-
+#include "Utility/DynamicObjectsPool.h"
 #include "Utility/xml.h"
 
-// TODO: get rid of two-level indirection with Resource/ResourceInstance classes.
-//  Store generic resource instance for each resource type. Get rid of dynamic memory
-//  allocations for resources and, probably, use objects pool or even own pool for
-//  each resource type.
-//  Remove getResourceInstance/getResourceFromInstance methods and use single getResource
-//  to get handle of a required resource. Resource instance should have reference counter
-//  and handle should update it on copying and destroying. Add automatic resource unloading
-//  according to references counter value.
-//  Do not use resource manager as resource loader only. It should be responsible for
-//  resources memory management. Store resources handles in game components instead of direct pointers
-//  to meshes, textures, sounds, etc...
-//  Implement lazy resources loading. Decrease references counter value on game object or game object component
-//  destroying. To avoid unnecessary loading/unloading cycles for some assets, add some state flags.
+#include "swdebug.h"
+#include "options.h"
 
+#include "ResourcesStorage.h"
+#include "ResourceState.h"
+#include "ResourceHandle.h"
+#include "Resource.h"
 
-class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
+class ResourcesManager;
+
+class BaseResourceManager {
  public:
-  ResourceManager();
-  ResourceManager(const ResourceManager& resourceManager) = delete;
-  ResourceManager(ResourceManager&& resourceManager) = delete;
-  ~ResourceManager();
+  explicit BaseResourceManager(
+    ResourcesManager* resourceManager,
+    size_t typeId,
+    std::unique_ptr<BaseResourcesStorage> resourcesStorage,
+    std::unique_ptr<DynamicDataPool> configurationPool)
+    : m_resourceManager(resourceManager),
+      m_typeId(typeId),
+      m_resourcesStorage(std::move(resourcesStorage)),
+      m_configurationPool(std::move(configurationPool))
+  {
 
-  template<class T>
-  void declareResourceType();
+  }
 
-  template<class T>
-  void declareResourceType(const std::string& mapAlias);
+  virtual ~BaseResourceManager() = default;
 
-  template<class T>
-  void declareResouceMapAlias(const std::string& alias);
+  virtual void load(size_t resourceIndex) = 0;
+  virtual void parseConfig(size_t resourceIndex, pugi::xml_node configNode) = 0;
 
-  template<class T>
-  void declareResource(const std::string& resourceId, const ResourceDeclaration& declaration);
+  [[nodiscard]] size_t createNewResourceEntry(const std::string& resourceName)
+  {
+    size_t newResourceIndex = m_resourcesStorage->increaseStorageSize();
+    LOCAL_VALUE_UNUSED(newResourceIndex);
 
-  template<class T>
-  [[nodiscard]] T* getResourceFromInstance(const std::string& resourceId);
+    m_configurationPool->fit(m_configurationPool->getSize() + 1);
 
-  [[nodiscard]] const ResourceDeclaration& getResourceDeclaration(const std::string& resourceId);
-  [[nodiscard]] std::shared_ptr<ResourceInstance> getResourceInstance(const std::string& resourceId);
+    m_resourcesStates.emplace_back(resourceName);
 
-  void loadResourcesMap(const std::string& content);
-  void loadResourcesMapFile(const std::string& path);
+    return m_resourcesStates.size() - 1;
+  }
 
- private:
-  void loadResourcesMap(const pugi::xml_node& declarationsList);
+  [[nodiscard]] inline const ResourceState& getResourceState(size_t resourceIndex) const
+  {
+    return m_resourcesStates[resourceIndex];
+  }
 
- private:
-  std::unordered_map<std::string, ResourceDeclaration> m_resourcesDeclarations;
-  std::unordered_map<std::string, std::shared_ptr<ResourceInstance>> m_resourcesInstances;
+  inline ResourceState& getResourceState(size_t resourceIndex)
+  {
+    return m_resourcesStates[resourceIndex];
+  }
 
-  std::unordered_map<std::type_index, std::function<Resource*()>> m_resourcesFactories;
-  std::unordered_map<std::string, std::type_index> m_resourcesTypesIds;
-
-  std::unordered_map<std::string,
-                     std::function<void(const std::string&,
-                       const ResourceSource&,
-                       const pugi::xml_node&,
-                       const ResourceDeclaration*)>> m_resourcesDeclarers;
-};
-
-template<class T>
-T* ResourceManager::getResourceFromInstance(const std::string& resourceId)
-{
-  return getResourceInstance(resourceId)->getResource<T>();
-}
-
-template<class T>
-void ResourceManager::declareResourceType(const std::string& mapAlias)
-{
-  static_assert(std::is_base_of_v<Resource, T>);
-
-  declareResourceType<T>();
-  declareResouceMapAlias<T>(mapAlias);
-}
-
-template<class T>
-void ResourceManager::declareResouceMapAlias(const std::string& alias)
-{
-  static_assert(std::is_base_of_v<Resource, T>);
-
-  std::function declarer = [=](const std::string& resourceId, const ResourceSource& source,
-    const pugi::xml_node& declarationNode, const ResourceDeclaration* parentDeclaration) {
-    using ParametersType = typename T::ParametersType;
-
-    ParametersType defaultParametersInstance;
-
-    if (parentDeclaration != nullptr) {
-      defaultParametersInstance = std::any_cast<ParametersType>(parentDeclaration->parameters);
+  inline void freeResource(size_t resourceIndex)
+  {
+    if constexpr (LOG_RESOURCES_MANAGEMENT) {
+      auto& resourceState = getResourceState(resourceIndex);
+      spdlog::debug("Free resource {}:{}:{}", m_typeId, resourceIndex, resourceState.getResourceName());
     }
 
-    auto resourceParameters = T::buildDeclarationParameters(declarationNode, defaultParametersInstance);
-    declareResource<T>(resourceId, ResourceDeclaration{source, resourceParameters});
-  };
+    m_resourcesStorage->freeResource(resourceIndex);
+  }
 
-  m_resourcesDeclarers.insert({alias, declarer});
-}
+  [[nodiscard]] inline size_t getTypeId() const
+  {
+    return m_typeId;
+  }
 
-template<class T>
-void ResourceManager::declareResourceType()
-{
-  static_assert(std::is_base_of_v<Resource, T>);
+ protected:
+  [[nodiscard]] inline ResourcesManager* getResourceManager() const;
 
-  m_resourcesFactories.insert({std::type_index(typeid(T)), []() {
-    return new T();
-  }});
-}
+ protected:
+  ResourcesManager* m_resourceManager;
 
-template<class T>
-void ResourceManager::declareResource(const std::string& resourceId, const ResourceDeclaration& declaration)
-{
-  static_assert(std::is_base_of_v<Resource, T>);
+  size_t m_typeId;
 
-  m_resourcesDeclarations.insert({resourceId, declaration});
-  m_resourcesTypesIds.insert({resourceId, std::type_index(typeid(T))});
-}
+  std::unique_ptr<BaseResourcesStorage> m_resourcesStorage;
+  std::unique_ptr<DynamicDataPool> m_configurationPool;
+  std::vector<ResourceState> m_resourcesStates;
+};
+
+template<class ResourceType>
+class SpecificResourceManager : public BaseResourceManager {
+ public:
+  explicit SpecificResourceManager(ResourcesManager* resourceManager,
+    std::unique_ptr<DynamicDataPool> configurationPool)
+    :
+    BaseResourceManager(resourceManager,
+      ResourceTypeIdentifier::getTypeId<ResourceType>(),
+      std::make_unique<ResourcesStorage<ResourceType>>(),
+      std::move(configurationPool))
+  {
+
+  }
+
+  template<class ResourceInheritor, class... Args>
+  inline ResourceType* allocateResource(size_t resourceIndex, Args&& ... args)
+  {
+    SW_STATIC_ASSERT(std::is_base_of_v<Resource, ResourceType>);
+
+    auto resourcesStorage = dynamic_cast<ResourcesStorage<ResourceType>*>(m_resourcesStorage.get());
+    ResourceType* resource =
+      resourcesStorage->template allocateResource<ResourceInheritor>(resourceIndex, std::forward<Args>(args)...);
+
+    size_t typeId = ResourceTypeIdentifier::getTypeId<ResourceType>();
+
+    resource->setTypeId(typeId);
+    resource->setResourceId(resourceIndex);
+
+    if constexpr (LOG_RESOURCES_MANAGEMENT) {
+      auto& resourceState = getResourceState(resourceIndex);
+      spdlog::debug("Allocate resource {}:{}:{}", typeId, resourceIndex, resourceState.getResourceName());
+    }
+
+    return resource;
+  }
+
+  inline ResourceHandle<ResourceType> getResource(size_t resourceIndex) const
+  {
+    SW_ASSERT(resourceIndex < m_resourcesStorage->getSize());
+
+    return ResourceHandle<ResourceType>(resourceIndex, getResourcePtr(resourceIndex), getResourceManager());
+  }
+
+  inline ResourceType* getResourcePtr(size_t resourceIndex) const
+  {
+    auto resourcesStorage = dynamic_cast<ResourcesStorage<ResourceType>*>(m_resourcesStorage.get());
+    return resourcesStorage->getResource(resourceIndex);
+  }
+};
+
+// TODO[high]: temporary name, rename
+template<class ResourceType, class ResourceConfigurationType>
+class ResourceManager : public SpecificResourceManager<ResourceType> {
+ public:
+  explicit ResourceManager(ResourcesManager* resourcesManager)
+    : SpecificResourceManager<ResourceType>(resourcesManager,
+    std::make_unique<DynamicObjectsPool<ResourceConfigurationType>>(2048))
+  {
+
+  }
+
+  template<class... Args>
+  inline ResourceConfigurationType* createResourceConfig(size_t resourceIndex, Args&& ... args)
+  {
+    if constexpr (LOG_RESOURCES_MANAGEMENT) {
+      auto& resourceState = this->getResourceState(resourceIndex);
+      spdlog::debug("Allocate resource config {}:{}:{}", getTypeId(), resourceIndex, resourceState.getResourceName());
+    }
+
+    return ::new(this->m_configurationPool
+      ->getObject(resourceIndex)) ResourceConfigurationType(std::forward<Args>(args)...);
+  }
+
+  inline ResourceConfigurationType* getResourceConfig(size_t resourceIndex) const
+  {
+    return reinterpret_cast<ResourceConfigurationType*>(this->m_configurationPool->getObject(resourceIndex));
+  }
+
+};

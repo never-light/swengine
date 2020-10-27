@@ -3,7 +3,7 @@
 #include <utility>
 
 InventoryItemComponent::InventoryItemComponent(
-  std::shared_ptr<GLTexture> icon,
+  ResourceHandle<GLTexture> icon,
   std::string id,
   std::string name)
   : m_icon(std::move(icon)),
@@ -13,12 +13,12 @@ InventoryItemComponent::InventoryItemComponent(
 
 }
 
-void InventoryItemComponent::setIcon(std::shared_ptr<GLTexture> icon)
+void InventoryItemComponent::setIcon(ResourceHandle<GLTexture> icon)
 {
-  m_icon = std::move(icon);
+  m_icon = icon;
 }
 
-std::shared_ptr<GLTexture> InventoryItemComponent::getIcon() const
+ResourceHandle<GLTexture> InventoryItemComponent::getIcon() const
 {
   return m_icon;
 }

@@ -29,11 +29,11 @@ class GLFramebuffer {
 
   ~GLFramebuffer();
 
-  RectI getBounds() const;
-  float getAspectRatio() const;
+  [[nodiscard]] RectI getBounds() const;
+  [[nodiscard]] float getAspectRatio() const;
 
-  int getWidth() const;
-  int getHeight() const;
+  [[nodiscard]] int getWidth() const;
+  [[nodiscard]] int getHeight() const;
 
   void clearColor(const glm::vec4& color, size_t componentIndex = 0);
   void clearDepthStencil(float depthValue, int stencilValue);

@@ -9,16 +9,18 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+
 #include "GL.h"
 #include "GLTexture.h"
 #include "ShaderType.h"
 
 class GLShadersPipeline;
 
-class GLShader {
+class GLShader : public Resource {
  public:
   GLShader(ShaderType type, const std::string& source);
-  ~GLShader();
+  ~GLShader() override;
 
   [[nodiscard]] ShaderType getType() const;
 

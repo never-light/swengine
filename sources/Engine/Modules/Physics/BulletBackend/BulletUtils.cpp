@@ -9,18 +9,24 @@
 
 btCollisionShape* BulletUtils::convertCollisionShapeToBulletShape(const CollisionShape& shape)
 {
-  if (auto sphereShape = dynamic_cast<const CollisionShapeSphere*>(&shape)) {
+  return convertCollisionShapeToBulletShape(shape.getShapeData());
+}
+
+
+btCollisionShape* BulletUtils::convertCollisionShapeToBulletShape(const CollisionShapeData& shape)
+{
+  if (auto sphereShape = std::get_if<CollisionShapeSphere>(&shape)) {
     return new BulletSphereShape(sphereShape->getRadius());
   }
-  else if (auto boxShape = dynamic_cast<const CollisionShapeBox*>(&shape)) {
+  else if (auto boxShape = std::get_if<CollisionShapeBox>(&shape)) {
     glm::vec3 boxExtents = boxShape->getHalfExtents();
 
     return new BulletBoxShape({boxExtents.x, boxExtents.y, boxExtents.z});
   }
-  else if (auto capsuleShape = dynamic_cast<const CollisionShapeCapsule*>(&shape)) {
+  else if (auto capsuleShape = std::get_if<CollisionShapeCapsule>(&shape)) {
     return new BulletCapsuleShape(capsuleShape->getRadius(), capsuleShape->getHeight());
   }
-  else if (auto triangleMeshShape = dynamic_cast<const CollisionShapeTriangleMesh*>(&shape)) {
+  else if (auto triangleMeshShape = std::get_if<CollisionShapeTriangleMesh>(&shape)) {
     // TODO: optimize it, use indices instead of duplicated vertices
 
     auto* btTriangleMeshShape = new btTriangleMesh();
@@ -35,7 +41,7 @@ btCollisionShape* BulletUtils::convertCollisionShapeToBulletShape(const Collisio
 
     return new BulletBVHTriangleMeshShape(btTriangleMeshShape, true);
   }
-  else if (auto compoundShape = dynamic_cast<const CollisionShapeCompound*>(&shape)) {
+  else if (auto compoundShape = std::get_if<CollisionShapeCompound>(&shape)) {
     auto* btCompound = new BulletCompoundShape();
 
     for (const auto& childShape : compoundShape->getChildren()) {
@@ -44,7 +50,7 @@ btCollisionShape* BulletUtils::convertCollisionShapeToBulletShape(const Collisio
 
       transform.setOrigin(glmVec3ToBt(childShape.origin));
 
-      btCompound->addChildShape(transform, convertCollisionShapeToBulletShape(*childShape.shape));
+      btCompound->addChildShape(transform, convertCollisionShapeToBulletShape(childShape.shape));
     }
 
     return btCompound;

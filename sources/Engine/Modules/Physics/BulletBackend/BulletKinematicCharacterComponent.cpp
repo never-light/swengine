@@ -11,7 +11,7 @@
 #include "BulletUtils.h"
 
 
-BulletKinematicCharacterComponent::BulletKinematicCharacterComponent(std::shared_ptr<CollisionShape> collisionShape)
+BulletKinematicCharacterComponent::BulletKinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape)
   : m_collisionShape(dynamic_cast<btConvexShape*>(BulletUtils::convertCollisionShapeToBulletShape(*collisionShape)))
 {
   SW_ASSERT(m_collisionShape != nullptr && "Bullet kinematic character should have convex collision shape");

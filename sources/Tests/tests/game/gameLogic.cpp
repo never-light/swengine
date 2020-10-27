@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Game/Game/Dynamic/GameLogicConditionsManager.h>
 #include <Game/Game/PlayerComponent.h>
@@ -18,7 +18,7 @@
 static std::shared_ptr<GameWorld> createTestGameWorld()
 {
   auto gameWorld = GameWorld::createInstance();
-  auto resourcesManager = std::make_shared<ResourceManager>();
+  auto resourcesManager = std::make_shared<ResourcesManager>();
   auto levelsManager = std::make_shared<LevelsManager>(gameWorld, resourcesManager);
 
   auto infoportionsSystem = std::make_shared<InfoportionsSystem>();
@@ -31,7 +31,8 @@ static std::shared_ptr<GameWorld> createTestGameWorld()
   infoportionsSystem->addInfoportion("test_infoportion_2");
 
   GameObject testInventoryItem = gameWorld->createGameObject();
-  testInventoryItem.addComponent<InventoryItemComponent>(nullptr, "test_item_id", "test_item_name");
+  testInventoryItem.addComponent<InventoryItemComponent>(
+    ResourceHandle<GLTexture>(), "test_item_id", "test_item_name");
 
   GameObject player = gameWorld->createGameObject("player");
   player.addComponent<PlayerComponent>(1.0f);

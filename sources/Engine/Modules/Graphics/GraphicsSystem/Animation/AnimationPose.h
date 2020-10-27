@@ -1,14 +1,16 @@
 #pragma once
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+
 #include "Skeleton.h"
 #include "Bone.h"
 #include "AnimationClip.h"
 
 class AnimationPose {
  public:
-  explicit AnimationPose(std::shared_ptr<Skeleton> skeleton);
+  explicit AnimationPose(ResourceHandle<Skeleton> skeleton);
 
-  AnimationPose(std::shared_ptr<Skeleton> skeleton,
+  AnimationPose(ResourceHandle<Skeleton> skeleton,
     const std::vector<BonePose>& bonesPoses);
 
   void setBoneLocalPose(uint8_t boneIndex, const BonePose& pose);
@@ -18,7 +20,8 @@ class AnimationPose {
 
   [[nodiscard]] uint8_t getBonesCount() const;
 
-  [[nodiscard]] std::shared_ptr<Skeleton> getSkeleton() const;
+  [[nodiscard]] const Skeleton* getSkeleton() const;
+  [[nodiscard]] Skeleton* getSkeleton();
 
  public:
   static void interpolate(const AnimationPose& first,
@@ -28,7 +31,7 @@ class AnimationPose {
     const AnimationPose& second, float factor, const std::vector<uint8_t> affectedBonesMask, AnimationPose& result);
 
  private:
-  std::shared_ptr<Skeleton> m_skeleton;
+  ResourceHandle<Skeleton> m_skeleton;
 
   std::vector<BonePose> m_bonesLocalPoses;
 

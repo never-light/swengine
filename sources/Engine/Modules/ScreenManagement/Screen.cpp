@@ -73,7 +73,7 @@ void Screen::performInternalInitialization(std::shared_ptr<ScreenManager> screen
   std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GraphicsModule> graphicsModule,
   std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
 {
   m_screenManager = screenManager;
   m_gameWorld = gameWorld;

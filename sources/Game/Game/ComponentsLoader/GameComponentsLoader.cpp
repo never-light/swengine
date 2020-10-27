@@ -1,6 +1,6 @@
 #include "GameComponentsLoader.h"
 
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
+#include <Engine/Modules/Graphics/Resources/TextureResourceManager.h>
 #include <Engine/Exceptions/exceptions.h>
 
 #include <utility>
@@ -12,7 +12,7 @@
 
 GameComponentsLoader::GameComponentsLoader(
   std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(std::move(gameWorld)),
     m_resourceManager(std::move(std::move(resourceManager)))
 {
@@ -36,7 +36,7 @@ void GameComponentsLoader::loadInventoryItemData(GameObject& gameObject, const p
   std::string itemName = data.attribute("title").as_string();
   std::string iconName = data.attribute("icon").as_string();
 
-  auto iconTexture = m_resourceManager->getResourceFromInstance<TextureResource>(iconName)->getTexture();
+  auto iconTexture = m_resourceManager->getResource<GLTexture>(iconName);
 
   auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemId, itemName).get();
 

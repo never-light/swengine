@@ -16,6 +16,7 @@ class GameSystemsGroup : public GameSystem {
 
   void configure() override;
   void unconfigure() override;
+  [[nodiscard]] bool isConfigured() const;
 
   void beforeRender() override;
   void render() override;
@@ -33,7 +34,6 @@ class GameSystemsGroup : public GameSystem {
   template<class T>
   std::shared_ptr<T> getGameSystem() const;
 
- protected:
   [[nodiscard]] const std::vector<std::shared_ptr<GameSystem>>& getGameSystems() const;
 
  private:

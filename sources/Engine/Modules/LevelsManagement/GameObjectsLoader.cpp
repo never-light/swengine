@@ -13,18 +13,18 @@
 #include "Modules/Graphics/GraphicsSystem/Animation/AnimationStatesMachine.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
 
-#include "Modules/Graphics/Resources/MaterialResource.h"
-#include "Modules/Graphics/Resources/SkeletonResource.h"
-#include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
+#include "Modules/Graphics/Resources/MaterialResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletonResourceManager.h"
+#include "Modules/Graphics/Resources/AnimationStatesMachineResourceManager.h"
 
 #include "Modules/Physics/RigidBodyComponent.h"
 #include "Modules/Physics/KinematicCharacterComponent.h"
 #include "Modules/Physics/CollisionShapesFactory.h"
 
-#include "Modules/Physics/Resources/CollisionDataResource.h"
+#include "Modules/Physics/Resources/CollisionShapeResourceManager.h"
 
 #include "Modules/Audio/AudioSourceComponent.h"
-#include "Modules/Audio/Resources/AudioClipResource.h"
+#include "Modules/Audio/Resources/AudioClipResourceManager.h"
 
 #include "Modules/Math/MathUtils.h"
 #include "Utility/files.h"
@@ -32,7 +32,7 @@
 #include "Exceptions/exceptions.h"
 
 GameObjectsLoader::GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(std::move(gameWorld)),
     m_resourceManager(std::move(resourceManager))
 {
@@ -133,14 +133,14 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
 
   auto meshName = data.attribute("mesh").as_string();
 
-  std::shared_ptr<Mesh> meshInstance =
-    m_resourceManager->getResourceFromInstance<MeshResource>(meshName)->getMesh();
+  ResourceHandle<Mesh> meshInstance =
+    m_resourceManager->getResource<Mesh>(meshName);
 
   auto skeletonAttr = data.attribute("skeleton");
 
   if (skeletonAttr) {
-    std::shared_ptr<Skeleton> skeletonInstance =
-      m_resourceManager->getResourceFromInstance<SkeletonResource>(skeletonAttr.as_string())->getSkeleton();
+    ResourceHandle<Skeleton> skeletonInstance =
+      m_resourceManager->getResource<Skeleton>(skeletonAttr.as_string());
 
     meshInstance->setSkeleton(skeletonInstance);
   }
@@ -156,8 +156,8 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
     auto materialName = materialData.attribute("id").as_string();
     int materialSubMeshIndex = materialData.attribute("index").as_int();
 
-    std::shared_ptr<Material> materialInstance =
-      m_resourceManager->getResourceFromInstance<MaterialResource>(materialName)->getMaterial();
+    ResourceHandle<Material> materialInstance =
+      m_resourceManager->getResource<Material>(materialName);
 
     meshRendererComponent.setMaterialInstance(materialSubMeshIndex, materialInstance);
   }
@@ -167,21 +167,21 @@ void GameObjectsLoader::loadRigidBodyData(GameObject& gameObject, const pugi::xm
 {
   std::string collisionModelName = data.attribute("collision_model").as_string();
 
-  std::shared_ptr<CollisionShape> collisionShape;
+  ResourceHandle<CollisionShape> collisionShape;
 
   auto transformComponent = gameObject.getComponent<TransformComponent>();
 
   if (collisionModelName == "visual_aabb") {
-    collisionShape = CollisionShapesFactory::createBox(
-      transformComponent->getOriginalBounds().getSize() * 0.5f);
+    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
+      CollisionShapeBox(transformComponent->getOriginalBounds().getSize() * 0.5f));
   }
   else if (collisionModelName == "visual_sphere") {
-    collisionShape = CollisionShapesFactory::createSphere(
-      transformComponent->getOriginalBounds().toSphere().getRadius());
+    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
+      CollisionShapeSphere(transformComponent->getOriginalBounds().toSphere().getRadius()));
   }
   else {
     collisionShape =
-      m_resourceManager->getResourceFromInstance<CollisionDataResource>(collisionModelName)->getCollisionShape();
+      m_resourceManager->getResource<CollisionShape>(collisionModelName);
   }
 
   RigidBodyComponent* rigidBodyComponent = nullptr;
@@ -211,7 +211,7 @@ GameObjectsLoader::ComponentLoaderCallback GameObjectsLoader::getComponentLoader
   return m_componentsLoaders.at(componentName);
 }
 
-ResourceManager& GameObjectsLoader::getResourceManager()
+ResourcesManager& GameObjectsLoader::getResourceManager()
 {
   return *m_resourceManager;
 }
@@ -248,8 +248,8 @@ void GameObjectsLoader::loadEnvironmentData(GameObject& gameObject, const pugi::
 
   auto materialName = data.attribute("material").as_string();
 
-  std::shared_ptr<Material> materialInstance =
-    m_resourceManager->getResourceFromInstance<MaterialResource>(materialName)->getMaterial();
+  ResourceHandle<Material> materialInstance =
+    m_resourceManager->getResource<Material>(materialName);
 
   environmentComponent.setEnvironmentMaterial(materialInstance);
 }
@@ -258,8 +258,8 @@ void GameObjectsLoader::loadAudioSourceData(GameObject& gameObject, const pugi::
 {
   auto audioClipName = data.attribute("clip").as_string();
 
-  std::shared_ptr<AudioClip> audioClipInstance =
-    m_resourceManager->getResourceFromInstance<AudioClipResource>(audioClipName)->getAudioClip();
+  ResourceHandle<AudioClip> audioClipInstance =
+    m_resourceManager->getResource<AudioClip>(audioClipName);
 
   auto& audioSourceComponent = *gameObject.addComponent<AudioSourceComponent>(audioClipInstance).get();
   auto& audioSource = audioSourceComponent.getSource();
@@ -319,14 +319,13 @@ void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xm
 {
   std::string skeletonName = data.attribute("skeleton").as_string();
 
-  std::shared_ptr<Skeleton> skeletonInstance =
-    m_resourceManager->getResourceFromInstance<SkeletonResource>(skeletonName)->getSkeleton();
+  ResourceHandle<Skeleton> skeletonInstance =
+    m_resourceManager->getResource<Skeleton>(skeletonName);
 
   std::string stateMachineName = data.attribute("state_machine").as_string();
 
   auto statesMachineInstance =
-    m_resourceManager->getResourceFromInstance<AnimationStatesMachineResource>(stateMachineName)->
-      getMachine();
+    m_resourceManager->getResource<AnimationStatesMachine>(stateMachineName);
 
   /*bool sharedStatesMachine = data.attribute("shared_state").as_bool(false);
   std::shared_ptr<AnimationStatesMachine> statesMachineInstance;
@@ -339,8 +338,7 @@ void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xm
       std::make_shared<AnimationStatesMachine>(AnimationStatesMachine(*sharedStatesMachineInstance));
   }*/
 
-  auto& animationComponent = *gameObject.addComponent<SkeletalAnimationComponent>(skeletonInstance).get();
-  animationComponent.setAnimationStatesMachine(statesMachineInstance);
+  gameObject.addComponent<SkeletalAnimationComponent>(statesMachineInstance).get();
 
   auto startStateAttribute = data.attribute("start_state");
 
@@ -354,13 +352,14 @@ void GameObjectsLoader::loadKinematicCharacterData(GameObject& gameObject, const
   auto collisionModelNode = data.child("collision_model");
 
   auto capsuleCollisionShapeNode = collisionModelNode.child("capsule");
-  std::shared_ptr<CollisionShape> collisionShape;
+  ResourceHandle<CollisionShape> collisionShape;
 
   if (capsuleCollisionShapeNode) {
     float capsuleRadius = capsuleCollisionShapeNode.attribute("radius").as_float();
     float capsuleHeight = capsuleCollisionShapeNode.attribute("height").as_float();
 
-    collisionShape = CollisionShapesFactory::createCapsule(capsuleRadius, capsuleHeight);
+    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
+      CollisionShapeCapsule(capsuleRadius, capsuleHeight));
   }
   else {
     SW_ASSERT(false && "Only capsule collision shape is supported now");

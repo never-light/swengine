@@ -13,7 +13,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GraphicsScene> graphicsScene,
   std::shared_ptr<GUISystem> guiSystem,
-  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager,
   std::shared_ptr<GUILayout> gameUILayout)
   : m_gameWorld(gameWorld),

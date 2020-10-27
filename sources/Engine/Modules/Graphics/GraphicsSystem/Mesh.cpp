@@ -84,32 +84,32 @@ void Mesh::setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vect
 
 bool Mesh::hasVertices() const
 {
-    return m_vertices.size() > 0;
+    return !m_vertices.empty();
 }
 
 bool Mesh::hasNormals() const
 {
-    return m_normals.size() > 0;
+    return !m_normals.empty();
 }
 
 bool Mesh::hasTangents() const
 {
-    return m_tangents.size() > 0;
+    return !m_tangents.empty();
 }
 
 bool Mesh::hasUV() const
 {
-    return m_uv.size() > 0;
+    return !m_uv.empty();
 }
 
 bool Mesh::isSkinned() const
 {
-    return m_bonesIDs.size() > 0;
+    return !m_bonesIDs.empty();
 }
 
 bool Mesh::hasSkeleton() const
 {
-    return m_skeleton != nullptr;
+    return m_skeleton.has_value();
 }
 
 void Mesh::setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets)
@@ -159,14 +159,14 @@ const AABB& Mesh::getAABB() const
     return m_aabb;
 }
 
-void Mesh::setSkeleton(std::shared_ptr<Skeleton> skeleton)
+void Mesh::setSkeleton(ResourceHandle<Skeleton> skeleton)
 {
     m_skeleton = skeleton;
 }
 
-std::shared_ptr<Skeleton> Mesh::getSkeleton() const
+ResourceHandle<Skeleton> Mesh::getSkeleton() const
 {
-    return m_skeleton;
+    return m_skeleton.value();
 }
 
 void Mesh::calculateSubMeshesOffsets()

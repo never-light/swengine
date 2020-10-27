@@ -7,8 +7,8 @@
 #include <utility>
 #include "PhysicsBackendFactory.h"
 
-KinematicCharacterComponent::KinematicCharacterComponent(std::shared_ptr<CollisionShape> collisionShape)
-  : m_backend(PhysicsBackendFactory::createKinematicCharacterComponent(std::move(collisionShape)))
+KinematicCharacterComponent::KinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape)
+  : m_backend(PhysicsBackendFactory::createKinematicCharacterComponent(collisionShape))
 {
 
 }

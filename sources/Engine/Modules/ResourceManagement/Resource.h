@@ -9,119 +9,43 @@
 #include "Exceptions/exceptions.h"
 #include "Utility/strings.h"
 #include "Utility/xml.h"
+#include "Utility/TypeIdentifier.h"
 
-struct ResourceSourceDeclaration {
+constexpr size_t RESOURCE_ID_INVALID = std::numeric_limits<size_t>::max();
+constexpr size_t TYPE_ID_INVALID = std::numeric_limits<size_t>::max();
 
-};
-
-struct ResourceSourceFile {
-  std::string path;
-};
-
-struct ResourceSourceFilesList {
-  std::vector<std::string> paths;
-};
-
-struct ResourceSourceRawString {
-  std::string data;
-};
-
-struct ResourceSourceParameters {
+struct ResourceTypeIdentifierHelper {
 
 };
 
-using ResourceSource = std::variant<ResourceSourceFile, ResourceSourceRawString, ResourceSourceDeclaration>;
-
-struct ResourceDeclaration {
-  ResourceSource source;
-  std::any parameters;
-
-  template<class T>
-  T getParameters() const;
-};
-
-template<class T>
-T ResourceDeclaration::getParameters() const
-{
-  static_assert(std::is_base_of_v<ResourceSourceParameters, T>);
-
-  try {
-    return std::any_cast<T>(parameters);
-  }
-  catch (const std::bad_any_cast&) {
-    THROW_EXCEPTION(EngineRuntimeException, "Trying to get resource source parameters with invalid type");
-  }
-}
-
-class ResourceInstance;
-
-class ResourceManager;
+using ResourceTypeIdentifier = TypeIdentifier<ResourceTypeIdentifierHelper>;
 
 class Resource {
  public:
-  Resource();
-  virtual ~Resource();
+  Resource() = default;
+  virtual ~Resource() = default;
 
-  virtual void load(const ResourceDeclaration& declaration, ResourceManager& resourceManager) = 0;
-  virtual void unload() = 0;
-
-  [[nodiscard]] virtual bool isBusy() const = 0;
-
-  [[nodiscard]] bool isLoaded() const;
-  [[nodiscard]] bool isPersistent() const;
-
-  void setPersistent(bool persistent);
-
- private:
-  void performLoad(const ResourceDeclaration& declaration, ResourceManager& resourceManager);
-  void performUnload();
-
- private:
-  bool m_loaded = false;
-  bool m_persistent = false;
-
- private:
-  friend class ResourceInstance;
-};
-
-class ResourceDeclHelpers {
- public:
-  template<class T>
-  [[nodiscard]] static T getFilteredParameterValue(const pugi::xml_node& declarationNode,
-    const std::string& parameterName,
-    const std::unordered_map<std::string, T>& allowedValues,
-    T defaultValue);
-
-  template<class T>
-  [[nodiscard]] static T getFilteredParameterValue(const std::string& rawValue,
-    const std::string& parameterName,
-    const std::unordered_map<std::string, T>& allowedValues,
-    T defaultValue);
-};
-
-template<class T>
-T ResourceDeclHelpers::getFilteredParameterValue(const pugi::xml_node& declarationNode,
-  const std::string& parameterName,
-  const std::unordered_map<std::string, T>& allowedValues,
-  T defaultValue)
-{
-  std::string rawValue = declarationNode.child_value(parameterName.c_str());
-
-  return ResourceDeclHelpers::getFilteredParameterValue(rawValue, parameterName, allowedValues, defaultValue);
-}
-
-template<class T>
-T ResourceDeclHelpers::getFilteredParameterValue(const std::string& rawValue,
-  const std::string& parameterName,
-  const std::unordered_map<std::string, T>& allowedValues,
-  T defaultValue)
-{
-  try {
-    return StringUtils::filterValue(StringUtils::toLowerCase(rawValue), allowedValues, defaultValue);
+  inline void setTypeId(size_t typeId)
+  {
+    m_typeId = typeId;
   }
-  catch (const EngineRuntimeException&) {
-    THROW_EXCEPTION(EngineRuntimeException,
-      "Resource parameter has invalid value (" + parameterName + "=" + rawValue + ")");
-  }
-}
 
+  inline void setResourceId(size_t resourceId)
+  {
+    m_resourceId = resourceId;
+  }
+
+  [[nodiscard]] inline size_t getTypeId() const
+  {
+    return m_typeId;
+  }
+
+  [[nodiscard]] inline size_t getResourceId() const
+  {
+    return m_resourceId;
+  }
+
+ private:
+  size_t m_typeId = TYPE_ID_INVALID;
+  size_t m_resourceId = RESOURCE_ID_INVALID;
+};
