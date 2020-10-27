@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <optional>
+#include <utility>
 
 #include <Engine/Modules/ResourceManagement/ResourceManagementModule.h>
 #include <Engine/Modules/Graphics/Resources/ShaderResourceManager.h>
@@ -9,6 +10,54 @@
 #include <Engine/Modules/Math/MathUtils.h>
 
 #include "utility/resourcesUtility.h"
+
+struct TestStringResourceConfig {
+  TestStringResourceConfig() = default;
+
+  std::string resourceContent;
+};
+
+class TestStringResource : public Resource {
+ public:
+  explicit TestStringResource(std::string content)
+    : m_resourceContent(std::move(content))
+  {
+
+  }
+
+  ~TestStringResource() override = default;
+
+  [[nodiscard]] inline const std::string& getContent() const
+  {
+    return m_resourceContent;
+  }
+
+ private:
+  std::string m_resourceContent;
+};
+
+class TestStringResourceManager : public ResourceManager<TestStringResource, TestStringResourceConfig> {
+ public:
+  explicit TestStringResourceManager(ResourcesManager* resourcesManager)
+    : ResourceManager<TestStringResource, TestStringResourceConfig>(resourcesManager)
+  {
+
+  }
+
+  ~TestStringResourceManager() override = default;
+
+  void load(size_t resourceIndex) override
+  {
+    TestStringResourceConfig* config = getResourceConfig(resourceIndex);
+    allocateResource<TestStringResource>(resourceIndex, config->resourceContent);
+  }
+
+  void parseConfig(size_t resourceIndex, pugi::xml_node configNode) override
+  {
+    TestStringResourceConfig* resourceConfig = createResourceConfig(resourceIndex);
+    resourceConfig->resourceContent = configNode.attribute("content").as_string();
+  }
+};
 
 TEST_CASE("resources_maps_loading", "[resources]")
 {
@@ -65,7 +114,6 @@ TEST_CASE("resources_maps_loading", "[resources]")
   REQUIRE(std::get<int>(materialDeclaration->parameters[0].value) == 50);
 }
 
-
 TEST_CASE("resource_inplace_creation", "[resources]")
 {
   std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
@@ -76,7 +124,6 @@ TEST_CASE("resource_inplace_creation", "[resources]")
   REQUIRE(shape.get() != nullptr);
   REQUIRE(MathUtils::isEqual(std::get<CollisionShapeSphere>(shape->getShapeData()).getRadius(), 1.0f));
 }
-
 
 TEST_CASE("resource_inplace_unloading", "[resources]")
 {
@@ -94,6 +141,47 @@ TEST_CASE("resource_inplace_unloading", "[resources]")
     std::get<CollisionShapeSphere>(shape.value()->getShapeData()).getRadius(), 1.0f));
 
   shape.reset();
+
+  REQUIRE(resourceState.getReferencesCount() == 0);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Unloaded);
+}
+
+TEST_CASE("resource_references_management", "[resources]")
+{
+  std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
+  manager->registerResourceType<TestStringResource>("test_string",
+    std::make_unique<TestStringResourceManager>(manager.get()));
+
+  manager->loadResourcesMap("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                            "<resources>\n"
+                            "    <resource type=\"test_string\" id=\"test_string\" content=\"test_content\">\n"
+                            "    </resource>\n"
+                            "</resources>");
+
+  const ResourceState& resourceState = manager->getResourceState("test_string");
+
+  REQUIRE(resourceState.getReferencesCount() == 0);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Unloaded);
+
+  std::optional<ResourceHandle<TestStringResource>> resource =
+    manager->getResource<TestStringResource>("test_string");
+
+  REQUIRE(resource.value()->getContent() == "test_content");
+  REQUIRE(resourceState.getReferencesCount() == 1);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Loaded);
+
+  std::optional<ResourceHandle<TestStringResource>> resourceRef = resource;
+
+  REQUIRE(resourceRef.value()->getContent() == "test_content");
+  REQUIRE(resourceState.getReferencesCount() == 2);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Loaded);
+
+  resource.reset();
+
+  REQUIRE(resourceState.getReferencesCount() == 1);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Loaded);
+
+  resourceRef.reset();
 
   REQUIRE(resourceState.getReferencesCount() == 0);
   REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Unloaded);
