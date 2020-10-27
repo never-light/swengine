@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 #include "Skeleton.h"
 #include "AnimationClip.h"

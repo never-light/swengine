@@ -12,8 +12,8 @@
 #include "Modules/Graphics/GraphicsSystem/Camera.h"
 #include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
 
-#include "Modules/Graphics/Resources/MeshResource.h"
-#include "Modules/Graphics/Resources/ShaderResource.h"
+#include "Modules/Graphics/Resources/MeshResourceManager.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
 
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 #include "Modules/Graphics/OpenGL/GLShadersPipeline.h"

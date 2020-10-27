@@ -3,7 +3,7 @@
 #include <variant>
 #include <glm/vec3.hpp>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 struct CollisionShapeSphere {
  public:

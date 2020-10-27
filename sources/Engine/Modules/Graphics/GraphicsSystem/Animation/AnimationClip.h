@@ -6,7 +6,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Skeleton.h"
 #include "BoneAnimationChannel.h"
 #include "Bone.h"

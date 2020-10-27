@@ -8,7 +8,7 @@
 #include "Modules/Graphics/GraphicsModule.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 #include "Modules/ECS/ECS.h"
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 class ScreenManager;
 

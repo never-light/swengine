@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "GUIWidget.h"
 #include "BitmapFont.h"

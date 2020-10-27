@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 #include "AnimationClip.h"
 #include "AnimationState.h"

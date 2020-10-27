@@ -3,7 +3,7 @@
 #include <Engine/Modules/Input/InputModule.h>
 #include <Engine/Modules/Graphics/OpenGL/GLGraphicsContext.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
 

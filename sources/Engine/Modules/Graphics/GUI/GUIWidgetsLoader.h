@@ -2,8 +2,8 @@
 
 #include <utility>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
-#include "Modules/Graphics/Resources/TextureResource.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+#include "Modules/Graphics/Resources/TextureResourceManager.h"
 
 #include "Utility/xml.h"
 

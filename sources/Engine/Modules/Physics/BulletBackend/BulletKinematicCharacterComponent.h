@@ -4,7 +4,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <BulletDynamics/Character/btKinematicCharacterController.h>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Physics/BaseBackend/KinematicCharacterComponentBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"

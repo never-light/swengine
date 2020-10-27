@@ -4,7 +4,7 @@
 
 #include "DebugPainter.h"
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
 
 ResourceHandle<Mesh> DebugPainter::s_sphere{};

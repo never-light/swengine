@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Game/Game/Inventory/InventoryControlSystem.h>
 #include <Game/Game/Dynamic/QuestsSystem.h>

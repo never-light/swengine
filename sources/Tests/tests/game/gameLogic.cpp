@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Game/Game/Dynamic/GameLogicConditionsManager.h>
 #include <Game/Game/PlayerComponent.h>

@@ -2,7 +2,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/Skeleton.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/AnimationClip.h>

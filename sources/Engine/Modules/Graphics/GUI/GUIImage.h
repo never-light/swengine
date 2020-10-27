@@ -4,7 +4,7 @@
 
 #include "GUIWidget.h"
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
 class GUIImage : public GUIWidget {

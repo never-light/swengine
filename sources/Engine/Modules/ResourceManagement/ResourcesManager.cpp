@@ -2,10 +2,10 @@
 
 #pragma hdrstop
 
-#include "ResourceManager.h"
+#include "ResourcesManager.h"
 #include "Exceptions/exceptions.h"
 
 #include <pugixml.hpp>
 
-#include "Modules/Graphics/Resources/TextureResource.h"
+#include "Modules/Graphics/Resources/TextureResourceManager.h"
 #include "Utility/files.h"

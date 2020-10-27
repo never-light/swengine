@@ -1,8 +1,8 @@
 #include <catch2/catch.hpp>
 
 #include <Engine/Modules/ResourceManagement/ResourceManagementModule.h>
-#include <Engine/Modules/Graphics/Resources/ShaderResource.h>
-#include <Engine/Modules/Graphics/Resources/MaterialResource.h>
+#include <Engine/Modules/Graphics/Resources/ShaderResourceManager.h>
+#include <Engine/Modules/Graphics/Resources/MaterialResourceManager.h>
 
 #include <Engine/Modules/Math/MathUtils.h>
 
@@ -41,12 +41,12 @@ TEST_CASE("resources_maps_loading", "[resources]")
                             "    </resource>\n"
                             "</resources>");
 
-  const auto& shaderDeclaration = manager->getResourceConfig<GLShader, ShaderResourceParameters>("vertex");
+  const auto& shaderDeclaration = manager->getResourceConfig<GLShader, ShaderResourceConfig>("vertex");
 
   REQUIRE(shaderDeclaration->resourcePath == "../resources/shaders/debug_vertex_shader.glsl");
   REQUIRE(shaderDeclaration->shaderType == ShaderType::Vertex);
 
-  const auto& materialDeclaration = manager->getResourceConfig<Material, MaterialResourceParameters>("material");
+  const auto& materialDeclaration = manager->getResourceConfig<Material, MaterialResourceConfig>("material");
 
   REQUIRE(materialDeclaration->shadersPipeline.vertexShaderId == "vertex");
   REQUIRE(materialDeclaration->shadersPipeline.fragmentShaderId == "fragment");
@@ -59,7 +59,7 @@ TEST_CASE("resources_maps_loading", "[resources]")
 
   REQUIRE(materialDeclaration->parameters[0].shaderType == ShaderType::Fragment);
   REQUIRE(materialDeclaration->parameters[0].name == "paramName");
-  REQUIRE(materialDeclaration->parameters[0].type == MaterialResourceParameters::ShaderParamType::Int);
+  REQUIRE(materialDeclaration->parameters[0].type == MaterialResourceConfig::ShaderParamType::Int);
   REQUIRE(std::get<int>(materialDeclaration->parameters[0].value) == 50);
 }
 

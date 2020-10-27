@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "Modules/Graphics/Resources/BitmapFontResource.h"
+#include "Modules/Graphics/Resources/BitmapFontResourceManager.h"
 #include "Utility/files.h"
 
 #include "GUISystem.h"

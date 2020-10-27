@@ -8,7 +8,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/Skeleton.h"
 #include "Modules/Math/geometry.h"

@@ -1,6 +1,6 @@
 #include "GameComponentsLoader.h"
 
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
+#include <Engine/Modules/Graphics/Resources/TextureResourceManager.h>
 #include <Engine/Exceptions/exceptions.h>
 
 #include <utility>

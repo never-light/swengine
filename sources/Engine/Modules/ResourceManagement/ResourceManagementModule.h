@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "ResourceManager.h"
+#include "ResourcesManager.h"
 
 class ResourceManagementModule final {
  public:

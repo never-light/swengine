@@ -10,17 +10,17 @@
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
-#include "Modules/Graphics/Resources/ShaderResource.h"
-#include "Modules/Graphics/Resources/MeshResource.h"
-#include "Modules/Graphics/Resources/TextureResource.h"
-#include "Modules/Graphics/Resources/BitmapFontResource.h"
-#include "Modules/Graphics/Resources/MaterialResource.h"
-#include "Modules/Graphics/Resources/SkeletonResource.h"
-#include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
-#include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
+#include "Modules/Graphics/Resources/MeshResourceManager.h"
+#include "Modules/Graphics/Resources/TextureResourceManager.h"
+#include "Modules/Graphics/Resources/BitmapFontResourceManager.h"
+#include "Modules/Graphics/Resources/MaterialResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletonResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletalAnimationResourceManager.h"
+#include "Modules/Graphics/Resources/AnimationStatesMachineResourceManager.h"
 
-#include "Modules/Physics/Resources/CollisionDataResource.h"
-#include "Modules/Audio/Resources/AudioClipResource.h"
+#include "Modules/Physics/Resources/CollisionShapeResourceManager.h"
+#include "Modules/Audio/Resources/AudioClipResourceManager.h"
 
 #include "Modules/LevelsManagement/GameObjectsGenericClassLoader.h"
 
@@ -264,25 +264,25 @@ void BaseGameApplication::initializeEngine()
 
   std::shared_ptr<ResourcesManager> resourceManager = m_resourceManagementModule->getResourceManager();
   resourceManager->registerResourceType<GLShader>("shader",
-    std::make_unique<ShaderResource>(resourceManager.get()));
+    std::make_unique<ShaderResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<Mesh>("mesh",
-    std::make_unique<MeshResource>(resourceManager.get()));
+    std::make_unique<MeshResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<GLTexture>("texture",
-    std::make_unique<TextureResource>(resourceManager.get()));
+    std::make_unique<TextureResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<BitmapFont>("bitmap_font",
-    std::make_unique<BitmapFontResource>(resourceManager.get()));
+    std::make_unique<BitmapFontResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<Material>("material",
-    std::make_unique<MaterialResource>(resourceManager.get()));
+    std::make_unique<MaterialResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<Skeleton>("skeleton",
-    std::make_unique<SkeletonResource>(resourceManager.get()));
+    std::make_unique<SkeletonResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<AnimationClip>("animation",
-    std::make_unique<SkeletalAnimationResource>(resourceManager.get()));
+    std::make_unique<SkeletalAnimationResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<AnimationStatesMachine>("animation_states_machine",
-    std::make_unique<AnimationStatesMachineResource>(resourceManager.get()));
+    std::make_unique<AnimationStatesMachineResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<CollisionShape>("collision",
-    std::make_unique<CollisionDataResource>(resourceManager.get()));
+    std::make_unique<CollisionShapeResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<AudioClip>("audio",
-    std::make_unique<AudioClipResource>(resourceManager.get()));
+    std::make_unique<AudioClipResourceManager>(resourceManager.get()));
 
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 

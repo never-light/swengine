@@ -3,7 +3,7 @@
 #include <memory>
 #include <btBulletDynamicsCommon.h>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 #include "Modules/Physics/BaseBackend/RigidBodyComponentBackend.h"
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <glm/vec3.hpp>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "AudioSource.h"
 
 class AudioSourceComponent {

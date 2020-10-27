@@ -13,18 +13,18 @@
 #include "Modules/Graphics/GraphicsSystem/Animation/AnimationStatesMachine.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
 
-#include "Modules/Graphics/Resources/MaterialResource.h"
-#include "Modules/Graphics/Resources/SkeletonResource.h"
-#include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
+#include "Modules/Graphics/Resources/MaterialResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletonResourceManager.h"
+#include "Modules/Graphics/Resources/AnimationStatesMachineResourceManager.h"
 
 #include "Modules/Physics/RigidBodyComponent.h"
 #include "Modules/Physics/KinematicCharacterComponent.h"
 #include "Modules/Physics/CollisionShapesFactory.h"
 
-#include "Modules/Physics/Resources/CollisionDataResource.h"
+#include "Modules/Physics/Resources/CollisionShapeResourceManager.h"
 
 #include "Modules/Audio/AudioSourceComponent.h"
-#include "Modules/Audio/Resources/AudioClipResource.h"
+#include "Modules/Audio/Resources/AudioClipResourceManager.h"
 
 #include "Modules/Math/MathUtils.h"
 #include "Utility/files.h"

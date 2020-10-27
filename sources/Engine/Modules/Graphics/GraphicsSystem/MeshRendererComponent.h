@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "Modules/Graphics/Resources/MeshResource.h"
+#include "Modules/Graphics/Resources/MeshResourceManager.h"
 
 #include "Transform.h"
 #include "Material.h"

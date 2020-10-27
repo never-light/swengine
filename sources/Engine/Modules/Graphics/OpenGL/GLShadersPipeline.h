@@ -4,7 +4,7 @@
 #include <memory>
 #include <optional>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "GLShader.h"
 
 class GLGraphicsContext;

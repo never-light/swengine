@@ -6,7 +6,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "types.h"
 
 enum class AudioClipFormat {

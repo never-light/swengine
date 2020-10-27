@@ -4,7 +4,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <Engine/Exceptions/EngineRuntimeException.h>
-#include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
+#include <Engine/Modules/Graphics/Resources/SkeletonResourceManager.h>
 #include <Engine/Utility/files.h>
 
 #include "Game/Screens/GameScreen.h"

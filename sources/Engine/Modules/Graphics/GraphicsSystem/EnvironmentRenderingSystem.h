@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
 #include "Material.h"

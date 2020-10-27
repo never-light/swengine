@@ -9,45 +9,43 @@
 #include "Exceptions/exceptions.h"
 #include "Utility/strings.h"
 #include "Utility/xml.h"
+#include "Utility/TypeIdentifier.h"
 
-class ResourceDeclHelpers {
- public:
-  template<class T>
-  [[nodiscard]] static T getFilteredParameterValue(const pugi::xml_node& declarationNode,
-    const std::string& parameterName,
-    const std::unordered_map<std::string, T>& allowedValues,
-    T defaultValue);
+constexpr size_t RESOURCE_ID_INVALID = std::numeric_limits<size_t>::max();
+constexpr size_t TYPE_ID_INVALID = std::numeric_limits<size_t>::max();
 
-  template<class T>
-  [[nodiscard]] static T getFilteredParameterValue(const std::string& rawValue,
-    const std::string& parameterName,
-    const std::unordered_map<std::string, T>& allowedValues,
-    T defaultValue);
+struct ResourceTypeIdentifierHelper {
+
 };
 
-template<class T>
-T ResourceDeclHelpers::getFilteredParameterValue(const pugi::xml_node& declarationNode,
-  const std::string& parameterName,
-  const std::unordered_map<std::string, T>& allowedValues,
-  T defaultValue)
-{
-  std::string rawValue = declarationNode.child_value(parameterName.c_str());
+using ResourceTypeIdentifier = TypeIdentifier<ResourceTypeIdentifierHelper>;
 
-  return ResourceDeclHelpers::getFilteredParameterValue(rawValue, parameterName, allowedValues, defaultValue);
-}
+class Resource {
+ public:
+  Resource() = default;
+  virtual ~Resource() = default;
 
-template<class T>
-T ResourceDeclHelpers::getFilteredParameterValue(const std::string& rawValue,
-  const std::string& parameterName,
-  const std::unordered_map<std::string, T>& allowedValues,
-  T defaultValue)
-{
-  try {
-    return StringUtils::filterValue(StringUtils::toLowerCase(rawValue), allowedValues, defaultValue);
+  inline void setTypeId(size_t typeId)
+  {
+    m_typeId = typeId;
   }
-  catch (const EngineRuntimeException&) {
-    THROW_EXCEPTION(EngineRuntimeException,
-      "Resource parameter has invalid value (" + parameterName + "=" + rawValue + ")");
-  }
-}
 
+  inline void setResourceId(size_t resourceId)
+  {
+    m_resourceId = resourceId;
+  }
+
+  [[nodiscard]] inline size_t getTypeId() const
+  {
+    return m_typeId;
+  }
+
+  [[nodiscard]] inline size_t getResourceId() const
+  {
+    return m_resourceId;
+  }
+
+ private:
+  size_t m_typeId = TYPE_ID_INVALID;
+  size_t m_resourceId = RESOURCE_ID_INVALID;
+};

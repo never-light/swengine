@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 #include "BaseBackend/RigidBodyComponentBackend.h"
 

@@ -13,8 +13,8 @@
 
 #include "GLTexture.h"
 
-#include "Modules/ResourceManagement/ResourceManager.h"
-#include "Modules/Graphics/Resources/ShaderResource.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
 #include "Modules/Math/Rect.h"
 
 enum class DepthTestMode {
