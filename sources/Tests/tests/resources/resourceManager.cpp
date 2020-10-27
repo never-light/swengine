@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 
+#include <optional>
+
 #include <Engine/Modules/ResourceManagement/ResourceManagementModule.h>
 #include <Engine/Modules/Graphics/Resources/ShaderResourceManager.h>
 #include <Engine/Modules/Graphics/Resources/MaterialResourceManager.h>
@@ -72,5 +74,27 @@ TEST_CASE("resource_inplace_creation", "[resources]")
     manager->createResourceInPlace<CollisionShape>(CollisionShapeSphere(1.0f));
 
   REQUIRE(shape.get() != nullptr);
-  REQUIRE(MathUtils::isEqual(std::get<CollisionShapeSphere>(*shape).getRadius(), 1.0f));
+  REQUIRE(MathUtils::isEqual(std::get<CollisionShapeSphere>(shape->getShapeData()).getRadius(), 1.0f));
+}
+
+
+TEST_CASE("resource_inplace_unloading", "[resources]")
+{
+  std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
+
+  std::optional<ResourceHandle<CollisionShape>> shape =
+    manager->createNamedResourceInPlace<CollisionShape>("inplace_resource", CollisionShapeSphere(1.0f));
+
+  const ResourceState& resourceState = manager->getResourceState("inplace_resource");
+
+  REQUIRE(resourceState.getReferencesCount() == 1);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Loaded);
+
+  REQUIRE(MathUtils::isEqual(
+    std::get<CollisionShapeSphere>(shape.value()->getShapeData()).getRadius(), 1.0f));
+
+  shape.reset();
+
+  REQUIRE(resourceState.getReferencesCount() == 0);
+  REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Unloaded);
 }

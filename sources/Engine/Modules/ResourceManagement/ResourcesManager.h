@@ -62,7 +62,7 @@ class ResourcesManager {
   inline ResourceHandle<T> getResource(const std::string& resourceId)
   {
     if (!m_resourcesNamesMap.contains(resourceId)) {
-      spdlog::debug("Resource {} does not exists", resourceId);
+      spdlog::critical("Resource {} does not exists", resourceId);
 
       THROW_EXCEPTION(EngineRuntimeException,
         fmt::format("Resource {} does not exists", resourceId));
@@ -72,6 +72,21 @@ class ResourcesManager {
     LOCAL_VALUE_UNUSED(typeId);
 
     return getResourceManager<T>()->getResource(resourceIndex);
+  }
+
+  inline const ResourceState& getResourceState(const std::string& resourceId) const
+  {
+    if (!m_resourcesNamesMap.contains(resourceId)) {
+      spdlog::critical("Resource {} does not exists", resourceId);
+
+      THROW_EXCEPTION(EngineRuntimeException,
+        fmt::format("Resource {} does not exists", resourceId));
+    }
+
+    auto&[typeId, resourceIndex] = m_resourcesNamesMap.at(resourceId);
+    LOCAL_VALUE_UNUSED(typeId);
+
+    return m_resourcesManagers[typeId]->getResourceState(resourceIndex);
   }
 
   template<class ResourceType, class ConfigType>
@@ -186,32 +201,47 @@ class ResourcesManager {
   template<class ResourceType, class... Args>
   ResourceHandle<ResourceType> createResourceInPlace(Args&& ... args)
   {
-    size_t typeId = ResourceTypeIdentifier::getTypeId<ResourceType>();
-
     std::string inPlaceResourceName = "inplace_resource_" + std::to_string(m_freeInPlaceResourceIndex);
     m_freeInPlaceResourceIndex++;
 
+    return createNamedResourceInPlace<ResourceType, Args...>(inPlaceResourceName, std::forward<Args>(args)...);
+  }
+
+  template<class ResourceType, class... Args>
+  ResourceHandle<ResourceType> createNamedResourceInPlace(const std::string& resourceName, Args&& ... args)
+  {
+    size_t typeId = ResourceTypeIdentifier::getTypeId<ResourceType>();
+
     if constexpr (LOG_RESOURCES_MANAGEMENT) {
-      spdlog::debug("Create resource in-place: {}", inPlaceResourceName);
+      spdlog::debug("Create resource in-place: {}", resourceName);
     }
 
     SpecificResourceManager<ResourceType>* resourceManager = getResourceManager<ResourceType>();
-    size_t resourceIndex = resourceManager->createNewResourceEntry(inPlaceResourceName);
+    size_t resourceIndex = resourceManager->createNewResourceEntry(resourceName);
 
     resourceManager->template allocateResource<ResourceType, Args...>(resourceIndex,
       std::forward<Args>(args)...);
 
-    m_resourcesNamesMap.insert({inPlaceResourceName, {typeId, resourceIndex}});
+    m_resourcesNamesMap.insert({resourceName, {typeId, resourceIndex}});
 
     if constexpr (LOG_RESOURCES_MANAGEMENT) {
-      spdlog::debug("Resource entry is created: {}:{}:{}", typeId, resourceIndex, inPlaceResourceName);
+      spdlog::debug("Resource entry is created: {}:{}:{}", typeId, resourceIndex, resourceName);
     }
 
+    // Create fake reference and set resources loading state to skip
+    // automatic loading
     ResourceState& resourceState = resourceManager->getResourceState(resourceIndex);
     resourceState.increaseReferencesCount();
     resourceState.setLoadingState(ResourceLoadingState::Loaded);
 
-    return ResourceHandle<ResourceType>(resourceIndex, resourceManager->getResourcePtr(resourceIndex), this);
+    auto resourceHandle = ResourceHandle<ResourceType>(resourceIndex,
+      resourceManager->getResourcePtr(resourceIndex),
+      this);
+
+    // Remove fake reference
+    resourceState.decreaseReferencesCount();
+
+    return resourceHandle;
   }
 
   void loadResourcesMapFile(const std::string& path)
