@@ -9,7 +9,7 @@
 
 #include "Modules/Graphics/OpenGL/GLShadersPipeline.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
-#include "Modules/Graphics/GraphicsSystem/Mesh.h"
+#include "Modules/Graphics/OpenGL/Mesh.h"
 
 #include "GUILayout.h"
 #include "GUIButton.h"
@@ -86,7 +86,7 @@ class GUISystem : public std::enable_shared_from_this<GUISystem>,
 
   glm::mat4x4 m_guiProjectionMatrix;
 
-  std::unique_ptr<GLMaterial> m_guiMaterial;
+  GpuStateParameters m_gpuStateParameters;
 
   std::unique_ptr<GUIWidgetsLoader> m_widgetsLoader;
 

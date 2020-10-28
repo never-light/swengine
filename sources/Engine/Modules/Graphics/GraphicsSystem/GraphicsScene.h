@@ -2,7 +2,7 @@
 
 #include "Culling/SceneAccelerationStructure.h"
 
-#include "SharedGraphicsState.h"
+#include "FrameStats.h"
 
 struct ObjectSceneNodeComponent {
  public:
@@ -27,7 +27,7 @@ struct ObjectSceneNodeComponent {
 
 class GraphicsScene {
  public:
-  explicit GraphicsScene(std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+  GraphicsScene();
 
   void buildFromObjectsList(std::vector<GameObject>& objects);
 
@@ -50,7 +50,8 @@ class GraphicsScene {
   void setActiveCamera(std::shared_ptr<Camera> camera);
   [[nodiscard]] std::shared_ptr<Camera> getActiveCamera() const;
 
-  std::shared_ptr<SharedGraphicsState> getSharedGraphicsState();
+  [[nodiscard]] const FrameStats& getFrameStats() const;
+  FrameStats& getFrameStats();
 
  private:
   void addSceneNodeComponent(GameObject& object);
@@ -58,10 +59,10 @@ class GraphicsScene {
   [[nodiscard]] static bool isObjectDrawable(GameObject& object);
 
  private:
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-
   std::unique_ptr<SceneAccelerationStructure> m_accelerationStructure;
   std::shared_ptr<Camera> m_activeCamera;
 
   size_t m_drawableObjectsCount{};
+
+  FrameStats m_frameStats;
 };

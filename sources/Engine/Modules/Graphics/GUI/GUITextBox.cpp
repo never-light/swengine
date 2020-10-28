@@ -57,7 +57,7 @@ int GUITextBox::getTextFontSize() const
 void GUITextBox::render(GUISystem& guiSystem)
 {
   RenderTask task = guiSystem.getRenderTaskTemplate(this);
-  guiSystem.getGraphicsContext()->executeRenderTask(task);
+  guiSystem.getGraphicsContext()->scheduleRenderTask(task);
 
   m_text->render(guiSystem);
 }

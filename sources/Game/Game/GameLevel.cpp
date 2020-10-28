@@ -1,6 +1,6 @@
 #include "GameLevel.h"
 
-#include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
+#include <Engine/Modules/Graphics/OpenGL/Mesh.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/Animation/Skeleton.h>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
@@ -39,7 +39,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   m_player = m_gameWorld->findGameObject("player");
 
   m_player.getComponent<CameraComponent>()->getCamera()->setAspectRatio(
-    m_graphicsContext->getDefaultFramebuffer().getAspectRatio());
+    float(m_graphicsContext->getViewportWidth()) / float(m_graphicsContext->getViewportHeight()));
 
   auto environmentObject = m_gameWorld->findGameObject("city_environment");
   environmentObject.getComponent<AudioSourceComponent>()->getSource().play();

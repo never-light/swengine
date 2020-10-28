@@ -50,8 +50,9 @@ void GameScreen::deactivate()
 
 void GameScreen::load()
 {
-  auto& screenFramebuffer = m_graphicsModule->getGraphicsContext()->getDefaultFramebuffer();
-  m_gameGUILayout->setSize({screenFramebuffer.getWidth(), screenFramebuffer.getHeight()});
+  m_gameGUILayout->setSize({
+    m_graphicsModule->getGraphicsContext()->getViewportWidth(),
+    m_graphicsModule->getGraphicsContext()->getViewportHeight()});
 
   getGUILayout()->addChildWidget(m_gameGUILayout);
 
@@ -71,7 +72,7 @@ void GameScreen::update(float delta)
 {
   ARG_UNUSED(delta);
 
-  const FrameStats& stats = m_sharedGraphicsState->getFrameStats();
+  const FrameStats& stats = m_graphicsScene->getFrameStats();
 
   m_primitivesCountText->setText("Primitives: " + std::to_string(stats.getPrimitivesCount()));
   m_subMeshesCountText->setText("Meshes: " + std::to_string(stats.getSubMeshesCount()));

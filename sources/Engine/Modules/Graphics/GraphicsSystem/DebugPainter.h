@@ -8,7 +8,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "Modules/ResourceManagement/ResourceManager.h"
-#include "Modules/Graphics/GraphicsSystem/Mesh.h"
+#include "Modules/Graphics/OpenGL/Mesh.h"
 #include "Modules/Graphics/GraphicsSystem/Camera.h"
 #include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
 
@@ -26,10 +26,9 @@
 //  Do not use DebugPainter for invisible objects, perform culling firstly.
 
 struct DebugRenderQueueItem {
-  GLGeometryStore* geometry;
+  Mesh* mesh;
+  GLMaterial* material;
   glm::mat4x4 transformationMatrix;
-  glm::vec4 color = glm::vec4(0.0f);
-  bool isWireframe = false;
   GLenum primitivesType = GL_TRIANGLES;
 };
 
@@ -70,18 +69,33 @@ class DebugPainter {
   static void flushRenderQueue(GLGraphicsContext* graphicsContext);
 
  private:
-  static GLGeometryStore* createGeometryStore(const std::vector<glm::vec3>& points);
+  static void createRenderingTask(
+    const std::vector<glm::vec3>& points,
+    const glm::mat4& transformationMatrix,
+    GLenum primitivesType,
+    const glm::vec4& color = {},
+    bool wireframe = true);
+
+  static void createRenderingTask(
+    Mesh* mesh,
+    const glm::mat4& transformationMatrix,
+    GLenum primitivesType,
+    const glm::vec4& color = {},
+    bool wireframe = true);
+
 
  private:
   static ResourceHandle<Mesh> s_sphere;
   static ResourceHandle<Mesh> s_box;
 
   static std::shared_ptr<GLShadersPipeline> s_debugShaderPipeline;
-  static std::unique_ptr<GLMaterial> s_debugMaterial;
 
   static std::shared_ptr<GraphicsScene> s_graphicsScene;
 
-  static std::vector<std::unique_ptr<GLGeometryStore>> s_primitivesGeometry;
-  static std::vector<DebugRenderQueueItem> s_debugRenderQueue;
+  static std::vector<std::unique_ptr<Mesh>> s_primitivesGeometry;
+  static std::vector<std::unique_ptr<GLMaterial>> s_primitivesMaterials;
+  static std::vector<glm::mat4> s_primitivesTransforms;
+
+  static std::vector<RenderTask> s_debugRenderQueue;
 };
 

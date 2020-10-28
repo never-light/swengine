@@ -10,9 +10,8 @@
 #include "MeshRendererComponent.h"
 #include "MeshRenderingSystem.h"
 
-GraphicsScene::GraphicsScene(std::shared_ptr<SharedGraphicsState> sharedGraphicsState)
-  : m_sharedGraphicsState(std::move(sharedGraphicsState)),
-    m_accelerationStructure(std::make_unique<LinearSceneStructure>())
+GraphicsScene::GraphicsScene()
+  : m_accelerationStructure(std::make_unique<LinearSceneStructure>())
 {
 
 }
@@ -78,11 +77,6 @@ std::shared_ptr<Camera> GraphicsScene::getActiveCamera() const
   return m_activeCamera;
 }
 
-std::shared_ptr<SharedGraphicsState> GraphicsScene::getSharedGraphicsState()
-{
-  return m_sharedGraphicsState;
-}
-
 size_t GraphicsScene::getObjectsCount() const
 {
   return m_accelerationStructure->getObjectsCount();
@@ -112,4 +106,14 @@ void GraphicsScene::addSceneNodeComponent(GameObject& object)
 bool GraphicsScene::isObjectDrawable(GameObject& object)
 {
   return object.hasComponent<MeshRendererComponent>();
+}
+
+const FrameStats& GraphicsScene::getFrameStats() const
+{
+  return m_frameStats;
+}
+
+FrameStats& GraphicsScene::getFrameStats()
+{
+  return m_frameStats;
 }

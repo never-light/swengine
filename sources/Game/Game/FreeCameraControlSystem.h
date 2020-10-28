@@ -13,7 +13,8 @@ class FreeCameraControlSystem : public GameSystem,
  public:
   explicit FreeCameraControlSystem(
     std::shared_ptr<InputModule> inputModule,
-    std::shared_ptr<GraphicsScene> graphicsScene);
+    std::shared_ptr<GraphicsScene> graphicsScene,
+    std::shared_ptr<GLGraphicsContext> graphicsContext);
   ~FreeCameraControlSystem() override = default;
 
   void configure() override;

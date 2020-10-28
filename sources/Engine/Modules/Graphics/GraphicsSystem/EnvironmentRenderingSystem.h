@@ -5,20 +5,20 @@
 #include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
 
-#include "Material.h"
-#include "Mesh.h"
-#include "SharedGraphicsState.h"
+#include "Modules/Graphics/OpenGL/GLMaterial.h"
+#include "Modules/Graphics/OpenGL/Mesh.h"
+#include "FrameStats.h"
 #include "RenderingSystem.h"
 
 class EnvironmentComponent {
  public:
   EnvironmentComponent();
 
-  void setEnvironmentMaterial(ResourceHandle<Material> material);
-  [[nodiscard]] Material* getEnvironmentMaterial() const;
+  void setEnvironmentMaterial(ResourceHandle<GLMaterial> material);
+  [[nodiscard]] GLMaterial* getEnvironmentMaterial() const;
 
  private:
-  ResourceHandle<Material> m_environmentMaterial;
+  ResourceHandle<GLMaterial> m_environmentMaterial;
 };
 
 class EnvironmentRenderingSystem : public RenderingSystem {
@@ -34,7 +34,7 @@ class EnvironmentRenderingSystem : public RenderingSystem {
   void unconfigure() override;
 
   void update(float delta) override;
-  void renderForward() override;
+  void render() override;
 
  private:
   ResourceHandle<Mesh> m_environmentMesh;

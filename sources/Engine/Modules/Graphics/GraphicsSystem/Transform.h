@@ -51,7 +51,7 @@ class Transform {
   void lookAt(float x, float y, float z);
   void lookAt(const glm::vec3& target);
 
-  [[nodiscard]] glm::mat4x4 getTransformationMatrix();
+  [[nodiscard]] glm::mat4x4& getTransformationMatrix();
 
   [[nodiscard]] bool isCacheOutdated() const;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine/Modules/Graphics/GraphicsSystem/Camera.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
+#include <Engine/Modules/Graphics/OpenGL/Mesh.h>
 
 class PlayerComponent {
  public:

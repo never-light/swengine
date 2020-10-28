@@ -4,7 +4,7 @@
 
 #include "Modules/ECS/GameSystemsGroup.h"
 #include "RenderingSystem.h"
-#include "Material.h"
+#include "Modules/Graphics/OpenGL/GLMaterial.h"
 
 // TODO: make rendering system more high-level and get rid of low-level primitives
 //  usage here. High-level rendering system shouldn't organize forward, deferred, post-process
@@ -27,13 +27,7 @@ class RenderingSystemsPipeline : public GameSystemsGroup {
 
   void render() override;
 
-  void setDeferredAccumulationShadersPipeline(std::shared_ptr<GLShadersPipeline> pipeline);
-  [[nodiscard]] std::shared_ptr<GLShadersPipeline> getDeferredAccumulationShadersPipeline() const;
-
  private:
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-
-  std::shared_ptr<Material> m_deferredAccumulationMaterial;
 };
 

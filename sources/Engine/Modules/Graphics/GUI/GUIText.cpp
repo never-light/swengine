@@ -80,21 +80,17 @@ void GUIText::render(GUISystem& guiSystem)
 
   RenderTask task = guiSystem.getRenderTaskTemplate(this);
 
-  task.geometryStore = updateAndGetGeometryStore();
-  task.startOffset = 0;
-  task.partsCount = task.geometryStore->getIndicesCount();
+  auto& shadingParameters = dynamic_cast<ShadingParametersGUI&>(task.material->getParametersSet());
+  shadingParameters.setAlphaTexture(m_font->getBitmapResource());
 
-  GLShader* fragmentShader = task.material->getShadersPipeline()->getShader(ShaderType::Fragment);
-  fragmentShader->setParameter("widget.useColorAlphaTexture", true);
-  fragmentShader->setParameter("widget.colorAlphaTexture", *m_font->getBitmap(), 1);
-
-  guiSystem.getGraphicsContext()->executeRenderTask(task);
+  task.mesh = updateAndGetGeometryStore();
+  guiSystem.getGraphicsContext()->scheduleRenderTask(task);
 }
 
-GLGeometryStore* GUIText::updateAndGetGeometryStore()
+Mesh* GUIText::updateAndGetGeometryStore()
 {
   if (m_needTextGeometryUpdate) {
-    m_textGeometryCache = std::unique_ptr<GLGeometryStore>(createStringGeometryBuffer(m_text));
+    m_textGeometryCache = std::unique_ptr<Mesh>(createStringGeometryBuffer(m_text));
     m_needTextGeometryUpdate = false;
   }
 
@@ -106,13 +102,15 @@ void GUIText::resetTextGeometryCache()
   m_needTextGeometryUpdate = true;
 }
 
-std::tuple<std::vector<VertexPos3Norm3UV>,
+std::tuple<std::vector<glm::vec3>,
+           std::vector<glm::vec2>,
            std::vector<uint16_t>, glm::ivec2> GUIText::getStringGeometryStoreParams(const std::string& str) const
 {
   SW_ASSERT(m_font.get() != nullptr && "It is required to set font for the text line before rendering");
   SW_ASSERT(!str.empty() && "It is impossible to create geometry buffer for the empty text string");
 
-  std::vector<VertexPos3Norm3UV> vertices;
+  std::vector<glm::vec3> positions;
+  std::vector<glm::vec2> uv;
   std::vector<uint16_t> indices;
 
   int bitmapWidth = m_font->getBitmap()->getWidth();
@@ -139,67 +137,51 @@ std::tuple<std::vector<VertexPos3Norm3UV>,
 
     glm::ivec2 originPosition(cursorPosition, cursorLineOffset);
 
-    auto verticesBaseSize = static_cast<uint16_t>(vertices.size());
+    auto verticesBaseSize = static_cast<uint16_t>(positions.size());
 
-    VertexPos3Norm3UV topLeftVertex{
-      {
-        originPosition.x + characterDescription.xOffset,
-        originPosition.y + characterDescription.yOffset,
-        0.0f
-      },
-      glm::vec3(0.0f),
-      {
-        static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
-        static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
-      }
-    };
+    positions.emplace_back(
+      originPosition.x + characterDescription.xOffset,
+      originPosition.y + characterDescription.yOffset,
+      0.0f
+    );
 
-    vertices.push_back(topLeftVertex);
+    uv.emplace_back(
+      static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
+      static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
+    );
 
-    VertexPos3Norm3UV topRightVertex{
-      {
-        originPosition.x + characterSize.x + characterDescription.xOffset,
-        originPosition.y + characterDescription.yOffset,
-        0.0f
-      },
-      glm::vec3(0.0f),
-      {
-        static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
-        static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
-      }
-    };
+    positions.emplace_back(
+      originPosition.x + characterSize.x + characterDescription.xOffset,
+      originPosition.y + characterDescription.yOffset,
+      0.0f
+    );
 
-    vertices.push_back(topRightVertex);
+    uv.emplace_back(
+      static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
+      static_cast<float>(atlasPosition.y) / static_cast<float>(bitmapHeight)
+    );
 
-    VertexPos3Norm3UV bottomRightVertex{
-      {
-        originPosition.x + characterSize.x + characterDescription.xOffset,
-        originPosition.y + characterSize.y + characterDescription.yOffset,
-        0.0f
-      },
-      glm::vec3(0.0f),
-      {
-        static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
-        static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
-      }
-    };
+    positions.emplace_back(
+      originPosition.x + characterSize.x + characterDescription.xOffset,
+      originPosition.y + characterSize.y + characterDescription.yOffset,
+      0.0f
+    );
 
-    vertices.push_back(bottomRightVertex);
+    uv.emplace_back(
+      static_cast<float>(atlasPosition.x + characterSize.x) / static_cast<float>(bitmapWidth),
+      static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
+    );
 
-    VertexPos3Norm3UV bottomLeftVertex{
-      {
-        originPosition.x + characterDescription.xOffset,
-        originPosition.y + characterSize.y + characterDescription.yOffset,
-        0.0f
-      },
-      glm::vec3(0.0f),
-      {
-        static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
-        static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
-      }
-    };
+    positions.emplace_back(
+      originPosition.x + characterDescription.xOffset,
+      originPosition.y + characterSize.y + characterDescription.yOffset,
+      0.0f
+    );
 
-    vertices.push_back(bottomLeftVertex);
+    uv.emplace_back(
+      static_cast<float>(atlasPosition.x) / static_cast<float>(bitmapWidth),
+      static_cast<float>(atlasPosition.y + characterSize.y) / static_cast<float>(bitmapHeight)
+    );
 
     indices.push_back(verticesBaseSize + 1);
     indices.push_back(verticesBaseSize);
@@ -214,24 +196,32 @@ std::tuple<std::vector<VertexPos3Norm3UV>,
 
   float scaleFactor = static_cast<float>(m_fontSize) / static_cast<float>(m_font->getBaseSize());
 
-  for (VertexPos3Norm3UV& vertex : vertices) {
-    vertex.pos.x *= scaleFactor;
-    vertex.pos.y *= scaleFactor;
+  for (glm::vec3& pos : positions) {
+    pos.x *= scaleFactor;
+    pos.y *= scaleFactor;
 
-    int vertexHeight = static_cast<int>(std::ceil(vertex.pos.y));
+    int vertexHeight = static_cast<int>(std::ceil(pos.y));
     maxHeight = std::max(vertexHeight, maxHeight);
   }
 
-  return {vertices, indices, {cursorPosition, maxHeight}};
+  return {positions, uv, indices, {cursorPosition, maxHeight}};
 }
 
-GLGeometryStore* GUIText::createStringGeometryBuffer(const std::string& str)
+Mesh* GUIText::createStringGeometryBuffer(const std::string& str)
 {
   auto geometryStoreParams = getStringGeometryStoreParams(str);
 
-  GUIWidget::setSize(std::get<2>(geometryStoreParams));
+  GUIWidget::setSize(std::get<3>(geometryStoreParams));
 
-  return new GLGeometryStore(std::get<0>(geometryStoreParams), std::get<1>(geometryStoreParams));
+  Mesh* mesh = new Mesh();
+  mesh->setVertices(std::get<0>(geometryStoreParams));
+  mesh->setUV(std::get<1>(geometryStoreParams));
+  mesh->setNormals(std::vector<glm::vec3>(std::get<1>(geometryStoreParams).size()));
+
+  size_t subMeshIndex = mesh->addSubMesh(std::get<2>(geometryStoreParams));
+  LOCAL_VALUE_UNUSED(subMeshIndex);
+
+  return mesh;
 }
 
 [[nodiscard]] glm::mat4 GUIText::updateTransformationMatrix()
@@ -322,7 +312,7 @@ glm::ivec2 GUIText::getSize() const
   if (m_needTextGeometryUpdate) {
     auto geometryStoreParams = getStringGeometryStoreParams(m_text);
 
-    return std::get<2>(geometryStoreParams);
+    return std::get<3>(geometryStoreParams);
   }
   else {
     return GUIWidget::getSize();

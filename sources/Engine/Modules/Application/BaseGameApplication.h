@@ -11,7 +11,7 @@
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
-#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Modules/Graphics/GraphicsSystem/FrameStats.h"
 #include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationSystem.h"
@@ -73,7 +73,6 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<InputSystem> m_inputSystem;
 
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
   std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;

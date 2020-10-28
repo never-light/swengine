@@ -43,11 +43,12 @@ class GUIText : public GUIWidget {
  private:
   void resetTextGeometryCache();
 
-  std::tuple<std::vector<VertexPos3Norm3UV>,
+  std::tuple<std::vector<glm::vec3>,
+             std::vector<glm::vec2>,
              std::vector<uint16_t>, glm::ivec2> getStringGeometryStoreParams(const std::string& str) const;
 
-  GLGeometryStore* updateAndGetGeometryStore();
-  GLGeometryStore* createStringGeometryBuffer(const std::string& str);
+  Mesh* updateAndGetGeometryStore();
+  Mesh* createStringGeometryBuffer(const std::string& str);
 
  private:
   ResourceHandle<BitmapFont> m_font;
@@ -56,7 +57,7 @@ class GUIText : public GUIWidget {
 
   int m_fontSize;
 
-  mutable std::unique_ptr<GLGeometryStore> m_textGeometryCache;
+  mutable std::unique_ptr<Mesh> m_textGeometryCache;
   mutable bool m_needTextGeometryUpdate = true;
 
  private:

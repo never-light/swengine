@@ -134,7 +134,7 @@ void GUIWidget::update(float delta)
 void GUIWidget::render(GUISystem& guiSystem)
 {
   RenderTask task = guiSystem.getRenderTaskTemplate(this);
-  guiSystem.getGraphicsContext()->executeRenderTask(task);
+  guiSystem.getGraphicsContext()->scheduleRenderTask(task);
 }
 
 void GUIWidget::setZIndex(int zIndex)

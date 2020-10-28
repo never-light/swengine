@@ -17,9 +17,7 @@ class MeshRenderingSystem : public RenderingSystem {
   void unconfigure() override;
 
   void update(float delta) override;
-
-  void renderForward() override;
-  void renderDeferred() override;
+  void render() override;
 
   void enableBoundsRendering(bool isEnabled = true);
   [[nodiscard]] bool isBoundsRenderingEnabled() const;

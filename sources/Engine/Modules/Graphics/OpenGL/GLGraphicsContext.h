@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
 #include "GL.h"
 #include "Modules/Math/Rect.h"
@@ -9,6 +10,10 @@
 #include "GLShadersPipeline.h"
 #include "GLMaterial.h"
 #include "GLFramebuffer.h"
+#include "Mesh.h"
+
+#include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
+#include "Modules/Graphics/GraphicsSystem/Transform.h"
 
 class SharedGraphicsState;
 
@@ -16,14 +21,13 @@ class Transform;
 
 struct RenderTask {
   GLMaterial* material{};
-  GLGeometryStore* geometryStore{};
+  Mesh* mesh{};
+  uint16_t subMeshIndex = 0;
 
-  size_t startOffset{};
-  size_t partsCount{};
+  const glm::mat4* transform{};
+  const glm::mat4* matrixPalette{};
 
   GLenum primitivesType = GL_TRIANGLES;
-  GLFramebuffer* framebuffer = nullptr;
-
   RectI scissorsRect{};
 };
 
@@ -32,8 +36,12 @@ class GLGraphicsContext {
   explicit GLGraphicsContext(SDL_Window* window);
   ~GLGraphicsContext();
 
-  void enableWritingToDepthBuffer();
-  void disableWritingToDepthBuffer();
+  [[nodiscard]] int getViewportWidth() const;
+  [[nodiscard]] int getViewportHeight() const;
+
+  void setupGraphicsScene(std::shared_ptr<GraphicsScene> graphicsScene);
+
+  void setupDeferredAccumulationMaterial(std::shared_ptr<GLShadersPipeline> pipeline);
 
   void swapBuffers();
 
@@ -44,10 +52,12 @@ class GLGraphicsContext {
   void setDepthWritingMode(DepthWritingMode mode);
   void setupScissorsTest(ScissorsTestMode mode);
 
-  void applyMaterial(const GLMaterial& material);
-  void executeRenderTask(const RenderTask& task);
+  void applyGpuState(const GpuStateParameters& gpuState);
 
-  [[nodiscard]] GLFramebuffer& getDefaultFramebuffer() const;
+  void scheduleRenderTask(const RenderTask& task);
+  void executeRenderTasks();
+  void executeRenderingStageQueue(RenderingStage stage);
+
   [[nodiscard]] GLGeometryStore& getNDCTexturedQuad() const;
 
  private:
@@ -61,8 +71,19 @@ class GLGraphicsContext {
   GLMaterial* m_currentMaterial = nullptr;
   GLFramebuffer* m_currentFramebuffer = nullptr;
 
+  GLShadersPipeline* m_currentShadersPipeline{};
+
   std::unique_ptr<GLFramebuffer> m_defaultFramebuffer;
   std::unique_ptr<GLGeometryStore> m_ndcTexturedQuad;
+
+  std::shared_ptr<GraphicsScene> m_graphicsScene;
+
+  std::unique_ptr<GLFramebuffer> m_deferredFramebuffer;
+  std::unique_ptr<GLFramebuffer> m_forwardFramebuffer;
+
+  std::array<std::vector<RenderTask>, 6> m_renderingQueues;
+
+  std::unique_ptr<GLMaterial> m_deferredAccumulationMaterial;
 
  private:
   static void APIENTRY debugOutputCallback(GLenum source,

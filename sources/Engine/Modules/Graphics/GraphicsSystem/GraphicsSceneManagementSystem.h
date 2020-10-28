@@ -4,7 +4,7 @@
 
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
-#include "SharedGraphicsState.h"
+#include "FrameStats.h"
 #include "GraphicsScene.h"
 
 struct LoadSceneCommandEvent {

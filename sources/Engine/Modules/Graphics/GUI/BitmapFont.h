@@ -28,6 +28,7 @@ class BitmapFont : public Resource {
   [[nodiscard]] const BitmapCharacter& getCharacter(unsigned char character) const;
 
   [[nodiscard]] GLTexture* getBitmap() const;
+  [[nodiscard]] ResourceHandle<GLTexture> getBitmapResource() const;
 
   [[nodiscard]] int getBaseSize() const;
   [[nodiscard]] int getHeight() const;

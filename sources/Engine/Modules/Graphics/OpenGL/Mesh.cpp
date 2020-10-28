@@ -242,7 +242,7 @@ void Mesh::updateGeometryBuffer()
     }
 
     if (isSkinned()) {
-        SW_ASSERT(m_bonesIDs.size() > 0 && m_bonesWeights.size() > 0);
+        SW_ASSERT(!m_bonesIDs.empty() && !m_bonesWeights.empty());
 
         meshAttributesMask = meshAttributesMask | MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;
     }

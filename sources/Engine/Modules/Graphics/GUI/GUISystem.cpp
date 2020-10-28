@@ -43,13 +43,11 @@ GUISystem::GUISystem(
 
   RETURN_VALUE_UNUSED(m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3}));
 
-  m_guiMaterial = std::make_unique<GLMaterial>();
-
-  m_guiMaterial->setShadersPipeline(m_guiShadersPipeline);
-  m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
-  m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
-  m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
-  m_guiMaterial->setScissorsTestMode(ScissorsTestMode::Enabled);
+  m_gpuStateParameters.setDepthTestMode(DepthTestMode::Disabled);
+  m_gpuStateParameters.setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
+  m_gpuStateParameters.setPolygonFillingMode(PolygonFillingMode::Fill);
+  m_gpuStateParameters.setScissorsTestMode(ScissorsTestMode::Enabled);
+  m_gpuStateParameters.setDepthWritingMode(DepthWritingMode::Disabled);
 }
 
 void GUISystem::configure()
@@ -59,8 +57,8 @@ void GUISystem::configure()
   gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
   gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
-  m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getWidth()),
-    static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
+  m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getViewportWidth()),
+    static_cast<float>(m_graphicsContext->getViewportHeight()),
     0.0f, -1.0f, 1.0f);
 
   m_widgetsLoader = std::make_unique<GUIWidgetsLoader>(weak_from_this(), m_resourceManager);
@@ -126,13 +124,6 @@ std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
 
 RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 {
-  // Transformation
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
-  vertexShader->setParameter("transform.localToScreen", widget->getTransformationMatrix());
-
-  // Visual parameters
-  GLShader* fragmentShader = m_guiShadersPipeline->getShader(ShaderType::Fragment);
-
   // Background
   GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
 
@@ -159,52 +150,45 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
     backgroundTexture = defaultVisualParameters.getBackgroundImage();
   }
 
-  fragmentShader->setParameter("widget.backgroundColor", backgroundColor.value());
-  fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture.has_value());
+  if (widget->m_renderingMaterial == nullptr) {
+    widget->m_renderingMaterial = std::make_shared<GLMaterial>(RenderingStage::GUI,
+      m_guiShadersPipeline,
+      m_gpuStateParameters,
+      std::make_unique<ShadingParametersGUI>());
 
-  if (backgroundTexture.has_value()) {
-    fragmentShader->setParameter("widget.backgroundTexture", *backgroundTexture.value(), 0);
   }
 
-  fragmentShader->setParameter("widget.useColorAlphaTexture", false);
+  auto& shadingParameters = dynamic_cast<ShadingParametersGUI&>(widget->m_renderingMaterial->getParametersSet());
 
-  // Border
-  // TODO: implement border filling
-  //fragmentShader->setParameter("widget.borderWidth", widget->getBorderWidth());
-
-  //glm::vec4 borderColor = widget->getBorderColor();
-
-  //if (widget->isHovered()) {
-  //borderColor = widget->getHoverBorderColor();
-  //}
-
-  //fragmentShader->setParameter("widget.borderColor", borderColor);
+  shadingParameters.setBackgroundColor(backgroundColor.value());
+  shadingParameters.setBackgroundTexture(backgroundTexture.value());
 
   // Render task
-  RenderTask task;
-  task.geometryStore = m_guiNDCQuad->getGeometryStore();
-  task.startOffset = m_guiNDCQuad->getSubMeshIndicesOffset(0);
-  task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
-  task.material = m_guiMaterial.get();
+  RenderTask renderTask{
+    .material = widget->m_renderingMaterial.get(),
+    .mesh = m_guiNDCQuad.get(),
+    .subMeshIndex = 0,
+    .transform = &widget->getTransformationMatrix(),
+  };
 
   if (widget->getParent() != nullptr) {
-    task.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
+    renderTask.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
   }
   else {
-    task.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
+    renderTask.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
   }
 
-  return task;
+  return renderTask;
 }
 
 int GUISystem::getScreenWidth() const
 {
-  return m_graphicsContext->getDefaultFramebuffer().getWidth();
+  return m_graphicsContext->getViewportWidth();
 }
 
 int GUISystem::getScreenHeight() const
 {
-  return m_graphicsContext->getDefaultFramebuffer().getHeight();
+  return m_graphicsContext->getViewportHeight();
 }
 
 EventProcessStatus GUISystem::receiveEvent(const MouseButtonEvent& event)

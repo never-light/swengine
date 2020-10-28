@@ -88,7 +88,7 @@ void GameApplication::load()
     resourceMgr->getResource<GLShader>("deferred_accum_pass_fragment_shader"),
     std::optional<ResourceHandle<GLShader>>());
 
-  m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
+  m_graphicsModule->getGraphicsContext()->setupDeferredAccumulationMaterial(deferredAccumulationPipeline);
 
   m_gameWorld->subscribeEventsListener<ScreenSwitchEvent>(this);
 

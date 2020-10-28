@@ -20,21 +20,21 @@ ResourceHandle<Mesh> MeshRendererComponent::getMeshInstance() const
   return m_meshInstance;
 }
 
-void MeshRendererComponent::setMaterialsInstances(const std::vector<ResourceHandle<Material>>& instances)
+void MeshRendererComponent::setMaterialsInstances(const std::vector<ResourceHandle<GLMaterial>>& instances)
 {
   SW_ASSERT(instances.size() == m_meshInstance->getSubMeshesCount());
 
   m_materialsInstances = instances;
 }
 
-void MeshRendererComponent::setMaterialInstance(size_t subMeshIndex, ResourceHandle<Material> instance)
+void MeshRendererComponent::setMaterialInstance(size_t subMeshIndex, ResourceHandle<GLMaterial> instance)
 {
   SW_ASSERT(subMeshIndex < m_materialsInstances.size());
 
   m_materialsInstances[subMeshIndex] = instance;
 }
 
-ResourceHandle<Material> MeshRendererComponent::getMaterialInstance(size_t subMeshIndex) const
+ResourceHandle<GLMaterial> MeshRendererComponent::getMaterialInstance(size_t subMeshIndex) const
 {
   SW_ASSERT(subMeshIndex < m_materialsInstances.size());
 

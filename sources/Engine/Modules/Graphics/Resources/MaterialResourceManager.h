@@ -5,11 +5,15 @@
 #include <vector>
 
 #include "Modules/ResourceManagement/ResourcesManagement.h"
-#include "Modules/Graphics/GraphicsSystem/Material.h"
+#include "Modules/Graphics/OpenGL/GLMaterial.h"
 
 struct MaterialResourceConfig {
   enum class ShaderParamType {
     Texture, Int, Float, Boolean
+  };
+
+  enum class ParametersSetType {
+    Generic, OpaqueMesh
   };
 
   struct ShaderParamTexture {
@@ -30,17 +34,19 @@ struct MaterialResourceConfig {
   } shadersPipeline;
 
   struct {
-    BlendingMode blendingMode = BlendingMode::Unspecified;
-    DepthTestMode depthTestMode = DepthTestMode::Unspecified;
-    DepthWritingMode depthWritingMode = DepthWritingMode::Unspecified;
-    FaceCullingMode faceCullingMode = FaceCullingMode::Unspecified;
-    PolygonFillingMode polygonFillingMode = PolygonFillingMode::Unspecified;
+    BlendingMode blendingMode = BlendingMode::Disabled;
+    DepthTestMode depthTestMode = DepthTestMode::LessOrEqual;
+    DepthWritingMode depthWritingMode = DepthWritingMode::Enabled;
+    FaceCullingMode faceCullingMode = FaceCullingMode::Disabled;
+    PolygonFillingMode polygonFillingMode = PolygonFillingMode::Fill;
   } gpuState;
 
-  std::vector<ShaderParam> parameters;
+  std::unordered_map<std::string, ShaderParam> parameters;
+  RenderingStage renderingStage;
+  ParametersSetType parametersSetType;
 };
 
-class MaterialResourceManager : public ResourceManager<Material, MaterialResourceConfig> {
+class MaterialResourceManager : public ResourceManager<GLMaterial, MaterialResourceConfig> {
  public:
   explicit MaterialResourceManager(ResourcesManager* resourcesManager);
   ~MaterialResourceManager() override;

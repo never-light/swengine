@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Modules/ResourceManagement/ResourcesManagement.h"
-#include "Modules/Graphics/GraphicsSystem/Mesh.h"
+#include "Modules/Graphics/OpenGL/Mesh.h"
 
 struct MeshResourceConfig {
   MeshResourceConfig() = default;
