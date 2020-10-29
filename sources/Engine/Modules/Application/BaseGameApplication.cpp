@@ -50,6 +50,7 @@ BaseGameApplication::BaseGameApplication(int argc,
 BaseGameApplication::~BaseGameApplication()
 {
   SDL_DestroyWindow(m_mainWindow);
+  SDL_Quit();
 }
 
 void BaseGameApplication::load()
@@ -322,8 +323,7 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(sceneManagementSystem);
 
   // Rendering pipeline
-  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext(),
-    m_graphicsScene);
+  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext());
 
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
@@ -421,12 +421,17 @@ void BaseGameApplication::performUnload()
 {
   unload();
 
+  DebugPainter::deinitialize();
+
   m_screenManager.reset();
 
   m_levelsManager->unloadLevel();
+  m_graphicsScene.reset();
+
   m_gameWorld->reset();
 
-  SDL_Quit();
+  m_graphicsModule->getGraphicsContext()->unloadResources();
+  m_graphicsModule.reset();
 }
 
 void BaseGameApplication::performUpdate(float delta)
@@ -449,6 +454,8 @@ void BaseGameApplication::performRender()
   m_screenManager->render();
 
   render();
+
+  m_graphicsModule->getGraphicsContext()->executeRenderTasks();
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();

@@ -61,6 +61,8 @@ void GUISystem::configure()
     static_cast<float>(m_graphicsContext->getViewportHeight()),
     0.0f, -1.0f, 1.0f);
 
+  m_graphicsContext->setGUIProjectionMatrix(m_guiProjectionMatrix);
+
   m_widgetsLoader = std::make_unique<GUIWidgetsLoader>(weak_from_this(), m_resourceManager);
 }
 
@@ -161,7 +163,7 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
   auto& shadingParameters = dynamic_cast<ShadingParametersGUI&>(widget->m_renderingMaterial->getParametersSet());
 
   shadingParameters.setBackgroundColor(backgroundColor.value());
-  shadingParameters.setBackgroundTexture(backgroundTexture.value());
+  shadingParameters.setBackgroundTexture(backgroundTexture.value_or(ResourceHandle<GLTexture>()));
 
   // Render task
   RenderTask renderTask{

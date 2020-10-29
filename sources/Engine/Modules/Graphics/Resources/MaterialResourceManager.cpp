@@ -149,6 +149,7 @@ void MaterialResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
   static std::unordered_map<std::string, RenderingStage> renderingStagesTypesMap = {
     {"deferred", RenderingStage::Deferred},
     {"forward", RenderingStage::Forward},
+    {"forward_environment", RenderingStage::ForwardEnvironment},
     {"post_process", RenderingStage::PostProcess}
   };
 

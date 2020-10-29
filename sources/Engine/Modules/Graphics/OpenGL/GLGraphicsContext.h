@@ -31,6 +31,20 @@ struct RenderTask {
   RectI scissorsRect{};
 };
 
+class GLGraphicsContext;
+
+struct SDLGLContext {
+ public:
+  SDLGLContext() = default;
+  ~SDLGLContext();
+
+ private:
+  SDL_GLContext m_glContext;
+
+ private:
+  friend class GLGraphicsContext;
+};
+
 class GLGraphicsContext {
  public:
   explicit GLGraphicsContext(SDL_Window* window);
@@ -60,13 +74,19 @@ class GLGraphicsContext {
 
   [[nodiscard]] GLGeometryStore& getNDCTexturedQuad() const;
 
+  void setGUIProjectionMatrix(const glm::mat4& projection);
+  [[nodiscard]] const glm::mat4& getGUIProjectionMatrix() const;
+
+  void unloadResources();
+
  private:
   void applyContextChange();
   void resetMaterial();
 
  private:
+  SDLGLContext m_sdlGLContext;
+
   SDL_Window* m_window;
-  SDL_GLContext m_glContext;
 
   GLMaterial* m_currentMaterial = nullptr;
   GLFramebuffer* m_currentFramebuffer = nullptr;
@@ -84,6 +104,8 @@ class GLGraphicsContext {
   std::array<std::vector<RenderTask>, 6> m_renderingQueues;
 
   std::unique_ptr<GLMaterial> m_deferredAccumulationMaterial;
+
+  glm::mat4 m_guiProjectionMatrix = glm::identity<glm::mat4>();
 
  private:
   static void APIENTRY debugOutputCallback(GLenum source,

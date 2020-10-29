@@ -169,7 +169,10 @@ void GLShadingParametersGUIBinder::bindParameters(GLShadersPipeline& shadersPipe
   bool hasColorAlphaTexture = parametersSet.getAlphaTexture().get() != nullptr;
 
   fragmentShader->setParameter("widget.useColorAlphaTexture", hasColorAlphaTexture);
-  fragmentShader->setParameter("widget.colorAlphaTexture", *parametersSet.getAlphaTexture(), 1);
+
+  if (hasColorAlphaTexture) {
+    fragmentShader->setParameter("widget.colorAlphaTexture", *parametersSet.getAlphaTexture(), 1);
+  }
 }
 
 GLShadingParametersOpaqueMeshBinder::GLShadingParametersOpaqueMeshBinder(

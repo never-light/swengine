@@ -39,6 +39,8 @@ class DebugPainter {
   static void initialize(std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<GraphicsScene> graphicsScene);
 
+  static void deinitialize();
+
   static void renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color);
   static void renderVector(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color);
   static void renderBasis(const glm::vec3& origin, const glm::vec3& x, const glm::vec3& y, const glm::vec3& z);
@@ -67,6 +69,7 @@ class DebugPainter {
   static void renderAABB(const AABB& aabb, const glm::vec4& color = {}, bool wireframe = true);
 
   static void flushRenderQueue(GLGraphicsContext* graphicsContext);
+  static void resetRenderQueue();
 
  private:
   static void createRenderingTask(

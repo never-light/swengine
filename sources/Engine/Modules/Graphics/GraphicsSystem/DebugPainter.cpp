@@ -44,6 +44,22 @@ void DebugPainter::initialize(std::shared_ptr<ResourcesManager> resourceManager,
     std::optional<ResourceHandle<GLShader>>());
 }
 
+
+void DebugPainter::deinitialize()
+{
+  s_sphere = {};
+  s_box = {};
+
+  s_debugShaderPipeline.reset();
+  s_graphicsScene.reset();
+
+  s_primitivesMaterials.clear();
+  s_primitivesGeometry.clear();
+  s_primitivesTransforms.clear();
+
+  s_debugRenderQueue.clear();
+}
+
 void DebugPainter::renderSegment(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
 {
   createRenderingTask({start, end}, glm::identity<glm::mat4>(),
@@ -174,7 +190,10 @@ void DebugPainter::flushRenderQueue(GLGraphicsContext* graphicsContext)
 
     graphicsContext->scheduleRenderTask(queueItem);
   }
+}
 
+void DebugPainter::resetRenderQueue()
+{
   s_debugRenderQueue.clear();
   s_primitivesGeometry.clear();
   s_primitivesTransforms.clear();

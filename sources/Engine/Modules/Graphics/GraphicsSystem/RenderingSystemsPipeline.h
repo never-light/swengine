@@ -19,13 +19,13 @@
 
 class RenderingSystemsPipeline : public GameSystemsGroup {
  public:
-  RenderingSystemsPipeline(
-    std::shared_ptr<GLGraphicsContext> graphicsContext,
-    std::shared_ptr<GraphicsScene> graphicsScene);
+  explicit RenderingSystemsPipeline(
+    std::shared_ptr<GLGraphicsContext> graphicsContext);
 
   void addGameSystem(std::shared_ptr<GameSystem> system) override;
 
   void render() override;
+  void afterRender() override;
 
  private:
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;

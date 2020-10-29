@@ -9,8 +9,7 @@
 #include "DebugPainter.h"
 
 RenderingSystemsPipeline::RenderingSystemsPipeline(
-  std::shared_ptr<GLGraphicsContext> graphicsContext,
-  std::shared_ptr<GraphicsScene> graphicsScene)
+  std::shared_ptr<GLGraphicsContext> graphicsContext)
   : GameSystemsGroup(),
     m_graphicsContext(std::move(graphicsContext))
     {
@@ -31,6 +30,9 @@ void RenderingSystemsPipeline::render()
   }
 
   DebugPainter::flushRenderQueue(m_graphicsContext.get());
+}
 
-  m_graphicsContext->executeRenderTasks();
+void RenderingSystemsPipeline::afterRender()
+{
+  DebugPainter::resetRenderQueue();
 }

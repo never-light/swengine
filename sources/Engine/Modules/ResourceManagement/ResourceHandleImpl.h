@@ -9,7 +9,9 @@ ResourceHandle<T>::ResourceHandle(size_t resourceIndex, T* resourcePtr, Resource
     m_resourcePtr(resourcePtr),
     m_resourcesManager(resourcesManager)
 {
-  m_resourcesManager->increaseReferenceCounter(this);
+  if (m_resourceIndex != RESOURCE_ID_INVALID) {
+    m_resourcesManager->increaseReferenceCounter(this);
+  }
 }
 
 template<class T>
@@ -26,7 +28,9 @@ ResourceHandle<T>::ResourceHandle(const ResourceHandle<T>& handle)
     m_resourcePtr(handle.m_resourcePtr),
     m_resourcesManager(handle.m_resourcesManager)
 {
-  m_resourcesManager->increaseReferenceCounter(this);
+  if (m_resourceIndex != RESOURCE_ID_INVALID) {
+    m_resourcesManager->increaseReferenceCounter(this);
+  }
 }
 
 template<class T>
@@ -48,7 +52,9 @@ ResourceHandle<T>& ResourceHandle<T>::operator=(const ResourceHandle<T>& other)
     this->m_resourceIndex = other.m_resourceIndex;
     this->m_resourcesManager = other.m_resourcesManager;
 
-    m_resourcesManager->increaseReferenceCounter(this);
+    if (this->m_resourceIndex != RESOURCE_ID_INVALID) {
+      m_resourcesManager->increaseReferenceCounter(this);
+    }
   }
 
   return *this;

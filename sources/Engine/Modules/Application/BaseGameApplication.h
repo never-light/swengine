@@ -68,8 +68,9 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
  protected:
   SDL_Window* m_mainWindow;
 
-  std::shared_ptr<GraphicsModule> m_graphicsModule;
   std::shared_ptr<ResourceManagementModule> m_resourceManagementModule;
+
+  std::shared_ptr<GraphicsModule> m_graphicsModule;
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<InputSystem> m_inputSystem;
 

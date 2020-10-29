@@ -15,9 +15,9 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
 {
   spdlog::info("Creating OpenGL context");
 
-  m_glContext = SDL_GL_CreateContext(m_window);
+  m_sdlGLContext.m_glContext = SDL_GL_CreateContext(m_window);
 
-  if (m_glContext == nullptr) {
+  if (m_sdlGLContext.m_glContext == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
   }
 
@@ -87,7 +87,6 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
 
 GLGraphicsContext::~GLGraphicsContext()
 {
-  SDL_GL_DeleteContext(m_glContext);
 }
 
 void GLGraphicsContext::swapBuffers()
@@ -336,6 +335,7 @@ void GLGraphicsContext::executeRenderTasks()
   //  For example, use depth swap trick to avoid depth buffer clearing
 
   glDisable(GL_SCISSOR_TEST);
+  glDepthMask(GL_TRUE);
 
   m_deferredFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 0);
   m_deferredFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 1);
@@ -343,13 +343,7 @@ void GLGraphicsContext::executeRenderTasks()
 
   m_deferredFramebuffer->clearDepthStencil(1.0f, 0);
 
-  glEnable(GL_SCISSOR_TEST);
-
   glBindFramebuffer(GL_FRAMEBUFFER, m_deferredFramebuffer->getGLHandle());
-
-  if (!m_renderingQueues[0].empty()) {
-    applyGpuState(m_renderingQueues[0][0].material->getGpuStateParameters());
-  }
 
   executeRenderingStageQueue(RenderingStage::Deferred);
 
@@ -366,28 +360,27 @@ void GLGraphicsContext::executeRenderTasks()
   accumulationFragmentShader->setParameter("gBuffer.positions",
     *deferredFramebuffer.getColorComponent(2), 2);
 
+  glDisable(GL_SCISSOR_TEST);
   glBindFramebuffer(GL_FRAMEBUFFER, m_forwardFramebuffer->getGLHandle());
+  glBindProgramPipeline(accumulationPipeline->m_programPipeline);
 
   applyGpuState(m_deferredAccumulationMaterial->getGpuStateParameters());
   m_deferredAccumulationMaterial->getGLParametersBinder()->bindParameters(*accumulationPipeline);
-
   getNDCTexturedQuad().drawRange(0, 6, GL_TRIANGLES);
 
   executeRenderingStageQueue(RenderingStage::Forward);
   executeRenderingStageQueue(RenderingStage::ForwardDebug);
   executeRenderingStageQueue(RenderingStage::ForwardEnvironment);
   executeRenderingStageQueue(RenderingStage::PostProcess);
+
   executeRenderingStageQueue(RenderingStage::GUI);
 
+//  m_defaultFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 1.0f});
+//  m_defaultFramebuffer->clearDepthStencil(0.0f, 0);
+
   glDisable(GL_SCISSOR_TEST);
-
-  m_defaultFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 1.0f});
-  m_defaultFramebuffer->clearDepthStencil(0.0f, 0);
-
   m_forwardFramebuffer->copyColor(*m_defaultFramebuffer);
   m_forwardFramebuffer->copyDepthStencil(*m_defaultFramebuffer);
-
-  glEnable(GL_SCISSOR_TEST);
 }
 
 void GLGraphicsContext::setupDeferredAccumulationMaterial(std::shared_ptr<GLShadersPipeline> pipeline)
@@ -437,8 +430,13 @@ void GLGraphicsContext::executeRenderingStageQueue(RenderingStage stage)
     if (&shadersPipeline != m_currentShadersPipeline) {
       Camera& activeCamera = *m_graphicsScene->getActiveCamera();
 
-      vertexShader->setParameter("scene.worldToCamera", activeCamera.getViewMatrix());
-      vertexShader->setParameter("scene.cameraToProjection", activeCamera.getProjectionMatrix());
+      if (stage == RenderingStage::GUI) {
+        vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
+      }
+      else {
+        vertexShader->setParameter("scene.view", activeCamera.getViewMatrix());
+        vertexShader->setParameter("scene.projection", activeCamera.getProjectionMatrix());
+      }
 
       m_currentShadersPipeline = &shadersPipeline;
     }
@@ -450,7 +448,9 @@ void GLGraphicsContext::executeRenderingStageQueue(RenderingStage stage)
 
     shadingParametersBinder->bindParameters(shadersPipeline);
 
-    vertexShader->setParameter("transform.local", renderingTask.transform);
+    if (vertexShader->hasParameter("transform.local")) {
+      vertexShader->setParameter("transform.local", *renderingTask.transform);
+    }
 
     if (renderingTask.material->getGpuStateParameters().getScissorsTestMode() == ScissorsTestMode::Enabled) {
       glScissor(renderingTask.scissorsRect.getOriginX(),
@@ -464,6 +464,8 @@ void GLGraphicsContext::executeRenderingStageQueue(RenderingStage stage)
       renderingTask.mesh->getSubMeshIndicesCount(renderingTask.subMeshIndex),
       renderingTask.primitivesType);
   }
+
+  m_renderingQueues[static_cast<size_t>(stage)].clear();
 }
 
 int GLGraphicsContext::getViewportWidth() const
@@ -476,3 +478,27 @@ int GLGraphicsContext::getViewportHeight() const
   return m_defaultFramebuffer->getHeight();
 }
 
+void GLGraphicsContext::setGUIProjectionMatrix(const glm::mat4& projection)
+{
+  m_guiProjectionMatrix = projection;
+}
+
+const glm::mat4& GLGraphicsContext::getGUIProjectionMatrix() const
+{
+  return m_guiProjectionMatrix;
+}
+
+void GLGraphicsContext::unloadResources()
+{
+  m_deferredAccumulationMaterial.reset();
+  m_defaultFramebuffer.reset();
+  m_ndcTexturedQuad.reset();
+  m_deferredFramebuffer.reset();
+  m_forwardFramebuffer.reset();
+  m_deferredAccumulationMaterial.reset();
+}
+
+SDLGLContext::~SDLGLContext()
+{
+  SDL_GL_DeleteContext(m_glContext);
+}

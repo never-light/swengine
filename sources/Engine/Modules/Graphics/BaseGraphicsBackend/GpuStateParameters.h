@@ -62,6 +62,6 @@ class GpuStateParameters {
   FaceCullingMode m_faceCullingMode = FaceCullingMode::Disabled;
   PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Fill;
   BlendingMode m_materialBlendingMode = BlendingMode::Disabled;
-  DepthWritingMode m_depthWritingMode = DepthWritingMode::Enabled;
+  DepthWritingMode m_depthWritingMode = DepthWritingMode::Disabled;
   ScissorsTestMode m_scissorsTestMode = ScissorsTestMode::Disabled;
 };
