@@ -237,3 +237,41 @@ TEST_CASE("game_logic_has_not_infoportion_condition", "[game]")
     REQUIRE(hasNotInfoConditionPositive->calculateValue());
     REQUIRE(hasNotInfoConditionNegative->calculateValue());
 }
+
+TEST_CASE("game_logic_has_item_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+    auto playerInventory = playerObject.getComponent<InventoryComponent>();
+
+    auto playerHasItemConditionPositive = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                        "test_item_id");
+    playerHasItemConditionPositive->setActor(playerObject);
+
+    auto playerHasItemConditionNegative = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                        "test_item_id_2");
+    playerHasItemConditionNegative->setActor(playerObject);
+
+    REQUIRE(playerHasItemConditionPositive->calculateValue());
+}
+
+TEST_CASE("game_logic_has_not_item_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+
+    auto playerHasNotItemConditionPositive = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                           "test_item_id_2");
+    playerHasNotItemConditionPositive->setActor(playerObject);
+
+    auto playerHasNotItemConditionNegative = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                           "test_item_id");
+    playerHasNotItemConditionNegative->setActor(playerObject);
+
+    REQUIRE_FALSE(playerHasNotItemConditionPositive->calculateValue());
+    REQUIRE(playerHasNotItemConditionNegative->calculateValue());
+}
