@@ -203,3 +203,37 @@ TEST_CASE("game_logic_inventory_transfer_item_action", "[game]")
   REQUIRE(npcHasObjectCondition->calculateValue());
   REQUIRE(npcInventory->hasItem("test_item_id"));
 }
+
+TEST_CASE("game_logic_has_not_infoportion_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+
+    auto hasNotInfoConditionPositive = std::make_shared<GameLogicConditionHasNotInfoportion>(conditionsManager.get(),
+                                                                                             "test_infoportion_1");
+    hasNotInfoConditionPositive->setActor(playerObject);
+
+    auto hasNotInfoConditionNegative = std::make_shared<GameLogicConditionHasNotInfoportion>(conditionsManager.get(),
+                                                                                             "test_infoportion_2");
+    hasNotInfoConditionNegative->setActor(playerObject);
+
+    auto addInfoportionAction = std::make_shared<GameLogicActionAddInfoportion>(conditionsManager.get(),
+                                                                                "test_infoportion_2");
+    addInfoportionAction->setActor(playerObject);
+
+    addInfoportionAction->execute();
+
+    REQUIRE(hasNotInfoConditionPositive->calculateValue());
+    REQUIRE_FALSE(hasNotInfoConditionNegative->calculateValue());
+
+    auto removeInfoportionAction = std::make_shared<GameLogicActionRemoveInfoportion>(conditionsManager.get(),
+                                                                                      "test_infoportion_2");
+    removeInfoportionAction->setActor(playerObject);
+
+    removeInfoportionAction->execute();
+
+    REQUIRE(hasNotInfoConditionPositive->calculateValue());
+    REQUIRE(hasNotInfoConditionNegative->calculateValue());
+}
