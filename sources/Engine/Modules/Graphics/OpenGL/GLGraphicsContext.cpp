@@ -82,6 +82,12 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
   m_forwardFramebuffer = std::make_unique<GLFramebuffer>(framebufferWidth, framebufferHeight,
     std::vector{forwardAlbedo}, depthStencil);
 
+  m_sceneTransformationBuffer = std::make_unique<GLUniformBuffer<SceneTransformation>>();
+  m_sceneTransformationBuffer->attachToBindingEntry(0);
+
+  m_guiTransformationBuffer = std::make_unique<GLUniformBuffer<GUITransformation>>();
+  m_guiTransformationBuffer->attachToBindingEntry(1);
+
   spdlog::info("OpenGL context is created");
 }
 
@@ -334,6 +340,17 @@ void GLGraphicsContext::executeRenderTasks()
   // TODO: get rid of buffers clearing and copying as possible
   //  For example, use depth swap trick to avoid depth buffer clearing
 
+  // Setup scene state uniform buffers
+
+  m_sceneTransformationBuffer->getBufferData().view = m_graphicsScene->getActiveCamera()->getViewMatrix();
+  m_sceneTransformationBuffer->getBufferData().projection = m_graphicsScene->getActiveCamera()->getProjectionMatrix();
+  m_sceneTransformationBuffer->synchronizeWithGpu();
+
+  m_guiTransformationBuffer->getBufferData().projection = m_guiProjectionMatrix;
+  m_guiTransformationBuffer->synchronizeWithGpu();
+
+  // Render current frame
+
   glDisable(GL_SCISSOR_TEST);
   glDepthMask(GL_TRUE);
 
@@ -428,16 +445,6 @@ void GLGraphicsContext::executeRenderingStageQueue(RenderingStage stage)
     GLShader* vertexShader = shadersPipeline.getShader(ShaderType::Vertex);
 
     if (&shadersPipeline != m_currentShadersPipeline) {
-      Camera& activeCamera = *m_graphicsScene->getActiveCamera();
-
-      if (stage == RenderingStage::GUI) {
-        vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
-      }
-      else {
-        vertexShader->setParameter("scene.view", activeCamera.getViewMatrix());
-        vertexShader->setParameter("scene.projection", activeCamera.getProjectionMatrix());
-      }
-
       m_currentShadersPipeline = &shadersPipeline;
     }
 
@@ -496,6 +503,8 @@ void GLGraphicsContext::unloadResources()
   m_deferredFramebuffer.reset();
   m_forwardFramebuffer.reset();
   m_deferredAccumulationMaterial.reset();
+  m_sceneTransformationBuffer.reset();
+  m_guiTransformationBuffer.reset();
 }
 
 SDLGLContext::~SDLGLContext()

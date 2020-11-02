@@ -15,9 +15,20 @@
 #include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
 
+#include "GLUniformBuffer.h"
+
 class SharedGraphicsState;
 
 class Transform;
+
+struct SceneTransformation {
+  glm::mat4 view;
+  glm::mat4 projection;
+};
+
+struct GUITransformation {
+  glm::mat4 projection;
+};
 
 struct RenderTask {
   GLMaterial* material{};
@@ -106,6 +117,9 @@ class GLGraphicsContext {
   std::unique_ptr<GLMaterial> m_deferredAccumulationMaterial;
 
   glm::mat4 m_guiProjectionMatrix = glm::identity<glm::mat4>();
+
+  std::unique_ptr<GLUniformBuffer<SceneTransformation>> m_sceneTransformationBuffer;
+  std::unique_ptr<GLUniformBuffer<GUITransformation>> m_guiTransformationBuffer;
 
  private:
   static void APIENTRY debugOutputCallback(GLenum source,

@@ -91,9 +91,6 @@ void GUISystem::update(float delta)
 
 void GUISystem::render()
 {
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
-  vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
-
   if (m_activeLayout != nullptr) {
     renderGUIWidget(m_activeLayout.get());
   }
