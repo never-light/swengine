@@ -90,7 +90,32 @@ void GUIText::render(GUISystem& guiSystem)
 Mesh* GUIText::updateAndGetGeometryStore()
 {
   if (m_needTextGeometryUpdate) {
-    m_textGeometryCache = std::unique_ptr<Mesh>(createStringGeometryBuffer(m_text));
+    auto geometryStoreParams = getStringGeometryStoreParams(m_text);
+
+    GUIWidget::setSize(std::get<3>(geometryStoreParams));
+
+    if (m_textGeometryCache == nullptr) {
+      m_textGeometryCache = std::make_unique<Mesh>(true, MIN_TEXT_BLOCK_VERTICES_STORAGE_SIZE);
+
+      auto& vertices = std::get<0>(geometryStoreParams);
+      auto& uv = std::get<1>(geometryStoreParams);
+      auto normals = std::vector<glm::vec3>(std::get<1>(geometryStoreParams).size());
+
+      m_textGeometryCache->setVertices(vertices);
+      m_textGeometryCache->setUV(uv);
+      m_textGeometryCache->setNormals(normals);
+
+      size_t subMeshIndex = m_textGeometryCache->addSubMesh(std::get<2>(geometryStoreParams));
+      LOCAL_VALUE_UNUSED(subMeshIndex);
+    }
+    else {
+      m_textGeometryCache->setVertices(std::get<0>(geometryStoreParams));
+      m_textGeometryCache->setUV(std::get<1>(geometryStoreParams));
+      m_textGeometryCache->setNormals(std::vector<glm::vec3>(std::get<1>(geometryStoreParams).size()));
+
+      m_textGeometryCache->setIndices(std::get<2>(geometryStoreParams), 0);
+    }
+
     m_needTextGeometryUpdate = false;
   }
 
@@ -205,23 +230,6 @@ std::tuple<std::vector<glm::vec3>,
   }
 
   return {positions, uv, indices, {cursorPosition, maxHeight}};
-}
-
-Mesh* GUIText::createStringGeometryBuffer(const std::string& str)
-{
-  auto geometryStoreParams = getStringGeometryStoreParams(str);
-
-  GUIWidget::setSize(std::get<3>(geometryStoreParams));
-
-  Mesh* mesh = new Mesh();
-  mesh->setVertices(std::get<0>(geometryStoreParams));
-  mesh->setUV(std::get<1>(geometryStoreParams));
-  mesh->setNormals(std::vector<glm::vec3>(std::get<1>(geometryStoreParams).size()));
-
-  size_t subMeshIndex = mesh->addSubMesh(std::get<2>(geometryStoreParams));
-  LOCAL_VALUE_UNUSED(subMeshIndex);
-
-  return mesh;
 }
 
 [[nodiscard]] glm::mat4 GUIText::updateTransformationMatrix()

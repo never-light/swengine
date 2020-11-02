@@ -4,6 +4,7 @@
 #include <utility>
 #include <memory>
 #include <optional>
+#include <bitset>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -23,9 +24,26 @@ enum class MeshAttributes {
   BonesWeights = 32,
 };
 
+inline constexpr MeshAttributes operator|(MeshAttributes a, MeshAttributes b)
+{
+  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+
+inline constexpr MeshAttributes operator&(MeshAttributes a, MeshAttributes b)
+{
+  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
+}
+
+inline constexpr MeshAttributes operator~(MeshAttributes a)
+{
+  return static_cast<MeshAttributes>(~static_cast<unsigned int>(a));
+}
+
+using MeshAttributesSet = MeshAttributes;
+
 class Mesh : public Resource {
  public:
-  Mesh();
+  explicit Mesh(bool isDynamic = false, size_t minStorageCapacity = 0);
   ~Mesh() override;
 
   [[nodiscard]] size_t addSubMesh(const std::vector<uint16_t>& indices);
@@ -64,6 +82,8 @@ class Mesh : public Resource {
 
   void updateGeometryBuffer();
 
+  void setAttributeOutdated(MeshAttributes attribute, bool isOutdated = true);
+
  private:
   std::unique_ptr<GLGeometryStore> m_geometryStore;
 
@@ -83,19 +103,18 @@ class Mesh : public Resource {
   AABB m_aabb;
 
   std::optional<ResourceHandle<Skeleton>> m_skeleton;
+  bool m_isDynamic = false;
+
+  std::bitset<32> m_needUpdateAttributes;
+  bool m_needUpdateIndices = false;
+
+  size_t m_minStorageCapacity = 0;
+
+ private:
+  static constexpr MeshAttributesSet MESH_FORMAT_POS_NORM_UV =
+    MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV;
+
+  static constexpr MeshAttributesSet MESH_FORMAT_POS_NORM_UV_SKINNED =
+    MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV |
+      MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;
 };
-
-inline MeshAttributes operator|(MeshAttributes a, MeshAttributes b)
-{
-  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
-}
-
-inline MeshAttributes operator&(MeshAttributes a, MeshAttributes b)
-{
-  return static_cast<MeshAttributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
-}
-
-inline MeshAttributes operator~(MeshAttributes a)
-{
-  return static_cast<MeshAttributes>(~static_cast<unsigned int>(a));
-}

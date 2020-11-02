@@ -20,10 +20,6 @@ struct VertexFormatAttributeSpec {
   GLuint relativeOffset{};
 };
 
-// TODO: use SoA instead of AoS here
-// Vertex formats should be represented as structs of arrays
-
-
 struct VertexPos3Norm3UV {
   glm::vec3 pos = {0.0f, 0.0f, 0.0f};
   glm::vec3 norm = {0.0f, 0.0f, 0.0f};
@@ -59,17 +55,37 @@ struct VertexPos3Color4SoA {
 
 class GLGeometryStore {
  public:
-  explicit GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices);
-  GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices, const std::vector<std::uint16_t>& indices);
+  explicit GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
+  GLGeometryStore(const std::vector<VertexPos3Norm3UV>& vertices,
+    const std::vector<std::uint16_t>& indices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
 
-  explicit GLGeometryStore(const VerticesPos3Norm3UVSoA& vertices);
-  GLGeometryStore(const VerticesPos3Norm3UVSoA& vertices, const std::vector<std::uint16_t>& indices);
+  explicit GLGeometryStore(const VerticesPos3Norm3UVSoA& vertices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
+  GLGeometryStore(const VerticesPos3Norm3UVSoA& vertices,
+    const std::vector<std::uint16_t>& indices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
 
-  explicit GLGeometryStore(const VertexPos3Color4SoA& vertices);
-  GLGeometryStore(const VertexPos3Color4SoA& vertices, const std::vector<std::uint16_t>& indices);
+  explicit GLGeometryStore(const VertexPos3Color4SoA& vertices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
+  GLGeometryStore(const VertexPos3Color4SoA& vertices,
+    const std::vector<std::uint16_t>& indices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
 
-  explicit GLGeometryStore(const VertexPos3Norm3UVSkinnedSoA& vertices);
-  GLGeometryStore(const VertexPos3Norm3UVSkinnedSoA& vertices, const std::vector<std::uint16_t>& indices);
+  explicit GLGeometryStore(const VertexPos3Norm3UVSkinnedSoA& vertices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
+  GLGeometryStore(const VertexPos3Norm3UVSkinnedSoA& vertices,
+    const std::vector<std::uint16_t>& indices,
+    GLenum storageFlags = GL_NONE,
+    size_t minStorageCapacity = 0);
 
   ~GLGeometryStore();
 
@@ -81,12 +97,24 @@ class GLGeometryStore {
   void draw(GLenum primitivesType = GL_TRIANGLES) const;
   void drawRange(size_t start, size_t count, GLenum primitivesType = GL_TRIANGLES) const;
 
+  void updateVertices(const std::vector<VertexPos3Norm3UV>& vertices);
+  void updateVertices(const VerticesPos3Norm3UVSoA& vertices);
+  void updateVertices(const VertexPos3Color4SoA& vertices);
+  void updateVertices(const VertexPos3Norm3UVSkinnedSoA& vertices);
+  void updateIndices(const std::vector<std::uint16_t>& indices);
+
+  [[nodiscard]] size_t getVerticesCapacity() const;
+  [[nodiscard]] size_t getIndicesCapacity() const;
+
  private:
   template<class T, class DescriptionType>
-  void setupVAO(const T& vertices, const std::vector<std::uint16_t>& indices);
+  void setupVAO(const T& vertices,
+    const std::vector<std::uint16_t>& indices,
+    GLenum storageFlags,
+    size_t minStorageCapacity = 0);
 
   template<class T>
-  void setupVertexBuffers(const T& vertices);
+  void setupVertexBuffers(const T& vertices, GLenum storageFlags, size_t minStorageCapacity = 0);
 
  private:
   std::array<GLuint, 6> m_vertexBuffers = {0, 0, 0, 0, 0, 0};
@@ -95,4 +123,7 @@ class GLGeometryStore {
 
   size_t m_verticesCount = 0;
   size_t m_indicesCount = 0;
+
+  size_t m_verticesStorageCapacity = 0;
+  size_t m_indicesStorageCapacity = 0;
 };

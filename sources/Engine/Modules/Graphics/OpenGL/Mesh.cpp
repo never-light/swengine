@@ -5,27 +5,28 @@
 #include "Mesh.h"
 #include "Exceptions/exceptions.h"
 
-Mesh::Mesh()
+Mesh::Mesh(bool isDynamic, size_t minStorageCapacity)
+  : m_isDynamic(isDynamic),
+    m_minStorageCapacity(minStorageCapacity)
 {
 
 }
 
-Mesh::~Mesh()
-{
-
-}
+Mesh::~Mesh() = default;
 
 void Mesh::setVertices(const std::vector<glm::vec3>& vertices)
 {
-  SW_ASSERT(m_vertices.size() == 0);
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_vertices.empty());
 
   m_vertices = vertices;
-  m_needGeometryBufferUpdate = true;
+  setAttributeOutdated(MeshAttributes::Positions);
 }
 
 size_t Mesh::addSubMesh(const std::vector<uint16_t>& indices)
 {
-  SW_ASSERT(m_vertices.size() > 0);
+  SW_ASSERT(m_geometryStore == nullptr && "Sub-mesh adding after geometry buffer formation is forbidden");
+  SW_ASSERT(!m_vertices.empty());
 
   m_needGeometryBufferUpdate = true;
 
@@ -38,9 +39,11 @@ size_t Mesh::addSubMesh(const std::vector<uint16_t>& indices)
 void Mesh::setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex)
 {
   SW_ASSERT(subMeshIndex < m_indices.size());
-  SW_ASSERT(m_vertices.size() > 0);
+  SW_ASSERT(m_geometryStore == nullptr || !m_indices.empty());
 
   m_needGeometryBufferUpdate = true;
+  m_needUpdateIndices = true;
+
   calculateSubMeshesOffsets();
 
   m_indices[subMeshIndex] = indices;
@@ -48,35 +51,39 @@ void Mesh::setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex)
 
 void Mesh::setNormals(const std::vector<glm::vec3>& normals)
 {
-  SW_ASSERT(m_vertices.size() > 0 && normals.size() == m_vertices.size());
-
-  m_needGeometryBufferUpdate = true;
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_normals.empty());
 
   m_normals = normals;
+  setAttributeOutdated(MeshAttributes::Normals);
 }
 
 void Mesh::setTangents(const std::vector<glm::vec3>& tangents)
 {
-  SW_ASSERT(m_vertices.size() > 0 && tangents.size() == m_vertices.size());
-
-  m_needGeometryBufferUpdate = true;
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_tangents.empty() &&
+    tangents.size() <= m_geometryStore->getVerticesCapacity());
 
   m_tangents = tangents;
+  setAttributeOutdated(MeshAttributes::Tangents);
 }
 
 void Mesh::setUV(const std::vector<glm::vec2>& uv)
 {
-  SW_ASSERT(m_vertices.size() > 0 && uv.size() == m_vertices.size());
-
-  m_needGeometryBufferUpdate = true;
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_uv.empty());
 
   m_uv = uv;
+  setAttributeOutdated(MeshAttributes::UV);
 }
 
 void Mesh::setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights)
 {
-  SW_ASSERT(m_vertices.size() > 0 && bonesIDs.size() == m_vertices.size() &&
-    bonesWeights.size() == m_vertices.size());
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_bonesIDs.empty());
+
+  SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
+    !m_bonesWeights.empty());
 
   m_bonesIDs = bonesIDs;
   m_bonesWeights = bonesWeights;
@@ -185,15 +192,7 @@ void Mesh::updateGeometryBuffer()
     return;
   }
 
-  std::vector<uint16_t> indices;
-
-  for (const auto& subMeshIndices : m_indices) {
-    indices.insert(indices.end(), subMeshIndices.begin(), subMeshIndices.end());
-  }
-
-  GLGeometryStore* geometryStore = nullptr;
-
-  MeshAttributes meshAttributesMask = MeshAttributes::Empty;
+  MeshAttributesSet meshAttributesMask = MeshAttributes::Empty;
 
   if (hasVertices()) {
     meshAttributesMask = meshAttributesMask | MeshAttributes::Positions;
@@ -217,29 +216,83 @@ void Mesh::updateGeometryBuffer()
     meshAttributesMask = meshAttributesMask | MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;
   }
 
-  if (meshAttributesMask == (MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV)) {
-    //geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UV>(), indices);
-    geometryStore = new GLGeometryStore(VerticesPos3Norm3UVSoA{
-      .positions = &m_vertices,
-      .normals = &m_normals,
-      .uv = &m_uv
-    }, indices);
-  }
-  else if (meshAttributesMask == (MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV |
-    MeshAttributes::BonesIDs | MeshAttributes::BonesWeights)) {
-    geometryStore = new GLGeometryStore(VertexPos3Norm3UVSkinnedSoA{
-      .positions = &m_vertices,
-      .normals = &m_normals,
-      .uv = &m_uv,
-      .bonesIds = &m_bonesIDs,
-      .bonesWeights = &m_bonesWeights
-    }, indices);
+  std::vector<uint16_t> indices;
+
+  if (m_geometryStore == nullptr || m_needUpdateIndices) {
+    for (const auto& subMeshIndices : m_indices) {
+      indices.insert(indices.end(), subMeshIndices.begin(), subMeshIndices.end());
+    }
   }
 
-  if (geometryStore == nullptr) {
-    THROW_EXCEPTION(EngineRuntimeException, "Unsupported vertex buffer layout");
+  if (m_geometryStore == nullptr) {
+    GLenum storageFlags = GL_NONE;
+
+    if (m_isDynamic) {
+      storageFlags |= GL_DYNAMIC_STORAGE_BIT;
+    }
+
+    if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV) {
+      //geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UV>(), indices);
+      m_geometryStore = std::make_unique<GLGeometryStore>(VerticesPos3Norm3UVSoA{
+        .positions = &m_vertices,
+        .normals = &m_normals,
+        .uv = &m_uv
+      }, indices, storageFlags, m_minStorageCapacity);
+    }
+    else if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV_SKINNED) {
+      m_geometryStore = std::make_unique<GLGeometryStore>(VertexPos3Norm3UVSkinnedSoA{
+        .positions = &m_vertices,
+        .normals = &m_normals,
+        .uv = &m_uv,
+        .bonesIds = &m_bonesIDs,
+        .bonesWeights = &m_bonesWeights
+      }, indices, storageFlags, m_minStorageCapacity);
+    }
+    else {
+      THROW_EXCEPTION(EngineRuntimeException, "Unsupported vertex buffer layout");
+    }
+  }
+  else {
+    if (m_needUpdateAttributes.count() > 0) {
+      if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV) {
+        SW_ASSERT(m_vertices.size() == m_normals.size() &&
+          m_vertices.size() == m_uv.size());
+
+        m_geometryStore->updateVertices(VerticesPos3Norm3UVSoA{
+          .positions = (m_needUpdateAttributes[size_t(MeshAttributes::Positions)]) ? &m_vertices : nullptr,
+          .normals = (m_needUpdateAttributes[size_t(MeshAttributes::Normals)]) ? &m_normals : nullptr,
+          .uv = (m_needUpdateAttributes[size_t(MeshAttributes::UV)]) ? &m_uv : nullptr
+        });
+      }
+      else if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV_SKINNED) {
+        SW_ASSERT(m_vertices.size() == m_normals.size() &&
+          m_vertices.size() == m_uv.size() &&
+          m_vertices.size() == m_bonesIDs.size() &&
+          m_vertices.size() == m_bonesWeights.size());
+
+        m_geometryStore = std::make_unique<GLGeometryStore>(VertexPos3Norm3UVSkinnedSoA{
+          .positions = (m_needUpdateAttributes[size_t(MeshAttributes::Positions)]) ? &m_vertices : nullptr,
+          .normals = (m_needUpdateAttributes[size_t(MeshAttributes::Normals)]) ? &m_normals : nullptr,
+          .uv = (m_needUpdateAttributes[size_t(MeshAttributes::UV)]) ? &m_uv : nullptr,
+          .bonesIds = (m_needUpdateAttributes[size_t(MeshAttributes::BonesIDs)]) ? &m_bonesIDs : nullptr,
+          .bonesWeights = (m_needUpdateAttributes[size_t(MeshAttributes::BonesWeights)]) ? &m_bonesWeights : nullptr,
+        });
+      }
+
+      m_needUpdateAttributes.reset();
+    }
+
+    if (m_needUpdateIndices) {
+      m_geometryStore->updateIndices(indices);
+      m_needUpdateIndices = false;
+    }
   }
 
-  m_geometryStore.reset(geometryStore);
   m_needGeometryBufferUpdate = false;
+}
+
+void Mesh::setAttributeOutdated(MeshAttributes attribute, bool isOutdated)
+{
+  m_needUpdateAttributes[size_t(attribute)] = isOutdated;
+  m_needGeometryBufferUpdate = true;
 }
