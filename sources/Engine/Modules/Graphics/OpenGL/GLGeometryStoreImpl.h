@@ -4,23 +4,49 @@
 #include "GLDebug.h"
 
 template<class T>
-void GLGeometryStore::createBuffersAndVAO(const std::vector<T>& vertices, const std::vector<uint16_t>& indices)
+void GLGeometryStore::setupVertexBuffers(const T& vertices)
+{
+  SW_ASSERT(false);
+}
+
+
+template<class T, class DescriptionType>
+void GLGeometryStore::setupVAO(const T& vertices, const std::vector<std::uint16_t>& indices)
 {
   // Create and fill vertex buffer
   GL_CALL_BLOCK_BEGIN();
 
-  glCreateBuffers(1, &m_vertexBuffer);
-  glNamedBufferStorage(m_vertexBuffer,
-    static_cast<GLsizeiptr>(vertices.size() * sizeof(T)),
-    vertices.data(), 0);
+  glCreateVertexArrays(1, &m_vertexArrayObject);
 
-  m_verticesCount = vertices.size();
+  setupVertexBuffers<T>(vertices);
+
+  for (const VertexFormatAttributeSpec& attribData : DescriptionType::s_vertexFormatAttributes) {
+    switch (attribData.type) {
+      case GL_FLOAT:
+        glVertexArrayAttribFormat(m_vertexArrayObject,
+          attribData.attribIndex, attribData.size,
+          attribData.type, attribData.normalized, attribData.relativeOffset);
+        break;
+
+      case GL_UNSIGNED_BYTE:
+        glVertexArrayAttribIFormat(m_vertexArrayObject, attribData.attribIndex, attribData.size,
+          attribData.type,
+          attribData.relativeOffset);
+        break;
+
+      default:
+        SW_ASSERT(false);
+    }
+
+    glVertexArrayAttribBinding(m_vertexArrayObject, attribData.attribIndex, attribData.bindingIndex);
+    glEnableVertexArrayAttrib(m_vertexArrayObject, attribData.attribIndex);
+  }
 
   GL_CALL_BLOCK_END();
 
   // Create and fill index buffer if is is needed
-  if (indices.size() > 0) {
-    GLsizeiptr indicesMemorySize = static_cast<GLsizeiptr>(indices.size() * sizeof(indices[0]));
+  if (!indices.empty()) {
+    auto indicesMemorySize = static_cast<GLsizeiptr>(indices.size() * sizeof(indices[0]));
 
     GL_CALL_BLOCK_BEGIN();
     glCreateBuffers(1, &m_indexBuffer);
@@ -28,92 +54,98 @@ void GLGeometryStore::createBuffersAndVAO(const std::vector<T>& vertices, const 
 
     m_indicesCount = indices.size();
 
+    glVertexArrayElementBuffer(m_vertexArrayObject, m_indexBuffer);
+
     GL_CALL_BLOCK_END();
   }
 
-  // Create and set up Vertex Array Object
-  createVAOAndSetupAttributes<T>();
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UV>()
+void GLGeometryStore::setupVertexBuffers<>(const VerticesPos3Norm3UVSoA& vertices)
 {
-  glCreateVertexArrays(1, &m_vertexArrayObject);
+  m_verticesCount = vertices.positions->size();
 
-  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Norm3UV));
+  glCreateBuffers(3, &m_vertexBuffers[0]);
 
-  if (isIndexed()) {
-    glVertexArrayElementBuffer(m_vertexArrayObject, m_indexBuffer);
-  }
+  glNamedBufferStorage(m_vertexBuffers[0],
+    static_cast<GLsizeiptr>(vertices.positions->size() * sizeof(glm::vec3)),
+    vertices.positions->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffers[0], 0, sizeof(glm::vec3));
 
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 0);
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 1);
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 2);
+  glNamedBufferStorage(m_vertexBuffers[1],
+    static_cast<GLsizeiptr>(vertices.normals->size() * sizeof(glm::vec3)),
+    vertices.normals->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 1, m_vertexBuffers[1], 0, sizeof(glm::vec3));
 
-  glVertexArrayAttribFormat(m_vertexArrayObject, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UV, pos));
-  glVertexArrayAttribFormat(m_vertexArrayObject, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UV, norm));
-  glVertexArrayAttribFormat(m_vertexArrayObject, 2, 2, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UV, uv));
-
-  glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 2, 0);
+  glNamedBufferStorage(m_vertexBuffers[2],
+    static_cast<GLsizeiptr>(vertices.uv->size() * sizeof(glm::vec2)),
+    vertices.uv->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 2, m_vertexBuffers[2], 0, sizeof(glm::vec2));
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Color4>()
+void GLGeometryStore::setupVertexBuffers<>(const std::vector<VertexPos3Norm3UV>& vertices)
 {
-  glCreateVertexArrays(1, &m_vertexArrayObject);
+  m_verticesCount = vertices.size();
 
-  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Color4));
+  glCreateBuffers(1, &m_vertexBuffers[0]);
 
-  if (isIndexed()) {
-    glVertexArrayElementBuffer(m_vertexArrayObject, m_indexBuffer);
-  }
-
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 0);
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 1);
-
-  glVertexArrayAttribFormat(m_vertexArrayObject, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Color4, pos));
-  glVertexArrayAttribFormat(m_vertexArrayObject, 1, 4, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Color4, color));
-
-  glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);
+  glNamedBufferStorage(m_vertexBuffers[0],
+    static_cast<GLsizeiptr>(vertices.size() * sizeof(VertexPos3Norm3UV)),
+    vertices.data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffers[0], 0, sizeof(VertexPos3Norm3UV));
 }
 
 template<>
-void GLGeometryStore::createVAOAndSetupAttributes<VertexPos3Norm3UVSkinned>()
+void GLGeometryStore::setupVertexBuffers<>(const VertexPos3Norm3UVSkinnedSoA& vertices)
 {
-  glCreateVertexArrays(1, &m_vertexArrayObject);
+  m_verticesCount = vertices.positions->size();
 
-  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffer, 0, sizeof(VertexPos3Norm3UVSkinned));
+  glCreateBuffers(3, &m_vertexBuffers[0]);
+  glCreateBuffers(2, &m_vertexBuffers[4]);
 
-  if (isIndexed()) {
-    glVertexArrayElementBuffer(m_vertexArrayObject, m_indexBuffer);
-  }
+  glNamedBufferStorage(m_vertexBuffers[0],
+    static_cast<GLsizeiptr>(vertices.positions->size() * sizeof(glm::vec3)),
+    vertices.positions->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffers[0], 0, sizeof(glm::vec3));
 
-  // Position
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 0);
-  // Normal
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 1);
-  // UV
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 2);
-  // Bones IDs
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 4);
-  // Bones Weights
-  glEnableVertexArrayAttrib(m_vertexArrayObject, 5);
+  glNamedBufferStorage(m_vertexBuffers[1],
+    static_cast<GLsizeiptr>(vertices.normals->size() * sizeof(glm::vec3)),
+    vertices.normals->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 1, m_vertexBuffers[1], 0, sizeof(glm::vec3));
 
-  glVertexArrayAttribFormat(m_vertexArrayObject, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, pos));
-  glVertexArrayAttribFormat(m_vertexArrayObject, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, norm));
-  glVertexArrayAttribFormat(m_vertexArrayObject, 2, 2, GL_FLOAT, GL_FALSE, offsetof(VertexPos3Norm3UVSkinned, uv));
+  glNamedBufferStorage(m_vertexBuffers[2],
+    static_cast<GLsizeiptr>(vertices.uv->size() * sizeof(glm::vec2)),
+    vertices.uv->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 2, m_vertexBuffers[2], 0, sizeof(glm::vec2));
 
-  glVertexArrayAttribIFormat(m_vertexArrayObject, 4, 4, GL_UNSIGNED_BYTE,
-    offsetof(VertexPos3Norm3UVSkinned, bonesIds));
-  glVertexArrayAttribIFormat(m_vertexArrayObject, 5, 4, GL_UNSIGNED_BYTE,
-    offsetof(VertexPos3Norm3UVSkinned, bonesWeights));
+  glNamedBufferStorage(m_vertexBuffers[4],
+    static_cast<GLsizeiptr>(vertices.bonesIds->size() * sizeof(glm::u8vec4)),
+    vertices.bonesIds->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 4, m_vertexBuffers[4], 0, sizeof(glm::u8vec4));
 
-  glVertexArrayAttribBinding(m_vertexArrayObject, 0, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 1, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 2, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 4, 0);
-  glVertexArrayAttribBinding(m_vertexArrayObject, 5, 0);
+  glNamedBufferStorage(m_vertexBuffers[5],
+    static_cast<GLsizeiptr>(vertices.bonesWeights->size() * sizeof(glm::u8vec4)),
+    vertices.bonesWeights->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 5, m_vertexBuffers[5], 0, sizeof(glm::u8vec4));
+
+}
+
+template<>
+void GLGeometryStore::setupVertexBuffers<>(const VertexPos3Color4SoA& vertices)
+{
+  m_verticesCount = vertices.positions->size();
+
+  glCreateBuffers(2, &m_vertexBuffers[0]);
+
+  glNamedBufferStorage(m_vertexBuffers[0],
+    static_cast<GLsizeiptr>(vertices.positions->size() * sizeof(glm::vec3)),
+    vertices.positions->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 0, m_vertexBuffers[0], 0, sizeof(glm::vec3));
+
+  glNamedBufferStorage(m_vertexBuffers[1],
+    static_cast<GLsizeiptr>(vertices.colors->size() * sizeof(glm::vec4)),
+    vertices.colors->data(), 0);
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 1, m_vertexBuffers[1], 0, sizeof(glm::vec4));
 }

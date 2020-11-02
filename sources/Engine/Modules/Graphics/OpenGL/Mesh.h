@@ -64,9 +64,6 @@ class Mesh : public Resource {
 
   void updateGeometryBuffer();
 
-  template<class T>
-  std::vector<T> constructVerticesList() const;
-
  private:
   std::unique_ptr<GLGeometryStore> m_geometryStore;
 
