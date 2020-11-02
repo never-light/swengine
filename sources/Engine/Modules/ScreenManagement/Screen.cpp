@@ -69,16 +69,15 @@ void Screen::activateNextScreen(const std::string& name)
   m_screenManager.lock()->changeScreen(name);
 }
 
-void Screen::performInternalInitialization(std::shared_ptr<ScreenManager> screenManager,
+void Screen::performInternalInitialization(
+  std::shared_ptr<ScreenManager> screenManager,
   std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GraphicsModule> graphicsModule,
-  std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
   std::shared_ptr<ResourcesManager> resourceManager)
 {
   m_screenManager = screenManager;
   m_gameWorld = gameWorld;
   m_graphicsModule = graphicsModule;
-  m_sharedGraphicsState = sharedGraphicsState;
   m_resourceManager = resourceManager;
 
   m_guiLayout->setSize(screenManager->getCommonGUILayout()->getSize());

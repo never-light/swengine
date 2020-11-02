@@ -73,7 +73,7 @@ TEST_CASE("resources_maps_loading", "[resources]")
                             "        <type>fragment</type>\n"
                             "    </resource>\n"
                             "\n"
-                            "    <resource type=\"material\" id=\"material\">\n"
+                            "    <resource type=\"material\" id=\"material\" rendering_stage=\"deferred\" parameters_set=\"generic\">\n"
                             "        <shaders_pipeline>\n"
                             "            <vertex id=\"vertex\"/>\n"
                             "            <fragment id=\"fragment\"/>\n"
@@ -97,7 +97,10 @@ TEST_CASE("resources_maps_loading", "[resources]")
   REQUIRE(shaderDeclaration->resourcePath == "../resources/shaders/debug_vertex_shader.glsl");
   REQUIRE(shaderDeclaration->shaderType == ShaderType::Vertex);
 
-  const auto& materialDeclaration = manager->getResourceConfig<Material, MaterialResourceConfig>("material");
+  const auto& materialDeclaration = manager->getResourceConfig<GLMaterial, MaterialResourceConfig>("material");
+
+  REQUIRE(materialDeclaration->parametersSetType == MaterialResourceConfig::ParametersSetType::Generic);
+  REQUIRE(materialDeclaration->renderingStage == RenderingStage::Deferred);
 
   REQUIRE(materialDeclaration->shadersPipeline.vertexShaderId == "vertex");
   REQUIRE(materialDeclaration->shadersPipeline.fragmentShaderId == "fragment");
@@ -108,10 +111,10 @@ TEST_CASE("resources_maps_loading", "[resources]")
   REQUIRE(materialDeclaration->gpuState.faceCullingMode == FaceCullingMode::Back);
   REQUIRE(materialDeclaration->gpuState.polygonFillingMode == PolygonFillingMode::Fill);
 
-  REQUIRE(materialDeclaration->parameters[0].shaderType == ShaderType::Fragment);
-  REQUIRE(materialDeclaration->parameters[0].name == "paramName");
-  REQUIRE(materialDeclaration->parameters[0].type == MaterialResourceConfig::ShaderParamType::Int);
-  REQUIRE(std::get<int>(materialDeclaration->parameters[0].value) == 50);
+  REQUIRE(materialDeclaration->parameters.begin()->second.shaderType == ShaderType::Fragment);
+  REQUIRE(materialDeclaration->parameters.begin()->second.name == "paramName");
+  REQUIRE(materialDeclaration->parameters.begin()->second.type == MaterialResourceConfig::ShaderParamType::Int);
+  REQUIRE(std::get<int>(materialDeclaration->parameters.begin()->second.value) == 50);
 }
 
 TEST_CASE("resource_inplace_creation", "[resources]")

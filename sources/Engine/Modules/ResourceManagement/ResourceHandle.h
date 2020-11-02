@@ -50,6 +50,10 @@ class ResourceHandle {
     return m_resourceIndex;
   }
 
+  inline bool isValid() {
+    return m_resourceIndex != RESOURCE_ID_INVALID;
+  }
+
  private:
 
   size_t m_resourceIndex = RESOURCE_ID_INVALID;

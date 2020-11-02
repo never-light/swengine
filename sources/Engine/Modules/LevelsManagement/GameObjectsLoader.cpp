@@ -156,8 +156,8 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
     auto materialName = materialData.attribute("id").as_string();
     int materialSubMeshIndex = materialData.attribute("index").as_int();
 
-    ResourceHandle<Material> materialInstance =
-      m_resourceManager->getResource<Material>(materialName);
+    ResourceHandle<GLMaterial> materialInstance =
+      m_resourceManager->getResource<GLMaterial>(materialName);
 
     meshRendererComponent.setMaterialInstance(materialSubMeshIndex, materialInstance);
   }
@@ -248,8 +248,8 @@ void GameObjectsLoader::loadEnvironmentData(GameObject& gameObject, const pugi::
 
   auto materialName = data.attribute("material").as_string();
 
-  ResourceHandle<Material> materialInstance =
-    m_resourceManager->getResource<Material>(materialName);
+  ResourceHandle<GLMaterial> materialInstance =
+    m_resourceManager->getResource<GLMaterial>(materialName);
 
   environmentComponent.setEnvironmentMaterial(materialInstance);
 }

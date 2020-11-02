@@ -36,11 +36,7 @@ void MeshRenderingSystem::update(float delta)
   ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::renderForward()
-{
-}
-
-void MeshRenderingSystem::renderDeferred()
+void MeshRenderingSystem::render()
 {
   static std::vector<GameObject> visibleObjects;
   visibleObjects.reserve(1024);
@@ -48,8 +44,7 @@ void MeshRenderingSystem::renderDeferred()
 
   m_graphicsScene->queryVisibleObjects(visibleObjects);
 
-  auto& sharedGraphicsState = *m_graphicsScene->getSharedGraphicsState();
-  auto& frameStats = sharedGraphicsState.getFrameStats();
+  auto& frameStats = m_graphicsScene->getFrameStats();
 
   frameStats.increaseCulledSubMeshesCount(
     m_graphicsScene->getDrawableObjectsCount() - visibleObjects.size());
@@ -69,57 +64,31 @@ void MeshRenderingSystem::renderDeferred()
     frameStats.increaseSubMeshesCount(subMeshesCount);
 
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-      Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
-      SW_ASSERT(material != nullptr);
+      const glm::mat4* matrixPalette = nullptr;
 
-      GLShadersPipeline* shadersPipeline = material->getGpuMaterial().getShadersPipeline().get();
+      if (mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>()) {
+        auto& skeletalAnimationComponent = *obj.getComponent<SkeletalAnimationComponent>().get();
 
-      SW_ASSERT(shadersPipeline != nullptr);
+        if (skeletalAnimationComponent.getAnimationStatesMachineRef().isActive()) {
 
-      GLShader* vertexShader = shadersPipeline->getShader(ShaderType::Vertex);
-
-      if (vertexShader->hasParameter("transform.localToWorld")) {
-        vertexShader->setParameter("transform.localToWorld", transform.getTransformationMatrix());
-      }
-
-      Camera* camera = m_graphicsScene->getActiveCamera().get();
-
-      if (camera != nullptr) {
-        if (vertexShader->hasParameter("scene.worldToCamera")) {
-          vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
-          vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
-        }
-      }
-
-      if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
-        if (obj.hasComponent<SkeletalAnimationComponent>() &&
-          obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef().isActive()) {
-          // Set animation data for shader
           const AnimationStatesMachine& animationStatesMachine =
-            obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
+            skeletalAnimationComponent.getAnimationStatesMachineRef();
           const AnimationMatrixPalette& currentMatrixPalette =
             animationStatesMachine.getCurrentMatrixPalette();
 
-          vertexShader->setArrayParameter("animation.palette",
-            currentMatrixPalette.bonesTransforms);
-        }
-        else {
-          vertexShader->setArrayParameter("animation.palette",
-            std::vector<glm::mat4>(vertexShader->getArraySize("animation.palette"),
-              glm::identity<glm::mat4>()));
+          matrixPalette = currentMatrixPalette.bonesTransforms.data();
         }
       }
 
       frameStats.increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
-      m_graphicsContext->executeRenderTask({
-        &material->getGpuMaterial(),
-        mesh->getGeometryStore(),
-        mesh->getSubMeshIndicesOffset(subMeshIndex),
-        mesh->getSubMeshIndicesCount(subMeshIndex),
-        GL_TRIANGLES,
-        &sharedGraphicsState.getDeferredFramebuffer()
+      m_graphicsContext->scheduleRenderTask(RenderTask{
+        .material = meshComponent->getMaterialInstance(subMeshIndex).get(),
+        .mesh = mesh,
+        .subMeshIndex = static_cast<uint16_t>(subMeshIndex),
+        .transform = &transform.getTransformationMatrix(),
+        .matrixPalette = matrixPalette,
       });
 
       if (m_isBoundsRenderingEnabled) {

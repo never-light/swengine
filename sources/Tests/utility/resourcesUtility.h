@@ -20,7 +20,7 @@ inline std::shared_ptr<ResourcesManager> generateTestResourcesManager()
     std::make_unique<CollisionShapeResourceManager>(resourcesManager.get()));
   resourcesManager->registerResourceType<GLShader>("shader",
     std::make_unique<ShaderResourceManager>(resourcesManager.get()));
-  resourcesManager->registerResourceType<Material>("material",
+  resourcesManager->registerResourceType<GLMaterial>("material",
     std::make_unique<MaterialResourceManager>(resourcesManager.get()));
 
   return resourcesManager;

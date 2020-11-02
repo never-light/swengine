@@ -191,6 +191,8 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   std::vector<GUIWidgetStylesheet> m_stylesheets;
 
+  std::shared_ptr<GLMaterial> m_renderingMaterial;
+
  private:
   friend class GUISystem;
 };

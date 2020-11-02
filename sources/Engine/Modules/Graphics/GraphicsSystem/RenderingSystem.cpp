@@ -14,25 +14,6 @@ RenderingSystem::RenderingSystem(std::shared_ptr<GLGraphicsContext> graphicsCont
 
 }
 
-void RenderingSystem::renderDeferred()
-{
-}
-
-void RenderingSystem::renderForward()
-{
-}
-
-void RenderingSystem::renderPostProcess()
-{
-}
-
 void RenderingSystem::render()
 {
-  /*
-   * Direct usage of render method for RenderingSystem is forbidden
-   *
-   * Every rendering system should use one or more of the specific rendering stages
-   * (e.g. deferred, forward, postprocessing)
-   */
-  SW_ASSERT(false);
 }

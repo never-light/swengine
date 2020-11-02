@@ -6,7 +6,14 @@
 
 #include <utility>
 
-GLMaterial::GLMaterial()
+GLMaterial::GLMaterial(RenderingStage renderingStage,
+  std::shared_ptr<GLShadersPipeline> shadersPipeline,
+  GpuStateParameters gpuState,
+  std::unique_ptr<ShadingParametersBaseSet> shadingParameters)
+  : m_shadersPipeline(std::move(shadersPipeline)),
+    m_renderingStage(renderingStage),
+    m_gpuStateParameters(gpuState),
+    m_shadingParametersBinder(createShadingParametersBinder(std::move(shadingParameters)))
 {
 
 }
@@ -16,82 +23,171 @@ GLMaterial::~GLMaterial()
 
 }
 
-void GLMaterial::setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline)
+std::unique_ptr<GLShadingParametersBaseBinder> GLMaterial::createShadingParametersBinder(
+  std::unique_ptr<ShadingParametersBaseSet> shadingParameters)
 {
-  m_shadersPipeline = std::move(shadersPipeline);
+  if (dynamic_cast<ShadingParametersGenericSet*>(shadingParameters.get())) {
+    return std::make_unique<GLShadingParametersGenericBinder>(std::move(shadingParameters));
+  }
+  else if (dynamic_cast<ShadingParametersOpaqueMesh*>(shadingParameters.get())) {
+    return std::make_unique<GLShadingParametersOpaqueMeshBinder>(std::move(shadingParameters));
+  }
+  else if (dynamic_cast<ShadingParametersGUI*>(shadingParameters.get())) {
+    return std::make_unique<GLShadingParametersGUIBinder>(std::move(shadingParameters));
+  }
+  else {
+    THROW_EXCEPTION(NotImplementedException, "Shading parameters set type is not supported");
+  }
 }
 
-std::shared_ptr<GLShadersPipeline> GLMaterial::getShadersPipeline() const
+const GLShadersPipeline& GLMaterial::getShadersPipeline() const
 {
-  return m_shadersPipeline;
+  return *m_shadersPipeline;
 }
 
-void GLMaterial::setDepthTestMode(DepthTestMode mode)
+RenderingStage GLMaterial::getRenderingStage() const
 {
-  m_depthTestMode = mode;
+  return m_renderingStage;
 }
 
-DepthTestMode GLMaterial::getDepthTestMode() const
+const GpuStateParameters& GLMaterial::getGpuStateParameters() const
 {
-  return m_depthTestMode;
+  return m_gpuStateParameters;
 }
 
-void GLMaterial::setFaceCullingMode(FaceCullingMode mode)
+GLShadingParametersBaseBinder* GLMaterial::getGLParametersBinder() const
 {
-  m_faceCullingMode = mode;
+  return m_shadingParametersBinder.get();
 }
 
-FaceCullingMode GLMaterial::getFaceCullingMode() const
+GLShadersPipeline& GLMaterial::getShadersPipeline()
 {
-  return m_faceCullingMode;
+  return *m_shadersPipeline;
 }
 
-void GLMaterial::setPolygonFillingMode(PolygonFillingMode mode)
+ShadingParametersBaseSet& GLMaterial::getParametersSet()
 {
-  m_polygonFillingMode = mode;
+  return m_shadingParametersBinder->getParametersSet();
 }
 
-PolygonFillingMode GLMaterial::getPolygonFillingMode() const
+const ShadingParametersBaseSet& GLMaterial::getParametersSet() const
 {
-  return m_polygonFillingMode;
+  return m_shadingParametersBinder->getParametersSet();
 }
 
-void GLMaterial::setBlendingMode(BlendingMode mode)
+GLShadingParametersBaseBinder::GLShadingParametersBaseBinder(
+  std::unique_ptr<ShadingParametersBaseSet> parametersSet)
+  : m_parametersSet(std::move(parametersSet))
 {
-  m_materialBlendingMode = mode;
+
 }
 
-BlendingMode GLMaterial::getBlendingMode() const
+const ShadingParametersBaseSet& GLShadingParametersBaseBinder::getParametersSet() const
 {
-  return m_materialBlendingMode;
+  return *m_parametersSet;
 }
 
-void GLMaterial::setDepthWritingMode(DepthWritingMode mode)
+ShadingParametersBaseSet& GLShadingParametersBaseBinder::getParametersSet()
 {
-  m_depthWritingMode = mode;
+  return *m_parametersSet;
 }
 
-DepthWritingMode GLMaterial::getDepthWritingMode() const
+GLShadingParametersGenericBinder::GLShadingParametersGenericBinder(
+  std::unique_ptr<ShadingParametersBaseSet> parametersSet)
+  : GLShadingParametersBaseBinder(std::move(parametersSet))
 {
-  return m_depthWritingMode;
+
 }
 
-void GLMaterial::setShaderParameter(ShaderType shaderType, const std::string& name, const GenericParameterValue& value)
+void GLShadingParametersGenericBinder::bindParameters(GLShadersPipeline& shadersPipeline)
 {
-  m_parameters.insert({name, GenericParameter(shaderType, value)});
+  auto& parametersGenericSet =
+    dynamic_cast<ShadingParametersGenericSet&>(getParametersSet());
+
+  for (const auto& parameterIt : parametersGenericSet.getParameters()) {
+    const std::string& parameterName = parameterIt.first;
+
+    GLShader* shader = shadersPipeline.getShader(parameterIt.second.shaderType);
+
+    const auto& rawValue = parameterIt.second.value;
+
+    std::visit([&parameterName, shader](auto&& arg) {
+      using T = std::decay_t<decltype(arg)>;
+      if constexpr (std::is_same_v<T, int>) {
+        shader->setParameter(parameterName, int(arg));
+      }
+      else if constexpr (std::is_same_v<T, float>) {
+        shader->setParameter(parameterName, float(arg));
+      }
+      else if constexpr (std::is_same_v<T, glm::vec3>) {
+        shader->setParameter(parameterName, glm::vec3(arg));
+      }
+      else if constexpr (std::is_same_v<T, glm::vec4>) {
+        shader->setParameter(parameterName, glm::vec4(arg));
+      }
+      else if constexpr (std::is_same_v<T, glm::mat3>) {
+        shader->setParameter(parameterName, glm::mat3(arg));
+      }
+      else if constexpr (std::is_same_v<T, glm::mat4>) {
+        shader->setParameter(parameterName, glm::mat4(arg));
+      }
+      else if constexpr (std::is_same_v<T, ShadingParametersGenericStorage::TextureParameter>) {
+        const ShadingParametersGenericStorage::TextureParameter& textureParameter = arg;
+
+        shader->setParameter(parameterName, *(textureParameter.texture), textureParameter.slotIndex);
+      }
+      else {
+        SW_ASSERT(false);
+      }
+    }, rawValue);
+  }
 }
 
-const GLMaterial::GenericParameterValue& GLMaterial::getShaderParameterValue(const std::string& name) const
+GLShadingParametersGUIBinder::GLShadingParametersGUIBinder(
+  std::unique_ptr<ShadingParametersBaseSet> parametersSet)
+  : GLShadingParametersBaseBinder(std::move(parametersSet))
 {
-  return m_parameters.at(name).value;
+
 }
 
-void GLMaterial::setScissorsTestMode(ScissorsTestMode mode)
+void GLShadingParametersGUIBinder::bindParameters(GLShadersPipeline& shadersPipeline)
 {
-  m_scissorsTestMode = mode;
+  auto& parametersSet =
+    dynamic_cast<ShadingParametersGUI&>(getParametersSet());
+
+  GLShader* fragmentShader = shadersPipeline.getShader(ShaderType::Fragment);
+
+  bool hasBackgroundTexture = parametersSet.getBackgroundTexture().get() != nullptr;
+
+  fragmentShader->setParameter("widget.backgroundColor", parametersSet.getBackgroundColor());
+  fragmentShader->setParameter("widget.useBackgroundTexture", hasBackgroundTexture);
+
+  if (hasBackgroundTexture) {
+    fragmentShader->setParameter("widget.backgroundTexture", *parametersSet.getBackgroundTexture(), 0);
+  }
+
+  bool hasColorAlphaTexture = parametersSet.getAlphaTexture().get() != nullptr;
+
+  fragmentShader->setParameter("widget.useColorAlphaTexture", hasColorAlphaTexture);
+
+  if (hasColorAlphaTexture) {
+    fragmentShader->setParameter("widget.colorAlphaTexture", *parametersSet.getAlphaTexture(), 1);
+  }
 }
 
-ScissorsTestMode GLMaterial::getScissorsTestMode() const
+GLShadingParametersOpaqueMeshBinder::GLShadingParametersOpaqueMeshBinder(
+  std::unique_ptr<ShadingParametersBaseSet> parametersSet)
+  : GLShadingParametersBaseBinder(std::move(parametersSet))
 {
-  return m_scissorsTestMode;
+
+}
+
+void GLShadingParametersOpaqueMeshBinder::bindParameters(GLShadersPipeline& shadersPipeline)
+{
+  auto& parametersSet =
+    dynamic_cast<ShadingParametersOpaqueMesh&>(getParametersSet());
+
+  GLShader* fragmentShader = shadersPipeline.getShader(ShaderType::Fragment);
+
+  fragmentShader->setParameter("albedo", *parametersSet.getAlbedoTexture(), 0);
 }

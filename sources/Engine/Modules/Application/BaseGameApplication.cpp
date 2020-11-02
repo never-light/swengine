@@ -50,6 +50,7 @@ BaseGameApplication::BaseGameApplication(int argc,
 BaseGameApplication::~BaseGameApplication()
 {
   SDL_DestroyWindow(m_mainWindow);
+  SDL_Quit();
 }
 
 void BaseGameApplication::load()
@@ -257,8 +258,9 @@ void BaseGameApplication::initializeEngine()
   m_inputModule = std::make_shared<InputModule>(m_mainWindow);
 
   m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
-  m_sharedGraphicsState = std::make_shared<SharedGraphicsState>(m_graphicsModule->getGraphicsContext());
-  m_graphicsScene = std::make_shared<GraphicsScene>(m_sharedGraphicsState);
+  m_graphicsScene = std::make_shared<GraphicsScene>();
+
+  m_graphicsModule->getGraphicsContext()->setupGraphicsScene(m_graphicsScene);
 
   m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
@@ -271,7 +273,7 @@ void BaseGameApplication::initializeEngine()
     std::make_unique<TextureResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<BitmapFont>("bitmap_font",
     std::make_unique<BitmapFontResourceManager>(resourceManager.get()));
-  resourceManager->registerResourceType<Material>("material",
+  resourceManager->registerResourceType<GLMaterial>("material",
     std::make_unique<MaterialResourceManager>(resourceManager.get()));
   resourceManager->registerResourceType<Skeleton>("skeleton",
     std::make_unique<SkeletonResourceManager>(resourceManager.get()));
@@ -287,8 +289,12 @@ void BaseGameApplication::initializeEngine()
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
   m_gameWorld = GameWorld::createInstance();
-  m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
-    m_sharedGraphicsState, resourceManager);
+  m_screenManager = std::make_shared<ScreenManager>(
+    m_gameWorld,
+    m_graphicsModule,
+    resourceManager,
+    m_graphicsModule->getGraphicsContext()->getViewportWidth(),
+    m_graphicsModule->getGraphicsContext()->getViewportHeight());
 
   DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_graphicsScene);
 }
@@ -317,8 +323,7 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(sceneManagementSystem);
 
   // Rendering pipeline
-  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext(),
-    m_graphicsScene);
+  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext());
 
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
@@ -416,12 +421,17 @@ void BaseGameApplication::performUnload()
 {
   unload();
 
+  DebugPainter::deinitialize();
+
   m_screenManager.reset();
 
   m_levelsManager->unloadLevel();
+  m_graphicsScene.reset();
+
   m_gameWorld->reset();
 
-  SDL_Quit();
+  m_graphicsModule->getGraphicsContext()->unloadResources();
+  m_graphicsModule.reset();
 }
 
 void BaseGameApplication::performUpdate(float delta)
@@ -436,7 +446,7 @@ void BaseGameApplication::performRender()
 {
   GLGraphicsContext* graphicsContext = m_graphicsModule->getGraphicsContext().get();
 
-  m_sharedGraphicsState->getFrameStats().reset();
+  m_graphicsScene->getFrameStats().reset();
 
   m_gameWorld->beforeRender();
 
@@ -444,6 +454,8 @@ void BaseGameApplication::performRender()
   m_screenManager->render();
 
   render();
+
+  m_graphicsModule->getGraphicsContext()->executeRenderTasks();
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();

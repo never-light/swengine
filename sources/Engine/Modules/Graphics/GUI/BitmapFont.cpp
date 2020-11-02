@@ -32,3 +32,8 @@ int BitmapFont::getHeight() const
 {
   return m_height;
 }
+
+ResourceHandle<GLTexture> BitmapFont::getBitmapResource() const
+{
+  return m_bitmap;
+}

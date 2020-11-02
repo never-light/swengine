@@ -3,11 +3,12 @@
 #include <utility>
 
 #include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/SharedGraphicsState.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/FrameStats.h>
 
 FreeCameraControlSystem::FreeCameraControlSystem(
   std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<GraphicsScene> graphicsScene)
+  std::shared_ptr<GraphicsScene> graphicsScene,
+  std::shared_ptr<GLGraphicsContext> graphicsContext)
   : m_inputModule(std::move(inputModule)),
     m_graphicsScene(std::move(graphicsScene)),
     m_freeCamera(std::make_shared<Camera>())
@@ -15,8 +16,7 @@ FreeCameraControlSystem::FreeCameraControlSystem(
   m_freeCamera->setNearClipDistance(0.1f);
   m_freeCamera->setFarClipDistance(100.0f);
   // TODO: replace usage of deferred frame buffer here with something like settings class
-  m_freeCamera->setAspectRatio(
-    m_graphicsScene->getSharedGraphicsState()->getDeferredFramebuffer().getAspectRatio());
+  m_freeCamera->setAspectRatio(float(graphicsContext->getViewportWidth()) / float(graphicsContext->getViewportHeight()));
   m_freeCamera->setFOVy(glm::pi<float>() / 4);
 
   m_freeCamera->getTransform()->setPosition(0, 0, 0);
