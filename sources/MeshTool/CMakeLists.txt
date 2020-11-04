@@ -13,7 +13,12 @@ target_include_directories(mesh_tool PUBLIC ../
         ../../ThirdParty)
 target_include_directories(mesh_tool PRIVATE ./)
 
-target_link_directories(mesh_tool PRIVATE ../../build/libraries)
+set(BUILD_SHARED_LIBS OFF)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(ASSIMP_BUILD_TESTS OFF)
+
+
+add_subdirectory(../../ThirdParty/assimp ${CMAKE_BINARY_DIR}/assimp)
 
 target_link_libraries(mesh_tool ${CONAN_LIBS}
         engine
