@@ -10,8 +10,8 @@
 #include "Modules/Math/MathUtils.h"
 #include "Utility/files.h"
 
-LevelsManager::LevelsManager(std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<ResourcesManager> resourceManager)
+LevelsManager::LevelsManager(const std::shared_ptr<GameWorld>& gameWorld,
+  const std::shared_ptr<ResourcesManager>& resourceManager)
   : m_gameWorld(gameWorld),
     m_resourceManager(resourceManager),
     m_gameObjectsLoader(gameWorld, resourceManager)
@@ -21,22 +21,20 @@ LevelsManager::LevelsManager(std::shared_ptr<GameWorld> gameWorld,
 
 LevelsManager::~LevelsManager()
 {
-  if (m_currentLevelData != nullptr) {
-    unloadLevel();
-  }
+  unloadLevel();
 }
 
 void LevelsManager::unloadLevel()
 {
-  SW_ASSERT(m_currentLevelData != nullptr);
+  if (m_isLevelLoaded) {
+    m_gameWorld->emitEvent<UnloadSceneCommandEvent>(UnloadSceneCommandEvent{});
 
-  m_gameWorld->emitEvent<UnloadSceneCommandEvent>(UnloadSceneCommandEvent{});
+    for (GameObject object : m_gameWorld->all()) {
+      m_gameWorld->removeGameObject(object);
+    }
 
-  for (GameObject object : m_gameWorld->all()) {
-    m_gameWorld->removeGameObject(object);
+    m_isLevelLoaded = false;
   }
-
-  m_currentLevelData.reset();
 }
 
 std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelStaticObjects(
@@ -64,7 +62,9 @@ std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelStaticObjects(
   }
 
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
-    auto gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
+    std::string gameObjectSpawnName = m_gameObjectsLoader.loadGameObject(objectNode);
+
+    GameObject gameObject = m_gameObjectsLoader.buildGameObject(gameObjectSpawnName);
 
     gameObject.addComponent<GameObjectDeclarationComponent>(objectNode);
     objectsIds.push_back(gameObject);
@@ -98,7 +98,9 @@ std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelDynamicObjects(
   }
 
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
-    auto gameObject = m_gameObjectsLoader.loadGameObject(objectNode);
+    std::string gameObjectSpawnName = m_gameObjectsLoader.loadGameObject(objectNode);
+
+    GameObject gameObject = m_gameObjectsLoader.buildGameObject(gameObjectSpawnName);
 
     gameObject.addComponent<GameObjectDeclarationComponent>(objectNode);
     objects.push_back(gameObject);
@@ -109,8 +111,6 @@ std::shared_ptr<pugi::xml_document> LevelsManager::loadLevelDynamicObjects(
 
 void LevelsManager::loadLevel(const std::string& name)
 {
-  SW_ASSERT(m_currentLevelData == nullptr);
-
   spdlog::info("Load level {}", name);
 
   std::vector<GameObject> levelStaticObjects;
@@ -119,12 +119,12 @@ void LevelsManager::loadLevel(const std::string& name)
   auto staticObjectsData = loadLevelStaticObjects(name, levelStaticObjects);
   auto dynamicObjectsData = loadLevelDynamicObjects(name, levelDynamicObjects);
 
-  m_currentLevelData = std::make_shared<LevelData>(staticObjectsData, dynamicObjectsData);
-
   std::vector<GameObject> sceneObjects = levelStaticObjects;
   sceneObjects.insert(sceneObjects.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
 
   m_gameWorld->emitEvent<LoadSceneCommandEvent>(LoadSceneCommandEvent{.sceneObjects=sceneObjects});
+
+  m_isLevelLoaded = false;
 
   spdlog::info("Level {} is loaded", name);
 }

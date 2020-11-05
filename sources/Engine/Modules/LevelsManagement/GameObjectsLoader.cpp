@@ -31,6 +31,8 @@
 
 #include "Exceptions/exceptions.h"
 
+#include "GameObjectsComponentsBinders.h"
+
 GameObjectsLoader::GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(std::move(gameWorld)),
@@ -46,43 +48,43 @@ GameObjectsLoader::GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
   registerComponentName<KinematicCharacterComponent>("kinematic_character");
 
   registerGenericComponentLoader<TransformComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadTransformData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadTransformData(objectNode);
     });
 
   registerGenericComponentLoader<MeshRendererComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadVisualData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadVisualData(objectNode);
     });
 
   registerGenericComponentLoader<RigidBodyComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadRigidBodyData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadRigidBodyData(objectNode);
     });
 
   registerGenericComponentLoader<EnvironmentComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadEnvironmentData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadEnvironmentData(objectNode);
     });
 
   registerGenericComponentLoader<AudioSourceComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadAudioSourceData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadAudioSourceData(objectNode);
     });
 
   registerGenericComponentLoader<CameraComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadCameraData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadCameraData(objectNode);
     });
 
   registerGenericComponentLoader<SkeletalAnimationComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadAnimationData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadAnimationData(objectNode);
     });
 
   registerGenericComponentLoader<KinematicCharacterComponent>(
-    [this](GameObject& object, const pugi::xml_node& objectNode) {
-      loadKinematicCharacterData(object, objectNode);
+    [this](const pugi::xml_node& objectNode) {
+      return loadKinematicCharacterData(objectNode);
     });
 }
 
@@ -96,17 +98,17 @@ void GameObjectsLoader::registerClassLoader(const std::string& className,
   m_classesLoaders.insert({className, std::move(loader)});
 }
 
-void GameObjectsLoader::loadTransformData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadTransformData(const pugi::xml_node& data)
 {
-  auto& transformComponent = *gameObject.addComponent<TransformComponent>().get();
+  TransformComponentBindingParameters bindingParameters;
 
   bool isStatic = data.attribute("static").as_bool(false);
-  transformComponent.setStaticMode(isStatic);
+  bindingParameters.setIsStatic(isStatic);
 
   auto positionAttr = data.attribute("position");
 
   if (positionAttr) {
-    transformComponent.getTransform().setPosition(StringUtils::stringToVec3(positionAttr.as_string()));
+    bindingParameters.setPosition(StringUtils::stringToVec3(positionAttr.as_string()));
   }
 
   auto directionAttr = data.attribute("direction");
@@ -114,41 +116,30 @@ void GameObjectsLoader::loadTransformData(GameObject& gameObject, const pugi::xm
   if (directionAttr) {
     glm::vec3 forwardDirection = StringUtils::stringToVec3(directionAttr.as_string());
 
-    transformComponent.getTransform().setOrientation(
-      MathUtils::forwardUpToQuat(forwardDirection, MathUtils::AXIS_UP));
+    bindingParameters.setDirection(forwardDirection);
   }
 
   auto scaleAttr = data.attribute("scale");
 
   if (scaleAttr) {
-    transformComponent.getTransform().setScale(StringUtils::stringToVec3(scaleAttr.as_string()));
+    bindingParameters.setScale(StringUtils::stringToVec3(scaleAttr.as_string()));
   }
+
+  return std::make_unique<TransformComponentBinder>(bindingParameters);
 }
 
-void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadVisualData(const pugi::xml_node& data)
 {
-  auto& transformComponent = *gameObject.getComponent<TransformComponent>().get();
-
-  auto& meshRendererComponent = *gameObject.addComponent<MeshRendererComponent>().get();
+  MeshRendererComponentBindingParameters bindingParameters;
 
   auto meshName = data.attribute("mesh").as_string();
-
-  ResourceHandle<Mesh> meshInstance =
-    m_resourceManager->getResource<Mesh>(meshName);
+  bindingParameters.setMeshResourceName(meshName);
 
   auto skeletonAttr = data.attribute("skeleton");
 
   if (skeletonAttr) {
-    ResourceHandle<Skeleton> skeletonInstance =
-      m_resourceManager->getResource<Skeleton>(skeletonAttr.as_string());
-
-    meshInstance->setSkeleton(skeletonInstance);
+    bindingParameters.setSkeletonResourceName(skeletonAttr.as_string());
   }
-
-  meshRendererComponent.setMeshInstance(meshInstance);
-
-  transformComponent.setBounds(meshInstance->getAABB());
-  transformComponent.updateBounds(transformComponent.getTransform().getTransformationMatrix());
 
   auto materialsData = data.child("materials");
 
@@ -156,46 +147,21 @@ void GameObjectsLoader::loadVisualData(GameObject& gameObject, const pugi::xml_n
     auto materialName = materialData.attribute("id").as_string();
     int materialSubMeshIndex = materialData.attribute("index").as_int();
 
-    ResourceHandle<GLMaterial> materialInstance =
-      m_resourceManager->getResource<GLMaterial>(materialName);
-
-    meshRendererComponent.setMaterialInstance(materialSubMeshIndex, materialInstance);
+    bindingParameters.addSubMeshMaterial(materialName, materialSubMeshIndex);
   }
+
+  return std::make_unique<MeshRendererComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameObjectsLoader::loadRigidBodyData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadRigidBodyData(const pugi::xml_node& data)
 {
+  RigidBodyComponentBindingParameters bindingParameters;
+
   std::string collisionModelName = data.attribute("collision_model").as_string();
+  bindingParameters.setCollisionModelResourceName(collisionModelName);
+  bindingParameters.setMass(data.attribute("mass").as_float());
 
-  ResourceHandle<CollisionShape> collisionShape;
-
-  auto transformComponent = gameObject.getComponent<TransformComponent>();
-
-  if (collisionModelName == "visual_aabb") {
-    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
-      CollisionShapeBox(transformComponent->getOriginalBounds().getSize() * 0.5f));
-  }
-  else if (collisionModelName == "visual_sphere") {
-    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
-      CollisionShapeSphere(transformComponent->getOriginalBounds().toSphere().getRadius()));
-  }
-  else {
-    collisionShape =
-      m_resourceManager->getResource<CollisionShape>(collisionModelName);
-  }
-
-  RigidBodyComponent* rigidBodyComponent = nullptr;
-
-  if (transformComponent->isStatic()) {
-    // Set zero mass to mark rigid body as static body
-    rigidBodyComponent = gameObject.addComponent<RigidBodyComponent>(0.0f, collisionShape).get();
-  }
-  else {
-    float mass = data.attribute("mass").as_float();
-    rigidBodyComponent = gameObject.addComponent<RigidBodyComponent>(mass, collisionShape).get();
-  }
-
-  LOCAL_VALUE_UNUSED(rigidBodyComponent);
+  return std::make_unique<RigidBodyComponentBinder>(bindingParameters, m_resourceManager);
 }
 
 void GameObjectsLoader::registerGenericComponentLoader(const std::string& componentName,
@@ -204,6 +170,7 @@ void GameObjectsLoader::registerGenericComponentLoader(const std::string& compon
   SW_ASSERT(!m_componentsLoaders.contains(componentName));
 
   m_componentsLoaders.insert({componentName, loader});
+  m_registeredComponentsList.push_back(componentName);
 }
 
 GameObjectsLoader::ComponentLoaderCallback GameObjectsLoader::getComponentLoader(const std::string& componentName) const
@@ -216,85 +183,91 @@ ResourcesManager& GameObjectsLoader::getResourceManager()
   return *m_resourceManager;
 }
 
-GameObject GameObjectsLoader::loadGameObject(const pugi::xml_node& objectNode)
+std::string GameObjectsLoader::loadGameObject(const pugi::xml_node& objectNode)
 {
   std::string objectClassName = objectNode.attribute("class").as_string();
   auto& classLoader = m_classesLoaders.at(objectClassName);
 
-  auto nameAttr = objectNode.attribute("id");
+  auto spawnNameAttr = objectNode.attribute("spawn_name");
 
-  GameObject gameObject;
-
-  if (nameAttr) {
-    if (m_gameWorld->findGameObject(nameAttr.as_string()).isAlive()) {
-      THROW_EXCEPTION(EngineRuntimeException,
-        fmt::format("Game object \"{}\" already exists", nameAttr.as_string()));
-    }
-
-    gameObject = m_gameWorld->createGameObject(nameAttr.as_string());
-  }
-  else {
-    gameObject = m_gameWorld->createGameObject();
+  if (!spawnNameAttr) {
+    THROW_EXCEPTION(EngineRuntimeException, "Game object should have spawn_name attribute");
   }
 
-  classLoader->loadGameObject(gameObject, objectNode);
+  std::string spawnName = spawnNameAttr.value();
 
-  return gameObject;
+  if (m_gameObjectsComponentsFactories.contains(spawnName)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Object with spawn name \"{}\" already exists", spawnName));
+  }
+
+  std::optional<std::string> gameObjectId;
+
+  auto objectIdAttr = objectNode.attribute("id");
+
+  if (objectIdAttr) {
+    gameObjectId = objectIdAttr.as_string();
+  }
+
+  auto componentsBinders = classLoader->loadGameObject(objectNode);
+
+  m_gameObjectsComponentsFactories.insert({spawnName,
+    GameObjectFactoryData(std::move(gameObjectId), std::move(componentsBinders))});
+
+  return spawnName;
 }
 
-void GameObjectsLoader::loadEnvironmentData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadEnvironmentData(const pugi::xml_node& data)
 {
-  auto& environmentComponent = *gameObject.addComponent<EnvironmentComponent>().get();
+  EnvironmentComponentBindingParameters bindingParameters;
 
   auto materialName = data.attribute("material").as_string();
+  bindingParameters.setMaterialResourceName(materialName);
 
-  ResourceHandle<GLMaterial> materialInstance =
-    m_resourceManager->getResource<GLMaterial>(materialName);
-
-  environmentComponent.setEnvironmentMaterial(materialInstance);
+  return std::make_unique<EnvironmentComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameObjectsLoader::loadAudioSourceData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadAudioSourceData(const pugi::xml_node& data)
 {
+  AudioSourceComponentBindingParameters bindingParameters;
+
   auto audioClipName = data.attribute("clip").as_string();
-
-  ResourceHandle<AudioClip> audioClipInstance =
-    m_resourceManager->getResource<AudioClip>(audioClipName);
-
-  auto& audioSourceComponent = *gameObject.addComponent<AudioSourceComponent>(audioClipInstance).get();
-  auto& audioSource = audioSourceComponent.getSource();
+  bindingParameters.setClipResourceName(audioClipName);
 
   float volume = data.attribute("volume").as_float(1.0f);
-  audioSource.setVolume(volume);
+  bindingParameters.setVolume(volume);
 
   float pitch = data.attribute("pitch").as_float(1.0f);
-  audioSource.setPitch(pitch);
+  bindingParameters.setPitch(pitch);
 
   bool isRelativeToListener = data.attribute("camera_relative").as_bool(false);
-  audioSource.setRelativeToListenerMode(isRelativeToListener);
+  bindingParameters.setCameraRelative(isRelativeToListener);
 
   bool isLooped = data.attribute("looped").as_bool(false);
-  audioSource.setLooped(isLooped);
+  bindingParameters.setIsLooped(isLooped);
 
   auto positionAttr = data.attribute("position").as_string("0 0 0");
-  audioSource.setPosition(StringUtils::stringToVec3(positionAttr));
+  bindingParameters.setPosition(StringUtils::stringToVec3(positionAttr));
+
+  return std::make_unique<AudioSourceComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameObjectsLoader::loadCameraData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadCameraData(
+  const pugi::xml_node& data)
 {
-  std::shared_ptr<Camera> camera = std::make_shared<Camera>();
+  CameraComponentBindingParameters bindingParameters;
 
   auto transformNode = data.child("transform");
 
   if (transformNode) {
     glm::vec3 position = StringUtils::stringToVec3(transformNode.attribute("position").as_string("0 0 0"));
-    camera->getTransform()->setPosition(position);
+    bindingParameters.setPosition(position);
 
     auto lookAtAttr = transformNode.attribute("look_at");
 
     if (lookAtAttr) {
       glm::vec3 lookAt = StringUtils::stringToVec3(lookAtAttr.as_string("0 0 0"));
-      camera->getTransform()->lookAt(lookAt);
+      bindingParameters.setLookAtPoint(lookAt);
     }
   }
 
@@ -302,30 +275,28 @@ void GameObjectsLoader::loadCameraData(GameObject& gameObject, const pugi::xml_n
 
   if (projectionNode) {
     float nearDistance = projectionNode.attribute("near_dist").as_float(0.1f);
-    camera->setNearClipDistance(nearDistance);
+    bindingParameters.setNearDistance(nearDistance);
 
     float farDistance = projectionNode.attribute("far_dist").as_float(100.0f);
-    camera->setFarClipDistance(farDistance);
+    bindingParameters.setFarDistance(farDistance);
 
     float fov = projectionNode.attribute("fov").as_float(45.0f);
-    camera->setFOVy(glm::radians(fov));
+    bindingParameters.setFov(fov);
   }
 
-  auto& cameraComponent = *gameObject.addComponent<CameraComponent>().get();
-  cameraComponent.setCamera(camera);
+  return std::make_unique<CameraComponentBinder>(bindingParameters);
 }
 
-void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadAnimationData(
+  const pugi::xml_node& data)
 {
-  std::string skeletonName = data.attribute("skeleton").as_string();
+  AnimationComponentBindingParameters bindingParameters;
 
-  ResourceHandle<Skeleton> skeletonInstance =
-    m_resourceManager->getResource<Skeleton>(skeletonName);
+  std::string skeletonName = data.attribute("skeleton").as_string();
+  bindingParameters.setSkeletonResourceName(skeletonName);
 
   std::string stateMachineName = data.attribute("state_machine").as_string();
-
-  auto statesMachineInstance =
-    m_resourceManager->getResource<AnimationStatesMachine>(stateMachineName);
+  bindingParameters.setStateMachineResourceName(stateMachineName);
 
   /*bool sharedStatesMachine = data.attribute("shared_state").as_bool(false);
   std::shared_ptr<AnimationStatesMachine> statesMachineInstance;
@@ -338,54 +309,70 @@ void GameObjectsLoader::loadAnimationData(GameObject& gameObject, const pugi::xm
       std::make_shared<AnimationStatesMachine>(AnimationStatesMachine(*sharedStatesMachineInstance));
   }*/
 
-  gameObject.addComponent<SkeletalAnimationComponent>(statesMachineInstance).get();
-
   auto startStateAttribute = data.attribute("start_state");
 
   if (startStateAttribute) {
-    statesMachineInstance->setActiveState(startStateAttribute.as_string());
+    bindingParameters.setStateMachineInitialState(startStateAttribute.as_string());
   }
+
+  return std::make_unique<AnimationComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameObjectsLoader::loadKinematicCharacterData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadKinematicCharacterData(
+  const pugi::xml_node& data)
 {
+  KinematicCharacterComponentBindingParameters bindingParameters;
+
   auto collisionModelNode = data.child("collision_model");
 
   auto capsuleCollisionShapeNode = collisionModelNode.child("capsule");
-  ResourceHandle<CollisionShape> collisionShape;
 
   if (capsuleCollisionShapeNode) {
     float capsuleRadius = capsuleCollisionShapeNode.attribute("radius").as_float();
-    float capsuleHeight = capsuleCollisionShapeNode.attribute("height").as_float();
+    bindingParameters.setCapsuleRadius(capsuleRadius);
 
-    collisionShape = getResourceManager().createResourceInPlace<CollisionShape>(
-      CollisionShapeCapsule(capsuleRadius, capsuleHeight));
+    float capsuleHeight = capsuleCollisionShapeNode.attribute("height").as_float();
+    bindingParameters.setCapsuleHeight(capsuleHeight);
   }
   else {
     SW_ASSERT(false && "Only capsule collision shape is supported now");
   }
 
-  auto& kinematicCharacterComponent =
-    *gameObject.addComponent<KinematicCharacterComponent>(collisionShape).get();
-
   auto originOffsetAttr = collisionModelNode.attribute("origin_offset");
 
   if (originOffsetAttr) {
     glm::vec3 originOffset = StringUtils::stringToVec3(originOffsetAttr.as_string());
-
-    kinematicCharacterComponent.setOriginOffset(originOffset);
+    bindingParameters.setOriginOffset(originOffset);
   }
 
-  auto& objectTransform = *gameObject.getComponent<TransformComponent>().get();
-  kinematicCharacterComponent.setTransform(objectTransform.getTransform());
+  return std::make_unique<KinematicCharacterComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameObjectsLoader::loadGameObjectComponent(const pugi::xml_node& objectNode,
-  const std::string& componentName,
-  GameObject object)
+GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName)
 {
-  std::string objectClassName = objectNode.attribute("class").as_string();
-  auto& classLoader = m_classesLoaders.at(objectClassName);
+  if (!m_gameObjectsComponentsFactories.contains(spawnName)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Failed to spawn object: object \"{}\" does not exists", spawnName));
+  }
 
-  classLoader->loadComponent(object, objectNode, componentName);
+  auto& gameObjectFactoryData = m_gameObjectsComponentsFactories.at(spawnName);
+
+  GameObject gameObject = gameObjectFactoryData.gameObjectId.has_value() ?
+    m_gameWorld->createGameObject(gameObjectFactoryData.gameObjectId.value())
+    : m_gameWorld->createGameObject(fmt::format("spawn_{}_{}", spawnName, m_freeSpawnNameIndex++));
+
+  auto spawnComponent = gameObject.addComponent<GameObjectSpawnComponent>();
+  spawnComponent->setSpawnName(spawnName);
+
+  // Iterate over components according to their loaders registration order
+  // to preserve specified initialization order
+  for (auto& componentName : m_registeredComponentsList) {
+    auto componentBuilderIt = gameObjectFactoryData.componentsFactories.find(componentName);
+
+    if (componentBuilderIt != gameObjectFactoryData.componentsFactories.end()) {
+      componentBuilderIt->second->bindToObject(gameObject);
+    }
+  }
+
+  return gameObject;
 }

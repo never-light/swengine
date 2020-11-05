@@ -3,18 +3,19 @@
 #include "Modules/ECS/ECS.h"
 #include "Utility/xml.h"
 
+#include "GameObjectsComponentsBinders.h"
+
 class GameObjectsClassLoader {
  public:
   GameObjectsClassLoader() = default;
   virtual ~GameObjectsClassLoader() = default;
 
-  virtual void loadGameObject(GameObject& gameObject, const pugi::xml_node& objectNode) = 0;
-  virtual void loadComponent(GameObject& gameObject, const pugi::xml_node& componentNode) = 0;
+  virtual std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> loadGameObject(const pugi::xml_node& objectNode) = 0;
+  virtual std::unique_ptr<GameObjectsComponentBinder> loadComponent(const pugi::xml_node& componentNode) = 0;
 
-  virtual void onComponentLoaded(GameObject& gameObject, const std::string& componentName) = 0;
+  virtual void onComponentLoaded(const std::string& componentName, GameObjectsComponentBinder& componentBinder) = 0;
 
-  virtual void loadComponent(
-    GameObject& gameObject,
+  virtual std::unique_ptr<GameObjectsComponentBinder> loadComponent(
     const pugi::xml_node& objectNode,
     const std::string& componentName) = 0;
 };

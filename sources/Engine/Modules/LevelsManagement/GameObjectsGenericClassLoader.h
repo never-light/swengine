@@ -14,13 +14,12 @@ class GameObjectsGenericClassLoader : public GameObjectsClassLoader {
   explicit GameObjectsGenericClassLoader(std::weak_ptr<LevelsManager> levelsManager);
   ~GameObjectsGenericClassLoader() override = default;
 
-  void loadGameObject(GameObject& gameObject, const pugi::xml_node& objectNode) override;
-  void loadComponent(GameObject& gameObject, const pugi::xml_node& componentNode) override;
+  std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> loadGameObject(const pugi::xml_node& objectNode) override;
+  std::unique_ptr<GameObjectsComponentBinder> loadComponent(const pugi::xml_node& componentNode) override;
 
-  void onComponentLoaded(GameObject& gameObject, const std::string& componentName) override;
+  void onComponentLoaded(const std::string& componentName, GameObjectsComponentBinder& componentBinder) override;
 
-  void loadComponent(
-    GameObject& gameObject,
+  std::unique_ptr<GameObjectsComponentBinder> loadComponent(
     const pugi::xml_node& objectNode,
     const std::string& componentName) override;
 
