@@ -46,3 +46,8 @@ std::string FileUtils::getGameResourcePath(const std::string& resourceLocalPath)
 {
   return std::string(RESOURCES_GAME_PATH) + "/" + resourceLocalPath;
 }
+
+std::string FileUtils::getSpawnListPath(const std::string& spawnListName)
+{
+  return std::string(SPAWN_LISTS_PATH) + "/" + spawnListName + ".xml";
+}

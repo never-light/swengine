@@ -3,6 +3,8 @@
 
 #include <utility>
 
+#include <Engine/Modules/LevelsManagement/GameObjectsSpawnSystem.h>
+
 #include "Game/Inventory/InventoryComponent.h"
 
 #include "ActorComponent.h"
@@ -333,6 +335,21 @@ GameLogicActionsList GameLogicConditionsManager::buildActionsList(
       auto stopDialogueAction = std::make_shared<GameLogicActionStopDialogue>(this);
       action = stopDialogueAction;
     }
+    else if (nodeName == "spawn_object") {
+      glm::vec3 position = StringUtils::stringToVec3(actionNode.attribute("position").as_string("0 0 0"));
+      glm::vec3 direction = MathUtils::AXIS_Z;
+
+      if (actionNode.attribute("direction")) {
+        direction = StringUtils::stringToVec3(actionNode.attribute("direction").as_string());
+      }
+
+      auto spawnObjectAction = std::make_shared<GameLogicActionSpawnObject>(this,
+        actionNode.attribute("spawn_name").as_string(),
+        position,
+        direction
+      );
+      action = spawnObjectAction;
+    }
     else {
       SW_ASSERT(false);
     }
@@ -534,7 +551,7 @@ GameLogicCondition* GameLogicConditionBooleanUnary::getCondition()
 }
 
 GameLogicActionStopDialogue::GameLogicActionStopDialogue(GameLogicConditionsManager* conditionsManager)
-    : GameLogicActorAction(conditionsManager)
+  : GameLogicActorAction(conditionsManager)
 {
 
 }
@@ -542,4 +559,22 @@ GameLogicActionStopDialogue::GameLogicActionStopDialogue(GameLogicConditionsMana
 void GameLogicActionStopDialogue::execute()
 {
   getConditionsManager()->getGameWorld().emitEvent<StopDialogueCommandEvent>(StopDialogueCommandEvent());
+}
+
+GameLogicActionSpawnObject::GameLogicActionSpawnObject(GameLogicConditionsManager* conditionsManager,
+  std::string objectSpawnName,
+  const glm::vec3& position,
+  const glm::vec3& direction)
+  : GameLogicAction(conditionsManager),
+    m_objectSpawnName(std::move(objectSpawnName)),
+    m_position(position),
+    m_direction(direction)
+{
+
+}
+
+void GameLogicActionSpawnObject::execute()
+{
+  getConditionsManager()->getGameWorld()
+    .emitEvent(SpawnGameObjectCommandEvent(m_objectSpawnName, m_position, m_direction));
 }

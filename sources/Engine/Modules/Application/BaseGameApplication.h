@@ -27,6 +27,7 @@
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/ScreenManagement/ScreenManager.h"
 #include "Modules/LevelsManagement/LevelsManager.h"
+#include "Modules/LevelsManagement/GameObjectsSpawnSystem.h"
 
 #include "GameConsole.h"
 
@@ -90,6 +91,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   std::shared_ptr<ScreenManager> m_screenManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
+  std::shared_ptr<GameObjectsSpawnSystem> m_spawnSystem;
 
   std::shared_ptr<GameConsole> m_gameConsole;
 

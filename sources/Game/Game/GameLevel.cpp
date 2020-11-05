@@ -41,7 +41,7 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
   m_player.getComponent<CameraComponent>()->getCamera()->setAspectRatio(
     float(m_graphicsContext->getViewportWidth()) / float(m_graphicsContext->getViewportHeight()));
 
-  auto environmentObject = m_gameWorld->findGameObject("city_environment");
+  auto environmentObject = m_gameWorld->findGameObject("environment");
   environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
 }
 

@@ -37,28 +37,28 @@ void GameApplication::load()
 
   m_componentsLoader = std::make_unique<GameComponentsLoader>(m_gameWorld, resourceMgr);
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("player",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadPlayerData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadPlayerData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("inventory_item",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInventoryItemData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInventoryItemData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("inventory",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInventoryData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInventoryData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("interactive",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInteractiveData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInteractiveData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("actor",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadActorData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadActorData(data);
     });
 
   m_screenManager->registerScreen(

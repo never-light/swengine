@@ -384,6 +384,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_levelsManager->getObjectsLoader().registerClassLoader("generic",
     std::make_unique<GameObjectsGenericClassLoader>(m_levelsManager));
 
+  // Spawn system
+  m_spawnSystem = std::make_shared<GameObjectsSpawnSystem>(m_levelsManager);
+  m_engineGameSystems->addGameSystem(m_spawnSystem);
+
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>();
   m_engineGameSystems->addGameSystem(m_gameApplicationSystems);
@@ -423,6 +427,7 @@ void BaseGameApplication::performUnload()
 
   DebugPainter::deinitialize();
 
+  m_spawnSystem.reset();
   m_screenManager.reset();
 
   m_levelsManager->unloadLevel();
