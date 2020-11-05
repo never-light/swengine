@@ -10,23 +10,6 @@
 
 #include "GameObjectsLoader.h"
 
-struct GameObjectDeclarationComponent {
- public:
-  explicit GameObjectDeclarationComponent(const pugi::xml_node declarationNode)
-    : m_declarationNode(declarationNode)
-  {
-
-  }
-
-  [[nodiscard]] const pugi::xml_node& getDeclarationNode() const
-  {
-    return m_declarationNode;
-  }
-
- private:
-  pugi::xml_node m_declarationNode;
-};
-
 class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
  public:
   LevelsManager(const std::shared_ptr<GameWorld>& gameWorld,
@@ -42,6 +25,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
     m_gameObjectsLoader.buildGameObjectComponent<T>(object);
   }
 
+  void loadSpawnObjectsList(const std::string& spawnListName);
+
   GameObjectsLoader& getObjectsLoader();
 
   std::shared_ptr<GameWorld> getGameWorld() const;
@@ -51,10 +36,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
     const std::string& descriptionFile,
     const std::string& descriptionNodeName);
 
-  std::shared_ptr<pugi::xml_document> loadLevelStaticObjects(const std::string& levelName,
-    std::vector<GameObject>& objects);
-  std::shared_ptr<pugi::xml_document> loadLevelDynamicObjects(const std::string& levelName,
-    std::vector<GameObject>& objects);
+  void loadLevelStaticObjects(const std::string& levelName, std::vector<GameObject>& objects);
+  void loadLevelDynamicObjects(const std::string& levelName, std::vector<GameObject>& objects);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
