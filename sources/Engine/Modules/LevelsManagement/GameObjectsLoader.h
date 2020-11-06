@@ -111,7 +111,7 @@ class GameObjectsLoader {
     }
   }
 
-  GameObject buildGameObject(const std::string& spawnName);
+  GameObject buildGameObject(const std::string& spawnName, const std::optional<std::string>& objectName = {});
 
  public:
   std::unique_ptr<GameObjectsComponentBinder> loadTransformData(const pugi::xml_node& data);
