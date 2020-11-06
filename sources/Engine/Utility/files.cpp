@@ -51,3 +51,25 @@ std::string FileUtils::getSpawnListPath(const std::string& spawnListName)
 {
   return std::string(SPAWN_LISTS_PATH) + "/" + spawnListName + ".xml";
 }
+
+std::string FileUtils::getScriptPath(const std::string& scriptName)
+{
+  std::string scriptPath = std::string(SCRIPTS_PATH) + "/" + scriptName;
+
+  if (scriptName.find(".lua") == std::string::npos) {
+    scriptPath += ".lua";
+  }
+
+  return scriptPath;
+}
+
+std::vector<std::string> FileUtils::getScriptsList()
+{
+  std::vector<std::string> scriptsList;
+
+  for (const auto & entry : std::filesystem::directory_iterator(SCRIPTS_PATH)) {
+    scriptsList.push_back(entry.path().stem().string());
+  }
+
+  return scriptsList;
+}

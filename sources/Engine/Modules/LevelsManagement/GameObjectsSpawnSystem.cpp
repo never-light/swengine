@@ -12,10 +12,12 @@
 
 SpawnGameObjectCommandEvent::SpawnGameObjectCommandEvent(std::string objectSpawnName,
   const glm::vec3& position,
-  const glm::vec3& direction)
+  const glm::vec3& direction,
+  const std::optional<std::string>& objectName)
   : m_objectSpawnName(std::move(objectSpawnName)),
     m_position(position),
-    m_direction(direction)
+    m_direction(direction),
+    m_objectName(objectName)
 {
 
 }
@@ -33,6 +35,11 @@ const glm::vec3& SpawnGameObjectCommandEvent::getPosition() const
 const glm::vec3& SpawnGameObjectCommandEvent::getDirection() const
 {
   return m_direction;
+}
+
+const std::optional<std::string>& SpawnGameObjectCommandEvent::getObjectName() const
+{
+  return m_objectName;
 }
 
 GameObjectsSpawnSystem::GameObjectsSpawnSystem(std::shared_ptr<LevelsManager> levelsManager)
@@ -53,7 +60,8 @@ void GameObjectsSpawnSystem::deactivate()
 
 EventProcessStatus GameObjectsSpawnSystem::receiveEvent(const SpawnGameObjectCommandEvent& event)
 {
-  GameObject gameObject = m_levelsManager->getObjectsLoader().buildGameObject(event.getObjectSpawnName());
+  GameObject gameObject = m_levelsManager->getObjectsLoader().buildGameObject(
+    event.getObjectSpawnName(), event.getObjectName());
 
   auto transformComponent = gameObject.getComponent<TransformComponent>();
   transformComponent->getTransform().setPosition(event.getPosition());

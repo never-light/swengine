@@ -348,7 +348,7 @@ std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadKinematicChar
   return std::make_unique<KinematicCharacterComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName)
+GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName, const std::optional<std::string>& objectName)
 {
   if (!m_gameObjectsComponentsFactories.contains(spawnName)) {
     THROW_EXCEPTION(EngineRuntimeException,
@@ -357,9 +357,22 @@ GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName)
 
   auto& gameObjectFactoryData = m_gameObjectsComponentsFactories.at(spawnName);
 
-  GameObject gameObject = gameObjectFactoryData.gameObjectId.has_value() ?
-    m_gameWorld->createGameObject(gameObjectFactoryData.gameObjectId.value())
-    : m_gameWorld->createGameObject(fmt::format("spawn_{}_{}", spawnName, m_freeSpawnNameIndex++));
+
+  std::string gameObjectName;
+
+  if (objectName.has_value()) {
+    gameObjectName = objectName.value();
+  }
+  else {
+    if (gameObjectFactoryData.gameObjectId.has_value()) {
+      gameObjectName = gameObjectFactoryData.gameObjectId.value();
+    }
+    else {
+      gameObjectName = fmt::format("spawn_{}_{}", spawnName, m_freeSpawnNameIndex++);
+    }
+  }
+
+  GameObject gameObject = m_gameWorld->createGameObject(gameObjectName);
 
   auto spawnComponent = gameObject.addComponent<GameObjectSpawnComponent>();
   spawnComponent->setSpawnName(spawnName);
