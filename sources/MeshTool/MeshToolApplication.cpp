@@ -17,6 +17,9 @@
 #include "CollisionsImporter.h"
 #include "CollisionsExporter.h"
 
+#include "SceneImporter.h"
+#include "SceneExporter.h"
+
 MeshToolApplication::MeshToolApplication()
 {
 
@@ -30,7 +33,7 @@ void MeshToolApplication::execute(int argc, char* argv[])
     ("i,input", "Input file", cxxopts::value<std::string>())
     ("o,output", "Output file", cxxopts::value<std::string>())
     ("a,action", "Action (import)", cxxopts::value<std::string>()->default_value("import"))
-    ("t,type", "Import type (mesh, skeleton, animation, collisions)",
+    ("t,type", "Import type (mesh, skeleton, animation, collisions, scene)",
         cxxopts::value<std::string>()->default_value("mesh"))
     ("format", "Output mesh format (pos3_norm3_uv, pos3_norm3_uv_skinned,"
                "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned)",
@@ -43,9 +46,10 @@ void MeshToolApplication::execute(int argc, char* argv[])
     std::cout << options.help() << std::endl << std::endl;
     std::cout << "Examples: " << std::endl;
     std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t mesh --format pos3_norm3_uv" << std::endl;
-    std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t skeleton" << std::endl;
-    std::cout << "./MeshTool -i mesh.dae -o mesh.mesh -a import -t animation --clip-name idle" << std::endl;
+    std::cout << "./MeshTool -i mesh.dae -o mesh.skeleton -a import -t skeleton" << std::endl;
+    std::cout << "./MeshTool -i mesh.dae -o mesh.anim -a import -t animation --clip-name idle" << std::endl;
     std::cout << "./MeshTool -i mesh.dae -o mesh.collision -a import -t collisions" << std::endl;
+    std::cout << "./MeshTool -i scene.gltf -o scene_dir/ -a import -t scene" << std::endl;
 
     return;
   }
@@ -66,6 +70,9 @@ void MeshToolApplication::execute(int argc, char* argv[])
     }
     else if (importType == "collisions") {
       importCollisions(parsedArgs);
+    }
+    else if (importType == "scene") {
+      importScene(parsedArgs);
     }
     else {
       THROW_EXCEPTION(EngineRuntimeException, "Unknown import type");
@@ -185,6 +192,29 @@ void MeshToolApplication::importCollisions(const cxxopts::ParseResult& options)
 
   const std::string outputPath = options["output"].as<std::string>();
   exporter.exportToFile(outputPath, *collisionData, exportOptions);
+
+  spdlog::info("Conversion finished");
+}
+
+void MeshToolApplication::importScene(const cxxopts::ParseResult& options)
+{
+  ARG_UNUSED(options);
+
+  spdlog::info("Conversion started");
+
+  SceneImportOptions importOptions{};
+
+  SceneImporter importer;
+
+  const std::string inputPath = options["input"].as<std::string>();
+  auto sceneData = importer.importFromFile(inputPath, importOptions);
+
+  // Save raw scene data
+  SceneExportOptions exportOptions{};
+  SceneExporter exporter;
+
+  const std::string outputPath = options["output"].as<std::string>();
+  exporter.exportDataToDirectory(outputPath, *sceneData, exportOptions);
 
   spdlog::info("Conversion finished");
 }
