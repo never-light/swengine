@@ -231,7 +231,11 @@ void Mesh::updateGeometryBuffer()
       storageFlags |= GL_DYNAMIC_STORAGE_BIT;
     }
 
-    if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV) {
+    if (meshAttributesMask == MESH_FORMAT_POS_NORM_UV || meshAttributesMask == MESH_FORMAT_POS_NORM_TAN_UV) {
+      if (meshAttributesMask == MESH_FORMAT_POS_NORM_TAN_UV) {
+        spdlog::warn("Tangents attributes for a mesh will be ignored");
+      }
+
       //geometryStore = new GLGeometryStore(constructVerticesList<VertexPos3Norm3UV>(), indices);
       m_geometryStore = std::make_unique<GLGeometryStore>(VerticesPos3Norm3UVSoA{
         .positions = &m_vertices,

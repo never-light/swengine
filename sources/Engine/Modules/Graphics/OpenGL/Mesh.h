@@ -114,6 +114,9 @@ class Mesh : public Resource {
   static constexpr MeshAttributesSet MESH_FORMAT_POS_NORM_UV =
     MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV;
 
+  static constexpr MeshAttributesSet MESH_FORMAT_POS_NORM_TAN_UV =
+    MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::Tangents | MeshAttributes::UV;
+
   static constexpr MeshAttributesSet MESH_FORMAT_POS_NORM_UV_SKINNED =
     MeshAttributes::Positions | MeshAttributes::Normals | MeshAttributes::UV |
       MeshAttributes::BonesIDs | MeshAttributes::BonesWeights;

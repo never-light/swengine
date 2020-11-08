@@ -24,10 +24,18 @@ class SceneExporter {
     const RawScene& scene,
     const SceneExportOptions& options);
 
-//  pugi::xml_document generateStaticSpawnDeclarations(const RawScene& scene,
-//    const SceneExportOptions& options);
+  pugi::xml_document generateStaticSpawnDeclarations(
+    const std::string& exportDir,
+    const RawScene& scene,
+    const SceneExportOptions& options);
 
-  std::filesystem::path getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode);
-  std::filesystem::path getExportPath(const std::string& exportDir, const std::string& filename);
+  pugi::xml_document generateDynamicSpawnDeclarations(
+    const std::string& exportDir,
+    const RawScene& scene,
+    const SceneExportOptions& options);
 
+  std::filesystem::path getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode) const;
+  std::filesystem::path getExportPath(const std::string& exportDir, const std::string& filename) const;
+
+  std::string getMeshResourceId(const RawMeshNode& meshNode) const;
 };
