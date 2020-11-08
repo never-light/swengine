@@ -13,5 +13,6 @@ class MeshToolApplication {
   void importSkeleton(const cxxopts::ParseResult& options);
   void importAnimation(const cxxopts::ParseResult& options);
   void importCollisions(const cxxopts::ParseResult& options);
+  void importScene(const cxxopts::ParseResult& options);
 
 };

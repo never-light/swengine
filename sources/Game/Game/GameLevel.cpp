@@ -34,7 +34,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(std::move(resourceManager)),
     m_levelsManager(std::move(levelsManager))
 {
-  m_levelsManager->loadLevel("city");
+  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
+  m_levelsManager->loadLevel("../../../bin/crossroads/agency_room_export");
 
   m_player = m_gameWorld->findGameObject("player");
 
@@ -42,7 +43,10 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     float(m_graphicsContext->getViewportWidth()) / float(m_graphicsContext->getViewportHeight()));
 
   auto environmentObject = m_gameWorld->findGameObject("environment");
-  environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
+
+  if (environmentObject.hasComponent<AudioSourceComponent>()) {
+    environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
+  }
 }
 
 GameObject GameLevel::getPlayer() const

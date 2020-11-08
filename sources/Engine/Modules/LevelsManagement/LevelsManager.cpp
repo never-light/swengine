@@ -45,9 +45,9 @@ void LevelsManager::loadLevelStaticObjects(
 
   auto levelDescriptionDocument = openLevelDescriptionFile(levelName,
     "level_static",
-    "level");
+    "objects");
 
-  pugi::xml_node levelDescription = levelDescriptionDocument->child("level");
+  pugi::xml_node levelDescription = levelDescriptionDocument->child("objects");
 
   for (pugi::xml_node& objectNode : levelDescription.children("object")) {
     auto transformNode = objectNode.child("transform");
@@ -77,9 +77,9 @@ void LevelsManager::loadLevelDynamicObjects(
 
   auto levelDescriptionDocument = openLevelDescriptionFile(levelName,
     "level_spawn",
-    "level");
+    "objects");
 
-  pugi::xml_node levelDescription = levelDescriptionDocument->child("level");
+  pugi::xml_node levelDescription = levelDescriptionDocument->child("objects");
 
   for (pugi::xml_node& objectNode : levelDescription.children("object")) {
     auto transformNode = objectNode.child("transform");
