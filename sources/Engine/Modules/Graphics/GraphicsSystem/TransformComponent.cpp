@@ -38,37 +38,12 @@ bool TransformComponent::isStatic() const
 void TransformComponent::updateBounds(const glm::mat4& transformation)
 {
   if (m_isStatic) {
-    glm::vec3 newMin(std::numeric_limits<float>::max());
-    glm::vec3 newMax(std::numeric_limits<float>::lowest());
-
-    for (glm::vec3 corner : m_originalBounds.getCorners()) {
-      glm::vec4 newCorner = transformation * glm::vec4(corner, 1.0f);
-
-      newMin.x = std::fminf(newMin.x, newCorner.x);
-      newMin.y = std::fminf(newMin.y, newCorner.y);
-      newMin.z = std::fminf(newMin.z, newCorner.z);
-
-      newMax.x = std::fmaxf(newMax.x, newCorner.x);
-      newMax.y = std::fmaxf(newMax.y, newCorner.y);
-      newMax.z = std::fmaxf(newMax.z, newCorner.z);
-    }
-
-    m_boundingBox.setMin(newMin);
-    m_boundingBox.setMax(newMax);
+    m_boundingBox = m_originalBounds;
+    m_boundingBox.applyTransform(transformation);
   }
   else {
-    Sphere originalBoundingSphere = m_originalBounds.toSphere();
-
-    glm::vec3 origin = originalBoundingSphere.getOrigin() + glm::vec3(transformation[3]);
-
-    float radiusFactor = glm::max(glm::max(transformation[0][0],
-      transformation[1][1]),
-      transformation[2][2]);
-
-    float radius = originalBoundingSphere.getRadius() * radiusFactor;
-
-    m_boundingSphere.setOrigin(origin);
-    m_boundingSphere.setRadius(radius);
+    m_boundingSphere = m_originalBounds.toSphere();
+    m_boundingSphere.applyTransform(transformation);
   }
 }
 

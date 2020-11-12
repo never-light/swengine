@@ -7,6 +7,7 @@
 #include <Exceptions/exceptions.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
@@ -150,6 +151,15 @@ EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEve
   }
   else if (event.command == "debug-draw-bounds") {
     m_meshRenderingSystem->enableBoundsRendering(!m_meshRenderingSystem->isBoundsRenderingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
+  else if (event.command == "camera-position") {
+    m_gameConsole->print("Position: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getPosition()));
+
+    m_gameConsole->print("Direction: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getFrontDirection()));
 
     return EventProcessStatus::Processed;
   }
@@ -460,7 +470,9 @@ void BaseGameApplication::performRender()
 
   render();
 
+  DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
   m_graphicsModule->getGraphicsContext()->executeRenderTasks();
+  DebugPainter::resetRenderQueue();
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();

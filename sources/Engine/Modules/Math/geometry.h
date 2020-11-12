@@ -73,6 +73,8 @@ struct Sphere {
   void setRadius(float radius);
   [[nodiscard]] float getRadius() const;
 
+  void applyTransform(const glm::mat4& transformationMatrix);
+
  private:
   glm::vec3 m_origin = glm::vec3(0.0f, 0.0f, 0.0f);
   float m_radius = 0.0f;
@@ -94,6 +96,9 @@ struct AABB {
   [[nodiscard]] Sphere toSphere() const;
 
   [[nodiscard]] std::array<glm::vec3, 8> getCorners() const;
+
+  [[nodiscard]] glm::vec3 getOrigin() const;
+  void applyTransform(const glm::mat4& transformationMatrix);
 
  private:
   glm::vec3 m_min;

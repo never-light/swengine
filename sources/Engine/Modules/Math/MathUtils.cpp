@@ -64,6 +64,11 @@ bool MathUtils::isEqual(const glm::vec3& a, const glm::vec3& b, float eps)
   return isVectorsEqual(a, b, eps);
 }
 
+bool MathUtils::isEqual(const glm::vec4& a, const glm::vec4& b, float eps)
+{
+  return isVectorsEqual(a, b, eps);
+}
+
 bool MathUtils::isEqual(float a, float b, float eps)
 {
   return glm::abs(a - b) <= eps;
@@ -118,4 +123,9 @@ glm::mat4 MathUtils::getPerspectiveProjectionMatrix(float fovY,
   float farDistance)
 {
   return glm::perspective(fovY, aspectRatio, nearDistance, farDistance);
+}
+
+glm::mat4 MathUtils::getRotationMatrix(const glm::quat& orientation)
+{
+  return glm::mat4_cast(orientation);
 }

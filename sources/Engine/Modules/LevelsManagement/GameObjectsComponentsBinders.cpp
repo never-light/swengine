@@ -28,10 +28,13 @@ void TransformComponentBinder::bindToObject(GameObject& gameObject)
   auto& bindingParameters = getComponentParameters();
   auto& transformComponent = *gameObject.addComponent<TransformComponent>().get();
 
+  glm::vec3 bindingParametersDirection = bindingParameters.getDirection();
+
   transformComponent.setStaticMode(bindingParameters.isStatic());
   transformComponent.getTransform().setPosition(bindingParameters.getPosition());
-  transformComponent.getTransform().setOrientation(
-    MathUtils::forwardUpToQuat(bindingParameters.getDirection(), MathUtils::AXIS_UP));
+  transformComponent.getTransform().setOrientation(glm::quat(glm::vec3(
+    glm::radians(bindingParametersDirection.x), glm::radians(bindingParametersDirection.y),
+    glm::radians(bindingParametersDirection.z))));
   transformComponent.getTransform().setScale(bindingParameters.getScale());
 }
 
@@ -161,14 +164,28 @@ void RigidBodyComponentBinder::bindToObject(GameObject& gameObject)
   ResourceHandle<CollisionShape> collisionShape;
 
   auto transformComponent = gameObject.getComponent<TransformComponent>();
+  Transform& objectTransform = transformComponent->getTransform();
+
+  AABB objectBounds = transformComponent->getOriginalBounds();
+
+  glm::mat4 objectBoundsTransform =
+      MathUtils::getScaleMatrix(objectTransform.getScale());
+
+  objectBounds.applyTransform(objectBoundsTransform);
 
   if (collisionModelName == "visual_aabb") {
-    collisionShape = m_resourcesManager->createResourceInPlace<CollisionShape>(
-      CollisionShapeBox(transformComponent->getOriginalBounds().getSize() * 0.5f));
+    CollisionShapeData colliderAABB = CollisionShapeCompound({
+      CollisionShapeCompoundChild{CollisionShapeBox(objectBounds.getSize() * 0.5f),
+        objectBounds.getOrigin()}});
+
+      collisionShape = m_resourcesManager->createResourceInPlace<CollisionShape>(colliderAABB);
   }
   else if (collisionModelName == "visual_sphere") {
-    collisionShape = m_resourcesManager->createResourceInPlace<CollisionShape>(
-      CollisionShapeSphere(transformComponent->getOriginalBounds().toSphere().getRadius()));
+    CollisionShapeData colliderSphere = CollisionShapeCompound({
+      CollisionShapeCompoundChild{CollisionShapeSphere(objectBounds.toSphere().getRadius()),
+        objectBounds.toSphere().getOrigin()}});
+
+    collisionShape = m_resourcesManager->createResourceInPlace<CollisionShape>(colliderSphere);
   }
   else {
     collisionShape = m_resourcesManager->getResource<CollisionShape>(collisionModelName);

@@ -24,6 +24,12 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
 
   // Save meshes
 
+  std::string meshesDirPath = getExportPath(exportDir, "meshes").string();
+
+  if (!std::filesystem::exists(meshesDirPath)) {
+    std::filesystem::create_directory(meshesDirPath);
+  }
+
   for (const auto& meshNode : scene.meshesNodes) {
     MeshExportOptions meshExportOptions{};
 
@@ -90,7 +96,7 @@ pugi::xml_document SceneExporter::generateResourcesDeclarations(
 
 std::filesystem::path SceneExporter::getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode) const
 {
-  return getExportPath(exportDir, std::string(meshNode.name) + ".mesh");
+  return getExportPath(exportDir, "meshes/" + std::string(meshNode.name) + ".mesh");
 }
 
 std::filesystem::path SceneExporter::getExportPath(const std::string& exportDir, const std::string& filename) const
@@ -135,22 +141,32 @@ pugi::xml_document SceneExporter::generateStaticSpawnDeclarations(const std::str
     transformComponentNode.append_attribute("position").set_value(
       fmt::format("{} {} {}", meshNode.position.x, meshNode.position.y, meshNode.position.z).c_str());
 
-    glm::vec3 directionVector = std::get<0>(MathUtils::quatToForwardUp(glm::quat(meshNode.orientation.w,
+    glm::vec3 directionVector = glm::eulerAngles(glm::quat(meshNode.orientation.w,
       meshNode.orientation.x,
       meshNode.orientation.y,
-      meshNode.orientation.z)));
+      meshNode.orientation.z));
 
     transformComponentNode.append_attribute("direction").set_value(
-      fmt::format("{} {} {}", directionVector.x, directionVector.y, directionVector.z).c_str());
+      fmt::format("{} {} {}", glm::degrees(directionVector.x),
+        glm::degrees(directionVector.y), glm::degrees(directionVector.z)).c_str());
+
+    transformComponentNode.append_attribute("scale").set_value(
+      fmt::format("{} {} {}", meshNode.scale.x, meshNode.scale.y, meshNode.scale.z).c_str());
 
     pugi::xml_node visualComponentNode = meshResourceNode.append_child("visual");
     visualComponentNode.append_attribute("mesh").set_value(getMeshResourceId(meshNode).c_str());
 
     pugi::xml_node visualComponentMaterialsNode = visualComponentNode.append_child("materials");
-    pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
 
-    materialNode.append_attribute("id").set_value("materials_common_checker");
-    materialNode.append_attribute("index").set_value("0");
+    for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesIndicesOffsets.size(); subMeshIndex++) {
+      pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
+
+      materialNode.append_attribute("id").set_value("materials_common_checker");
+      materialNode.append_attribute("index").set_value(subMeshIndex);
+    }
+
+    pugi::xml_node rigidBodyComponentNode = meshResourceNode.append_child("rigid_body");
+    rigidBodyComponentNode.append_attribute("collision_model").set_value("visual_aabb");
   }
 
   return std::move(staticSpawnDocument);
@@ -172,4 +188,5 @@ pugi::xml_document SceneExporter::generateDynamicSpawnDeclarations(const std::st
   pugi::xml_document dynamicSpawnDocument;
   pugi::xml_node objectsNode = dynamicSpawnDocument.append_child("objects");
 
-  return std::move(dynamicSpawnDocument);}
+  return std::move(dynamicSpawnDocument);
+}

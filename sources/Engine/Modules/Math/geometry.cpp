@@ -203,6 +203,20 @@ float Sphere::getRadius() const
   return m_radius;
 }
 
+void Sphere::applyTransform(const glm::mat4& transformationMatrix)
+{
+  glm::vec3 origin = m_origin + glm::vec3(transformationMatrix[3]);
+
+  float radiusFactor = glm::max(glm::max(transformationMatrix[0][0],
+    transformationMatrix[1][1]),
+    transformationMatrix[2][2]);
+
+  float radius = m_radius * radiusFactor;
+
+  m_origin = origin;
+  m_radius = radius;
+}
+
 float GeometryUtils::calculateDistance(const glm::vec3& v1, const glm::vec3& v2)
 {
   return glm::distance(v1, v2);
@@ -299,6 +313,32 @@ std::array<glm::vec3, 8> AABB::getCorners() const
     glm::vec3{m_max.x, m_min.y, m_max.z},
     glm::vec3{m_max.x, m_max.y, m_min.z},
   };
+}
+
+void AABB::applyTransform(const glm::mat4& transformationMatrix)
+{
+  glm::vec3 newMin(std::numeric_limits<float>::max());
+  glm::vec3 newMax(std::numeric_limits<float>::lowest());
+
+  for (glm::vec3 corner : getCorners()) {
+    glm::vec4 newCorner = transformationMatrix * glm::vec4(corner, 1.0f);
+
+    newMin.x = std::fminf(newMin.x, newCorner.x);
+    newMin.y = std::fminf(newMin.y, newCorner.y);
+    newMin.z = std::fminf(newMin.z, newCorner.z);
+
+    newMax.x = std::fmaxf(newMax.x, newCorner.x);
+    newMax.y = std::fmaxf(newMax.y, newCorner.y);
+    newMax.z = std::fmaxf(newMax.z, newCorner.z);
+  }
+
+  m_min = newMin;
+  m_max = newMax;
+}
+
+glm::vec3 AABB::getOrigin() const
+{
+  return (m_max + m_min) * 0.5f;
 }
 
 bool GeometryUtils::isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)

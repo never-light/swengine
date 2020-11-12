@@ -14,6 +14,7 @@ class MathUtils {
   static bool isEqual(const glm::mat4& a, const glm::mat4& b, float eps = 1e-6f);
   static bool isEqual(const glm::quat& a, const glm::quat& b, float eps = 1e-6f);
   static bool isEqual(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f);
+  static bool isEqual(const glm::vec4& a, const glm::vec4& b, float eps = 1e-6f);
   static bool isEqual(float a, float b, float eps = 1e-6f);
   static bool isEqual(const Plane& a, const Plane& b);
 
@@ -22,6 +23,7 @@ class MathUtils {
   static bool isMatrixIdentity(const glm::mat4& matrix, float eps = 1e-6f);
 
   static glm::mat4 getTranslationMatrix(const glm::vec3& translation);
+  static glm::mat4 getRotationMatrix(const glm::quat& orientation);
   static glm::mat4 getRotationMatrix(const glm::vec3& axis, float angle);
   static glm::mat4 getRotationMatrixFromYawPitchRoll(float yaw, float pitch, float roll);
   static glm::mat4 getScaleMatrix(const glm::vec3& scale);

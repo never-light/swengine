@@ -124,7 +124,7 @@ void Mesh::setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::
   for (size_t subMeshIndex = 0; subMeshIndex < subMeshesOffsets.size(); subMeshIndex++) {
     auto startIt = indices.begin() + subMeshesOffsets[subMeshIndex];
     auto endIt = (subMeshIndex == subMeshesOffsets.size() - 1) ? indices.end() :
-      indices.begin() + (subMeshesOffsets[subMeshIndex + 1] - 1);
+      indices.begin() + (subMeshesOffsets[subMeshIndex + 1]);
 
     RETURN_VALUE_UNUSED(addSubMesh(std::vector<uint16_t>(startIt, endIt)));
   }

@@ -40,6 +40,14 @@ class BulletUtils {
     return bulletTransform;
   }
 
+  static inline Transform btTransformToInternal(const btTransform& bulletTransform) {
+    Transform transform;
+    transform.setPosition(btVec3ToGlm(bulletTransform.getOrigin()));
+    transform.setOrientation(btQuatToGlm(bulletTransform.getRotation()));
+
+    return transform;
+  }
+
   static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShape& shape);
   static btCollisionShape* convertCollisionShapeToBulletShape(const CollisionShapeData& shape);
 };
