@@ -60,6 +60,8 @@ void BulletRigidBodyComponent::setTransform(const Transform& transform)
 
   m_motionState->setWorldTransform(internalTransform);
   m_rigidBodyInstance->setWorldTransform(internalTransform);
+
+  m_rigidBodyInstance->getCollisionShape()->setLocalScaling(BulletUtils::glmVec3ToBt(transform.getScale()));
 }
 
 void BulletRigidBodyComponent::setLinearVelocity(const glm::vec3& velocity)

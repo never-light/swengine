@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+#include <glm/vec3.hpp>
+
 #include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Physics/CollisionShapes.h"
 

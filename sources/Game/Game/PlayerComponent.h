@@ -29,7 +29,7 @@ class PlayerComponent {
 
   float m_movementSpeed = 2.15f;
 
-  float m_distanceToPlayer = 3.0f;
+  float m_distanceToPlayer = 0.4f;
   float m_thirdPersonViewPitch = 45.0f;
   float m_thirdPersonViewYaw = 0.0f;
 

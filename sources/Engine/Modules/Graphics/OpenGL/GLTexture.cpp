@@ -14,7 +14,8 @@ GLTexture::GLTexture(GLTextureType type, int width, int height, GLTextureInterna
   GL_CALL_BLOCK_BEGIN();
 
   glCreateTextures(GL_TEXTURE_2D, 1, &m_texture);
-  glTextureStorage2D(m_texture, 1, static_cast<GLenum>(internalFormat), width, height);
+  glTextureStorage2D(m_texture, static_cast<int>(glm::floor(glm::log2(glm::max(float(width), float(height))))) + 1,
+    static_cast<GLenum>(internalFormat), width, height);
 
   GL_CALL_BLOCK_END();
 }

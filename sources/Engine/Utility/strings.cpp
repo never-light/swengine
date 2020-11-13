@@ -64,6 +64,13 @@ std::string StringUtils::replace(std::string source,
   return source;
 }
 
+glm::vec2 StringUtils::stringToVec2(const std::string& string)
+{
+  auto parts = split(string, ' ');
+
+  return glm::vec2(std::stof(parts[0]), std::stof(parts[1]));
+}
+
 glm::vec3 StringUtils::stringToVec3(const std::string& string)
 {
   auto parts = split(string, ' ');

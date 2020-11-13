@@ -164,14 +164,14 @@ void RigidBodyComponentBinder::bindToObject(GameObject& gameObject)
   ResourceHandle<CollisionShape> collisionShape;
 
   auto transformComponent = gameObject.getComponent<TransformComponent>();
-  Transform& objectTransform = transformComponent->getTransform();
+//  Transform& objectTransform = transformComponent->getTransform();
 
   AABB objectBounds = transformComponent->getOriginalBounds();
 
-  glm::mat4 objectBoundsTransform =
-      MathUtils::getScaleMatrix(objectTransform.getScale());
-
-  objectBounds.applyTransform(objectBoundsTransform);
+//  glm::mat4 objectBoundsTransform =
+//      MathUtils::getScaleMatrix(objectTransform.getScale());
+//
+//  objectBounds.applyTransform(objectBoundsTransform);
 
   if (collisionModelName == "visual_aabb") {
     CollisionShapeData colliderAABB = CollisionShapeCompound({

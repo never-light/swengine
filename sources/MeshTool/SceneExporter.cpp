@@ -4,12 +4,15 @@
 #include <filesystem>
 #include <spdlog/spdlog.h>
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <Engine/swdebug.h>
 #include <Engine/Utility/xml.h>
 #include <Engine/Exceptions/exceptions.h>
 #include <Engine/Modules/Math/MathUtils.h>
 
 #include "MeshExporter.h"
+#include "CollisionsExporter.h"
 
 SceneExporter::SceneExporter()
 {
@@ -28,6 +31,18 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
 
   if (!std::filesystem::exists(meshesDirPath)) {
     std::filesystem::create_directory(meshesDirPath);
+  }
+
+  std::string collidersDirPath = getExportPath(exportDir, "colliders").string();
+
+  if (!std::filesystem::exists(collidersDirPath)) {
+    std::filesystem::create_directory(collidersDirPath);
+  }
+
+  std::string texturesDirPath = getExportPath(exportDir, "textures").string();
+
+  if (!std::filesystem::exists(texturesDirPath)) {
+    std::filesystem::create_directory(texturesDirPath);
   }
 
   for (const auto& meshNode : scene.meshesNodes) {
@@ -55,6 +70,18 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
 
     MeshExporter exporter;
     exporter.exportToFile(getMeshExportPath(exportDir, meshNode).string(), meshNode.rawMesh, meshExportOptions);
+
+    if (meshNode.collisionsResolutionEnabled) {
+      const auto& collisionData = meshNode.collisionData;
+
+      if (!collisionData.collisionShapes.empty()) {
+        CollisionsExporter collisionsExporter;
+        CollisionsExportOptions collisionsExportOptions{};
+
+        collisionsExporter.exportToFile(getColliderExportPath(exportDir, meshNode).string(),
+          collisionData, collisionsExportOptions);
+      }
+    }
   }
 
   // Generate resources
@@ -89,19 +116,132 @@ pugi::xml_document SceneExporter::generateResourcesDeclarations(
     meshResourceNode.append_attribute("id").set_value(getMeshResourceId(meshNode).c_str());
     meshResourceNode.append_attribute("source").set_value(
       getMeshExportPath(exportDir, meshNode).string().c_str());
+
+    if (!meshNode.collisionData.collisionShapes.empty()) {
+      pugi::xml_node colliderResourceNode = resourcesNode.append_child("resource");
+
+      colliderResourceNode.append_attribute("type").set_value("collision");
+      colliderResourceNode.append_attribute("id").set_value(getColliderResourceId(meshNode).c_str());
+      colliderResourceNode.append_attribute("source").set_value(
+        getColliderExportPath(exportDir, meshNode).string().c_str());
+    }
+  }
+
+  std::map<std::string, RawMaterial> materialsToExport;
+
+  for (const auto& meshNode : scene.meshesNodes) {
+    for (const auto& material : meshNode.materials) {
+      std::string materialResourceName = getMaterialResourceId(material.value());
+
+      materialsToExport[materialResourceName] = material.value();
+    }
+  }
+
+  // Textures export
+  std::map<std::string, RawTextureInfo> texturesToExport;
+
+  for (const auto& materialIt : materialsToExport) {
+    const RawMaterial& material = materialIt.second;
+
+    if (material.baseColorTextureInfo.has_value()) {
+      texturesToExport[material.baseColorTextureInfo->textureTmpPath] = material.baseColorTextureInfo.value();
+    }
+  }
+
+  for (auto&[textureTmpPath, textureInfo] : texturesToExport) {
+    std::string textureExportPath = getTextureExportPath(exportDir, textureInfo).string();
+
+    if (!std::filesystem::exists(textureExportPath)) {
+      spdlog::info("Export texture {}", textureExportPath);
+
+      std::filesystem::copy_file(textureTmpPath, textureExportPath,
+        std::filesystem::copy_options::overwrite_existing);
+    }
+
+    // TODO: use texture settings presets here instead of specifying them all
+
+    pugi::xml_node textureResourceNode = resourcesNode.append_child("resource");
+    textureResourceNode.append_attribute("type").set_value("texture");
+    textureResourceNode.append_attribute("id").set_value(getTextureResourceId(textureInfo).c_str());
+    textureResourceNode.append_attribute("source").set_value(textureExportPath.c_str());
+
+    textureResourceNode.append_child("type").append_child(pugi::node_pcdata).set_value("2d");
+    textureResourceNode.append_child("format").append_child(pugi::node_pcdata).set_value("rgb8");
+    textureResourceNode.append_child("generate_mipmaps").append_child(pugi::node_pcdata).set_value("true");
+    textureResourceNode.append_child("min_filter").append_child(pugi::node_pcdata).set_value("linear_mipmap_linear");
+    textureResourceNode.append_child("mag_filter").append_child(pugi::node_pcdata).set_value("linear");
+
+    pugi::xml_node textureResourceWrapParametersNode = textureResourceNode.append_child("wrap");
+    textureResourceWrapParametersNode.append_attribute("u").set_value("repeat");
+    textureResourceWrapParametersNode.append_attribute("v").set_value("repeat");
+  }
+
+  // Materials export
+  for (const auto& materialIt : materialsToExport) {
+    const RawMaterial& material = materialIt.second;
+    generateMaterialResourceDeclaration(resourcesNode, material);
   }
 
   return std::move(declarationsDocument);
 }
 
-std::filesystem::path SceneExporter::getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode) const
+void SceneExporter::generateMaterialResourceDeclaration(pugi::xml_node resourcesNode, const RawMaterial& materialInfo)
 {
-  return getExportPath(exportDir, "meshes/" + std::string(meshNode.name) + ".mesh");
-}
+  std::string materialName = getMaterialResourceId(materialInfo);
 
-std::filesystem::path SceneExporter::getExportPath(const std::string& exportDir, const std::string& filename) const
-{
-  return std::filesystem::path(exportDir) / filename;
+  pugi::xml_node materialResourceNode = resourcesNode.append_child("resource");
+  materialResourceNode.append_attribute("type").set_value("material");
+  materialResourceNode.append_attribute("id").set_value(materialName.c_str());
+  materialResourceNode.append_attribute("rendering_stage").set_value("deferred");
+  materialResourceNode.append_attribute("parameters_set").set_value("opaque_mesh");
+
+  pugi::xml_node shadersPipelineNode = materialResourceNode.append_child("shaders_pipeline");
+
+  pugi::xml_node vertexShaderNode = shadersPipelineNode.append_child("vertex");
+  vertexShaderNode.append_attribute("id").set_value("deferred_gpass_vertex_shader");
+
+  pugi::xml_node fragmentShaderNode = shadersPipelineNode.append_child("fragment");
+  fragmentShaderNode.append_attribute("id").set_value("deferred_gpass_fragment_shader");
+
+  pugi::xml_node parametersNode = materialResourceNode.append_child("params");
+
+  pugi::xml_node baseColorFactorParameterNode = parametersNode.append_child("param");
+  baseColorFactorParameterNode.append_attribute("shader").set_value("fragment");
+  baseColorFactorParameterNode.append_attribute("type").set_value("color");
+  baseColorFactorParameterNode.append_attribute("name").set_value("base_color");
+  baseColorFactorParameterNode.append_attribute("value").set_value(fmt::format("{} {} {} {}",
+    materialInfo.baseColorFactor.x,
+    materialInfo.baseColorFactor.y,
+    materialInfo.baseColorFactor.z,
+    materialInfo.baseColorFactor.w).c_str());
+
+  if (materialInfo.baseColorTextureInfo.has_value()) {
+    pugi::xml_node baseColorTextureParameterNode = parametersNode.append_child("param");
+    baseColorTextureParameterNode.append_attribute("shader").set_value("fragment");
+    baseColorTextureParameterNode.append_attribute("type").set_value("texture");
+    baseColorTextureParameterNode.append_attribute("name").set_value("base_color_map");
+    baseColorTextureParameterNode.append_attribute("id").set_value(
+      getTextureResourceId(materialInfo.baseColorTextureInfo.value()).c_str());
+    baseColorTextureParameterNode.append_attribute("slot").set_value(0);
+
+    const auto& baseColorTextureTransform = materialInfo.baseColorTextureInfo->textureTransform;
+
+    if (baseColorTextureTransform.has_value()) {
+      baseColorTextureParameterNode.append_attribute("offset").set_value(fmt::format("{} {}",
+        baseColorTextureTransform->offset.x, baseColorTextureTransform->offset.y).c_str());
+      baseColorTextureParameterNode.append_attribute("scale").set_value(fmt::format("{} {}",
+        baseColorTextureTransform->scale.x, baseColorTextureTransform->scale.y).c_str());
+      baseColorTextureParameterNode.append_attribute("rotation").set_value(fmt::format("{}",
+        baseColorTextureTransform->rotation).c_str());
+    }
+  }
+
+  pugi::xml_node baseColorUseTextureParameterNode = parametersNode.append_child("param");
+  baseColorUseTextureParameterNode.append_attribute("shader").set_value("fragment");
+  baseColorUseTextureParameterNode.append_attribute("type").set_value("bool");
+  baseColorUseTextureParameterNode.append_attribute("name").set_value("use_base_color_map");
+  baseColorUseTextureParameterNode.append_attribute("value").set_value(
+    materialInfo.baseColorTextureInfo.has_value());
 }
 
 pugi::xml_document SceneExporter::generateStaticSpawnDeclarations(const std::string& exportDir,
@@ -161,20 +301,30 @@ pugi::xml_document SceneExporter::generateStaticSpawnDeclarations(const std::str
     for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesIndicesOffsets.size(); subMeshIndex++) {
       pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
 
-      materialNode.append_attribute("id").set_value("materials_common_checker");
+      std::string materialResourceId = "materials_common_checker";
+
+      if (meshNode.materials[subMeshIndex].has_value()) {
+        materialResourceId = getMaterialResourceId(meshNode.materials[subMeshIndex].value());
+      }
+
+      materialNode.append_attribute("id").set_value(materialResourceId.c_str());
       materialNode.append_attribute("index").set_value(subMeshIndex);
     }
 
-    pugi::xml_node rigidBodyComponentNode = meshResourceNode.append_child("rigid_body");
-    rigidBodyComponentNode.append_attribute("collision_model").set_value("visual_aabb");
+    if (meshNode.collisionsResolutionEnabled) {
+      pugi::xml_node rigidBodyComponentNode = meshResourceNode.append_child("rigid_body");
+
+      if (meshNode.collisionData.collisionShapes.empty()) {
+        rigidBodyComponentNode.append_attribute("collision_model").set_value("visual_aabb");
+      }
+      else {
+        rigidBodyComponentNode.append_attribute("collision_model").set_value(
+          getColliderResourceId(meshNode).c_str());
+      }
+    }
   }
 
   return std::move(staticSpawnDocument);
-}
-
-std::string SceneExporter::getMeshResourceId(const RawMeshNode& meshNode) const
-{
-  return "resource_mesh_" + std::string(meshNode.name);
 }
 
 pugi::xml_document SceneExporter::generateDynamicSpawnDeclarations(const std::string& exportDir,
@@ -189,4 +339,63 @@ pugi::xml_document SceneExporter::generateDynamicSpawnDeclarations(const std::st
   pugi::xml_node objectsNode = dynamicSpawnDocument.append_child("objects");
 
   return std::move(dynamicSpawnDocument);
+}
+
+std::filesystem::path SceneExporter::getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode)
+{
+  return getExportPath(exportDir, "meshes/" + std::string(meshNode.name) + ".mesh");
+}
+
+std::filesystem::path SceneExporter::getExportPath(const std::string& exportDir, const std::string& filename)
+{
+  return std::filesystem::path(exportDir) / filename;
+}
+
+std::filesystem::path SceneExporter::getColliderExportPath(const std::string& exportDir,
+  const RawMeshNode& meshNode)
+{
+  return getExportPath(exportDir, fmt::format("colliders/{}.collider", std::string(meshNode.name)));
+}
+
+std::filesystem::path SceneExporter::getTextureExportPath(const std::string& exportDir,
+  const RawTextureInfo& textureInfo)
+{
+  return getExportPath(exportDir, fmt::format("textures/{}",
+    std::filesystem::path(textureInfo.textureTmpPath).filename().string()));
+}
+
+std::string SceneExporter::getMeshResourceId(const RawMeshNode& meshNode)
+{
+  return "resource_mesh_" + std::string(meshNode.name);
+}
+
+std::string SceneExporter::getColliderResourceId(const RawMeshNode& meshNode)
+{
+  return "resource_mesh_collider_" + std::string(meshNode.name);
+}
+
+std::string SceneExporter::getTextureResourceId(const RawTextureInfo& textureInfo)
+{
+  return "resource_texture_" + textureInfo.textureBaseName;
+}
+
+std::string SceneExporter::getMaterialResourceId(const RawMaterial& materialInfo)
+{
+  std::string materialName = std::string(materialInfo.name);
+  std::string materialResourceName = "resource_material_" + materialName;
+
+  /*
+  if (materialName.empty()) {
+    materialName = "unnamed";
+  }
+
+  size_t materialIndex = 1;
+
+  while (processedMaterials.contains(materialResourceName)) {
+    materialResourceName = "resource_material_" + materialName + "_" + std::to_string(materialIndex);
+    materialIndex++;
+  }
+   */
+
+  return materialResourceName;
 }

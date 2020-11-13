@@ -1,6 +1,8 @@
 #include "SceneImporter.h"
 
 #include <fstream>
+#include <filesystem>
+
 #include <spdlog/spdlog.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -53,6 +55,12 @@ std::unique_ptr<RawScene> SceneImporter::importFromFile(const std::string& path,
   }
 
   tinygltf::Scene& scene = model.scenes[model.defaultScene];
+
+  if (std::filesystem::exists("mesh_tool_tmp")) {
+    std::filesystem::remove_all("mesh_tool_tmp");
+  }
+
+  std::filesystem::create_directory("mesh_tool_tmp");
 
   traceSceneDebugInformation(model, scene);
   validateScene(model, scene);
@@ -216,6 +224,43 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
         raiseImportError(fmt::format("Attribute {} is not supported yet", attribute.first));
       }
     }
+
+    if (primitive.material != -1) {
+      const tinygltf::Material& material = model.materials[primitive.material];
+
+      const tinygltf::PbrMetallicRoughness& pbrParameters = material.pbrMetallicRoughness;
+
+      if (pbrParameters.baseColorTexture.texCoord != 0) {
+        raiseImportError(fmt::format("Multiple UV-channels are not supported yet"));
+      }
+
+      if (pbrParameters.baseColorTexture.index != -1) {
+        validateTexture(model, model.textures[pbrParameters.baseColorTexture.index]);
+      }
+    }
+  }
+}
+
+void SceneImporter::validateTexture(const tinygltf::Model& model, const tinygltf::Texture& texture)
+{
+  if (texture.sampler != -1) {
+    raiseImportError(fmt::format("Texture samplers are not supported yet"));
+  }
+
+  if (texture.source == -1) {
+    raiseImportError(fmt::format("Texture should have image source"));
+  }
+
+  const tinygltf::Image& textureImage = model.images[texture.source];
+
+  if (textureImage.bufferView == -1) {
+    raiseImportError(fmt::format("Non-buffered textures loading are not supported yet"));
+  }
+
+  std::set<std::string> allowedTexturesMimeTypes = {"image/jpeg", "image/png", "image/bmp"};
+
+  if (!allowedTexturesMimeTypes.contains(textureImage.mimeType)) {
+    raiseImportError(fmt::format("Texture mime type {} is not supported yet", textureImage.mimeType));
   }
 }
 
@@ -411,6 +456,29 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         SW_ASSERT(false);
       }
     }
+
+    if (primitive.material != -1) {
+      const tinygltf::Material& material = model.materials[primitive.material];
+      const tinygltf::PbrMetallicRoughness& pbrParameters = material.pbrMetallicRoughness;
+
+      RawMaterial rawMaterial{};
+
+      strncpy_s(rawMaterial.name, material.name.c_str(), sizeof(rawNode.name));
+
+      rawMaterial.baseColorFactor = {static_cast<float>(pbrParameters.baseColorFactor[0]),
+        static_cast<float>(pbrParameters.baseColorFactor[1]),
+        static_cast<float>(pbrParameters.baseColorFactor[2]),
+        static_cast<float>(pbrParameters.baseColorFactor[3])};
+
+      if (pbrParameters.baseColorTexture.index != -1) {
+        rawMaterial.baseColorTextureInfo = exportTextureToTempLocation(model, pbrParameters.baseColorTexture);
+      }
+
+      rawNode.materials.emplace_back(rawMaterial);
+    }
+    else {
+      rawNode.materials.emplace_back();
+    }
   }
 
   glm::vec3 aabbMin(std::numeric_limits<float>::max());
@@ -430,20 +498,18 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
       continue;
     }
 
-    const tinygltf::Mesh& colliderMesh = model.meshes[colliderMeshNode.mesh];
+    std::string colliderMeshNamePrefix = node.name + "_" + "collision" + "_";
 
-    std::string colliderMeshNamePrefix = mesh.name + "_" + "collision" + "_";
-
-    if (!colliderMesh.name.starts_with(colliderMeshNamePrefix)) {
+    if (!colliderMeshNode.name.starts_with(colliderMeshNamePrefix)) {
       continue;
     }
 
-    if (colliderMesh.name.starts_with(colliderMeshNamePrefix + "no_collision")) {
+    if (colliderMeshNode.name.starts_with(colliderMeshNamePrefix + "no_collision")) {
       collisionsResolutionDisabled = true;
       break;
     }
 
-    std::string colliderType = StringUtils::split(colliderMesh.name.substr(
+    std::string colliderType = StringUtils::split(colliderMeshNode.name.substr(
       colliderMeshNamePrefix.length()), '_')[0];
 
     if (colliderType.starts_with("aabb")) {
@@ -464,7 +530,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
       rawNode.collisionData.collisionShapes.push_back(shape);
 
-      spdlog::info("Load AABB collider {}, min={}, max={}", colliderMesh.name,
+      spdlog::info("Load AABB collider {}, min={}, max={}", colliderMeshNode.name,
         glm::to_string(minVertex), glm::to_string(maxVertex));
     }
     else if (colliderType.starts_with("sphere")) {
@@ -484,7 +550,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
       rawNode.collisionData.collisionShapes.push_back(shape);
 
-      spdlog::info("Load sphere collider {}, origin={}, radius={}", glm::to_string(origin), radius);
+      spdlog::info("Load sphere collider {}, origin={}, radius={}", colliderMeshNode.name,
+        glm::to_string(origin), radius);
     }
     else if (colliderType.starts_with("triangle_mesh")) {
       std::vector<glm::vec3> collisionMeshVertices =
@@ -503,10 +570,11 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
       rawNode.collisionData.collisionShapes.push_back(shape);
 
-      spdlog::info("Load triangle mesh collider {}, vertices_count=", collisionMeshVertices.size());
+      spdlog::info("Load triangle mesh collider {}, vertices_count={}", colliderMeshNode.name,
+        collisionMeshVertices.size());
     }
     else {
-      raiseImportError(fmt::format("Collision mesh type {} is not supported", colliderMesh.name));
+      raiseImportError(fmt::format("Collision mesh type {} is not supported", colliderMeshNode.name));
     }
   }
 
@@ -518,6 +586,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     rawNode.collisionData.header.collisionShapesCount = static_cast<uint16_t>(
       rawNode.collisionData.collisionShapes.size());
   }
+
+  rawNode.collisionsResolutionEnabled = !collisionsResolutionDisabled;
 
   rawNode.rawMesh.header.subMeshesIndicesOffsetsCount =
     static_cast<uint16_t>(rawNode.rawMesh.subMeshesIndicesOffsets.size());
@@ -535,7 +605,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     !rawNode.rawMesh.uv.empty() && rawNode.rawMesh.uv.size() != rawMeshVerticesCount ||
     !rawNode.rawMesh.bonesIds.empty() && rawNode.rawMesh.bonesIds.size() != rawMeshVerticesCount ||
     !rawNode.rawMesh.bonesWeights.empty() && rawNode.rawMesh.bonesWeights.size() != rawMeshVerticesCount) {
-    raiseImportError(fmt::format("Mesh {} is in inconsistent state because of different attributes count", mesh.name));
+    raiseImportError(fmt::format("Mesh {} is in inconsistent state because of different attributes count", node.name));
   }
 
   return rawNode;
@@ -609,4 +679,95 @@ void SceneImporter::traverseScene(const tinygltf::Model& model,
     traverseSceneInternal(model, scene, rootTransform, model.nodes[sceneNodeIndex], visitor, withMeshesOnly);
   }
 }
+
+std::filesystem::path SceneImporter::getTextureTmpExportPath(const tinygltf::Model& model,
+  const tinygltf::Texture& texture, size_t index)
+{
+  std::string extension;
+
+  const tinygltf::Image& textureImage = model.images[texture.source];
+
+  if (textureImage.mimeType == "image/jpeg") {
+    extension = "jpg";
+  }
+  else if (textureImage.mimeType == "image/png") {
+    extension = "png";
+  }
+  else if (textureImage.mimeType == "image/bmp") {
+    extension = "bmp";
+  }
+  else {
+    SW_ASSERT(false);
+  }
+
+  return std::filesystem::path("mesh_tool_tmp") /
+    StringUtils::replace(fmt::format("{}_{}_{}.{}",
+      texture.name, textureImage.name, index, extension), " ", "_");
+}
+
+RawTextureInfo SceneImporter::exportTextureToTempLocation(const tinygltf::Model& model,
+  const tinygltf::TextureInfo& textureInfo)
+{
+  const tinygltf::Texture& texture = model.textures[textureInfo.index];
+
+  const tinygltf::Image& textureImage = model.images[texture.source];
+  const tinygltf::BufferView& textureBufferView = model.bufferViews[textureImage.bufferView];
+  const tinygltf::Buffer& textureBuffer = model.buffers[textureBufferView.buffer];
+
+  const auto* textureBufferPtr =
+    reinterpret_cast<const unsigned char*>(textureBuffer.data.data() + textureBufferView.byteOffset);
+
+  size_t textureExportIndex = 0;
+
+  auto exportPath = getTextureTmpExportPath(model, texture, textureExportIndex);
+
+  // NOTE: assume here that each texture/image pair has an unique name
+
+//  while (std::filesystem::exists(exportPath)) {
+//    textureExportIndex++;
+//    exportPath = getTextureTmpExportPath(model, texture, textureExportIndex).string();
+//  }
+
+  std::ofstream textureFile;
+  textureFile.open(exportPath, std::ofstream::binary);
+  textureFile.write(reinterpret_cast<const char*>(textureBufferPtr), textureBufferView.byteLength);
+  textureFile.close();
+
+  RawTextureInfo rawTextureInfo{
+    .textureTmpPath = exportPath.string(),
+    .textureBaseName = exportPath.stem().string()
+  };
+
+  if (textureInfo.extensions.contains("KHR_texture_transform")) {
+    rawTextureInfo.textureTransform = RawTextureTransformInfo{};
+
+    const tinygltf::Value& textureTransform = textureInfo.extensions.at("KHR_texture_transform");
+
+    if (textureTransform.Has("offset")) {
+      const tinygltf::Value& textureTransformOffset = textureTransform.Get("offset");
+
+      rawTextureInfo.textureTransform->offset = {
+        static_cast<float>(textureTransformOffset.Get(0).GetNumberAsDouble()),
+        static_cast<float>(textureTransformOffset.Get(1).GetNumberAsDouble())
+      };
+    }
+
+    if (textureTransform.Has("scale")) {
+      const tinygltf::Value& textureTransformScale = textureTransform.Get("scale");
+
+      rawTextureInfo.textureTransform->scale = {
+        static_cast<float>(textureTransformScale.Get(0).GetNumberAsDouble()),
+        static_cast<float>(textureTransformScale.Get(1).GetNumberAsDouble())
+      };
+    }
+
+    if (textureTransform.Has("rotation")) {
+      const tinygltf::Value& textureTransformRotation = textureTransform.Get("rotation");
+      rawTextureInfo.textureTransform->rotation = static_cast<float>(textureTransformRotation.GetNumberAsDouble());
+    }
+  }
+
+  return rawTextureInfo;
+}
+
 

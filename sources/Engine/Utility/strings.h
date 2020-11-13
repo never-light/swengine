@@ -29,6 +29,7 @@ class StringUtils {
     const std::string& pattern,
     const std::string& replacement);
 
+  [[nodiscard]] static glm::vec2 stringToVec2(const std::string& string);
   [[nodiscard]] static glm::vec3 stringToVec3(const std::string& string);
   [[nodiscard]] static glm::vec4 stringToVec4(const std::string& string);
 

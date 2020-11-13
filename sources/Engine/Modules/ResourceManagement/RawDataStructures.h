@@ -16,6 +16,13 @@ struct RawVector3 {
   float z;
 };
 
+struct RawVector4 {
+  float x;
+  float y;
+  float z;
+  float w;
+};
+
 struct RawU8Vector4 {
   union {
     struct {

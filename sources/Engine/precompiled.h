@@ -47,6 +47,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_operation.hpp>
 #include <glm/gtx/extended_min_max.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 #include <pugixml.hpp>
 #include <stb_image.h>

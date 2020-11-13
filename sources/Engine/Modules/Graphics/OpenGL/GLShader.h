@@ -31,6 +31,7 @@ class GLShader : public Resource {
   void setParameter(const std::string& name, const glm::vec2& value);
   void setParameter(const std::string& name, const glm::vec3& value);
   void setParameter(const std::string& name, const glm::vec4& value);
+  void setParameter(const std::string& name, const glm::mat3x3& value);
   void setParameter(const std::string& name, const glm::mat4x4& value);
   void setParameter(const std::string& name, const GLTexture& texture, size_t unitIndex);
 

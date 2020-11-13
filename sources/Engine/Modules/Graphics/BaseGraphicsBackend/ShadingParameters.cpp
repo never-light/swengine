@@ -4,18 +4,24 @@
 
 #include "ShadingParameters.h"
 
+#include <utility>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
-void ShadingParametersGenericStorage::setShaderParameter(ShaderType shaderType, const std::string& name, const GenericParameterValue& value)
+void ShadingParametersGenericStorage::setShaderParameter(ShaderType shaderType,
+  const std::string& name,
+  const GenericParameterValue& value)
 {
   m_parameters.insert({name, GenericParameter(shaderType, value)});
 }
 
-const ShadingParametersGenericStorage::GenericParameterValue& ShadingParametersGenericStorage::getShaderParameterValue(const std::string& name) const
+const ShadingParametersGenericStorage::GenericParameterValue& ShadingParametersGenericStorage::getShaderParameterValue(
+  const std::string& name) const
 {
   return m_parameters.at(name).value;
 }
 
-const std::unordered_map<std::string, ShadingParametersGenericStorage::GenericParameter>& ShadingParametersGenericStorage::getParameters() const
+const std::unordered_map<std::string,
+                         ShadingParametersGenericStorage::GenericParameter>& ShadingParametersGenericStorage::getParameters() const
 {
   return m_parameters;
 }
@@ -32,7 +38,8 @@ const ShadingParametersGenericStorage::GenericParameterValue& ShadingParametersG
   return m_parametersStorage.getShaderParameterValue(name);
 }
 
-const std::unordered_map<std::string, ShadingParametersGenericStorage::GenericParameter>& ShadingParametersGenericSet::getParameters() const
+const std::unordered_map<std::string,
+                         ShadingParametersGenericStorage::GenericParameter>& ShadingParametersGenericSet::getParameters() const
 {
   return m_parametersStorage.getParameters();
 }
@@ -59,7 +66,7 @@ ResourceHandle<GLTexture> ShadingParametersGUI::getBackgroundTexture() const
 
 void ShadingParametersGUI::setAlphaTexture(ResourceHandle<GLTexture> texture)
 {
-  m_alphaTexture = texture;
+  m_alphaTexture = std::move(texture);
 }
 
 ResourceHandle<GLTexture> ShadingParametersGUI::getAlphaTexture() const
@@ -67,12 +74,69 @@ ResourceHandle<GLTexture> ShadingParametersGUI::getAlphaTexture() const
   return m_alphaTexture;
 }
 
-void ShadingParametersOpaqueMesh::setAlbedoTexture(ResourceHandle<GLTexture> texture)
+const glm::vec4& ShadingParametersOpaqueMesh::getBaseColorFactor() const
 {
-  m_albedoTexture = texture;
+  return m_baseColorFactor;
 }
 
-ResourceHandle<GLTexture> ShadingParametersOpaqueMesh::getAlbedoTexture() const
+void ShadingParametersOpaqueMesh::setBaseColorFactor(const glm::vec4& baseColorFactor)
 {
-  return m_albedoTexture;
+  m_baseColorFactor = baseColorFactor;
+}
+
+ShaderParametersTextureEntry::ShaderParametersTextureEntry(const ResourceHandle<GLTexture>& texture)
+  : m_texture(texture)
+{
+
+}
+
+const std::optional<ShaderParametersTextureEntry>& ShadingParametersOpaqueMesh::getBaseColorMap() const
+{
+  return m_baseColorMap;
+}
+
+void ShadingParametersOpaqueMesh::setBaseColorMap(const std::optional<ShaderParametersTextureEntry>& baseColorMap)
+{
+  m_baseColorMap = baseColorMap;
+}
+
+const ResourceHandle<GLTexture>& ShaderParametersTextureEntry::getTexture() const
+{
+  return m_texture;
+}
+
+void ShaderParametersTextureEntry::setTexture(const ResourceHandle<GLTexture>& texture)
+{
+  m_texture = texture;
+}
+
+const std::optional<TextureTransform>& ShaderParametersTextureEntry::getTransformation() const
+{
+  return m_transformation;
+}
+
+void ShaderParametersTextureEntry::setTransformation(const std::optional<TextureTransform>& transformation)
+{
+  m_transformation = transformation;
+  m_isTransformationMatrixOutdated = true;
+}
+
+const glm::mat3& ShaderParametersTextureEntry::getTransformationMatrix() const
+{
+  SW_ASSERT(m_transformation.has_value());
+
+  if (m_isTransformationMatrixOutdated) {
+    m_transformationMatrix = glm::translate(glm::identity<glm::mat3>(), m_transformation->offset) *
+      glm::rotate(glm::identity<glm::mat3>(), m_transformation->rotation) *
+      glm::scale(glm::identity<glm::mat3>(), m_transformation->scale);
+
+    m_isTransformationMatrixOutdated = false;
+  }
+
+  return m_transformationMatrix;
+}
+
+bool ShaderParametersTextureEntry::hasTransformation() const
+{
+  return m_transformation.has_value();
 }

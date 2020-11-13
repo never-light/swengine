@@ -36,6 +36,7 @@ class SceneImporter {
     const tinygltf::Scene& scene,
     const glm::mat4& parentNodeTransform,
     const tinygltf::Node& node);
+  static void validateTexture(const tinygltf::Model& model, const tinygltf::Texture& texture);
 
   [[nodiscard]] std::vector<RawMeshNode> convertSceneToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);
@@ -49,6 +50,10 @@ class SceneImporter {
     const tinygltf::Scene& scene,
     const glm::mat4& nodeTransform,
     const tinygltf::Node& node);
+
+  [[nodiscard]] static RawTextureInfo exportTextureToTempLocation(
+    const tinygltf::Model& model,
+    const tinygltf::TextureInfo& textureInfo);
 
   static void raiseImportError(const std::string& error);
 
@@ -73,4 +78,8 @@ class SceneImporter {
       const tinygltf::Node&)>& visitor,
     bool withMeshesOnly = true);
 
+  [[nodiscard]] static std::filesystem::path getTextureTmpExportPath(
+    const tinygltf::Model& model,
+    const tinygltf::Texture& texture,
+    size_t index = 0);
 };

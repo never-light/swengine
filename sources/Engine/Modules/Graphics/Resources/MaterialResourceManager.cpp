@@ -65,6 +65,10 @@ void MaterialResourceManager::load(size_t resourceIndex)
           genericParametersSet->setShaderParameter(param.shaderType, param.name, std::get<int>(param.value));
           break;
 
+        case MaterialResourceConfig::ShaderParamType::Color:
+          genericParametersSet->setShaderParameter(param.shaderType, param.name, std::get<glm::vec4>(param.value));
+          break;
+
         case MaterialResourceConfig::ShaderParamType::Texture: {
           auto textureParam = std::get<MaterialResourceConfig::ShaderParamTexture>(param.value);
 
@@ -73,6 +77,10 @@ void MaterialResourceManager::load(size_t resourceIndex)
                 ->getResource<GLTexture>(
                   textureParam.id),
               textureParam.slotIndex));
+
+          if (textureParam.transform.has_value()) {
+            SW_ASSERT(false && "Texture transforms are not supported for generic materials");
+          }
           break;
         }
 
@@ -87,10 +95,28 @@ void MaterialResourceManager::load(size_t resourceIndex)
   else {
     auto opaqueMeshParametersSet = std::make_unique<ShadingParametersOpaqueMesh>();
 
-    auto albedoTextureParam = std::get<MaterialResourceConfig::ShaderParamTexture>(
-      config->parameters.at("albedo").value);
-    opaqueMeshParametersSet->setAlbedoTexture(getResourceManager()->getResource<GLTexture>(
-      albedoTextureParam.id));
+    if (config->parameters.contains("base_color_map")) {
+      auto baseColorTextureParam = std::get<MaterialResourceConfig::ShaderParamTexture>(
+        config->parameters.at("base_color_map").value);
+
+      ShaderParametersTextureEntry baseColorTextureEntry(getResourceManager()->getResource<GLTexture>(
+        baseColorTextureParam.id));
+
+      if (baseColorTextureParam.transform.has_value()) {
+        baseColorTextureEntry.setTransformation(TextureTransform{
+          .offset = baseColorTextureParam.transform->offset,
+          .scale = baseColorTextureParam.transform->scale,
+          .rotation = baseColorTextureParam.transform->rotation
+        });
+      }
+
+      opaqueMeshParametersSet->setBaseColorMap(baseColorTextureEntry);
+    }
+
+    if (config->parameters.contains("base_color")) {
+      opaqueMeshParametersSet->setBaseColorFactor(std::get<glm::vec4>(
+        config->parameters.at("base_color").value));
+    }
 
     parametersSet = std::move(opaqueMeshParametersSet);
   }
@@ -139,6 +165,7 @@ void MaterialResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
     {"float", MaterialResourceConfig::ShaderParamType::Float},
     {"bool", MaterialResourceConfig::ShaderParamType::Boolean},
     {"texture", MaterialResourceConfig::ShaderParamType::Texture},
+    {"color", MaterialResourceConfig::ShaderParamType::Color},
   };
 
   static std::unordered_map<std::string, MaterialResourceConfig::ParametersSetType> parametersSetTypesMap = {
@@ -167,6 +194,13 @@ void MaterialResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
     "rendering_stage",
     renderingStagesTypesMap,
     RenderingStage::Deferred);
+
+  if (resourceConfig->parametersSetType == MaterialResourceConfig::ParametersSetType::OpaqueMesh) {
+    resourceConfig->gpuState.blendingMode = BlendingMode::Disabled;
+    resourceConfig->gpuState.depthWritingMode = DepthWritingMode::Enabled;
+    resourceConfig->gpuState.depthTestMode = DepthTestMode::Less;
+    resourceConfig->gpuState.faceCullingMode = FaceCullingMode::Back;
+  }
 
   // Shaders pipeline
   pugi::xml_node shadersNode = configNode.child("shaders_pipeline");
@@ -267,11 +301,35 @@ void MaterialResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
           param.value = static_cast<int>(paramNode.attribute("value").as_bool());
           break;
 
-        case MaterialResourceConfig::ShaderParamType::Texture:
-          param.value = MaterialResourceConfig::ShaderParamTexture{
+        case MaterialResourceConfig::ShaderParamType::Color:
+          param.value = StringUtils::stringToVec4(paramNode.attribute("value").as_string());
+          break;
+
+        case MaterialResourceConfig::ShaderParamType::Texture: {
+          auto paramValue = MaterialResourceConfig::ShaderParamTexture{
             paramNode.attribute("id").as_string(),
             paramNode.attribute("slot").as_uint()
           };
+
+          if (paramNode.attribute("scale") || paramNode.attribute("offset") ||
+            paramNode.attribute("rotation")) {
+            paramValue.transform = MaterialResourceConfig::ShaderParamTextureTransform{};
+
+            if (paramNode.attribute("scale")) {
+              paramValue.transform->scale = StringUtils::stringToVec2(paramNode.attribute("scale").as_string());
+            }
+
+            if (paramNode.attribute("offset")) {
+              paramValue.transform->offset = StringUtils::stringToVec2(paramNode.attribute("offset").as_string());
+            }
+
+            if (paramNode.attribute("rotation")) {
+              paramValue.transform->rotation = paramNode.attribute("rotation").as_float();
+            }
+          }
+
+          param.value = paramValue;
+        }
           break;
 
         default:
@@ -288,7 +346,7 @@ void MaterialResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
         parameterIt->second = param;
       }
       else {
-        resourceConfig->parameters.insert({ param.name, param });
+        resourceConfig->parameters.insert({param.name, param});
       }
     }
   }
