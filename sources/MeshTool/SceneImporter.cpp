@@ -220,6 +220,9 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
           raiseImportError("UV0 accessors should not be normalized and should have vec2 type");
         }
       }
+      else if (attribute.first == "COLOR_0") {
+        spdlog::warn("Color vertices attribute for mesh {} will be ignored", node.name);
+      }
       else {
         raiseImportError(fmt::format("Attribute {} is not supported yet", attribute.first));
       }
@@ -451,6 +454,9 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         }
 
         rawNode.rawMesh.header.storedAttributesMask |= static_cast<size_t>(RawMeshAttributes::UV);
+      }
+      else if (attribute.first == "COLOR_0") {
+        spdlog::warn("Color vertices attribute for mesh {} is ignored", node.name);
       }
       else {
         SW_ASSERT(false);
