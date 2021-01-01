@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Utility/OutputDataArchive.h"
+#include "Utility/InputDataArchive.h"
+
 class ResourcesManager;
 
 template<class T>
@@ -50,9 +53,21 @@ class ResourceHandle {
     return m_resourceIndex;
   }
 
-  inline bool isValid() {
+  [[nodiscard]] inline const std::string& getResourceId() const;
+
+  inline bool isValid()
+  {
     return m_resourceIndex != RESOURCE_ID_INVALID;
   }
+
+  template<class Archive>
+  void save(Archive& archive) const
+  {
+    archive(getResourceId());
+  }
+
+  template<class Archive>
+  void load(Archive& archive);
 
  private:
 

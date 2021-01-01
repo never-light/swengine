@@ -73,3 +73,8 @@ std::vector<std::string> FileUtils::getScriptsList()
 
   return scriptsList;
 }
+
+std::string FileUtils::getSavePath(const std::string& saveName)
+{
+  return std::string(SAVES_PATH) + "/" + saveName + ".save";
+}

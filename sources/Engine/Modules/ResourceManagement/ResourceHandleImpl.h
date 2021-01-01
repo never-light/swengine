@@ -75,3 +75,22 @@ ResourceHandle<T>& ResourceHandle<T>::operator=(ResourceHandle<T>&& other) noexc
 
   return *this;
 }
+
+template<class T>
+[[nodiscard]] inline const std::string& ResourceHandle<T>::getResourceId() const
+{
+  SW_ASSERT(m_resourceIndex != RESOURCE_ID_INVALID);
+  return m_resourcesManager->getResourceIdByIndex(m_resourceIndex);
+}
+
+template<class T>
+template<class Archive>
+void ResourceHandle<T>::load(Archive& archive)
+{
+  auto& inputArchive = dynamic_cast<InputDataArchive&>(archive);
+
+  std::string resourceId;
+  inputArchive(resourceId);
+
+  *this = inputArchive.getResourcesManager().getResource<T>(resourceId);
+}

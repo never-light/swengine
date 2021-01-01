@@ -24,7 +24,9 @@
 class ResourcesManager {
  public:
   ResourcesManager() = default;
-  ~ResourcesManager() {
+
+  ~ResourcesManager()
+  {
     for (const auto& resourceIt : m_resourcesNamesMap) {
       size_t resourceTypeId = resourceIt.second.first;
       size_t resourceId = resourceIt.second.second;
@@ -189,6 +191,7 @@ class ResourcesManager {
       size_t resourceIndex = resourceManager->createNewResourceEntry(resourceName);
 
       m_resourcesNamesMap.insert({resourceName, {typeId, resourceIndex}});
+      m_resourcesNamesInverseMap.insert({resourceIndex, resourceName});
 
       if constexpr (LOG_RESOURCES_MANAGEMENT) {
         spdlog::debug("Resource entry is created: {}:{}:{}", typeId, resourceIndex, resourceName);
@@ -223,6 +226,7 @@ class ResourcesManager {
       std::forward<Args>(args)...);
 
     m_resourcesNamesMap.insert({resourceName, {typeId, resourceIndex}});
+    m_resourcesNamesInverseMap.insert({resourceIndex, resourceName});
 
     if constexpr (LOG_RESOURCES_MANAGEMENT) {
       spdlog::debug("Resource entry is created: {}:{}:{}", typeId, resourceIndex, resourceName);
@@ -282,10 +286,17 @@ class ResourcesManager {
     loadResourcesMap(declarationsList);
   }
 
+  [[nodiscard]] const std::string& getResourceIdByIndex(size_t resourceIndex) const
+  {
+    return m_resourcesNamesInverseMap.at(resourceIndex);
+  }
+
  private:
   std::vector<std::unique_ptr<BaseResourceManager>> m_resourcesManagers;
 
   std::unordered_map<std::string, std::pair<size_t, size_t>> m_resourcesNamesMap;
+  std::unordered_map<size_t, std::string> m_resourcesNamesInverseMap;
+
   std::unordered_map<std::string, size_t> m_resourcesTypesAliases;
 
   size_t m_freeInPlaceResourceIndex = 0;

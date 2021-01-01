@@ -19,6 +19,9 @@ class FileUtils {
   [[nodiscard]] static std::string getGUISchemePath(const std::string& schemeName);
   [[nodiscard]] static std::string getScriptPath(const std::string& scriptName);
 
+  [[nodiscard]] static std::string getSavePath(const std::string& saveName);
+
+
   [[nodiscard]] static std::vector<std::string> getScriptsList();
 
  public:
@@ -30,6 +33,7 @@ class FileUtils {
   static constexpr std::string_view GUI_SCHEMES_PATH = "./../resources/game/gui_schemes";
   static constexpr std::string_view SPAWN_LISTS_PATH = "./../resources/game/spawn";
   static constexpr std::string_view SCRIPTS_PATH = "./../resources/game/scripts";
+  static constexpr std::string_view SAVES_PATH = "./saves";
 
   static constexpr std::string_view STARTUP_SETTINGS_PATH = "settings.xml";
 };

@@ -60,6 +60,10 @@
 #include <btBulletCollisionCommon.h>
 #include <BulletDynamics/btBulletDynamicsCommon.h>
 
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/archives/binary.hpp>
+
 // Engine headers to precompile
 #include "swdebug.h"
 

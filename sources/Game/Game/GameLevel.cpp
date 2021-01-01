@@ -34,8 +34,8 @@ GameLevel::GameLevel(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(std::move(resourceManager)),
     m_levelsManager(std::move(levelsManager))
 {
-  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
-  m_levelsManager->loadLevel("../../../bin/crossroads/agency_room_export");
+  m_resourceManager->loadResourcesMapFile("crossroads/hotel_room_export/resources.xml");
+  m_levelsManager->loadLevel("../../../bin/crossroads/hotel_room_export");
 
   m_player = m_gameWorld->findGameObject("player");
 
