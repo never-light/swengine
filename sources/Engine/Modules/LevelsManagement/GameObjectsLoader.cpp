@@ -175,6 +175,11 @@ void GameObjectsLoader::registerGenericComponentLoader(const std::string& compon
 
 GameObjectsLoader::ComponentLoaderCallback GameObjectsLoader::getComponentLoader(const std::string& componentName) const
 {
+  if (!m_componentsLoaders.contains(componentName)) {
+    THROW_EXCEPTION(EngineRuntimeException,
+      fmt::format("Resource loader for component {} is not found", componentName));
+  }
+
   return m_componentsLoaders.at(componentName);
 }
 
@@ -348,7 +353,8 @@ std::unique_ptr<GameObjectsComponentBinder> GameObjectsLoader::loadKinematicChar
   return std::make_unique<KinematicCharacterComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName, const std::optional<std::string>& objectName)
+GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName,
+  const std::optional<std::string>& objectName)
 {
   if (!m_gameObjectsComponentsFactories.contains(spawnName)) {
     THROW_EXCEPTION(EngineRuntimeException,
@@ -356,7 +362,6 @@ GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName, cons
   }
 
   auto& gameObjectFactoryData = m_gameObjectsComponentsFactories.at(spawnName);
-
 
   std::string gameObjectName;
 

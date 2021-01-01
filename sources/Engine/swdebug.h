@@ -15,3 +15,14 @@
 #endif
 
 #define SW_STATIC_ASSERT static_assert
+
+#ifdef _DEBUG
+#ifdef _MSC_VER
+#define DEBUG_BREAK() __debugbreak()
+#else
+#warning "Debug break feature is not available on Linux platform"
+#define DEBUG_BREAK()
+#endif
+#else
+#define DEBUG_BREAK()
+#endif
