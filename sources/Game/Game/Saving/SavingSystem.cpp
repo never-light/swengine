@@ -1,12 +1,12 @@
 #include "SavingSystem.h"
 
-#include <cereal/types/unordered_map.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/archives/binary.hpp>
-
 #include <Engine/Utility/files.h>
+#include <Engine/Modules/Graphics/GraphicsSystem/TransformComponent.h>
 
-SavingSystem::SavingSystem()
+#include <utility>
+
+SavingSystem::SavingSystem(std::shared_ptr<ResourcesManager> resourcesManager)
+  : m_resourcesManager(std::move(resourcesManager))
 {
 
 }
@@ -38,10 +38,22 @@ void SavingSystem::saveGameState(const std::string& saveName)
   GameWorld* gameWorld = getGameWorld();
 
   std::ofstream saveFileStream(FileUtils::getSavePath(saveName), std::ios::binary);
-  cereal::BinaryOutputArchive saveArchive(saveFileStream);
+  OutputDataArchive saveArchive(saveFileStream, m_resourcesManager);
 
   for (GameObject object : gameWorld->all()) {
+    auto transformComponent = object.getComponent<TransformComponent>();
 
+    if (!transformComponent->isStatic()) {
+      saveComponent<TransformComponent>(object, saveArchive);
+    }
+  }
+}
+
+template<class T>
+void SavingSystem::saveComponent(GameObject gameObject, OutputDataArchive& outputArchive)
+{
+  if (gameObject.hasComponent<T>()) {
+    outputArchive(*gameObject.getComponent<T>().get());
   }
 }
 

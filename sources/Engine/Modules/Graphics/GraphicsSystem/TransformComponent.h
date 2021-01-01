@@ -28,6 +28,12 @@ class TransformComponent {
   void setBounds(const AABB& bounds);
   [[nodiscard]] const AABB& getOriginalBounds() const;
 
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(*m_transform, m_isStatic, m_boundingBox, m_boundingSphere, m_originalBounds);
+  }
+
  private:
   std::shared_ptr<Transform> m_transform;
 

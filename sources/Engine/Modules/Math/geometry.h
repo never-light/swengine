@@ -75,6 +75,12 @@ struct Sphere {
 
   void applyTransform(const glm::mat4& transformationMatrix);
 
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(m_origin, m_radius);
+  }
+
  private:
   glm::vec3 m_origin = glm::vec3(0.0f, 0.0f, 0.0f);
   float m_radius = 0.0f;
@@ -99,6 +105,12 @@ struct AABB {
 
   [[nodiscard]] glm::vec3 getOrigin() const;
   void applyTransform(const glm::mat4& transformationMatrix);
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(m_min, m_max);
+  }
 
  private:
   glm::vec3 m_min;

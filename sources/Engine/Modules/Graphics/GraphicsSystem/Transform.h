@@ -55,6 +55,19 @@ class Transform {
 
   [[nodiscard]] bool isCacheOutdated() const;
 
+  template<class Archive>
+  void load(Archive& archive)
+  {
+    archive(m_position, m_scale, m_orientation);
+    m_needTransformationMatrixCacheUpdate = true;
+  }
+
+  template<class Archive>
+  void save(Archive& archive) const
+  {
+    archive(m_position, m_scale, m_orientation);
+  }
+
  private:
   void resetTransformationCache();
 
