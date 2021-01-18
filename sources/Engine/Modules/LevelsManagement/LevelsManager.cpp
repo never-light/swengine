@@ -116,7 +116,7 @@ void LevelsManager::loadLevel(const std::string& name)
 
   m_gameWorld->emitEvent<LoadSceneCommandEvent>(LoadSceneCommandEvent{.sceneObjects=sceneObjects});
 
-  m_isLevelLoaded = false;
+  m_isLevelLoaded = true;
 
   spdlog::info("Level {} is loaded", name);
 }

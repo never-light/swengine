@@ -51,6 +51,8 @@ class AnimationStatesMachine : public Resource {
   [[nodiscard]] const AnimationStatesMachineVariables& getVariablesSet() const;
   [[nodiscard]] AnimationStatesMachineVariables& getVariablesSet();
 
+  [[nodiscard]] ResourceHandle<Skeleton> getSkeleton() const;
+
   void increaseCurrentTime(float delta);
 
  private:
@@ -61,6 +63,8 @@ class AnimationStatesMachine : public Resource {
   static constexpr int16_t INVALID_STATE_ID = -1;
 
  private:
+  ResourceHandle<Skeleton> m_skeleton;
+
   std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
   std::vector<AnimationState> m_states;
   std::vector<std::vector<AnimationTransition>> m_transitionsTable;

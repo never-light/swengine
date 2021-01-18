@@ -23,20 +23,6 @@ struct SaveCommandTriggerEvent {
   std::string m_saveName;
 };
 
-class GameObjectSaveWrapper {
- public:
-  explicit GameObjectSaveWrapper(GameObject gameObject);
-
-  template<class Archive>
-  void save(Archive& archive) const;
-
-  template<class Archive>
-  void load(Archive& archive);
-
- private:
-  GameObject m_gameObject;
-};
-
 class SavingSystem : public GameSystem,
                      public EventsListener<SaveCommandTriggerEvent> {
  public:
@@ -53,9 +39,6 @@ class SavingSystem : public GameSystem,
 
  private:
   void saveGameState(const std::string& saveName);
-
-  template<class T>
-  void saveComponent(GameObject gameObject, OutputDataArchive& outputArchive);
 
  private:
   std::shared_ptr<ResourcesManager> m_resourcesManager;

@@ -9,12 +9,23 @@
 
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
+#include "GameObjectsFactory.h"
 #include "GameObjectsStorage.h"
 
 #include "GameObjectsSequentialView.h"
 #include "GameObjectsComponentsView.h"
 
 #include "EventsListener.h"
+
+struct GameWorldSerializeHeader {
+  uint32_t gameObjectsCount = 0;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(gameObjectsCount);
+  }
+};
 
 /*!
  * \brief Class for representing the game world
@@ -198,7 +209,7 @@ class GameWorld {
    *
    * \return view for iterate over all game objects
    */
-  GameObjectsSequentialView all()
+  [[nodiscard]] GameObjectsSequentialView all() const
   {
     GameObjectsSequentialIterator begin(m_gameObjectsStorage.get(), 0, false);
     GameObjectsSequentialIterator end(m_gameObjectsStorage.get(), m_gameObjectsStorage->getSize(), true);
@@ -249,6 +260,41 @@ class GameWorld {
    */
   template<class T>
   EventProcessStatus emitEvent(const T& event);
+
+  template<class Archive>
+  void save(Archive& ar) const
+  {
+    size_t gameObjectsCount = 0;
+
+    for (GameObject gameObject : all()) {
+      if (gameObject.isAlive()) {
+        gameObjectsCount++;
+      }
+    }
+
+    GameWorldSerializeHeader serializeHeader{
+      .gameObjectsCount = static_cast<uint32_t>(gameObjectsCount)
+    };
+
+    for (GameObject gameObject : all()) {
+      if (gameObject.isAlive()) {
+        gameObject.save(ar);
+      }
+    }
+  }
+
+  template<class Archive>
+  void load(Archive& ar)
+  {
+    ARG_UNUSED(ar);
+    SW_ASSERT(false);
+  }
+
+  template<class ComponentType>
+  void registerComponentBinderFactory(std::unique_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
+  {
+    m_gameObjectsStorage->template registerComponentBinderFactory<ComponentType>(bindersFactory);
+  }
 
  public:
   static std::shared_ptr<GameWorld> createInstance()

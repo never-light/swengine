@@ -5,21 +5,88 @@
 #include <algorithm>
 
 #include "Utility/DynamicObjectsPool.h"
+#include "Utility/DataArchive.h"
 
 #include "GameObject.h"
+#include "GameObjectsFactory.h"
 
 class GameObjectsStorage;
+
+struct ComponentTypeData {
+  bool isSerializable{};
+  std::function<void(cereal::XMLOutputArchive&, const void*)> saveProxy{};
+  std::function<void(cereal::XMLInputArchive&, GameObject&, BaseGameObjectsComponentsBindersFactory&)> loadProxy{};
+};
 
 struct ComponentsTypeInfo {
   template<class T>
   static size_t getTypeIndex()
   {
-    static size_t typeIndex = s_typeIndex++;
+    static size_t typeIndex = getNextTypeIndex<T>();
 
     return typeIndex;
   }
 
+  template<class T>
+  static size_t getNextTypeIndex()
+  {
+    s_componentsData[s_typeIndex].isSerializable = T::s_isSerializable;
+    s_componentsData[s_typeIndex].saveProxy = [](cereal::XMLOutputArchive& archive, const void* componentInstanceData) {
+      if constexpr (T::s_isSerializable) {
+        const T* componentInstance = static_cast<const T*>(componentInstanceData);
+        archive(componentInstance->getBindingParameters());
+      }
+      else {
+        ARG_UNUSED(archive);
+        ARG_UNUSED(componentInstanceData);
+        SW_ASSERT(false);
+      }
+    };
+    s_componentsData[s_typeIndex].loadProxy = [](cereal::XMLInputArchive& archive, GameObject& gameObject,
+      BaseGameObjectsComponentsBindersFactory& bindersFactory) {
+      if constexpr (T::s_isSerializable) {
+        typename T::BindingParameters bindingParameters{};
+        archive(bindingParameters);
+
+        auto& componentBindersFactory = dynamic_cast<GameObjectsComponentsBindersFactory<T>&>(bindersFactory);
+        std::unique_ptr<GameObjectsComponentBinder<T>>
+          binder = componentBindersFactory.createBinder(bindingParameters);
+
+        binder->bindToObject(gameObject);
+      }
+      else {
+        ARG_UNUSED(archive);
+        ARG_UNUSED(gameObject);
+        ARG_UNUSED(bindersFactory);
+        SW_ASSERT(false);
+      }
+    };
+
+    return s_typeIndex++;
+  }
+
+  static bool isSerializable(size_t componentTypeIndex)
+  {
+    return s_componentsData[componentTypeIndex].isSerializable;
+  }
+
+  static void performSave(cereal::XMLOutputArchive& archive,
+    size_t componentTypeIndex,
+    const void* componentInstanceData)
+  {
+    SW_ASSERT(isSerializable(componentTypeIndex));
+    s_componentsData[componentTypeIndex].saveProxy(archive, componentInstanceData);
+  }
+
+  static void performLoad(cereal::XMLInputArchive& archive, size_t componentTypeIndex, GameObject& gameObject,
+    BaseGameObjectsComponentsBindersFactory& bindersFactory)
+  {
+    SW_ASSERT(isSerializable(componentTypeIndex));
+    s_componentsData[componentTypeIndex].loadProxy(archive, gameObject, bindersFactory);
+  }
+
   static size_t s_typeIndex;
+  static ComponentTypeData s_componentsData[GameObjectData::MAX_COMPONENTS_COUNT];
 };
 
 template<class T>
@@ -253,11 +320,35 @@ class GameObjectsStorage {
     return static_cast<ComponentsPool<T>*>(m_componentsDataPools[typeId]);
   }
 
+  [[nodiscard]] inline void* getComponentRawData(const GameObject& gameObject, size_t componentTypeId)
+  {
+    return m_componentsDataPools[componentTypeId]->getObject(gameObject.m_id);
+  }
+
+  [[nodiscard]] inline const void* getComponentRawData(const GameObject& gameObject, size_t componentTypeId) const
+  {
+    return m_componentsDataPools[componentTypeId]->getObject(gameObject.m_id);
+  }
+
   template<class T>
   [[nodiscard]] inline bool hasComponent(const GameObject& gameObject) const
   {
     size_t typeId = ComponentsTypeInfo::getTypeIndex<T>();
     return m_gameObjects[gameObject.m_id].componentsMask.test(typeId);
+  }
+
+  template<class ComponentType>
+  void registerComponentBinderFactory(std::unique_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
+  {
+    size_t typeId = ComponentsTypeInfo::getTypeIndex<ComponentType>();
+
+    if (typeId >= m_componentsBindersFactories.size()) {
+      m_componentsBindersFactories.resize(typeId + 1, nullptr);
+    }
+
+    SW_ASSERT(m_componentsBindersFactories[typeId] == nullptr && "Binder can not be registered twice");
+
+    m_componentsBindersFactories[typeId] = std::move(bindersFactory);
   }
 
  private:
@@ -270,6 +361,7 @@ class GameObjectsStorage {
 
   std::vector<DynamicDataPool*> m_componentsDataPools;
   std::vector<GameObjectBaseComponentsUtility*> m_componentsUtilities;
+  std::vector<std::unique_ptr<BaseGameObjectsComponentsBindersFactory>> m_componentsBindersFactories;
 
   std::unordered_map<std::string, GameObjectId> m_gameObjectsNamesLookupTable;
 

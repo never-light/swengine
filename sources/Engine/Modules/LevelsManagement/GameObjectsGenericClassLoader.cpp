@@ -15,10 +15,10 @@ GameObjectsGenericClassLoader::GameObjectsGenericClassLoader(std::weak_ptr<Level
 
 }
 
-std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> GameObjectsGenericClassLoader::loadGameObject(
+std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> GameObjectsGenericClassLoader::loadGameObject(
   const pugi::xml_node& objectNode)
 {
-  std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> componentsBinders;
+  std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> componentsBinders;
 
   for (const pugi::xml_node& componentNode : objectNode.children()) {
     auto componentName = componentNode.name();
@@ -30,7 +30,7 @@ std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> Gam
   return std::move(componentsBinders);
 }
 
-std::unique_ptr<GameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
+std::unique_ptr<BaseGameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
   const pugi::xml_node& componentNode)
 {
   auto componentName = componentNode.name();
@@ -40,13 +40,13 @@ std::unique_ptr<GameObjectsComponentBinder> GameObjectsGenericClassLoader::loadC
 }
 
 void GameObjectsGenericClassLoader::onComponentLoaded(const std::string& componentName,
-  GameObjectsComponentBinder& componentBinder)
+  BaseGameObjectsComponentBinder& componentBinder)
 {
   ARG_UNUSED(componentName);
   ARG_UNUSED(componentBinder);
 }
 
-std::unique_ptr<GameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
+std::unique_ptr<BaseGameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
   const pugi::xml_node& objectNode,
   const std::string& componentName)
 {

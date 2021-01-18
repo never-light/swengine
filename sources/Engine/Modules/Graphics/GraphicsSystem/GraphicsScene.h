@@ -4,7 +4,22 @@
 
 #include "FrameStats.h"
 
+struct ObjectSceneNodeComponentBindingParameters {
+  bool isDrawable{};
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("is_drawable", isDrawable));
+  };
+};
+
 struct ObjectSceneNodeComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = ObjectSceneNodeComponentBindingParameters;
+
  public:
   explicit ObjectSceneNodeComponent(bool isDrawable)
     : m_isDrawable(isDrawable)
@@ -21,9 +36,31 @@ struct ObjectSceneNodeComponent {
     m_isDrawable = isDrawable;
   }
 
+  [[nodiscard]] ObjectSceneNodeComponentBindingParameters getBindingParameters() const {
+    return ObjectSceneNodeComponentBindingParameters{.isDrawable=m_isDrawable};
+  }
+
  private:
   bool m_isDrawable{};
 };
+
+
+class ObjectSceneNodeComponentBinder : public GameObjectsComponentBinder<ObjectSceneNodeComponent> {
+ public:
+  explicit ObjectSceneNodeComponentBinder(const ComponentBindingParameters& componentParameters)
+    : m_bindingParameters(componentParameters)
+  {
+
+  }
+
+  void bindToObject(GameObject& gameObject) override {
+    gameObject.addComponent<ObjectSceneNodeComponent>(m_bindingParameters.isDrawable);
+  }
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};
+
 
 class GraphicsScene {
  public:

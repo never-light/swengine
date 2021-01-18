@@ -3,6 +3,7 @@
 #pragma hdrstop
 
 #include "TransformComponent.h"
+#include "Modules/ECS/ECS.h"
 
 TransformComponent::TransformComponent()
   : m_transform(std::make_shared<Transform>())
@@ -78,3 +79,31 @@ const AABB& TransformComponent::getOriginalBounds() const
   return m_originalBounds;
 }
 
+TransformComponent::BindingParameters TransformComponent::getBindingParameters() const
+{
+  return TransformComponent::BindingParameters{
+    .position = m_transform->getPosition(),
+    .scale = m_transform->getScale(),
+    .frontDirection = glm::eulerAngles(m_transform->getOrientation()),
+    .isStatic = m_isStatic,
+  };
+}
+
+TransformComponentBinder::TransformComponentBinder(const ComponentBindingParameters& componentParameters)
+  : m_bindingParameters(componentParameters)
+{
+
+}
+
+void TransformComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& transformComponent = *gameObject.addComponent<TransformComponent>().get();
+
+  transformComponent.setStaticMode(m_bindingParameters.isStatic);
+  transformComponent.getTransform().setPosition(m_bindingParameters.position);
+  transformComponent.getTransform()
+    .setOrientation(glm::quat(glm::vec3(
+      glm::radians(m_bindingParameters.frontDirection.x), glm::radians(m_bindingParameters.frontDirection.y),
+      glm::radians(m_bindingParameters.frontDirection.z))));
+  transformComponent.getTransform().setScale(m_bindingParameters.scale);
+}

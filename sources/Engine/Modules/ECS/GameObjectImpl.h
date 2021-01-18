@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <cereal/types/bitset.hpp>
 
 #include "GameObject.h"
 #include "GameObjectsStorage.h"
@@ -73,4 +74,37 @@ inline bool GameObject::isValid() const
   // TODO: initialize m_objectsStorage in all cases and remove m_id != GameObjectNone condition
   return isFormed() && m_objectsStorage->m_gameObjects[m_id].id != GameObjectNone &&
     m_objectsStorage->m_gameObjects[m_id].revision == m_revision;
+}
+
+template<class Archive>
+void GameObject::save(Archive& archive) const
+{
+  SW_ASSERT(isAlive());
+
+  std::string objectName = getName();
+  std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask = getComponentsMask();
+
+  archive(objectName, componentsMask);
+
+  for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
+    if (componentsMask.test(componentBitIndex)) {
+      if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
+        ComponentsTypeInfo::performSave(archive, componentBitIndex,
+          m_objectsStorage->getComponentRawData(*this, componentBitIndex));
+      }
+    }
+  }
+}
+
+template<class Archive>
+void GameObject::load(Archive& archive)
+{
+  ARG_UNUSED(archive);
+  SW_ASSERT(false);
+}
+
+std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> GameObject::getComponentsMask() const
+{
+  SW_ASSERT(isValid());
+  return m_objectsStorage->m_gameObjects[m_id].componentsMask;
 }

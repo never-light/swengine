@@ -3,9 +3,32 @@
 #include <memory>
 
 #include "Transform.h"
+#include "Modules/ECS/GameObjectsFactory.h"
 #include "Modules/Math/geometry.h"
+#include "Modules/Math/MathUtils.h"
+
+struct TransformComponentBindingParameters {
+  glm::vec3 position{};
+  glm::vec3 scale{};
+  glm::vec3 frontDirection{};
+  bool isStatic{};
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("position", position),
+      cereal::make_nvp("scale", scale),
+      cereal::make_nvp("front_direction", frontDirection),
+      cereal::make_nvp("is_static", isStatic));
+  };
+};
 
 class TransformComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = TransformComponentBindingParameters;
+
  public:
   TransformComponent();
 
@@ -28,11 +51,7 @@ class TransformComponent {
   void setBounds(const AABB& bounds);
   [[nodiscard]] const AABB& getOriginalBounds() const;
 
-  template<class Archive>
-  void serialize(Archive& archive)
-  {
-    archive(*m_transform, m_isStatic, m_boundingBox, m_boundingSphere, m_originalBounds);
-  }
+  [[nodiscard]] BindingParameters getBindingParameters() const;
 
  private:
   std::shared_ptr<Transform> m_transform;
@@ -45,3 +64,12 @@ class TransformComponent {
   AABB m_originalBounds;
 };
 
+class TransformComponentBinder : public GameObjectsComponentBinder<TransformComponent> {
+ public:
+  explicit TransformComponentBinder(const ComponentBindingParameters& componentParameters);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};

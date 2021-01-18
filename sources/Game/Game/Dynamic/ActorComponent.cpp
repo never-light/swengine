@@ -52,7 +52,7 @@ const ActorInfoportionsStorage& ActorComponent::getInfoportionsStorage() const
 
 void ActorComponent::addQuestState(const std::string& questId)
 {
-  m_questsStates.insert({ questId, ActorQuestState(questId) });
+  m_questsStates.insert({questId, ActorQuestState(questId)});
 }
 
 ActorQuestState& ActorComponent::getQuestState(const std::string& questId)
@@ -101,6 +101,20 @@ bool ActorComponent::isDead() const
   return m_isDead;
 }
 
+ActorComponent::BindingParameters ActorComponent::getBindingParameters() const
+{
+  std::vector<std::pair<std::string, bool>> dialoguesList;
+
+  for (const auto& dialogue : m_dialogues) {
+    dialoguesList.emplace_back(dialogue.getDialogueId(), dialogue.isStartedByNPC());
+  }
+
+  return ActorComponent::BindingParameters{.name=m_name,
+    .health=m_currentHealth,
+    .healthLimit=m_maxHealth,
+    .dialoguesList=dialoguesList};
+}
+
 const std::string& ActorDialogue::getDialogueId() const
 {
   return m_dialogueId;
@@ -140,7 +154,7 @@ ActorQuestState::ActorQuestState(std::string questId)
 
 void ActorQuestState::addTaskState(const std::string& taskId)
 {
-  m_tasksStates.insert({ taskId, ActorQuestTaskState(taskId) });
+  m_tasksStates.insert({taskId, ActorQuestTaskState(taskId)});
 }
 
 ActorQuestTaskState& ActorQuestState::getTaskState(const std::string& taskId)
@@ -173,4 +187,24 @@ void ActorQuestState::setCurrentTaskId(const std::string& taskId)
   SW_ASSERT(m_tasksStates.contains(taskId));
 
   m_currentTaskId = taskId;
+}
+
+ActorComponentBinder::ActorComponentBinder(const ComponentBindingParameters& componentParameters)
+  : m_bindingParameters(componentParameters)
+{
+
+}
+
+void ActorComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& actorComponent = *gameObject.addComponent<ActorComponent>().get();
+
+  actorComponent.setName(m_bindingParameters.name);
+
+  for (const auto&[dialogueId, isStartedByNPC] : m_bindingParameters.dialoguesList) {
+    actorComponent.addDialogue(ActorDialogue(dialogueId, isStartedByNPC));
+  }
+
+  actorComponent.setHealth(m_bindingParameters.health);
+  actorComponent.setHealthLimit(m_bindingParameters.healthLimit);
 }

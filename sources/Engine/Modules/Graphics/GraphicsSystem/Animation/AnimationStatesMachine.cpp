@@ -10,7 +10,8 @@
 #include "AnimationPose.h"
 
 AnimationStatesMachine::AnimationStatesMachine(ResourceHandle<Skeleton> skeleton)
-  : m_fadingPose(skeleton),
+  : m_skeleton(skeleton),
+    m_fadingPose(skeleton),
     m_smoothedPose(skeleton)
 {
 
@@ -215,4 +216,9 @@ const AnimationState& AnimationStatesMachine::getState(const std::string& name) 
 void AnimationStatesMachine::setActiveState(const std::string& stateName)
 {
   setActiveState(getStateIdByName(stateName));
+}
+
+ResourceHandle<Skeleton> AnimationStatesMachine::getSkeleton() const
+{
+  return m_skeleton;
 }

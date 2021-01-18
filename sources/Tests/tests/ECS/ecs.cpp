@@ -21,15 +21,28 @@ struct TestEvent {
   int messageCode = 0;
 };
 
+struct BindingParametersStub {
+
+};
+
 struct TestHealthComponent {
+  static constexpr bool s_isSerializable = false;
+  using BindingParameters = BindingParametersStub;
+
   int health = 0;
 };
 
 struct TestSpeedComponent {
+  static constexpr bool s_isSerializable = false;
+  using BindingParameters = BindingParametersStub;
+
   int speed = 0;
 };
 
 struct TestMeshComponent {
+  static constexpr bool s_isSerializable = false;
+  using BindingParameters = BindingParametersStub;
+
   bool isDrawn = false;
 };
 

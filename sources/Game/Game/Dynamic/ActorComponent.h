@@ -4,6 +4,8 @@
 #include <vector>
 #include <optional>
 
+#include <cereal/types/vector.hpp>
+#include <cereal/types/utility.hpp>
 #include <Engine/Modules/ECS/ECS.h>
 #include "InfoportionsSystem.h"
 
@@ -91,7 +93,29 @@ struct ActorDialogue {
   bool m_isStartedByNCP{};
 };
 
+struct ActorComponentBindingParameters {
+  std::string name;
+  float health{};
+  float healthLimit{};
+
+  std::vector<std::pair<std::string, bool>> dialoguesList;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("name", name),
+      cereal::make_nvp("health", health),
+      cereal::make_nvp("health_limit", healthLimit),
+      cereal::make_nvp("dialogues", dialoguesList));
+  };
+};
+
 struct ActorComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = ActorComponentBindingParameters;
+
  public:
   ActorComponent() = default;
 
@@ -120,6 +144,8 @@ struct ActorComponent {
   void setDead(bool isDead = true);
   [[nodiscard]] bool isDead() const;
 
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+
  private:
   std::string m_name;
   std::vector<ActorDialogue> m_dialogues;
@@ -131,4 +157,14 @@ struct ActorComponent {
   float m_maxHealth{};
 
   bool m_isDead{};
+};
+
+class ActorComponentBinder : public GameObjectsComponentBinder<ActorComponent> {
+ public:
+  explicit ActorComponentBinder(const ComponentBindingParameters& componentParameters);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
 };

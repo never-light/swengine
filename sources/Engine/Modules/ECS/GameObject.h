@@ -21,6 +21,8 @@ struct GameObjectData {
 
   size_t revision{};
   std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+
+  // TODO: remove ghost game objects conception from engine code
   bool isGhost{};
 };
 
@@ -110,6 +112,14 @@ class GameObject {
    * @return Object validity status
    */
   [[nodiscard]] inline bool isValid() const;
+
+  [[nodiscard]] inline std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> getComponentsMask() const;
+
+  template<class Archive>
+  void save(Archive& archive) const;
+
+  template<class Archive>
+  void load(Archive& archive);
 
  private:
   GameObjectId m_id;
