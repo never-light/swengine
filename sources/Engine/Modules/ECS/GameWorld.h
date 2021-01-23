@@ -262,7 +262,7 @@ class GameWorld {
   EventProcessStatus emitEvent(const T& event);
 
   template<class Archive>
-  void save(Archive& ar) const
+  void save(Archive& archive) const
   {
     size_t gameObjectsCount = 0;
 
@@ -276,24 +276,69 @@ class GameWorld {
       .gameObjectsCount = static_cast<uint32_t>(gameObjectsCount)
     };
 
+    archive(serializeHeader);
+
     for (GameObject gameObject : all()) {
       if (gameObject.isAlive()) {
-        gameObject.save(ar);
+        std::string objectName = gameObject.getName();
+        archive(objectName);
+
+        SW_ASSERT(gameObject.isAlive());
+
+        std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask = gameObject.getComponentsMask();
+
+        archive(componentsMask);
+
+        for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
+          if (componentsMask.test(componentBitIndex)) {
+            if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
+              ComponentsTypeInfo::performSave(archive, componentBitIndex,
+                m_gameObjectsStorage->getComponentRawData(gameObject, componentBitIndex));
+            }
+          }
+        }
+
       }
     }
   }
 
   template<class Archive>
-  void load(Archive& ar)
+  void load(Archive& archive)
   {
-    ARG_UNUSED(ar);
-    SW_ASSERT(false);
+    GameWorldSerializeHeader serializeHeader;
+    archive(serializeHeader);
+
+    for (size_t gameObjectIndex = 0; gameObjectIndex < serializeHeader.gameObjectsCount; gameObjectIndex++) {
+      std::string objectName;
+      archive(objectName);
+
+      GameObject gameObject{};
+
+      if (objectName.empty()) {
+        gameObject = createGameObject();
+      }
+      else {
+        gameObject = createGameObject(objectName);
+      }
+
+      std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+      archive(componentsMask);
+
+      for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
+        if (componentsMask.test(componentBitIndex)) {
+          if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
+            ComponentsTypeInfo::performLoad(archive, componentBitIndex,
+              gameObject, m_gameObjectsStorage->getComponentBinderFactory(componentBitIndex));
+          }
+        }
+      }
+    }
   }
 
   template<class ComponentType>
-  void registerComponentBinderFactory(std::unique_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
+  void registerComponentBinderFactory(std::shared_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
   {
-    m_gameObjectsStorage->template registerComponentBinderFactory<ComponentType>(bindersFactory);
+    m_gameObjectsStorage->template registerComponentBinderFactory<ComponentType>(std::move(bindersFactory));
   }
 
  public:

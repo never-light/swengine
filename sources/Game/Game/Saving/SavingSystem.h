@@ -23,10 +23,28 @@ struct SaveCommandTriggerEvent {
   std::string m_saveName;
 };
 
-class SavingSystem : public GameSystem,
-                     public EventsListener<SaveCommandTriggerEvent> {
+struct LoadCommandTriggerEvent {
  public:
-  explicit SavingSystem(std::shared_ptr<ResourcesManager> resourcesManager);
+  explicit LoadCommandTriggerEvent(std::string saveName)
+    : m_saveName(std::move(saveName))
+  {
+
+  }
+
+  [[nodiscard]] const std::string& getSaveName() const
+  {
+    return m_saveName;
+  }
+
+ private:
+  std::string m_saveName;
+};
+
+class SavingSystem : public GameSystem,
+                     public EventsListener<SaveCommandTriggerEvent>,
+                     public EventsListener<LoadCommandTriggerEvent> {
+ public:
+  explicit SavingSystem();
   ~SavingSystem() override;
 
   void configure() override;
@@ -36,10 +54,10 @@ class SavingSystem : public GameSystem,
   void deactivate() override;
 
   EventProcessStatus receiveEvent(const SaveCommandTriggerEvent& event) override;
+  EventProcessStatus receiveEvent(const LoadCommandTriggerEvent& event) override;
 
  private:
   void saveGameState(const std::string& saveName);
+  void loadGameState(const std::string& saveName);
 
- private:
-  std::shared_ptr<ResourcesManager> m_resourcesManager;
 };

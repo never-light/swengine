@@ -77,30 +77,9 @@ inline bool GameObject::isValid() const
 }
 
 template<class Archive>
-void GameObject::save(Archive& archive) const
-{
-  SW_ASSERT(isAlive());
-
-  std::string objectName = getName();
-  std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask = getComponentsMask();
-
-  archive(objectName, componentsMask);
-
-  for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
-    if (componentsMask.test(componentBitIndex)) {
-      if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
-        ComponentsTypeInfo::performSave(archive, componentBitIndex,
-          m_objectsStorage->getComponentRawData(*this, componentBitIndex));
-      }
-    }
-  }
-}
-
-template<class Archive>
 void GameObject::load(Archive& archive)
 {
-  ARG_UNUSED(archive);
-  SW_ASSERT(false);
+
 }
 
 std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> GameObject::getComponentsMask() const

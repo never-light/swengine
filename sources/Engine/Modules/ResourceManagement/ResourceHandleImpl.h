@@ -77,10 +77,14 @@ ResourceHandle<T>& ResourceHandle<T>::operator=(ResourceHandle<T>&& other) noexc
 }
 
 template<class T>
-[[nodiscard]] inline const std::string& ResourceHandle<T>::getResourceId() const
+[[nodiscard]] inline std::string ResourceHandle<T>::getResourceId() const
 {
-  SW_ASSERT(m_resourceIndex != RESOURCE_ID_INVALID);
-  return m_resourcesManager->getResourceIdByIndex(m_resourceIndex);
+  if (m_resourceIndex != RESOURCE_ID_INVALID) {
+    return m_resourcesManager->getResourceIdByIndex(m_resourceIndex);
+  }
+  else {
+    return std::string();
+  }
 }
 
 template<class T>

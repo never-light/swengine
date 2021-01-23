@@ -338,7 +338,7 @@ class GameObjectsStorage {
   }
 
   template<class ComponentType>
-  void registerComponentBinderFactory(std::unique_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
+  void registerComponentBinderFactory(std::shared_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
   {
     size_t typeId = ComponentsTypeInfo::getTypeIndex<ComponentType>();
 
@@ -351,6 +351,13 @@ class GameObjectsStorage {
     m_componentsBindersFactories[typeId] = std::move(bindersFactory);
   }
 
+  [[nodiscard]] BaseGameObjectsComponentsBindersFactory& getComponentBinderFactory(size_t typeId) {
+    SW_ASSERT(typeId < m_componentsBindersFactories.size());
+    SW_ASSERT(m_componentsBindersFactories[typeId] != nullptr);
+
+    return *m_componentsBindersFactories[typeId];
+  }
+
  private:
   GameWorld* m_gameWorld{};
 
@@ -361,7 +368,7 @@ class GameObjectsStorage {
 
   std::vector<DynamicDataPool*> m_componentsDataPools;
   std::vector<GameObjectBaseComponentsUtility*> m_componentsUtilities;
-  std::vector<std::unique_ptr<BaseGameObjectsComponentsBindersFactory>> m_componentsBindersFactories;
+  std::vector<std::shared_ptr<BaseGameObjectsComponentsBindersFactory>> m_componentsBindersFactories;
 
   std::unordered_map<std::string, GameObjectId> m_gameObjectsNamesLookupTable;
 

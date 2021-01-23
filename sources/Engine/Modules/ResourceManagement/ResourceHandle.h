@@ -53,7 +53,7 @@ class ResourceHandle {
     return m_resourceIndex;
   }
 
-  [[nodiscard]] inline const std::string& getResourceId() const;
+  [[nodiscard]] inline std::string getResourceId() const;
 
   inline bool isValid()
   {
