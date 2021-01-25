@@ -2,6 +2,7 @@
 
 #include <Engine/Modules/Graphics/GraphicsSystem/CameraComponent.h>
 #include <Engine/Modules/Graphics/GUI/GUISystem.h>
+#include <Engine/Modules/Scripting/ScriptingSystem.h>
 
 #include <Engine/Utility/files.h>
 
@@ -157,6 +158,10 @@ void Game::load(const std::string& levelName, LevelLoadingMode levelLoadingMode)
   SW_ASSERT(!m_levelsManager->isLevelLoaded());
   m_levelsManager->loadLevel(levelName, levelLoadingMode);
 
+  m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(
+    ExecuteScriptParametricActionCommand::create("game.on_level_loaded", std::make_tuple(levelName,
+      levelLoadingMode == LevelLoadingMode::StaticObjectsOnly)));
+
   m_isGameLoaded = true;
 }
 
@@ -164,7 +169,11 @@ void Game::createNewGame(const std::string& levelName)
 {
   SW_ASSERT(!m_levelsManager->isLevelLoaded());
   load(levelName, LevelLoadingMode::AllData);
+
   setupGameState();
+
+  m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
+    ExecuteScriptSimpleActionCommand{"game.on_new_game"});
 }
 
 void Game::setupGameState()

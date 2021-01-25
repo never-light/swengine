@@ -439,6 +439,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_spawnSystem = std::make_shared<GameObjectsSpawnSystem>(m_levelsManager);
   m_engineGameSystems->addGameSystem(m_spawnSystem);
 
+  // Scripting system
+  m_scriptingSystem = std::make_shared<ScriptingSystem>(m_gameWorld);
+  m_engineGameSystems->addGameSystem(m_scriptingSystem);
+
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>();
   m_engineGameSystems->addGameSystem(m_gameApplicationSystems);

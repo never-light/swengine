@@ -41,7 +41,7 @@ void LevelsManager::unloadLevel()
 
 void LevelsManager::loadLevelStaticObjects(
   const std::string& levelName,
-  std::vector<GameObject>& objectsIds)
+  std::vector<std::string>& objectsIds)
 {
   spdlog::info("Load level static objects: {}", levelName);
 
@@ -66,15 +66,15 @@ void LevelsManager::loadLevelStaticObjects(
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
     std::string gameObjectSpawnName = m_gameObjectsLoader.loadGameObject(objectNode);
 
-    GameObject gameObject = m_gameObjectsLoader.buildGameObject(gameObjectSpawnName);
-    objectsIds.push_back(gameObject);
+    objectsIds.push_back(gameObjectSpawnName);
   }
 }
 
 void LevelsManager::loadLevelDynamicObjects(
   const std::string& levelName,
-  std::vector<GameObject>& objects)
+  std::vector<std::string>& objects)
 {
+  // TODO: remove level-spawn-list conception, use casual spawn lists instead
   spdlog::info("Load level dynamic objects: {}", levelName);
 
   auto levelDescriptionDocument = openLevelDescriptionFile(levelName,
@@ -98,8 +98,7 @@ void LevelsManager::loadLevelDynamicObjects(
   for (const pugi::xml_node& objectNode : levelDescription.children("object")) {
     std::string gameObjectSpawnName = m_gameObjectsLoader.loadGameObject(objectNode);
 
-    GameObject gameObject = m_gameObjectsLoader.buildGameObject(gameObjectSpawnName);
-    objects.push_back(gameObject);
+    objects.push_back(gameObjectSpawnName);
   }
 }
 
@@ -107,19 +106,27 @@ void LevelsManager::loadLevel(const std::string& name, LevelLoadingMode loadingM
 {
   spdlog::info("Load level {}", name);
 
-  std::vector<GameObject> levelStaticObjects;
+  std::vector<std::string> levelStaticObjects;
   loadLevelStaticObjects(name, levelStaticObjects);
 
-  std::vector<GameObject> sceneObjects = levelStaticObjects;
+  std::vector<std::string> sceneObjectsNames = levelStaticObjects;
 
   if (loadingMode == LevelLoadingMode::AllData) {
-    std::vector<GameObject> levelDynamicObjects;
+    std::vector<std::string> levelDynamicObjects;
 
     loadLevelDynamicObjects(name, levelDynamicObjects);
-    sceneObjects.insert(sceneObjects.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
+
+    // dynamic objects should be spawned from game scripts
+    //sceneObjectsNames.insert(sceneObjectsNames.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
   }
 
-  for (GameObject gameObject : sceneObjects) {
+  std::vector<GameObject> sceneObjects;
+
+  for (const std::string& objectSpawnName : sceneObjectsNames) {
+    GameObject gameObject = m_gameObjectsLoader.buildGameObject(objectSpawnName);
+
+    sceneObjects.push_back(gameObject);
+
     if (gameObject.hasComponent<TransformComponent>()) {
       gameObject.getComponent<TransformComponent>()->setLevelId(name);
     }

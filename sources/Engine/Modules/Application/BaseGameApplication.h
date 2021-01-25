@@ -29,6 +29,8 @@
 #include "Modules/LevelsManagement/LevelsManager.h"
 #include "Modules/LevelsManagement/GameObjectsSpawnSystem.h"
 
+#include "Modules/Scripting/ScriptingSystem.h"
+
 #include "GameConsole.h"
 
 class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
@@ -94,6 +96,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<GameObjectsSpawnSystem> m_spawnSystem;
 
   std::shared_ptr<GameConsole> m_gameConsole;
+  std::shared_ptr<ScriptingSystem> m_scriptingSystem;
 
   bool m_isMainLoopActive = false;
 };

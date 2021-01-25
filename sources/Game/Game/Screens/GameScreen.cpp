@@ -128,7 +128,10 @@ void GameScreen::initializeGame()
 
 void GameScreen::deinitializeGame()
 {
-  m_game->unload();
+  if (m_game->isLoaded()) {
+    m_game->unload();
+  }
+  
   spdlog::info("Unload game...");
 }
 

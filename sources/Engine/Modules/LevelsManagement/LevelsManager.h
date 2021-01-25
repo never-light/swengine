@@ -43,8 +43,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
     const std::string& descriptionFile,
     const std::string& descriptionNodeName);
 
-  void loadLevelStaticObjects(const std::string& levelName, std::vector<GameObject>& objects);
-  void loadLevelDynamicObjects(const std::string& levelName, std::vector<GameObject>& objects);
+  void loadLevelStaticObjects(const std::string& levelName, std::vector<std::string>& objects);
+  void loadLevelDynamicObjects(const std::string& levelName, std::vector<std::string>& objects);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
