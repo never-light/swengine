@@ -10,13 +10,18 @@
 
 #include "GameObjectsLoader.h"
 
+enum class LevelLoadingMode {
+  AllData,
+  StaticObjectsOnly
+};
+
 class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
  public:
   LevelsManager(const std::shared_ptr<GameWorld>& gameWorld,
     const std::shared_ptr<ResourcesManager>& resourceManager);
   ~LevelsManager();
 
-  void loadLevel(const std::string& name);
+  void loadLevel(const std::string& name, LevelLoadingMode loadingMode = LevelLoadingMode::AllData);
   void unloadLevel();
 
   template<class T>
@@ -30,6 +35,8 @@ class LevelsManager : public std::enable_shared_from_this<LevelsManager> {
   GameObjectsLoader& getObjectsLoader();
 
   std::shared_ptr<GameWorld> getGameWorld() const;
+
+  [[nodiscard]] bool isLevelLoaded() const;
 
  private:
   static std::shared_ptr<pugi::xml_document> openLevelDescriptionFile(const std::string& levelName,

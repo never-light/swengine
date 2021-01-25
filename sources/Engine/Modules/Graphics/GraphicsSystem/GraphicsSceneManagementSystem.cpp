@@ -29,7 +29,6 @@ void GraphicsSceneManagementSystem::configure()
   gameWorld->subscribeEventsListener<UnloadSceneCommandEvent>(this);
   gameWorld->subscribeEventsListener<AddObjectToSceneCommandEvent>(this);
   gameWorld->subscribeEventsListener<RemoveObjectFromSceneCommandEvent>(this);
-  gameWorld->subscribeEventsListener<GameObjectAddEvent>(this);
   gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
@@ -41,7 +40,6 @@ void GraphicsSceneManagementSystem::unconfigure()
   gameWorld->unsubscribeEventsListener<UnloadSceneCommandEvent>(this);
   gameWorld->unsubscribeEventsListener<AddObjectToSceneCommandEvent>(this);
   gameWorld->unsubscribeEventsListener<RemoveObjectFromSceneCommandEvent>(this);
-  gameWorld->unsubscribeEventsListener<GameObjectAddEvent>(this);
   gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
@@ -72,14 +70,9 @@ EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const AddObjectTo
 
 EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const RemoveObjectFromSceneCommandEvent& event)
 {
+  SW_ASSERT(event.object.hasComponent<ObjectSceneNodeComponent>());
+
   m_graphicsScene->removeObject(event.object);
-  return EventProcessStatus::Processed;
-}
-
-EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const GameObjectAddEvent& event)
-{
-  ARG_UNUSED(event);
-
   return EventProcessStatus::Processed;
 }
 

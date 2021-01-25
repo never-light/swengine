@@ -45,8 +45,6 @@ void GraphicsScene::removeObject(GameObject object)
   }
 
   m_accelerationStructure->removeObject(object);
-
-  object.removeComponent<ObjectSceneNodeComponent>();
 }
 
 void GraphicsScene::queryNearestDynamicNeighbors(
@@ -64,7 +62,15 @@ void GraphicsScene::queryVisibleObjects(Camera& camera, std::vector<GameObject>&
 
 void GraphicsScene::clearObjects()
 {
-  m_accelerationStructure->clear();
+  std::vector<GameObject> sceneObjects;
+  m_accelerationStructure->queryAllObjects(sceneObjects);
+
+  for (GameObject sceneObject : sceneObjects) {
+    removeObject(sceneObject);
+  }
+
+  SW_ASSERT(m_accelerationStructure->getObjectsCount() == 0);
+  SW_ASSERT(m_drawableObjectsCount == 0);
 }
 
 void GraphicsScene::setActiveCamera(std::shared_ptr<Camera> camera)
@@ -89,7 +95,9 @@ size_t GraphicsScene::getObjectsCount() const
 
 void GraphicsScene::queryVisibleObjects(std::vector<GameObject>& result)
 {
-  queryVisibleObjects(*m_activeCamera, result);
+  if (m_activeCamera) {
+    queryVisibleObjects(*m_activeCamera, result);
+  }
 }
 
 void GraphicsScene::addSceneNodeComponent(GameObject& object)

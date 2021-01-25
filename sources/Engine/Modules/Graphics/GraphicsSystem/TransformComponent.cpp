@@ -86,7 +86,18 @@ TransformComponent::BindingParameters TransformComponent::getBindingParameters()
     .scale = m_transform->getScale(),
     .frontDirection = glm::eulerAngles(m_transform->getOrientation()),
     .isStatic = m_isStatic,
+    .levelId = m_levelId
   };
+}
+
+void TransformComponent::setLevelId(const std::string& levelId)
+{
+  m_levelId = levelId;
+}
+
+const std::string& TransformComponent::getLevelId() const
+{
+  return m_levelId;
 }
 
 TransformComponentBinder::TransformComponentBinder(const ComponentBindingParameters& componentParameters)
@@ -106,4 +117,5 @@ void TransformComponentBinder::bindToObject(GameObject& gameObject)
       glm::radians(m_bindingParameters.frontDirection.x), glm::radians(m_bindingParameters.frontDirection.y),
       glm::radians(m_bindingParameters.frontDirection.z))));
   transformComponent.getTransform().setScale(m_bindingParameters.scale);
+  transformComponent.setLevelId(m_bindingParameters.levelId);
 }

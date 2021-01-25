@@ -380,3 +380,8 @@ GameObject GameObjectsLoader::buildGameObject(const std::string& spawnName,
 
   return gameObject;
 }
+
+void GameObjectsLoader::resetLoadedObjects()
+{
+  m_gameObjectsComponentsFactories.clear();
+}

@@ -35,6 +35,8 @@ void LevelsManager::unloadLevel()
 
     m_isLevelLoaded = false;
   }
+
+  m_gameObjectsLoader.resetLoadedObjects();
 }
 
 void LevelsManager::loadLevelStaticObjects(
@@ -101,18 +103,27 @@ void LevelsManager::loadLevelDynamicObjects(
   }
 }
 
-void LevelsManager::loadLevel(const std::string& name)
+void LevelsManager::loadLevel(const std::string& name, LevelLoadingMode loadingMode)
 {
   spdlog::info("Load level {}", name);
 
   std::vector<GameObject> levelStaticObjects;
-  std::vector<GameObject> levelDynamicObjects;
-
   loadLevelStaticObjects(name, levelStaticObjects);
-  loadLevelDynamicObjects(name, levelDynamicObjects);
 
   std::vector<GameObject> sceneObjects = levelStaticObjects;
-  sceneObjects.insert(sceneObjects.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
+
+  if (loadingMode == LevelLoadingMode::AllData) {
+    std::vector<GameObject> levelDynamicObjects;
+
+    loadLevelDynamicObjects(name, levelDynamicObjects);
+    sceneObjects.insert(sceneObjects.end(), levelDynamicObjects.begin(), levelDynamicObjects.end());
+  }
+
+  for (GameObject gameObject : sceneObjects) {
+    if (gameObject.hasComponent<TransformComponent>()) {
+      gameObject.getComponent<TransformComponent>()->setLevelId(name);
+    }
+  }
 
   m_gameWorld->emitEvent<LoadSceneCommandEvent>(LoadSceneCommandEvent{.sceneObjects=sceneObjects});
 
@@ -174,4 +185,9 @@ void LevelsManager::loadSpawnObjectsList(const std::string& spawnListName)
     std::string gameObjectSpawnName = m_gameObjectsLoader.loadGameObject(objectNode);
     LOCAL_VALUE_UNUSED(gameObjectSpawnName);
   }
+}
+
+bool LevelsManager::isLevelLoaded() const
+{
+  return m_isLevelLoaded;
 }

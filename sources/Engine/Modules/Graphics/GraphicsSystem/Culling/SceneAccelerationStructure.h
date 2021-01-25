@@ -21,6 +21,7 @@ class SceneAccelerationStructure {
     std::vector<GameObject>& result) = 0;
 
   virtual void queryVisibleObjects(Camera& camera, std::vector<GameObject>& result) = 0;
+  virtual void queryAllObjects(std::vector<GameObject>& result) = 0;
 
   virtual void clear() = 0;
 

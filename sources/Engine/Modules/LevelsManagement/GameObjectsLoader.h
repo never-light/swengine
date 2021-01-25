@@ -162,6 +162,8 @@ class GameObjectsLoader {
 
   GameObject buildGameObject(const std::string& spawnName, const std::optional<std::string>& objectName = {});
 
+  void resetLoadedObjects();
+
  public:
   std::unique_ptr<BaseGameObjectsComponentBinder> loadTransformData(const pugi::xml_node& data);
   std::unique_ptr<BaseGameObjectsComponentBinder> loadVisualData(const pugi::xml_node& data);

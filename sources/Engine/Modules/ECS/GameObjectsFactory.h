@@ -39,8 +39,16 @@ class GameObjectsComponentsBindersFactory : public BaseGameObjectsComponentsBind
 };
 
 class ResourcesManager;
+class GameWorld;
 
-template<class ComponentType, class BinderType, bool injectContext = false>
+enum class GameObjectsComponentsBinderInjectParameters {
+  None,
+  ResourcesManager,
+  GameWorld
+};
+
+template<class ComponentType, class BinderType,
+  GameObjectsComponentsBinderInjectParameters injectContext = GameObjectsComponentsBinderInjectParameters::None>
 class GameObjectsComponentsGenericBindersFactory : public GameObjectsComponentsBindersFactory<ComponentType> {
  public:
   GameObjectsComponentsGenericBindersFactory() = default;
@@ -50,13 +58,22 @@ class GameObjectsComponentsGenericBindersFactory : public GameObjectsComponentsB
   {
 
   };
+  explicit GameObjectsComponentsGenericBindersFactory(std::shared_ptr<GameWorld> gameWorld)
+    : m_gameWorld(std::move(gameWorld))
+  {
+
+  };
+
   ~GameObjectsComponentsGenericBindersFactory() override = default;
 
   std::unique_ptr<GameObjectsComponentBinder<ComponentType>>
   createBinder(const typename ComponentType::BindingParameters& bindingParameters) override
   {
-    if constexpr (injectContext) {
+    if constexpr (injectContext == GameObjectsComponentsBinderInjectParameters::ResourcesManager) {
       return std::make_unique<BinderType>(bindingParameters, m_resourcesManager);
+    }
+    else if constexpr (injectContext == GameObjectsComponentsBinderInjectParameters::GameWorld) {
+      return std::make_unique<BinderType>(bindingParameters, m_gameWorld);
     }
     else {
       return std::make_unique<BinderType>(bindingParameters);
@@ -65,4 +82,5 @@ class GameObjectsComponentsGenericBindersFactory : public GameObjectsComponentsB
 
  private:
   std::shared_ptr<ResourcesManager> m_resourcesManager;
+  std::shared_ptr<GameWorld> m_gameWorld;
 };

@@ -9,7 +9,13 @@
 #define LOCAL_VALUE_UNUSED(value) (void)(value)
 
 #ifdef _DEBUG
-#define SW_ASSERT(condition) assert(condition)
+inline void swAssert(bool condition) {
+  if (!condition) {
+    assert(false);
+  }
+}
+
+#define SW_ASSERT(condition) swAssert(condition)
 #else
 #define SW_ASSERT(condition) ((void)(condition))
 #endif

@@ -7,7 +7,6 @@
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
 
-#include "GameLevel.h"
 #include "PlayerControlSystem.h"
 #include "FreeCameraControlSystem.h"
 
@@ -37,10 +36,15 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   void enterConsoleMode();
   void leaveConsoleMode();
 
+  void createNewGame(const std::string& levelName);
+  void load(const std::string& levelName, LevelLoadingMode levelLoadingMode = LevelLoadingMode::AllData);
+  void unload();
+
+  void setupGameState();
+
   EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
 
- private:
-  void initializeGameSystems();
+  [[nodiscard]] bool isLoaded() const;
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -50,8 +54,6 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<GUISystem> m_guiSystem;
   std::shared_ptr<ResourcesManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
-
-  std::shared_ptr<GameLevel> m_level;
 
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
   std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
@@ -71,4 +73,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
 
   std::shared_ptr<GUILayout> m_gameUILayout;
   PlayerUILayout m_playerUILayout{};
+
+  bool m_isGameLoaded = false;
+  bool m_isGamePreloaded = false;
 };

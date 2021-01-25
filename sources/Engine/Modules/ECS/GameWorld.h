@@ -267,7 +267,7 @@ class GameWorld {
     size_t gameObjectsCount = 0;
 
     for (GameObject gameObject : all()) {
-      if (gameObject.isAlive()) {
+      if (gameObject.isAlive() && gameObject.isSerializable()) {
         gameObjectsCount++;
       }
     }
@@ -279,7 +279,7 @@ class GameWorld {
     archive(serializeHeader);
 
     for (GameObject gameObject : all()) {
-      if (gameObject.isAlive()) {
+      if (gameObject.isAlive() && gameObject.isSerializable()) {
         std::string objectName = gameObject.getName();
         archive(objectName);
 

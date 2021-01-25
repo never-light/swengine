@@ -76,14 +76,20 @@ inline bool GameObject::isValid() const
     m_objectsStorage->m_gameObjects[m_id].revision == m_revision;
 }
 
-template<class Archive>
-void GameObject::load(Archive& archive)
-{
-
-}
 
 std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> GameObject::getComponentsMask() const
 {
   SW_ASSERT(isValid());
   return m_objectsStorage->m_gameObjects[m_id].componentsMask;
+}
+
+bool GameObject::isSerializable() const
+{
+  SW_ASSERT(isValid());
+  return m_objectsStorage->m_gameObjects[m_id].isSerializable;
+}
+
+void GameObject::markAsSerializable(bool isSerializable)
+{
+  m_objectsStorage->m_gameObjects[m_id].isSerializable = isSerializable;
 }

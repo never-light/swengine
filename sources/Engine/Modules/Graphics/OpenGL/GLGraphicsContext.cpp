@@ -342,8 +342,17 @@ void GLGraphicsContext::executeRenderTasks()
 
   // Setup scene state uniform buffers
 
-  m_sceneTransformationBuffer->getBufferData().view = m_graphicsScene->getActiveCamera()->getViewMatrix();
-  m_sceneTransformationBuffer->getBufferData().projection = m_graphicsScene->getActiveCamera()->getProjectionMatrix();
+  std::shared_ptr<Camera> activeCamera = m_graphicsScene->getActiveCamera();
+
+  if (activeCamera) {
+    m_sceneTransformationBuffer->getBufferData().view = m_graphicsScene->getActiveCamera()->getViewMatrix();
+    m_sceneTransformationBuffer->getBufferData().projection = m_graphicsScene->getActiveCamera()->getProjectionMatrix();
+  }
+  else {
+    m_sceneTransformationBuffer->getBufferData().view = glm::identity<glm::mat4>();
+    m_sceneTransformationBuffer->getBufferData().projection = glm::identity<glm::mat4>();
+  }
+
   m_sceneTransformationBuffer->synchronizeWithGpu();
 
   m_guiTransformationBuffer->getBufferData().projection = m_guiProjectionMatrix;

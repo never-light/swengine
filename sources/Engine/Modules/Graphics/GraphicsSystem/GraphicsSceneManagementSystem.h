@@ -28,7 +28,6 @@ class GraphicsSceneManagementSystem : public GameSystem,
                                       public EventsListener<UnloadSceneCommandEvent>,
                                       public EventsListener<AddObjectToSceneCommandEvent>,
                                       public EventsListener<RemoveObjectFromSceneCommandEvent>,
-                                      public EventsListener<GameObjectAddEvent>,
                                       public EventsListener<GameObjectRemoveEvent> {
  public:
   explicit GraphicsSceneManagementSystem(std::shared_ptr<GraphicsScene> graphicsScene);
@@ -42,7 +41,6 @@ class GraphicsSceneManagementSystem : public GameSystem,
   EventProcessStatus receiveEvent(const UnloadSceneCommandEvent& event) override;
   EventProcessStatus receiveEvent(const AddObjectToSceneCommandEvent& event) override;
   EventProcessStatus receiveEvent(const RemoveObjectFromSceneCommandEvent& event) override;
-  EventProcessStatus receiveEvent(const GameObjectAddEvent& event) override;
   EventProcessStatus receiveEvent(const GameObjectRemoveEvent& event) override;
 
  private:

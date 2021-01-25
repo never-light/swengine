@@ -78,10 +78,14 @@ void AudioSystem::update(float delta)
 {
   ARG_UNUSED(delta);
 
-  const Transform& currentCameraTransform = *m_environmentState->getActiveCamera()->getTransform();
+  std::shared_ptr<Camera> activeCamera = m_environmentState->getActiveCamera();
 
-  m_audioListener->setPosition(currentCameraTransform.getPosition());
-  m_audioListener->setOrientation(currentCameraTransform.getOrientation());
+  if (activeCamera) {
+    const Transform& currentCameraTransform = *m_environmentState->getActiveCamera()->getTransform();
+
+    m_audioListener->setPosition(currentCameraTransform.getPosition());
+    m_audioListener->setOrientation(currentCameraTransform.getOrientation());
+  }
 
   for (auto object : getGameWorld()->allWith<AudioSourceComponent>()) {
     auto transformComponent = object.getComponent<TransformComponent>();

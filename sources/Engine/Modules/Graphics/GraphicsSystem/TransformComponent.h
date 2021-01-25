@@ -9,9 +9,10 @@
 
 struct TransformComponentBindingParameters {
   glm::vec3 position{};
-  glm::vec3 scale{};
+  glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
   glm::vec3 frontDirection{};
   bool isStatic{};
+  std::string levelId;
 
   template<class Archive>
   void serialize(Archive& archive)
@@ -20,7 +21,8 @@ struct TransformComponentBindingParameters {
       cereal::make_nvp("position", position),
       cereal::make_nvp("scale", scale),
       cereal::make_nvp("front_direction", frontDirection),
-      cereal::make_nvp("is_static", isStatic));
+      cereal::make_nvp("is_static", isStatic),
+      cereal::make_nvp("level_id", levelId));
   };
 };
 
@@ -53,6 +55,9 @@ class TransformComponent {
 
   [[nodiscard]] BindingParameters getBindingParameters() const;
 
+  void setLevelId(const std::string& levelId);
+  [[nodiscard]] const std::string& getLevelId() const;
+
  private:
   std::shared_ptr<Transform> m_transform;
 
@@ -62,6 +67,8 @@ class TransformComponent {
   Sphere m_boundingSphere;
 
   AABB m_originalBounds;
+
+  std::string m_levelId;
 };
 
 class TransformComponentBinder : public GameObjectsComponentBinder<TransformComponent> {

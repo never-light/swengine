@@ -5,6 +5,8 @@
 
 #include <Engine/Utility/files.h>
 
+#include "Saving/SavingSystem.h"
+
 #include <utility>
 
 Game::Game(std::shared_ptr<GameWorld> gameWorld,
@@ -47,8 +49,6 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
       return std::make_shared<DialoguesUI>(m_gameWorld, m_dialoguesManager, m_questsStorage);
     });
 
-  m_dialoguesManager->loadFromFile("dialogues_general");
-
   m_playerUILayout.playerUILayout = std::make_shared<GUILayout>();
   m_playerUILayout.playerUILayout->setSize(m_guiSystem->getActiveLayout()->getSize());
 
@@ -68,20 +68,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_graphicsScene,
     m_playerUILayout);
 
-  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
-  m_gameModeSystems->addGameSystem(m_inventoryControlSystem);
-  m_gameModeSystems->addGameSystem(m_interactiveObjectsControlSystem);
-  m_gameModeSystems->addGameSystem(m_questsSystem);
-  m_gameModeSystems->addGameSystem(m_infoportionsSystem);
-
-  m_infoportionsSystem->loadInfoportionsFromFile("infoportions_general");
-  m_questsSystem->loadQuestsFromFile("quests_general");
-
-  m_level = std::make_shared<GameLevel>(gameWorld, graphicsContext, resourceManager, levelsManager);
-
-  m_graphicsScene->setActiveCamera(m_level->getPlayer().getComponent<CameraComponent>()->getCamera());
-  m_activeCameraControlSystem = m_playerControlSystem;
-  m_gameModeSystems->addGameSystem(m_playerControlSystem);
+  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
 }
 
 void Game::activate()
@@ -133,4 +120,87 @@ EventProcessStatus Game::receiveEvent(const GameConsoleCommandEvent& event)
   }
 
   return EventProcessStatus::Skipped;
+}
+
+void Game::unload()
+{
+  SW_ASSERT(m_isGameLoaded);
+
+  m_gameModeSystems->removeGameSystem(m_inventoryControlSystem);
+  m_gameModeSystems->removeGameSystem(m_interactiveObjectsControlSystem);
+  m_gameModeSystems->removeGameSystem(m_questsSystem);
+  m_gameModeSystems->removeGameSystem(m_infoportionsSystem);
+  m_gameModeSystems->removeGameSystem(m_playerControlSystem);
+
+  if (m_gameApplicationSystems->isConfigured()) {
+    m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
+  }
+
+  m_graphicsScene->setActiveCamera(nullptr);
+  m_preservedCameraControlSystem = nullptr;
+
+  if (m_levelsManager->isLevelLoaded()) {
+    m_levelsManager->unloadLevel();
+  }
+
+  // TODO: redesign levels loading/unloading logic, remove duplicated code like this
+  for (GameObject gameObject : m_gameWorld->all()) {
+    m_gameWorld->removeGameObject(gameObject);
+  }
+
+  m_isGameLoaded = false;
+}
+
+void Game::load(const std::string& levelName, LevelLoadingMode levelLoadingMode)
+{
+  SW_ASSERT(!m_isGameLoaded);
+  SW_ASSERT(!m_levelsManager->isLevelLoaded());
+  m_levelsManager->loadLevel(levelName, levelLoadingMode);
+
+  m_isGameLoaded = true;
+}
+
+void Game::createNewGame(const std::string& levelName)
+{
+  SW_ASSERT(!m_levelsManager->isLevelLoaded());
+  load(levelName, LevelLoadingMode::AllData);
+  setupGameState();
+}
+
+void Game::setupGameState()
+{
+  m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
+
+  m_gameModeSystems->addGameSystem(m_inventoryControlSystem);
+  m_gameModeSystems->addGameSystem(m_interactiveObjectsControlSystem);
+  m_gameModeSystems->addGameSystem(m_questsSystem);
+  m_gameModeSystems->addGameSystem(m_infoportionsSystem);
+
+  m_activeCameraControlSystem = m_playerControlSystem;
+  m_gameModeSystems->addGameSystem(m_playerControlSystem);
+
+  if (!m_isGamePreloaded) {
+    m_dialoguesManager->loadFromFile("dialogues_general");
+    m_infoportionsSystem->loadInfoportionsFromFile("infoportions_general");
+    m_questsSystem->loadQuestsFromFile("quests_general");
+
+    m_isGamePreloaded = true;
+  }
+
+  m_graphicsScene->setActiveCamera(m_gameWorld->findGameObject("player").getComponent<CameraComponent>()->getCamera());
+
+  GameObject player = m_gameWorld->findGameObject("player");
+  player.getComponent<CameraComponent>()->getCamera()->setAspectRatio(
+    float(m_graphicsContext->getViewportWidth()) / float(m_graphicsContext->getViewportHeight()));
+
+  auto environmentObject = m_gameWorld->findGameObject("environment");
+
+  if (environmentObject.hasComponent<AudioSourceComponent>()) {
+    environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
+  }
+}
+
+bool Game::isLoaded() const
+{
+  return m_isGameLoaded;
 }
