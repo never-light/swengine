@@ -65,7 +65,35 @@ std::unique_ptr<RawScene> SceneImporter::importFromFile(const std::string& path,
   traceSceneDebugInformation(model, scene);
   validateScene(model, scene);
 
+  m_modelNodesGlobalTransforms.clear();
+  m_modelNodesSkeletons.clear();
+  m_modelNodesParents.resize(model.nodes.size(), -1);
+
+  for (size_t nodeIndex = 0; nodeIndex < model.nodes.size(); nodeIndex++) {
+    m_nodesIds[&model.nodes[nodeIndex]] = static_cast<int16_t>(nodeIndex);
+  }
+
+  for (size_t skinIndex = 0; skinIndex < model.skins.size(); skinIndex++) {
+    for (size_t skinNodeIndex : model.skins[skinIndex].joints) {
+      m_modelNodesSkeletons[skinNodeIndex] = skinIndex;
+    }
+  }
+
+  traverseScene(model, scene, [this](const tinygltf::Model& model,
+    const tinygltf::Scene& scene,
+    const glm::mat4& nodeTransform,
+    const tinygltf::Node& node) {
+    int16_t currentNodeIndex = getNodeIndex(model, scene, node);
+    this->m_modelNodesGlobalTransforms[currentNodeIndex] = nodeTransform;
+
+    for (size_t childNodeIndex : node.children) {
+      this->m_modelNodesParents[childNodeIndex] = static_cast<int16_t>(currentNodeIndex);
+    }
+  }, false);
+
   auto rawScene = std::make_unique<RawScene>();
+  rawScene->skeletons = convertSceneSkeletonsToRawData(model, scene);
+  rawScene->animationClips = convertSceneAnimationsToRawData(model, scene);
   rawScene->meshesNodes = convertSceneToRawData(model, scene);
 
   return std::move(rawScene);
@@ -126,9 +154,9 @@ void SceneImporter::traceAccessorDebugInformation(const tinygltf::Model& model, 
 
 void SceneImporter::validateScene(const tinygltf::Model& model, const tinygltf::Scene& scene)
 {
-  if (model.buffers.size() != 1) {
-    raiseImportError("Models with multiple buffers are not supported yet");
-  }
+//  if (model.buffers.size() != 1) {
+//    raiseImportError("Models with multiple buffers are not supported yet");
+//  }
 
   traverseScene(model, scene, [](const tinygltf::Model& model,
     const tinygltf::Scene& scene,
@@ -152,8 +180,14 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
     raiseImportError("Nodes hierarchies are not supported yet, so it is needed to flatten the scene");
   }
 
-  if (node.skin != -1 || !node.weights.empty()) {
-    raiseImportError("Nodes skinning are not supported yet\"");
+  if (!node.weights.empty()) {
+    raiseImportError("Nodes morph targets are not supported yet\"");
+  }
+
+  if (node.skin != -1) {
+    if (!node.children.empty()) {
+      raiseImportError("Nodes with skinning data can not have children");
+    }
   }
 
   for (const auto& primitive : mesh.primitives) {
@@ -218,6 +252,18 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
         if (accessor.normalized || accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT ||
           accessor.type != TINYGLTF_TYPE_VEC2) {
           raiseImportError("UV0 accessors should not be normalized and should have vec2 type");
+        }
+      }
+      else if (attribute.first == "JOINTS_0") {
+        if (accessor.normalized || accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ||
+          accessor.type != TINYGLTF_TYPE_VEC4) {
+          raiseImportError("Joints accessors should not be normalized and should have vec4 type");
+        }
+      }
+      else if (attribute.first == "WEIGHTS_0") {
+        if (accessor.normalized || accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT ||
+          accessor.type != TINYGLTF_TYPE_VEC4) {
+          raiseImportError("Weights accessors should not be normalized and should have vec2 type");
         }
       }
       else if (attribute.first == "COLOR_0") {
@@ -667,7 +713,7 @@ void SceneImporter::traverseSceneInternal(const tinygltf::Model& model,
   }
 
   for (int childNodeIndex : node.children) {
-    traverseSceneInternal(model, scene, nodeTransform, model.nodes[childNodeIndex], visitor);
+    traverseSceneInternal(model, scene, nodeTransform, model.nodes[childNodeIndex], visitor, withMeshesOnly);
   }
 }
 
@@ -774,6 +820,308 @@ RawTextureInfo SceneImporter::exportTextureToTempLocation(const tinygltf::Model&
   }
 
   return rawTextureInfo;
+}
+
+std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tinygltf::Model& model,
+  const tinygltf::Scene& scene)
+{
+  std::vector<RawSkeleton> rawSkeletonsList;
+
+  for (size_t skinId = 0; skinId < model.skins.size(); skinId++) {
+    const tinygltf::Skin& skin = model.skins[skinId];
+
+    int16_t rootBoneNodeIndex = -1;
+
+    std::set<size_t> skinBonesNodesSet(skin.joints.begin(), skin.joints.end());
+
+    traverseScene(model,
+      scene,
+      [this, &rootBoneNodeIndex, &skinBonesNodesSet](const tinygltf::Model& model,
+        const tinygltf::Scene& scene,
+        const glm::mat4& nodeTransform,
+        const tinygltf::Node& node) {
+        ARG_UNUSED(nodeTransform);
+
+        int16_t nodeIndex = getNodeIndex(model, scene, node);
+
+        if (rootBoneNodeIndex == -1) {
+          if (skinBonesNodesSet.contains(nodeIndex)) {
+            rootBoneNodeIndex = nodeIndex;
+          }
+        }
+      },
+      false);
+
+    if (rootBoneNodeIndex == -1) {
+      raiseImportError("Impossible to find skeleton root bone");
+    }
+
+    const tinygltf::Node& rootBoneNode = model.nodes[rootBoneNodeIndex];
+
+    std::vector<size_t> bonesNodes;
+
+    traverseSceneInternal(model,
+      scene,
+      glm::identity<glm::mat4>(),
+      rootBoneNode,
+      [this, &bonesNodes, skinId](const tinygltf::Model& model,
+        const tinygltf::Scene& scene,
+        const glm::mat4& nodeTransform,
+        const tinygltf::Node& node) {
+        ARG_UNUSED(nodeTransform);
+        bonesNodes.push_back(getNodeIndex(model, scene, node));
+      },
+      false);
+
+    if (bonesNodes.size() != skin.joints.size()) {
+      raiseImportError("Partial skeleton importing is not supported");
+    }
+
+    std::set<size_t> bonesNodesSet(bonesNodes.begin(), bonesNodes.end());
+
+    for (size_t skeletonBoneNodeId : skin.joints) {
+      if (!bonesNodesSet.contains(skeletonBoneNodeId)) {
+        raiseImportError("Skeleton root bone node should contain all another bones");
+      }
+    }
+
+    glm::mat4 skeletonGlobalTransform =
+      glm::inverse(getMeshNodeTransform(rootBoneNode)) * m_modelNodesGlobalTransforms.at(rootBoneNodeIndex);
+
+    if (!MathUtils::isMatrixIdentity(skeletonGlobalTransform)) {
+      raiseImportError(fmt::format("Skeleton root node should have identity parent transform, current transform is {}",
+        glm::to_string(skeletonGlobalTransform)));
+    }
+
+    RawSkeleton rawSkeleton{};
+    rawSkeleton.header.formatVersion = SKELETON_FORMAT_VERSION;
+    rawSkeleton.header.bonesCount = static_cast<uint8_t>(bonesNodes.size());
+
+    // Nodes indices to raw bones indices map
+    std::unordered_map<size_t, size_t> rawBonesIndicesMap;
+
+    std::vector<glm::mat4> inverseBindPoseMatrices = getSkinInverseBindPoseMatrices(model, scene, skin);
+    std::unordered_map<size_t, glm::mat4> inverseBindPoseMatricesMap;
+
+    for (size_t childBoneIndex = 0; childBoneIndex < skin.joints.size(); childBoneIndex++) {
+      glm::mat4 manualInverseBindPoseMatrix = glm::inverse(
+        m_modelNodesGlobalTransforms[static_cast<int16_t>(skin.joints[childBoneIndex])]);
+
+      if (!MathUtils::isEqual(inverseBindPoseMatrices[childBoneIndex], manualInverseBindPoseMatrix)) {
+        raiseImportError(fmt::format(
+          "Inverse bind pose matrix validation is failed, original matrix is {}, custom matrix is {}",
+          glm::to_string(inverseBindPoseMatrices[childBoneIndex]),
+          glm::to_string(manualInverseBindPoseMatrix)));
+      }
+      else {
+        spdlog::debug("Inverse bind pose matrix validation passed, node {}\nOriginal matrix: {}\nCustom matrix:   {}",
+          childBoneIndex,
+          glm::to_string(inverseBindPoseMatrices[childBoneIndex]),
+          glm::to_string(manualInverseBindPoseMatrix));
+      }
+
+      inverseBindPoseMatricesMap[skin.joints[childBoneIndex]] =
+        inverseBindPoseMatrices[childBoneIndex];
+    }
+
+    RawBone rootRawBone{};
+
+    strncpy_s(rootRawBone.name, rootBoneNode.name.c_str(), sizeof(rootRawBone.name));
+    rootRawBone.parentId = RawSkeleton::ROOT_BONE_PARENT_ID;
+    rootRawBone.inverseBindPoseMatrix = glmMatrix4ToRawMatrix4(inverseBindPoseMatricesMap[skin.joints[0]]);
+
+    rawSkeleton.bones.push_back(rootRawBone);
+    rawBonesIndicesMap.insert({rootBoneNodeIndex, 0});
+
+    // Assume that skeleton root node always has identity parent transform
+
+    for (size_t childNodeId : bonesNodes) {
+      if (childNodeId == rootBoneNodeIndex) {
+        continue;
+      }
+
+      if (m_modelNodesParents[childNodeId] == -1) {
+        raiseImportError("Skeleton nodes hierarchy is parsed wrong");
+      }
+
+      const tinygltf::Node& boneNode = model.nodes[childNodeId];
+      RawBone rawBoneNode{};
+
+      strncpy_s(rawBoneNode.name, boneNode.name.c_str(), sizeof(rawBoneNode.name));
+      rawBoneNode.parentId = static_cast<uint8_t>(rawBonesIndicesMap[m_modelNodesParents[childNodeId]]);
+      rawBoneNode.inverseBindPoseMatrix = glmMatrix4ToRawMatrix4(inverseBindPoseMatricesMap[childNodeId]);
+
+      rawSkeleton.bones.push_back(rawBoneNode);
+      rawBonesIndicesMap.insert({childNodeId, rawSkeleton.bones.size() - 1});
+    }
+
+    m_modelNodesSkeletonsRawIndices[skinId] = rawBonesIndicesMap;
+
+    rawSkeletonsList.push_back(rawSkeleton);
+  }
+
+  spdlog::info("Skeletons conversion to raw format is finished");
+
+  return rawSkeletonsList;
+}
+
+// TODO: get rid of scene and node passing
+int16_t SceneImporter::getNodeIndex(const tinygltf::Model& model,
+  const tinygltf::Scene& scene,
+  const tinygltf::Node& node)
+{
+  ARG_UNUSED(model);
+  ARG_UNUSED(scene);
+
+  return m_nodesIds[&node];
+}
+
+std::vector<glm::mat4> SceneImporter::getSkinInverseBindPoseMatrices(const tinygltf::Model& model,
+  const tinygltf::Scene& scene,
+  const tinygltf::Skin& skin)
+{
+  ARG_UNUSED(scene);
+
+  std::vector<glm::mat4> matrices;
+
+  const tinygltf::Accessor& matricesAccessor =
+    model.accessors[skin.inverseBindMatrices];
+
+  SW_ASSERT(matricesAccessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT &&
+    matricesAccessor.type == TINYGLTF_TYPE_MAT4);
+
+  auto[matricesBufferPtr, matricesBufferStride] = getAttributeBufferStorage(model, matricesAccessor);
+
+  SW_ASSERT(matricesAccessor.count == skin.joints.size());
+
+  for (size_t matrixIndex = 0; matrixIndex < matricesAccessor.count; matrixIndex++) {
+    glm::mat4 matrix = glm::make_mat4(reinterpret_cast<const float*>(matricesBufferPtr));
+    matrices.push_back(matrix);
+
+    matricesBufferPtr += matricesBufferStride;
+  }
+
+  return matrices;
+}
+
+std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRawData(const tinygltf::Model& model,
+  const tinygltf::Scene& scene)
+{
+  ARG_UNUSED(scene);
+
+  std::vector<RawSkeletalAnimationClip> rawClips;
+
+  for (size_t clipIndex = 0; clipIndex < model.animations.size(); clipIndex++) {
+    const tinygltf::Animation& animation = model.animations[clipIndex];
+
+    size_t clipSkeletonIndex = m_modelNodesSkeletons.at(animation.channels.at(0).target_node);
+
+    for (const tinygltf::AnimationChannel& animationChannel : animation.channels) {
+      size_t clipNodeSkeleton = m_modelNodesSkeletons.at(animationChannel.target_node);
+
+      if (clipNodeSkeleton != clipSkeletonIndex) {
+        raiseImportError("All animation clip nodes should refer to the same existing skeleton");
+      }
+
+      if (animationChannel.target_path != "translation" && animationChannel.target_path != "rotation") {
+        raiseImportError(fmt::format("Animation channel component {} is not supported", animationChannel.target_path));
+      }
+    }
+
+    RawSkeletalAnimationClip rawClip{};
+    strncpy_s(rawClip.header.name, animation.name.c_str(), sizeof(rawClip.header.name));
+    rawClip.header.formatVersion = ANIMATION_FORMAT_VERSION;
+    rawClip.header.duration = 0.0f;
+    rawClip.header.rate = 1.0f;
+    rawClip.header.skeletonBonesCount =
+      static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices.at(clipSkeletonIndex).size());
+
+    rawClip.bonesAnimationChannels.resize(rawClip.header.skeletonBonesCount, RawBoneAnimationChannel{});
+
+    float maxChannelDuration = 0.0f;
+
+    for (const tinygltf::AnimationChannel& animationChannel : animation.channels) {
+      size_t rawBoneChannelId = m_modelNodesSkeletonsRawIndices[clipSkeletonIndex].at(animationChannel.target_node);
+      RawBoneAnimationChannel& rawBoneChannel = rawClip.bonesAnimationChannels[rawBoneChannelId];
+
+      const tinygltf::AnimationSampler& channelSampler = animation.samplers[animationChannel.sampler];
+
+      // Load keyframes time
+      const tinygltf::Accessor& keyframesTimeAccessor =
+        model.accessors[channelSampler.input];
+
+      SW_ASSERT(keyframesTimeAccessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT &&
+        keyframesTimeAccessor.type == TINYGLTF_TYPE_SCALAR);
+
+      auto[keyframesTimeBufferPtr, keyframesTimeBufferStride] = getAttributeBufferStorage(model, keyframesTimeAccessor);
+
+      std::vector<float> keyframesTime;
+
+      for (size_t keyframeTimeIndex = 0; keyframeTimeIndex < keyframesTimeAccessor.count; keyframeTimeIndex++) {
+        float keyframeTime = *reinterpret_cast<const float*>(keyframesTimeBufferPtr);
+        keyframesTime.push_back(keyframeTime);
+
+        keyframesTimeBufferPtr += keyframesTimeBufferStride;
+      }
+
+      // Load animation transformations
+
+      const tinygltf::Accessor& keyframesValuesAccessor =
+        model.accessors[channelSampler.output];
+
+      SW_ASSERT(keyframesValuesAccessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT &&
+        (keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC3 || keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC4));
+
+      SW_ASSERT(keyframesValuesAccessor.count == keyframesTime.size());
+
+      auto[keyframesValuesBufferPtr, keyframesValuesBufferStride] = getAttributeBufferStorage(model, keyframesValuesAccessor);
+
+      if (animationChannel.target_path == "translation") {
+        SW_ASSERT(keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC3);
+        SW_ASSERT(rawBoneChannel.positionFrames.empty());
+
+        rawBoneChannel.positionFrames.resize(keyframesValuesAccessor.count);
+
+        for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
+          glm::vec3 positionKey = glm::make_vec3(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
+          rawBoneChannel.positionFrames[keyframeIndex].time = keyframesTime[keyframeIndex];
+          rawBoneChannel.positionFrames[keyframeIndex].position = { .x = positionKey.x, .y = positionKey.y, .z = positionKey.z };
+
+          keyframesValuesBufferPtr += keyframesValuesBufferStride;
+        }
+
+        rawBoneChannel.header.positionFramesCount = static_cast<uint16_t>(rawBoneChannel.positionFrames.size());
+      }
+      else if (animationChannel.target_path == "rotation") {
+        SW_ASSERT(keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC4);
+        SW_ASSERT(rawBoneChannel.orientationFrames.empty());
+
+        rawBoneChannel.orientationFrames.resize(keyframesValuesAccessor.count);
+
+        for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
+          glm::vec4 orientationKey = glm::make_vec4(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
+          rawBoneChannel.orientationFrames[keyframeIndex].time = keyframesTime[keyframeIndex];
+          rawBoneChannel.orientationFrames[keyframeIndex].orientation = { .x = orientationKey.x,
+            .y = orientationKey.y, .z = orientationKey.z, .w = orientationKey.w };
+
+          keyframesValuesBufferPtr += keyframesValuesBufferStride;
+        }
+
+        rawBoneChannel.header.orientationFramesCount = static_cast<uint16_t>(rawBoneChannel.orientationFrames.size());
+      }
+      else {
+        raiseImportError(fmt::format("Impossible to handle unknown target path {}", animationChannel.target_path));
+      }
+
+      maxChannelDuration = std::max(maxChannelDuration, *keyframesTime.rbegin());
+    }
+
+    rawClip.header.duration = maxChannelDuration;
+
+    rawClips.push_back(rawClip);
+  }
+
+  return rawClips;
 }
 
 

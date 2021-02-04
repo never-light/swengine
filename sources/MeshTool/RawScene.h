@@ -4,6 +4,7 @@
 
 #include <Engine/Modules/Graphics/Resources/Raw/RawMesh.h>
 #include <Engine/Modules/Graphics/Resources/Raw/RawSkeleton.h>
+#include <Engine/Modules/Graphics/Resources/Raw/RawSkeletalAnimationClip.h>
 #include <Engine/Modules/Physics/Resources/Raw/RawMeshCollisionData.h>
 
 #include <Engine/Modules/Math/geometry.h>
@@ -45,4 +46,6 @@ struct RawMeshNode {
 
 struct RawScene {
   std::vector<RawMeshNode> meshesNodes;
+  std::vector<RawSkeleton> skeletons;
+  std::vector<RawSkeletalAnimationClip> animationClips;
 };

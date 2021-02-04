@@ -22,7 +22,7 @@
 
 MeshToolApplication::MeshToolApplication()
 {
-
+  spdlog::set_level(spdlog::level::debug);
 }
 
 void MeshToolApplication::execute(int argc, char* argv[])

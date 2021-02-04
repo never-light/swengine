@@ -26,4 +26,6 @@ struct RawSkeleton {
 
   static RawSkeleton readFromFile(const std::string& path);
   static void writeToFile(const std::string& path, const RawSkeleton& rawSkeleton);
+
+  static constexpr uint8_t ROOT_BONE_PARENT_ID = 255;
 };

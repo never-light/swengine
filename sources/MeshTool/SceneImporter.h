@@ -40,6 +40,10 @@ class SceneImporter {
 
   [[nodiscard]] std::vector<RawMeshNode> convertSceneToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);
+  [[nodiscard]] std::vector<RawSkeleton> convertSceneSkeletonsToRawData(const tinygltf::Model& model,
+    const tinygltf::Scene& scene);
+  [[nodiscard]] std::vector<RawSkeletalAnimationClip> convertSceneAnimationsToRawData(const tinygltf::Model& model,
+    const tinygltf::Scene& scene);
 
   RawMeshNode convertMeshNodeToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene,
@@ -78,8 +82,22 @@ class SceneImporter {
       const tinygltf::Node&)>& visitor,
     bool withMeshesOnly = true);
 
+  int16_t getNodeIndex(const tinygltf::Model& model, const tinygltf::Scene& scene, const tinygltf::Node& node);
+
+  std::vector<glm::mat4> getSkinInverseBindPoseMatrices(const tinygltf::Model& model,
+    const tinygltf::Scene& scene, const tinygltf::Skin& skin);
+
   [[nodiscard]] static std::filesystem::path getTextureTmpExportPath(
     const tinygltf::Model& model,
     const tinygltf::Texture& texture,
     size_t index = 0);
+
+ private:
+  std::unordered_map<int16_t, glm::mat4> m_modelNodesGlobalTransforms;
+  std::unordered_map<const tinygltf::Node*, int16_t> m_nodesIds;
+  std::vector<int16_t> m_modelNodesParents;
+  std::unordered_map<size_t, size_t> m_modelNodesSkeletons;
+
+  // Skin index -> { node index -> raw bone index }
+  std::unordered_map<size_t, std::unordered_map<size_t, size_t>> m_modelNodesSkeletonsRawIndices;
 };
