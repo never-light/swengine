@@ -91,3 +91,33 @@ glm::ivec2 StringUtils::stringToIVec2(const std::string& string)
 
   return glm::ivec2(std::stoi(parts[0]), std::stoi(parts[1]));
 }
+
+std::string StringUtils::filter(const std::string& string, std::function<bool(char)> predicate)
+{
+  std::string result;
+  std::copy_if(string.begin(), string.end(), std::back_inserter(result), std::move(predicate));
+
+  return result;
+}
+
+std::string StringUtils::filterBlacklist(const std::string& string, const std::vector<char>& blacklist)
+{
+  // TODO: rewrite this logic with modern std::ranges library
+
+  return filter(string, [&blacklist](char ch) {
+    for (char blacklistEntry : blacklist) {
+      if (ch == blacklistEntry) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}
+
+std::string StringUtils::filterFilename(const std::string& filename)
+{
+  return filterBlacklist(filename,
+    {'>', '<', ':', '"', '/', '\\', '|', '?', '*'});
+}
+

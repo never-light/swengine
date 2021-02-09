@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <regex>
 #include <unordered_map>
@@ -21,6 +22,10 @@ class StringUtils {
   template<class T>
   [[nodiscard]] static T filterValue(const std::string& rawValue,
     const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
+
+  [[nodiscard]] static std::string filter(const std::string& string, std::function<bool(char)> predicate);
+  [[nodiscard]] static std::string filterBlacklist(const std::string& string, const std::vector<char>& blacklist);
+  [[nodiscard]] static std::string filterFilename(const std::string& filename);
 
   [[nodiscard]] static std::string regexReplace(const std::string& expression, std::string str,
     const std::function<std::string(const std::smatch&)>& callback);

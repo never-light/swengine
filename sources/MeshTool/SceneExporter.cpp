@@ -13,6 +13,8 @@
 
 #include "MeshExporter.h"
 #include "CollisionsExporter.h"
+#include "SkeletonExporter.h"
+#include "AnimationExporter.h"
 
 SceneExporter::SceneExporter()
 {
@@ -43,6 +45,33 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
 
   if (!std::filesystem::exists(texturesDirPath)) {
     std::filesystem::create_directory(texturesDirPath);
+  }
+
+  std::string skeletonsDirPath = getExportPath(exportDir, "skeletons").string();
+
+  if (!std::filesystem::exists(skeletonsDirPath)) {
+    std::filesystem::create_directory(skeletonsDirPath);
+  }
+
+  std::string animationClipsDirPath = getExportPath(exportDir, "animations").string();
+
+  if (!std::filesystem::exists(animationClipsDirPath)) {
+    std::filesystem::create_directory(animationClipsDirPath);
+  }
+
+  for (const RawSkeleton& skeleton : scene.skeletons) {
+    SkeletonExportOptions skeletonExportOptions{};
+
+    SkeletonExporter exporter;
+    exporter.exportToFile(getSkeletonExportPath(exportDir, skeleton).string(), skeleton, skeletonExportOptions);
+  }
+
+  for (const RawSkeletalAnimationClip& animationClip : scene.animationClips) {
+    AnimationExportOptions animationClipExportOptions{};
+
+    AnimationExporter exporter;
+    exporter.exportToFile(getAnimationClipExportPath(exportDir, animationClip).string(),
+      animationClip, animationClipExportOptions);
   }
 
   for (const auto& meshNode : scene.meshesNodes) {

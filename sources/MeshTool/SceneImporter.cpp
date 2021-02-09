@@ -502,7 +502,8 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
       size_t mergedSubMeshesStartIndex = mergedRawMesh.subMeshesDescriptions.size();
       ContainersUtils::append(mergedRawMesh.subMeshesDescriptions, rawMesh.subMeshesDescriptions);
 
-      for (size_t subMeshIndex = mergedSubMeshesStartIndex; subMeshIndex < mergedRawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
+      for (size_t subMeshIndex = mergedSubMeshesStartIndex; subMeshIndex < mergedRawMesh.subMeshesDescriptions.size();
+           subMeshIndex++) {
         RawSubMeshDescription& subMesh = mergedRawMesh.subMeshesDescriptions[subMeshIndex];
 
         for (uint16_t& indexValue: subMesh.indices) {
@@ -1166,7 +1167,11 @@ std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tin
     rawSkeleton.header.bonesCount = static_cast<uint8_t>(bonesNodes.size());
 
     SW_ASSERT(!rootBoneNode.name.empty() && "TODO: implement bones names auto generation");
-    strncpy_s(rawSkeleton.header.name, rootBoneNode.name.c_str(), sizeof(rawSkeleton.header.name));
+
+    // TODO: check for filenames collisions
+    std::string skeletonName = StringUtils::filterFilename(rootBoneNode.name);
+
+    strncpy_s(rawSkeleton.header.name, skeletonName.c_str(), sizeof(rawSkeleton.header.name));
 
     // Nodes indices to raw bones indices map
     std::unordered_map<size_t, size_t> rawBonesIndicesMap;
@@ -1285,7 +1290,11 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
     }
 
     RawSkeletalAnimationClip rawClip{};
-    strncpy_s(rawClip.header.name, animation.name.c_str(), sizeof(rawClip.header.name));
+
+    // TODO: check for filenames collisions
+    std::string animationClipName = StringUtils::filterFilename(animation.name);
+    strncpy_s(rawClip.header.name, animationClipName.c_str(), sizeof(rawClip.header.name));
+
     rawClip.header.formatVersion = ANIMATION_FORMAT_VERSION;
     rawClip.header.duration = 0.0f;
     rawClip.header.rate = 1.0f;
