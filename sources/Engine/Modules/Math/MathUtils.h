@@ -46,6 +46,11 @@ class MathUtils {
   static float fractionToPercents(float numerator, float denominator);
   static float fractionToPercents(int numerator, int denominator);
 
+  static std::tuple<glm::vec3, glm::vec3> generateTangentBitangent(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
+    const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2);
+  static glm::vec3 generateTangent(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
+    const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2);
+
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};
   static constexpr glm::vec3 AXIS_Y = {0.0f, 1.0f, 0.0f};

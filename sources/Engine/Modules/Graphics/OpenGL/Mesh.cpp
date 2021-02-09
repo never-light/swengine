@@ -23,7 +23,7 @@ void Mesh::setVertices(const std::vector<glm::vec3>& vertices)
   setAttributeOutdated(MeshAttributes::Positions);
 }
 
-size_t Mesh::addSubMesh(const std::vector<uint16_t>& indices)
+void Mesh::addSubMesh(const std::vector<uint16_t>& indices)
 {
   SW_ASSERT(m_geometryStore == nullptr && "Sub-mesh adding after geometry buffer formation is forbidden");
   SW_ASSERT(!m_vertices.empty());
@@ -32,8 +32,6 @@ size_t Mesh::addSubMesh(const std::vector<uint16_t>& indices)
 
   m_indices.push_back(indices);
   calculateSubMeshesOffsets();
-
-  return m_indices.size() - 1;
 }
 
 void Mesh::setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex)
@@ -44,9 +42,9 @@ void Mesh::setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex)
   m_needGeometryBufferUpdate = true;
   m_needUpdateIndices = true;
 
-  calculateSubMeshesOffsets();
-
   m_indices[subMeshIndex] = indices;
+
+  calculateSubMeshesOffsets();
 }
 
 void Mesh::setNormals(const std::vector<glm::vec3>& normals)
@@ -119,17 +117,6 @@ bool Mesh::hasSkeleton() const
   return m_skeleton.has_value();
 }
 
-void Mesh::setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets)
-{
-  for (size_t subMeshIndex = 0; subMeshIndex < subMeshesOffsets.size(); subMeshIndex++) {
-    auto startIt = indices.begin() + subMeshesOffsets[subMeshIndex];
-    auto endIt = (subMeshIndex == subMeshesOffsets.size() - 1) ? indices.end() :
-      indices.begin() + (subMeshesOffsets[subMeshIndex + 1]);
-
-    RETURN_VALUE_UNUSED(addSubMesh(std::vector<uint16_t>(startIt, endIt)));
-  }
-}
-
 size_t Mesh::getSubMeshesCount() const
 {
   return m_indices.size();
@@ -139,7 +126,7 @@ size_t Mesh::getSubMeshIndicesOffset(size_t subMeshIndex) const
 {
   SW_ASSERT(subMeshIndex < m_indices.size());
 
-  return m_subMeshesOffsets[subMeshIndex];
+  return m_subMeshesIndicesOffsets[subMeshIndex];
 }
 
 size_t Mesh::getSubMeshIndicesCount(size_t subMeshIndex) const
@@ -178,11 +165,13 @@ ResourceHandle<Skeleton> Mesh::getSkeleton() const
 
 void Mesh::calculateSubMeshesOffsets()
 {
-  m_subMeshesOffsets.clear();
-  m_subMeshesOffsets.push_back(0);
+  uint32_t partialIndicesSum = 0;
 
-  for (size_t subMeshIndex = 1; subMeshIndex < m_indices.size(); subMeshIndex++) {
-    m_subMeshesOffsets.push_back(m_subMeshesOffsets[subMeshIndex - 1] + m_indices[subMeshIndex - 1].size());
+  m_subMeshesIndicesOffsets.resize(m_indices.size());
+
+  for (size_t subMeshIndex = 0; subMeshIndex < m_indices.size(); subMeshIndex++) {
+    m_subMeshesIndicesOffsets[subMeshIndex] = partialIndicesSum;
+    partialIndicesSum += static_cast<uint32_t>(m_indices[subMeshIndex].size());
   }
 }
 

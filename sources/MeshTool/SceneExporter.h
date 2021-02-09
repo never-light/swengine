@@ -41,11 +41,16 @@ class SceneExporter {
     const RawMeshNode& meshNode);
   [[nodiscard]] static std::filesystem::path getTextureExportPath(const std::string& exportDir,
     const RawTextureInfo& textureInfo);
+  [[nodiscard]] static std::filesystem::path getSkeletonExportPath(const std::string& exportDir,
+    const RawSkeleton& skeleton);
+  [[nodiscard]] static std::filesystem::path getAnimationClipExportPath(const std::string& exportDir,
+    const RawSkeletalAnimationClip& animationClip);
   [[nodiscard]] static std::filesystem::path getExportPath(const std::string& exportDir, const std::string& filename);
 
   [[nodiscard]] static std::string getMeshResourceId(const RawMeshNode& meshNode);
   [[nodiscard]] static std::string getColliderResourceId(const RawMeshNode& meshNode);
   [[nodiscard]] static std::string getTextureResourceId(const RawTextureInfo& textureInfo);
   [[nodiscard]] static std::string getMaterialResourceId(const RawMaterial& materialInfo);
-  [[nodiscard]] static std::string getMaterialBaseName(const RawMaterial& materialInfo);
+  [[nodiscard]] static std::string getSkeletonResourceId(const RawSkeleton& skeleton);
+  [[nodiscard]] static std::string getAnimationClipResourceId(const RawSkeletalAnimationClip& animationClip);
 };

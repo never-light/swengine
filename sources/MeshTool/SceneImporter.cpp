@@ -17,6 +17,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include <tiny_gltf.h>
+#include <Engine/Modules/Math/geometry.h>
+#include <Engine/Utility/containers.h>
 
 SceneImporter::SceneImporter()
 {
@@ -94,7 +96,13 @@ std::unique_ptr<RawScene> SceneImporter::importFromFile(const std::string& path,
   auto rawScene = std::make_unique<RawScene>();
   rawScene->skeletons = convertSceneSkeletonsToRawData(model, scene);
   rawScene->animationClips = convertSceneAnimationsToRawData(model, scene);
-  rawScene->meshesNodes = convertSceneToRawData(model, scene);
+  rawScene->meshesNodes.clear();
+
+  std::vector<RawMeshNodeImportData> rawMeshNodesImportData = convertSceneToRawData(model, scene);
+
+  for (const auto& rawMeshImportData : rawMeshNodesImportData) {
+    rawScene->meshesNodes.push_back(rawMeshImportData.rawNode);
+  }
 
   return std::move(rawScene);
 }
@@ -154,6 +162,8 @@ void SceneImporter::traceAccessorDebugInformation(const tinygltf::Model& model, 
 
 void SceneImporter::validateScene(const tinygltf::Model& model, const tinygltf::Scene& scene)
 {
+  // TODO: it seems that models with multiple buffers can be imported now,
+  //  but test is needed.
 //  if (model.buffers.size() != 1) {
 //    raiseImportError("Models with multiple buffers are not supported yet");
 //  }
@@ -313,15 +323,17 @@ void SceneImporter::validateTexture(const tinygltf::Model& model, const tinygltf
   }
 }
 
-std::vector<RawMeshNode> SceneImporter::convertSceneToRawData(const tinygltf::Model& model,
+std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const tinygltf::Model& model,
   const tinygltf::Scene& scene)
 {
   ARG_UNUSED(model);
   ARG_UNUSED(scene);
 
-  std::vector<RawMeshNode> rawNodesList;
+  std::vector<RawMeshNodeImportData> rawNodesList;
 
-  traverseScene(model, scene, [this, &rawNodesList](const tinygltf::Model& model,
+  std::unordered_map<size_t, std::vector<size_t>> skinsToRawMeshesMap;
+
+  traverseScene(model, scene, [this, &rawNodesList, &skinsToRawMeshesMap](const tinygltf::Model& model,
     const tinygltf::Scene& scene,
     const glm::mat4& nodeTransform,
     const tinygltf::Node& node) {
@@ -329,8 +341,193 @@ std::vector<RawMeshNode> SceneImporter::convertSceneToRawData(const tinygltf::Mo
       return;
     }
 
-    rawNodesList.push_back(convertMeshNodeToRawData(model, scene, nodeTransform, node));
+    rawNodesList.push_back(RawMeshNodeImportData{
+      .rawNode = convertMeshNodeToRawData(model, scene, nodeTransform, node),
+      .sceneNodeIndex = static_cast<int32_t>(getNodeIndex(model, scene, node))});
+
+    if (node.skin != -1) {
+      skinsToRawMeshesMap[node.skin].push_back(rawNodesList.size() - 1);
+    }
   });
+
+  spdlog::info("Try to merge meshes with the same skeleton");
+
+  for (const auto&[skinIndex, skinMeshesList] : skinsToRawMeshesMap) {
+    ARG_UNUSED(skinIndex);
+
+    // Verify that all meshes with the same skeleton has the same global transform
+    bitmask64 commonAttributesMask = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.header.storedAttributesMask;
+
+    for (size_t skinMeshIndex = 1; skinMeshIndex < skinMeshesList.size(); skinMeshIndex++) {
+      auto rawMeshCurrentIndex = static_cast<int16_t>(skinMeshesList[skinMeshIndex]);
+      auto rawMeshPreviousIndex = static_cast<int16_t>(skinMeshesList[skinMeshIndex - 1]);
+
+      auto& currentRawMeshNode = rawNodesList[rawMeshCurrentIndex];
+      auto& previousRawMeshNode = rawNodesList[rawMeshPreviousIndex];
+
+      bool globalTransformsEquals = MathUtils::isEqual(m_modelNodesGlobalTransforms.at(
+        static_cast<int16_t>(currentRawMeshNode.sceneNodeIndex)),
+        m_modelNodesGlobalTransforms.at(
+          static_cast<int16_t>(previousRawMeshNode.sceneNodeIndex)));
+
+      if (!globalTransformsEquals) {
+        raiseImportError("All meshes nodes with the same skin should have the same global transform");
+      }
+
+      bool localTransformsEquals = MathUtils::isEqual(glm::make_vec3(currentRawMeshNode.rawNode.position.data),
+        glm::make_vec3(previousRawMeshNode.rawNode.position.data), 1e-4f) &&
+        MathUtils::isEqual(glm::make_vec3(currentRawMeshNode.rawNode.scale.data),
+          glm::make_vec3(previousRawMeshNode.rawNode.scale.data), 1e-4f) &&
+        MathUtils::isEqual(glm::make_quat(currentRawMeshNode.rawNode.orientation.data),
+          glm::make_quat(previousRawMeshNode.rawNode.orientation.data), 1e-4f);
+
+      if (!localTransformsEquals) {
+        raiseImportError("All meshes nodes with the same skin should have the same local transform");
+      }
+
+      if (currentRawMeshNode.rawNode.rawMesh.header.storedAttributesMask !=
+        previousRawMeshNode.rawNode.rawMesh.header.storedAttributesMask) {
+        bitmask64 attributesMaskDifference = currentRawMeshNode.rawNode.rawMesh.header.storedAttributesMask ^
+          previousRawMeshNode.rawNode.rawMesh.header.storedAttributesMask;
+
+        if (static_cast<RawMeshAttributes>(attributesMaskDifference) == RawMeshAttributes::Tangents) {
+          spdlog::warn("Merged mesh {} doesn't have tangents, so they will be generated",
+            currentRawMeshNode.rawNode.name);
+
+          const auto& vertices = currentRawMeshNode.rawNode.rawMesh.positions;
+          const auto& uv = currentRawMeshNode.rawNode.rawMesh.uv;
+          auto& tangents = currentRawMeshNode.rawNode.rawMesh.tangents;
+
+          tangents.resize(currentRawMeshNode.rawNode.rawMesh.header.verticesCount);
+
+          for (RawSubMeshDescription& subMeshDescription : currentRawMeshNode.rawNode.rawMesh.subMeshesDescriptions) {
+            for (size_t indexNumber = 0; indexNumber < subMeshDescription.indicesCount; indexNumber += 3) {
+              size_t index0 = subMeshDescription.indices[indexNumber];
+              size_t index1 = subMeshDescription.indices[indexNumber + 1];
+              size_t index2 = subMeshDescription.indices[indexNumber + 2];
+
+              glm::vec3 tangent = MathUtils::generateTangent(
+                glm::make_vec3(vertices[index0].data),
+                glm::make_vec3(vertices[index1].data),
+                glm::make_vec3(vertices[index2].data),
+                glm::make_vec2(uv[index0].data),
+                glm::make_vec2(uv[index1].data),
+                glm::make_vec2(uv[index2].data));
+
+              tangents[index0] = {tangent.x, tangent.y, tangent.z};
+              tangents[index1] = {tangent.x, tangent.y, tangent.z};
+              tangents[index2] = {tangent.x, tangent.y, tangent.z};
+            }
+
+          }
+
+          currentRawMeshNode.rawNode.rawMesh.header.storedAttributesMask |=
+            static_cast<bitmask64>(RawMeshAttributes::Tangents);
+        }
+        else {
+          raiseImportError("All meshes nodes with the same skin should have the same attributes mask");
+        }
+      }
+
+      commonAttributesMask |= currentRawMeshNode.rawNode.rawMesh.header.storedAttributesMask;
+    }
+
+    size_t totalVerticesCount = 0;
+
+    for (unsigned long long skinMeshIndex : skinMeshesList) {
+      auto& rawMeshNode = rawNodesList[skinMeshIndex].rawNode;
+      auto& rawMesh = rawMeshNode.rawMesh;
+
+      totalVerticesCount += rawMesh.header.verticesCount;
+    }
+
+    if (totalVerticesCount > std::numeric_limits<uint16_t>::max()) {
+      raiseImportError(fmt::format("Max vertices count for merged mesh is {}", std::numeric_limits<uint16_t>::max()));
+    }
+
+    std::string mergedMeshNodeName = std::string("merged_") + rawNodesList[*skinMeshesList.begin()].rawNode.name;
+
+    RawMeshNode mergedRawNode{};
+    strncpy_s(mergedRawNode.name, mergedMeshNodeName.c_str(), sizeof(mergedRawNode.name));
+
+    mergedRawNode.rawMesh.header.formatVersion = MESH_FORMAT_VERSION;
+    mergedRawNode.rawMesh.header.verticesCount = 0;
+    mergedRawNode.rawMesh.header.storedAttributesMask = commonAttributesMask;
+    mergedRawNode.rawMesh.header.subMeshesCount = 0;
+
+    mergedRawNode.collisionData.header.collisionShapesCount = 0;
+    mergedRawNode.collisionData.header.formatVersion = MESH_COLLISION_DATA_FORMAT_VERSION;
+
+    auto& mergedRawMesh = mergedRawNode.rawMesh;
+
+    mergedRawMesh.aabb = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.aabb;
+
+    for (unsigned long long skinMeshIndex : skinMeshesList) {
+      auto& rawMeshNode = rawNodesList[skinMeshIndex].rawNode;
+      auto& rawMesh = rawMeshNode.rawMesh;
+
+      SW_ASSERT(rawMesh.header.storedAttributesMask == commonAttributesMask);
+
+      size_t verticesOffset = mergedRawMesh.header.verticesCount;
+
+      mergedRawMesh.header.verticesCount += rawMesh.header.verticesCount;
+      mergedRawMesh.header.subMeshesCount += rawMesh.header.subMeshesCount;
+
+      auto mergedAttributes = static_cast<RawMeshAttributes>(commonAttributesMask);
+
+      if ((mergedAttributes & RawMeshAttributes::Positions) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.positions, rawMesh.positions);
+      }
+
+      if ((mergedAttributes & RawMeshAttributes::UV) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.uv, rawMesh.uv);
+      }
+
+      if ((mergedAttributes & RawMeshAttributes::Normals) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.normals, rawMesh.normals);
+      }
+
+      if ((mergedAttributes & RawMeshAttributes::Tangents) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.tangents, rawMesh.tangents);
+      }
+
+      if ((mergedAttributes & RawMeshAttributes::BonesIDs) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.bonesIds, rawMesh.bonesIds);
+      }
+
+      if ((mergedAttributes & RawMeshAttributes::BonesWeights) != RawMeshAttributes::Empty) {
+        ContainersUtils::append(mergedRawMesh.bonesWeights, rawMesh.bonesWeights);
+      }
+
+      size_t mergedSubMeshesStartIndex = mergedRawMesh.subMeshesDescriptions.size();
+      ContainersUtils::append(mergedRawMesh.subMeshesDescriptions, rawMesh.subMeshesDescriptions);
+
+      for (size_t subMeshIndex = mergedSubMeshesStartIndex; subMeshIndex < mergedRawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
+        RawSubMeshDescription& subMesh = mergedRawMesh.subMeshesDescriptions[subMeshIndex];
+
+        for (uint16_t& indexValue: subMesh.indices) {
+          indexValue += static_cast<uint16_t>(verticesOffset);
+        }
+      }
+
+      mergedRawMesh.aabb = GeometryUtils::mergeAABB(mergedRawMesh.aabb, rawMesh.aabb);
+
+      if (rawMeshNode.isInteractive) {
+        mergedRawNode.isInteractive = true;
+      }
+
+      if (rawMeshNode.collisionsResolutionEnabled) {
+        mergedRawNode.collisionsResolutionEnabled = true;
+      }
+
+      mergedRawNode.collisionData.header.collisionShapesCount += rawMeshNode.collisionData.header.collisionShapesCount;
+      ContainersUtils::append(mergedRawNode.collisionData.collisionShapes, rawMeshNode.collisionData.collisionShapes);
+
+      ContainersUtils::append(mergedRawNode.materials, rawMeshNode.materials);
+    }
+
+    rawNodesList.push_back(RawMeshNodeImportData{.rawNode=mergedRawNode, .sceneNodeIndex = -1});
+  }
 
   spdlog::info("Scene conversion to raw format is finished");
 
@@ -405,8 +602,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
   strncpy_s(rawNode.name, node.name.c_str(), sizeof(rawNode.name));
 
   rawNode.rawMesh.header.formatVersion = MESH_FORMAT_VERSION;
-  rawNode.rawMesh.header.subMeshesIndicesOffsetsCount = 0;
-  rawNode.rawMesh.header.indicesCount = 0;
+  rawNode.rawMesh.header.subMeshesCount = static_cast<uint16_t>(mesh.primitives.size());
   rawNode.rawMesh.header.verticesCount = 0;
   rawNode.rawMesh.header.storedAttributesMask = 0;
 
@@ -422,18 +618,16 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
     size_t indicesCount = indexAccessor.count;
 
-    size_t rawMeshIndicesOffset = rawNode.rawMesh.indices.size();
-    rawNode.rawMesh.indices.resize(rawMeshIndicesOffset + indicesCount);
+    RawSubMeshDescription subMeshDescription{.indicesCount = static_cast<uint32_t>(indicesCount),
+      .indices = std::vector<uint16_t>(indicesCount, 0)};
 
     auto[indicesBufferPtr, indicesBufferStride] = getAttributeBufferStorage(model, indexAccessor);
 
     for (size_t indexNumber = 0; indexNumber < indexAccessor.count; indexNumber++) {
-      rawNode.rawMesh.indices[rawMeshIndicesOffset + indexNumber] = reinterpret_cast<const uint16_t*>(
+      subMeshDescription.indices[indexNumber] = reinterpret_cast<const uint16_t*>(
         indicesBufferPtr)[0] + static_cast<uint16_t>(rawMeshVerticesOffset);
       indicesBufferPtr += indicesBufferStride;
     }
-
-    rawNode.rawMesh.subMeshesIndicesOffsets.push_back(uint16_t(rawMeshIndicesOffset));
 
     for (auto& attribute : primitive.attributes) {
       const tinygltf::Accessor& accessor = model.accessors[attribute.second];
@@ -469,6 +663,79 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         }
 
         rawNode.rawMesh.header.storedAttributesMask |= static_cast<size_t>(RawMeshAttributes::Normals);
+      }
+      else if (attribute.first == "JOINTS_0") {
+        const tinygltf::Skin& skin = model.skins[node.skin];
+
+        rawNode.rawMesh.bonesIds.resize(rawMeshVerticesOffset + verticesCount);
+
+        for (size_t vertexIndex = 0; vertexIndex < verticesCount; vertexIndex++) {
+          const auto* bonesIdsPtr = reinterpret_cast<const unsigned short*>(attributeBufferPtr);
+
+          // TODO: check that JOINTS_0 attribute bones ids always corresponds to m_modelNodesSkeletonsRawIndices mapping
+          // and simplify this conversion in that case.
+          SW_ASSERT(bonesIdsPtr[0] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]] &&
+            bonesIdsPtr[1] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]] &&
+            bonesIdsPtr[2] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]] &&
+            bonesIdsPtr[3] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
+
+          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].x =
+            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]]);
+          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].y =
+            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]]);
+          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].z =
+            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]]);
+          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].w =
+            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
+          attributeBufferPtr += attributeBufferStride;
+        }
+
+        rawNode.rawMesh.header.storedAttributesMask |= static_cast<size_t>(RawMeshAttributes::BonesIDs);
+      }
+      else if (attribute.first == "WEIGHTS_0") {
+        rawNode.rawMesh.bonesWeights.resize(rawMeshVerticesOffset + verticesCount);
+
+        const auto* bonesWeightsPtr = reinterpret_cast<const float*>(attributeBufferPtr);
+
+        for (size_t vertexIndex = 0; vertexIndex < verticesCount; vertexIndex++) {
+          RawU8Vector4& vertexBonesWeights = rawNode.rawMesh.bonesWeights[rawMeshVerticesOffset + vertexIndex];
+
+          vertexBonesWeights.x =
+            static_cast<uint8_t>(std::round(bonesWeightsPtr[0] * 255));
+          vertexBonesWeights.y =
+            static_cast<uint8_t>(std::round(bonesWeightsPtr[1] * 255));
+          vertexBonesWeights.z =
+            static_cast<uint8_t>(std::round(bonesWeightsPtr[2] * 255));
+          vertexBonesWeights.w =
+            static_cast<uint8_t>(std::round(bonesWeightsPtr[3] * 255));
+
+          int16_t
+            weightsSum = vertexBonesWeights.x + vertexBonesWeights.y + vertexBonesWeights.z + vertexBonesWeights.w;
+          int16_t weightsSumDiff = 255 - weightsSum;
+
+          SW_ASSERT(abs(weightsSumDiff) <= 4);
+
+          size_t minComponentIndex = 0;
+
+          for (size_t currentComponentIndex = 0; currentComponentIndex < 4; currentComponentIndex++) {
+            if (vertexBonesWeights.data[currentComponentIndex] > 0 &&
+              vertexBonesWeights.data[currentComponentIndex] < vertexBonesWeights.data[minComponentIndex]) {
+              minComponentIndex = currentComponentIndex;
+            }
+          }
+
+          int16_t normalizedWeightComponent = vertexBonesWeights.data[minComponentIndex] + weightsSumDiff;
+          SW_ASSERT(normalizedWeightComponent >= 0 && normalizedWeightComponent <= 255);
+          vertexBonesWeights.data[minComponentIndex] = static_cast<uint8_t>(normalizedWeightComponent);
+
+          if ((vertexBonesWeights.x + vertexBonesWeights.y + vertexBonesWeights.z + vertexBonesWeights.w) != 255) {
+            raiseImportError("Vertices data contains not-normalized bones weights vector");
+          }
+
+          attributeBufferPtr += attributeBufferStride;
+        }
+
+        rawNode.rawMesh.header.storedAttributesMask |= static_cast<size_t>(RawMeshAttributes::BonesWeights);
       }
       else if (attribute.first == "TANGENT") {
         rawNode.rawMesh.tangents.resize(rawMeshVerticesOffset + verticesCount);
@@ -531,6 +798,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     else {
       rawNode.materials.emplace_back();
     }
+
+    rawNode.rawMesh.subMeshesDescriptions.push_back(subMeshDescription);
   }
 
   glm::vec3 aabbMin(std::numeric_limits<float>::max());
@@ -641,14 +910,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
   rawNode.collisionsResolutionEnabled = !collisionsResolutionDisabled;
 
-  rawNode.rawMesh.header.subMeshesIndicesOffsetsCount =
-    static_cast<uint16_t>(rawNode.rawMesh.subMeshesIndicesOffsets.size());
-  rawNode.rawMesh.header.indicesCount = static_cast<uint16_t>(rawNode.rawMesh.indices.size());
   rawNode.rawMesh.header.verticesCount = static_cast<uint16_t>(rawNode.rawMesh.positions.size());
-
-//  if (rawNode.rawMesh.header.subMeshesIndicesOffsetsCount > 1) {
-//    spdlog::debug("Mesh with submeshes is converted");
-//  }
 
   size_t rawMeshVerticesCount = rawNode.rawMesh.positions.size();
 
@@ -701,7 +963,7 @@ void SceneImporter::traverseSceneInternal(const tinygltf::Model& model,
     const tinygltf::Node&)>& visitor,
   bool withMeshesOnly)
 {
-  glm::mat4 nodeTransform = getMeshNodeTransform(node) * parentNodeTransform;
+  glm::mat4 nodeTransform = parentNodeTransform * getMeshNodeTransform(node);
 
   if (withMeshesOnly) {
     if (node.mesh != -1) {
@@ -885,17 +1147,26 @@ std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tin
       }
     }
 
-    glm::mat4 skeletonGlobalTransform =
-      glm::inverse(getMeshNodeTransform(rootBoneNode)) * m_modelNodesGlobalTransforms.at(rootBoneNodeIndex);
+    spdlog::debug("Skeleton root node global transform {}\nLocal transform: {}",
+      glm::to_string(m_modelNodesGlobalTransforms.at(rootBoneNodeIndex)),
+      glm::to_string(getMeshNodeTransform(rootBoneNode)));
 
-    if (!MathUtils::isMatrixIdentity(skeletonGlobalTransform)) {
+    glm::mat4 skeletonGlobalTransform =
+      m_modelNodesGlobalTransforms.at(rootBoneNodeIndex) * glm::inverse(getMeshNodeTransform(rootBoneNode));
+
+    spdlog::debug("Skeleton root node parent transform {}", glm::to_string(skeletonGlobalTransform));
+
+    /*if (!MathUtils::isMatrixIdentity(skeletonGlobalTransform)) {
       raiseImportError(fmt::format("Skeleton root node should have identity parent transform, current transform is {}",
         glm::to_string(skeletonGlobalTransform)));
-    }
+    }*/
 
     RawSkeleton rawSkeleton{};
     rawSkeleton.header.formatVersion = SKELETON_FORMAT_VERSION;
     rawSkeleton.header.bonesCount = static_cast<uint8_t>(bonesNodes.size());
+
+    SW_ASSERT(!rootBoneNode.name.empty() && "TODO: implement bones names auto generation");
+    strncpy_s(rawSkeleton.header.name, rootBoneNode.name.c_str(), sizeof(rawSkeleton.header.name));
 
     // Nodes indices to raw bones indices map
     std::unordered_map<size_t, size_t> rawBonesIndicesMap;
@@ -904,22 +1175,6 @@ std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tin
     std::unordered_map<size_t, glm::mat4> inverseBindPoseMatricesMap;
 
     for (size_t childBoneIndex = 0; childBoneIndex < skin.joints.size(); childBoneIndex++) {
-      glm::mat4 manualInverseBindPoseMatrix = glm::inverse(
-        m_modelNodesGlobalTransforms[static_cast<int16_t>(skin.joints[childBoneIndex])]);
-
-      if (!MathUtils::isEqual(inverseBindPoseMatrices[childBoneIndex], manualInverseBindPoseMatrix)) {
-        raiseImportError(fmt::format(
-          "Inverse bind pose matrix validation is failed, original matrix is {}, custom matrix is {}",
-          glm::to_string(inverseBindPoseMatrices[childBoneIndex]),
-          glm::to_string(manualInverseBindPoseMatrix)));
-      }
-      else {
-        spdlog::debug("Inverse bind pose matrix validation passed, node {}\nOriginal matrix: {}\nCustom matrix:   {}",
-          childBoneIndex,
-          glm::to_string(inverseBindPoseMatrices[childBoneIndex]),
-          glm::to_string(manualInverseBindPoseMatrix));
-      }
-
       inverseBindPoseMatricesMap[skin.joints[childBoneIndex]] =
         inverseBindPoseMatrices[childBoneIndex];
     }
@@ -1023,7 +1278,8 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
         raiseImportError("All animation clip nodes should refer to the same existing skeleton");
       }
 
-      if (animationChannel.target_path != "translation" && animationChannel.target_path != "rotation") {
+      if (animationChannel.target_path != "translation" && animationChannel.target_path != "rotation" &&
+        animationChannel.target_path != "scale") {
         raiseImportError(fmt::format("Animation channel component {} is not supported", animationChannel.target_path));
       }
     }
@@ -1074,7 +1330,8 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
 
       SW_ASSERT(keyframesValuesAccessor.count == keyframesTime.size());
 
-      auto[keyframesValuesBufferPtr, keyframesValuesBufferStride] = getAttributeBufferStorage(model, keyframesValuesAccessor);
+      auto[keyframesValuesBufferPtr, keyframesValuesBufferStride] = getAttributeBufferStorage(model,
+        keyframesValuesAccessor);
 
       if (animationChannel.target_path == "translation") {
         SW_ASSERT(keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC3);
@@ -1085,7 +1342,8 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
         for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
           glm::vec3 positionKey = glm::make_vec3(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
           rawBoneChannel.positionFrames[keyframeIndex].time = keyframesTime[keyframeIndex];
-          rawBoneChannel.positionFrames[keyframeIndex].position = { .x = positionKey.x, .y = positionKey.y, .z = positionKey.z };
+          rawBoneChannel.positionFrames[keyframeIndex].position =
+            {.x = positionKey.x, .y = positionKey.y, .z = positionKey.z};
 
           keyframesValuesBufferPtr += keyframesValuesBufferStride;
         }
@@ -1101,13 +1359,28 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
         for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
           glm::vec4 orientationKey = glm::make_vec4(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
           rawBoneChannel.orientationFrames[keyframeIndex].time = keyframesTime[keyframeIndex];
-          rawBoneChannel.orientationFrames[keyframeIndex].orientation = { .x = orientationKey.x,
-            .y = orientationKey.y, .z = orientationKey.z, .w = orientationKey.w };
+          rawBoneChannel.orientationFrames[keyframeIndex].orientation = {.x = orientationKey.x,
+            .y = orientationKey.y, .z = orientationKey.z, .w = orientationKey.w};
 
           keyframesValuesBufferPtr += keyframesValuesBufferStride;
         }
 
         rawBoneChannel.header.orientationFramesCount = static_cast<uint16_t>(rawBoneChannel.orientationFrames.size());
+      }
+      else if (animationChannel.target_path == "scale") {
+        SW_ASSERT(keyframesValuesAccessor.type == TINYGLTF_TYPE_VEC3);
+
+        for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
+          glm::vec3 scaleKey = glm::make_vec3(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
+
+          if (!MathUtils::isEqual(scaleKey, glm::vec3(1.0f), 1e-4f)) {
+            raiseImportError("Scale keys for skeletal animation are not supported");
+          }
+
+          keyframesValuesBufferPtr += keyframesValuesBufferStride;
+        }
+
+        rawBoneChannel.header.positionFramesCount = static_cast<uint16_t>(rawBoneChannel.positionFrames.size());
       }
       else {
         raiseImportError(fmt::format("Impossible to handle unknown target path {}", animationChannel.target_path));

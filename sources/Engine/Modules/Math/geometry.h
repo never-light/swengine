@@ -132,4 +132,6 @@ class GeometryUtils {
 
   static AABB restoreAABBByVerticesList(const std::vector<glm::vec3>& vertices);
   static Sphere restoreSphereByVerticesList(const std::vector<glm::vec3>& vertices);
+
+  static AABB mergeAABB(const AABB& aabb1, const AABB& aabb2);
 };

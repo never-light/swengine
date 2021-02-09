@@ -298,7 +298,7 @@ pugi::xml_document SceneExporter::generateStaticSpawnDeclarations(const std::str
 
     pugi::xml_node visualComponentMaterialsNode = visualComponentNode.append_child("materials");
 
-    for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesIndicesOffsets.size(); subMeshIndex++) {
+    for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
       pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
 
       std::string materialResourceId = "materials_common_checker";
@@ -364,26 +364,65 @@ std::filesystem::path SceneExporter::getTextureExportPath(const std::string& exp
     std::filesystem::path(textureInfo.textureTmpPath).filename().string()));
 }
 
+std::filesystem::path SceneExporter::getSkeletonExportPath(const std::string& exportDir, const RawSkeleton& skeleton)
+{
+  return getExportPath(exportDir, "skeletons/" + getSkeletonResourceId(skeleton) + ".skeleton");
+}
+
+std::filesystem::path SceneExporter::getAnimationClipExportPath(const std::string& exportDir,
+  const RawSkeletalAnimationClip& animationClip)
+{
+  return getExportPath(exportDir, "animations/" + getAnimationClipResourceId(animationClip) + ".anim");
+}
+
 std::string SceneExporter::getMeshResourceId(const RawMeshNode& meshNode)
 {
-  return "resource_mesh_" + std::string(meshNode.name);
+  std::string meshName = meshNode.name;
+  SW_ASSERT(!meshName.empty());
+
+  return "resource_mesh_" + meshName;
 }
 
 std::string SceneExporter::getColliderResourceId(const RawMeshNode& meshNode)
 {
-  return "resource_mesh_collider_" + std::string(meshNode.name);
+  std::string colliderName = meshNode.name;
+  SW_ASSERT(!colliderName.empty());
+
+  return "resource_mesh_collider_" + colliderName;
 }
 
 std::string SceneExporter::getTextureResourceId(const RawTextureInfo& textureInfo)
 {
+  SW_ASSERT(!textureInfo.textureBaseName.empty());
+
   return "resource_texture_" + textureInfo.textureBaseName;
+}
+
+std::string SceneExporter::getSkeletonResourceId(const RawSkeleton& skeleton)
+{
+  std::string skeletonName = skeleton.header.name;
+  SW_ASSERT(!skeletonName.empty());
+
+  return "resource_skeleton_" + skeletonName;
+}
+
+std::string SceneExporter::getAnimationClipResourceId(const RawSkeletalAnimationClip& animationClip)
+{
+  std::string animationClipName = animationClip.header.name;
+  SW_ASSERT(!animationClipName.empty());
+
+  return "resource_anim_clip_" + animationClipName;
 }
 
 std::string SceneExporter::getMaterialResourceId(const RawMaterial& materialInfo)
 {
   std::string materialName = std::string(materialInfo.name);
+  SW_ASSERT(!materialName.empty());
+
   std::string materialResourceName = "resource_material_" + materialName;
 
+  // NOTE: it is assumed that material name is always unique and can not be empty, so there is not two material info instances
+  //  with the same name.
   /*
   if (materialName.empty()) {
     materialName = "unnamed";

@@ -6,21 +6,39 @@
 #include "types.h"
 
 struct RawVector2 {
-  float x;
-  float y;
+  union {
+    struct {
+      float x;
+      float y;
+    };
+
+    float data[2];
+  };
 };
 
 struct RawVector3 {
-  float x;
-  float y;
-  float z;
+  union {
+    struct {
+      float x;
+      float y;
+      float z;
+    };
+
+    float data[3];
+  };
 };
 
 struct RawVector4 {
-  float x;
-  float y;
-  float z;
-  float w;
+  union {
+    struct {
+      float x;
+      float y;
+      float z;
+      float w;
+    };
+
+    float data[4];
+  };
 };
 
 struct RawU8Vector4 {
@@ -45,10 +63,16 @@ struct RawMatrix4 {
 };
 
 struct RawQuaternion {
-  float x;
-  float y;
-  float z;
-  float w;
+  union {
+    struct {
+      float x;
+      float y;
+      float z;
+      float w;
+    };
+
+    float data[4];
+  };
 };
 
 RawMatrix4 glmMatrix4ToRawMatrix4(const glm::mat4& matrix);

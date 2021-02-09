@@ -413,3 +413,19 @@ Sphere GeometryUtils::restoreSphereByVerticesList(const std::vector<glm::vec3>& 
 
     return Sphere(origin, radius);
 }
+
+AABB GeometryUtils::mergeAABB(const AABB& aabb1, const AABB& aabb2)
+{
+  glm::vec3 min = glm::vec3(
+    glm::min(aabb1.getMin().x, aabb2.getMin().x),
+    glm::min(aabb1.getMin().y, aabb2.getMin().y),
+    glm::min(aabb1.getMin().z, aabb2.getMin().z)
+  );
+  glm::vec3 max = glm::vec3(
+    glm::max(aabb1.getMax().x, aabb2.getMax().x),
+    glm::max(aabb1.getMax().y, aabb2.getMax().y),
+    glm::max(aabb1.getMax().z, aabb2.getMax().z)
+  );
+
+  return AABB(min, max);
+}

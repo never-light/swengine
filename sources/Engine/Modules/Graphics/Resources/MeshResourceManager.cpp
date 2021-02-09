@@ -76,7 +76,10 @@ void MeshResourceManager::load(size_t resourceIndex)
     mesh->setSkinData(bonesIDs, bonesWeights);
   }
 
-  mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
+  for (const RawSubMeshDescription& rawSubMeshDescription : rawMesh.subMeshesDescriptions) {
+    mesh->addSubMesh(rawSubMeshDescription.indices);
+  }
+
   mesh->setAABB(rawMesh.aabb);
 
   if (config->skeletonResourceId.has_value()) {

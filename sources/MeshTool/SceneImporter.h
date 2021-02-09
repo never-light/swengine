@@ -17,6 +17,11 @@ struct SceneImportOptions {
 
 };
 
+struct RawMeshNodeImportData {
+  RawMeshNode rawNode;
+  int32_t sceneNodeIndex;
+};
+
 class SceneImporter {
  public:
   SceneImporter();
@@ -38,7 +43,7 @@ class SceneImporter {
     const tinygltf::Node& node);
   static void validateTexture(const tinygltf::Model& model, const tinygltf::Texture& texture);
 
-  [[nodiscard]] std::vector<RawMeshNode> convertSceneToRawData(const tinygltf::Model& model,
+  [[nodiscard]] std::vector<RawMeshNodeImportData> convertSceneToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);
   [[nodiscard]] std::vector<RawSkeleton> convertSceneSkeletonsToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);

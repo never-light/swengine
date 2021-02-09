@@ -233,8 +233,7 @@ void DebugPainter::createRenderingTask(
     indices[pointIndex] = static_cast<uint16_t>(pointIndex);
   }
 
-  size_t subMeshIndex = mesh.addSubMesh(indices);
-  LOCAL_VALUE_UNUSED(subMeshIndex);
+  mesh.addSubMesh(indices);
 
   createRenderingTask(&mesh, transformationMatrix, primitivesType, color, wireframe);
 }

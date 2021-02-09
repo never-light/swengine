@@ -129,3 +129,33 @@ glm::mat4 MathUtils::getRotationMatrix(const glm::quat& orientation)
 {
   return glm::mat4_cast(orientation);
 }
+
+std::tuple<glm::vec3, glm::vec3> MathUtils::generateTangentBitangent(const glm::vec3& v0,
+  const glm::vec3& v1,
+  const glm::vec3& v2,
+  const glm::vec2& uv0,
+  const glm::vec2& uv1,
+  const glm::vec2& uv2)
+{
+  glm::vec3 positionDifference1 = v1 - v0;
+  glm::vec3 positionDifference2 = v2 - v0;
+
+  glm::vec2 uvDifference1 = uv1 - uv0;
+  glm::vec2 uvDifference2 = uv2 - uv0;
+
+  float r = 1.0f / (uvDifference1.x * uvDifference2.y - uvDifference1.y * uvDifference2.x);
+  glm::vec3 tangent = (positionDifference1 * uvDifference2.y - positionDifference2 * uvDifference1.y) * r;
+  glm::vec3 bitangent = (positionDifference2 * uvDifference1.x - positionDifference1 * uvDifference2.x) * r;
+
+  return { tangent, bitangent };
+}
+
+glm::vec3 MathUtils::generateTangent(const glm::vec3& v0,
+  const glm::vec3& v1,
+  const glm::vec3& v2,
+  const glm::vec2& uv0,
+  const glm::vec2& uv1,
+  const glm::vec2& uv2)
+{
+  return std::get<0>(generateTangentBitangent(v0, v1, v2, uv0, uv1, uv2));
+}
