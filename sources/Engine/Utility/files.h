@@ -9,6 +9,7 @@ class FileUtils {
   [[nodiscard]] static bool isDirExists(const std::string& path);
   [[nodiscard]] static bool isFileExists(const std::string& path);
   [[nodiscard]] static std::string readFile(const std::string& path);
+  [[nodiscard]] static std::string getFileExtension(const std::string& path);
 
   [[nodiscard]] static std::string getAbsolutePath(const std::string& relativePath);
   [[nodiscard]] static std::string getResourcePath(const std::string& resourceLocalPath);

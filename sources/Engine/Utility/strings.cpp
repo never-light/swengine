@@ -121,3 +121,11 @@ std::string StringUtils::filterFilename(const std::string& filename)
     {'>', '<', ':', '"', '/', '\\', '|', '?', '*'});
 }
 
+std::string StringUtils::join(const std::vector<std::string>& strings, const std::string& delimiter)
+{
+  std::stringstream stream;
+  copy(strings.begin(), strings.end(), std::ostream_iterator<std::string>(stream, delimiter.c_str()));
+
+  return stream.str();
+}
+

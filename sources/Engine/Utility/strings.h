@@ -17,6 +17,8 @@ class StringUtils {
   StringUtils() = delete;
 
   [[nodiscard]] static std::vector<std::string> split(const std::string& str, char delimiter);
+  [[nodiscard]] static std::string join(const std::vector<std::string>& strings, const std::string& delimiter = " ");
+
   [[nodiscard]] static std::string toLowerCase(const std::string& str);
 
   template<class T>

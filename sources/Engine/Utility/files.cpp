@@ -2,6 +2,7 @@
 #pragma hdrstop
 
 #include "files.h"
+#include "strings.h"
 
 #include <fstream>
 #include <filesystem>
@@ -77,4 +78,9 @@ std::vector<std::string> FileUtils::getScriptsList()
 std::string FileUtils::getSavePath(const std::string& saveName)
 {
   return std::string(SAVES_PATH) + "/" + saveName + ".save";
+}
+
+std::string FileUtils::getFileExtension(const std::string& path)
+{
+  return *StringUtils::split(path, '.').rbegin();
 }
