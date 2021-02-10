@@ -81,6 +81,8 @@ RawMesh RawMesh::readFromFile(const std::string& path)
   }
 
   meshFile.read(reinterpret_cast<char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+  meshFile.read(reinterpret_cast<char*>(&rawMesh.inverseSceneTransform.data),
+    sizeof(rawMesh.inverseSceneTransform.data));
 
   meshFile.close();
 
@@ -153,6 +155,8 @@ void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
   }
 
   meshFile.write(reinterpret_cast<const char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+  meshFile.write(reinterpret_cast<const char*>(&rawMesh.inverseSceneTransform.data),
+    sizeof(rawMesh.inverseSceneTransform.data));
 
   meshFile.close();
 }

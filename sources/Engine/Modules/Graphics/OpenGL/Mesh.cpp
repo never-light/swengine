@@ -289,3 +289,13 @@ void Mesh::setAttributeOutdated(MeshAttributes attribute, bool isOutdated)
   m_needUpdateAttributes[size_t(attribute)] = isOutdated;
   m_needGeometryBufferUpdate = true;
 }
+
+void Mesh::setInverseSceneTransform(const glm::mat4& transform)
+{
+  m_inverseSceneTransform = transform;
+}
+
+const glm::mat4& Mesh::getInverseSceneTransform() const
+{
+  return m_inverseSceneTransform;
+}

@@ -72,6 +72,9 @@ class Mesh : public Resource {
   void setAABB(const AABB& aabb);
   [[nodiscard]] const AABB& getAABB() const;
 
+  void setInverseSceneTransform(const glm::mat4& transform);
+  [[nodiscard]] const glm::mat4& getInverseSceneTransform() const;
+
   void setSkeleton(ResourceHandle<Skeleton> skeleton);
   [[nodiscard]] ResourceHandle<Skeleton> getSkeleton() const;
 
@@ -99,6 +102,7 @@ class Mesh : public Resource {
   bool m_needGeometryBufferUpdate = false;
 
   AABB m_aabb;
+  glm::mat4 m_inverseSceneTransform = glm::identity<glm::mat4>();
 
   std::optional<ResourceHandle<Skeleton>> m_skeleton;
   bool m_isDynamic = false;

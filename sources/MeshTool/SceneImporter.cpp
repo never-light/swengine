@@ -20,6 +20,9 @@
 #include <Engine/Modules/Math/geometry.h>
 #include <Engine/Utility/containers.h>
 
+// TODO: this class and its methods become too big to read and analyze, so
+//  split and simplify it, add tests for scene importing.
+
 SceneImporter::SceneImporter()
 {
 
@@ -460,7 +463,10 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
 
     auto& mergedRawMesh = mergedRawNode.rawMesh;
 
-    mergedRawMesh.aabb = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.aabb;
+    const RawAABB& rawAABB = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.aabb;
+
+    AABB mergedAABB(rawVector3ToGLMVector3(rawAABB.min),
+      rawVector3ToGLMVector3(rawAABB.max));
 
     for (unsigned long long skinMeshIndex : skinMeshesList) {
       auto& rawMeshNode = rawNodesList[skinMeshIndex].rawNode;
@@ -511,7 +517,8 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
         }
       }
 
-      mergedRawMesh.aabb = GeometryUtils::mergeAABB(mergedRawMesh.aabb, rawMesh.aabb);
+      mergedAABB = GeometryUtils::mergeAABB(mergedAABB, AABB(rawVector3ToGLMVector3(rawMesh.aabb.min),
+        rawVector3ToGLMVector3(rawMesh.aabb.max)));
 
       if (rawMeshNode.isInteractive) {
         mergedRawNode.isInteractive = true;
@@ -526,6 +533,10 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
 
       ContainersUtils::append(mergedRawNode.materials, rawMeshNode.materials);
     }
+
+    mergedRawMesh.aabb = {.min = glmVector3ToRawVector3(mergedAABB.getMin()),
+      .max = glmVector3ToRawVector3(mergedAABB.getMax())};
+    mergedRawMesh.inverseSceneTransform = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.inverseSceneTransform;
 
     rawNodesList.push_back(RawMeshNodeImportData{.rawNode=mergedRawNode, .sceneNodeIndex = -1});
   }
@@ -674,7 +685,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
           const auto* bonesIdsPtr = reinterpret_cast<const unsigned short*>(attributeBufferPtr);
 
           // TODO: check that JOINTS_0 attribute bones ids always corresponds to m_modelNodesSkeletonsRawIndices mapping
-          // and simplify this conversion in that case.
+          //  and simplify this conversion in that case.
+          //  Update: not always, but additional tests are needed.
           SW_ASSERT(bonesIdsPtr[0] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]] &&
             bonesIdsPtr[1] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]] &&
             bonesIdsPtr[2] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]] &&
@@ -777,13 +789,22 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
       }
     }
 
+    // TODO[HIGH]: it is for debugging only, so remove it
+    if ((rawNode.rawMesh.header.storedAttributesMask & static_cast<bitmask64>(RawMeshAttributes::UV)) == 0) {
+      rawNode.rawMesh.header.storedAttributesMask |= static_cast<bitmask64>(RawMeshAttributes::UV);
+      rawNode.rawMesh.uv.resize(rawNode.rawMesh.positions.size());
+
+      spdlog::error("UV for some mesh are filled with zero values");
+    }
+
     if (primitive.material != -1) {
       const tinygltf::Material& material = model.materials[primitive.material];
       const tinygltf::PbrMetallicRoughness& pbrParameters = material.pbrMetallicRoughness;
 
       RawMaterial rawMaterial{};
 
-      strncpy_s(rawMaterial.name, material.name.c_str(), sizeof(rawNode.name));
+      std::string materialName = generateMaterialName(material);
+      strncpy_s(rawMaterial.name, materialName.c_str(), sizeof(rawNode.name));
 
       rawMaterial.baseColorFactor = {static_cast<float>(pbrParameters.baseColorFactor[0]),
         static_cast<float>(pbrParameters.baseColorFactor[1]),
@@ -811,7 +832,10 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     aabbMax = glm::max(aabbMax, {position.x, position.y, position.z});
   }
 
-  rawNode.rawMesh.aabb = AABB(aabbMin, aabbMax);
+  rawNode.rawMesh.aabb = RawAABB{.min = glmVector3ToRawVector3(aabbMin), .max = glmVector3ToRawVector3(aabbMax)};
+  rawNode.rawMesh.inverseSceneTransform = glmMatrix4ToRawMatrix4(glm::inverse(m_modelNodesGlobalTransforms.at(
+    getNodeIndex(model, scene, node)
+  )));
 
   bool collisionsResolutionDisabled = false;
 
@@ -1292,7 +1316,7 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
     RawSkeletalAnimationClip rawClip{};
 
     // TODO: check for filenames collisions
-    std::string animationClipName = StringUtils::filterFilename(animation.name);
+    std::string animationClipName = generateAnimationClipName(animation);
     strncpy_s(rawClip.header.name, animationClipName.c_str(), sizeof(rawClip.header.name));
 
     rawClip.header.formatVersion = ANIMATION_FORMAT_VERSION;
@@ -1404,6 +1428,38 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
   }
 
   return rawClips;
+}
+
+std::string SceneImporter::generateMaterialName(const tinygltf::Material& material)
+{
+  std::string originBaseName = material.name.empty() ? "unnamed" : material.name;
+
+  std::string name = originBaseName;
+  size_t baseIndex = 1;
+
+  while (m_materialsNames.contains(name)) {
+    name = originBaseName + "_" + std::to_string(baseIndex);
+  }
+
+  m_materialsNames.insert(name);
+
+  return name;
+}
+
+std::string SceneImporter::generateAnimationClipName(const tinygltf::Animation& animationClip)
+{
+  std::string originBaseName = animationClip.name.empty() ? "unnamed" : StringUtils::filterFilename(animationClip.name);
+
+  std::string name = originBaseName;
+  size_t baseIndex = 1;
+
+  while (m_animationClipsNames.contains(name)) {
+    name = originBaseName + "_" + std::to_string(baseIndex);
+  }
+
+  m_animationClipsNames.insert(name);
+
+  return name;
 }
 
 

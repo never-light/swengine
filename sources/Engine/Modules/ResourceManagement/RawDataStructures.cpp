@@ -30,3 +30,24 @@ glm::mat4 rawMatrix4ToGLMMatrix4(const RawMatrix4& matrix)
 
   return glmMatrix;
 }
+
+RawVector3 glmVector3ToRawVector3(const glm::vec3& vector)
+{
+  return RawVector3{.x = vector.x, .y = vector.y, .z = vector.z};
+}
+
+glm::vec3 rawVector3ToGLMVector3(const RawVector3& vector)
+{
+  return glm::vec3(vector.x, vector.y, vector.z);
+}
+
+RawVector4 glmVector4ToRawVector4(const glm::vec4& vector)
+{
+  return RawVector4{.x = vector.x, .y = vector.y, .z = vector.z, .w = vector.w};
+}
+
+glm::vec4 rawVector4ToGLMVector4(const RawVector4& vector)
+{
+  return glm::vec4(vector.x, vector.y, vector.z, vector.w);
+}
+

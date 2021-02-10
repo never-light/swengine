@@ -10,6 +10,8 @@
 
 #include <utility>
 
+#define START_WITH_FREE_CAMERA 1
+
 Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
   std::shared_ptr<InputModule> inputModule,
@@ -69,7 +71,8 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_graphicsScene,
     m_playerUILayout);
 
-  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
+//  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
+  m_resourceManager->loadResourcesMapFile("crossroads/paul/resources.xml");
 }
 
 void Game::activate()
@@ -185,8 +188,13 @@ void Game::setupGameState()
   m_gameModeSystems->addGameSystem(m_questsSystem);
   m_gameModeSystems->addGameSystem(m_infoportionsSystem);
 
+#if defined(START_WITH_FREE_CAMERA) && START_WITH_FREE_CAMERA == 1
+  m_activeCameraControlSystem = m_freeCameraControlSystem;
+#else
   m_activeCameraControlSystem = m_playerControlSystem;
-  m_gameModeSystems->addGameSystem(m_playerControlSystem);
+#endif
+
+  m_gameModeSystems->addGameSystem(m_activeCameraControlSystem);
 
   if (!m_isGamePreloaded) {
     m_dialoguesManager->loadFromFile("dialogues_general");
@@ -196,11 +204,14 @@ void Game::setupGameState()
     m_isGamePreloaded = true;
   }
 
+#if defined(START_WITH_FREE_CAMERA) && START_WITH_FREE_CAMERA == 1
+#else
   m_graphicsScene->setActiveCamera(m_gameWorld->findGameObject("player").getComponent<CameraComponent>()->getCamera());
 
   GameObject player = m_gameWorld->findGameObject("player");
   player.getComponent<CameraComponent>()->getCamera()->setAspectRatio(
     float(m_graphicsContext->getViewportWidth()) / float(m_graphicsContext->getViewportHeight()));
+#endif
 
   auto environmentObject = m_gameWorld->findGameObject("environment");
 

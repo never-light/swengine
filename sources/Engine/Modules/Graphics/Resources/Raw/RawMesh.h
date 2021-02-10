@@ -10,7 +10,7 @@
 
 // TODO: assume that there could be migrations from previous meshes formats,
 //  try to avoid manual meshes reimporting.
-constexpr uint16_t MESH_FORMAT_VERSION = 115;
+constexpr uint16_t MESH_FORMAT_VERSION = 116;
 
 enum class RawMeshAttributes {
   Empty = 0,
@@ -60,6 +60,11 @@ struct RawSubMeshDescription {
   std::vector<uint16_t> indices;
 };
 
+struct RawAABB {
+  RawVector3 min;
+  RawVector3 max;
+};
+
 struct RawMesh {
   RawMeshHeader header;
 
@@ -75,7 +80,14 @@ struct RawMesh {
   /**
    * @brief Axis-aligned bounding box for the whole mesh
    */
-  AABB aabb;
+  RawAABB aabb;
+
+  /**
+   * @brief Inverse of global mesh's node transform in scene which
+   * the mesh was imported from.
+   * This transform can be needed for applying pose with skeleton.
+   */
+  RawMatrix4 inverseSceneTransform;
 
   static RawMesh readFromFile(const std::string& path);
   static void writeToFile(const std::string& path, const RawMesh& rawMesh);

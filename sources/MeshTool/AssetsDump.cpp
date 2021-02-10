@@ -28,7 +28,7 @@ void AssetsDump::dumpAssetData(const std::string& assetPath)
 
 void AssetsDump::dumpMesh(const RawMesh& mesh)
 {
-  SW_ASSERT(MESH_FORMAT_VERSION == 115 && "Do not forget to update dump logic");
+  static_assert(MESH_FORMAT_VERSION == 116 && "Do not forget to update dump logic");
 
   std::unordered_map<size_t, std::string> meshAttributesNames = {
     {0, "None"},
@@ -74,11 +74,19 @@ void AssetsDump::dumpMesh(const RawMesh& mesh)
       subMeshIndex, mesh.subMeshesDescriptions[subMeshIndex].indicesCount,
       fmt::join(mesh.subMeshesDescriptions[subMeshIndex].indices, ", "));
   }
+
+  fmt::print("  AABB:\n"
+             "    Min: {0}\n"
+             "    Max: {1}\n"
+             "  inverseSceneTransform: {2}\n",
+    glm::to_string(rawVector3ToGLMVector3(mesh.aabb.min)),
+    glm::to_string(rawVector3ToGLMVector3(mesh.aabb.max)),
+    glm::to_string(rawMatrix4ToGLMMatrix4(mesh.inverseSceneTransform)));
 }
 
 void AssetsDump::dumpSkeleton(const RawSkeleton& skeleton)
 {
-  SW_ASSERT(SKELETON_FORMAT_VERSION == 112 && "Do not forget to update dump logic");
+  static_assert(SKELETON_FORMAT_VERSION == 112 && "Do not forget to update dump logic");
 
   fmt::print("Raw skeleton asset:\n"
              "  Header:"
@@ -101,7 +109,7 @@ void AssetsDump::dumpSkeleton(const RawSkeleton& skeleton)
 
 void AssetsDump::dumpAnimationClip(const RawSkeletalAnimationClip& animationClip)
 {
-  SW_ASSERT(ANIMATION_FORMAT_VERSION == 112 && "Do not forget to update dump logic");
+  static_assert(ANIMATION_FORMAT_VERSION == 112 && "Do not forget to update dump logic");
 
   std::vector<RawBoneAnimationChannel> bonesAnimationChannels;
 

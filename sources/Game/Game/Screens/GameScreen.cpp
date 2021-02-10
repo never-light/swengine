@@ -38,7 +38,8 @@ void GameScreen::activate()
   m_gameWorld->subscribeEventsListener<GameConsoleChangeVisibilityEvent>(this);
 
   if (!m_game->isLoaded()) {
-    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
+//    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
+    m_game->createNewGame("../../../bin/crossroads/paul");
   }
 }
 

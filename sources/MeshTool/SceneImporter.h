@@ -97,6 +97,9 @@ class SceneImporter {
     const tinygltf::Texture& texture,
     size_t index = 0);
 
+  [[nodiscard]] std::string generateMaterialName(const tinygltf::Material& material);
+  [[nodiscard]] std::string generateAnimationClipName(const tinygltf::Animation& animationClip);
+
  private:
   std::unordered_map<int16_t, glm::mat4> m_modelNodesGlobalTransforms;
   std::unordered_map<const tinygltf::Node*, int16_t> m_nodesIds;
@@ -105,4 +108,7 @@ class SceneImporter {
 
   // Skin index -> { node index -> raw bone index }
   std::unordered_map<size_t, std::unordered_map<size_t, size_t>> m_modelNodesSkeletonsRawIndices;
+
+  std::unordered_set<std::string> m_materialsNames;
+  std::unordered_set<std::string> m_animationClipsNames;
 };

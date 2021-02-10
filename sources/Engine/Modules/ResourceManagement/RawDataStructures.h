@@ -77,3 +77,9 @@ struct RawQuaternion {
 
 RawMatrix4 glmMatrix4ToRawMatrix4(const glm::mat4& matrix);
 glm::mat4 rawMatrix4ToGLMMatrix4(const RawMatrix4& matrix);
+
+RawVector3 glmVector3ToRawVector3(const glm::vec3& vector);
+glm::vec3 rawVector3ToGLMVector3(const RawVector3& vector);
+
+RawVector4 glmVector4ToRawVector4(const glm::vec4& vector);
+glm::vec4 rawVector4ToGLMVector4(const RawVector4& vector);

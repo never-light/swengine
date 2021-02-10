@@ -261,7 +261,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     });
   }
 
-  mesh->aabb = AABB(aabbMin, aabbMax);
+  mesh->aabb = RawAABB{glmVector3ToRawVector3(aabbMin), glmVector3ToRawVector3(aabbMax)};
 
   mesh->header.formatVersion = MESH_FORMAT_VERSION;
   mesh->header.verticesCount = static_cast<uint16_t>(mesh->positions.size());

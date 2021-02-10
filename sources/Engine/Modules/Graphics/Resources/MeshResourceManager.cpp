@@ -80,7 +80,8 @@ void MeshResourceManager::load(size_t resourceIndex)
     mesh->addSubMesh(rawSubMeshDescription.indices);
   }
 
-  mesh->setAABB(rawMesh.aabb);
+  mesh->setAABB(AABB(rawVector3ToGLMVector3(rawMesh.aabb.min), rawVector3ToGLMVector3(rawMesh.aabb.max)));
+  mesh->setInverseSceneTransform(rawMatrix4ToGLMMatrix4(rawMesh.inverseSceneTransform));
 
   if (config->skeletonResourceId.has_value()) {
     ResourceHandle<Skeleton> skeleton = getResourceManager()->getResource<Skeleton>(

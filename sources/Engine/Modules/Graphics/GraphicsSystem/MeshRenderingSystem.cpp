@@ -38,7 +38,14 @@ void MeshRenderingSystem::update(float delta)
 
 void MeshRenderingSystem::render()
 {
+  // TODO: reorganize this logic and get rid of these static cache variables
+  static std::vector<glm::mat4> skinnedMeshesPremultipliedTransforms;
+  SW_ASSERT(skinnedMeshesPremultipliedTransforms.size() < 128);
+  skinnedMeshesPremultipliedTransforms.reserve(128);
+  skinnedMeshesPremultipliedTransforms.clear();
+
   static std::vector<GameObject> visibleObjects;
+  SW_ASSERT(visibleObjects.size() < 1024);
   visibleObjects.reserve(1024);
   visibleObjects.clear();
 
@@ -63,11 +70,18 @@ void MeshRenderingSystem::render()
 
     frameStats.increaseSubMeshesCount(subMeshesCount);
 
+    bool isMeshAnimated = mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>();
+
+    if (isMeshAnimated) {
+      skinnedMeshesPremultipliedTransforms
+        .push_back(transform.getTransformationMatrix() * mesh->getInverseSceneTransform());
+    }
+
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
 
       const glm::mat4* matrixPalette = nullptr;
 
-      if (mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>()) {
+      if (isMeshAnimated) {
         auto& skeletalAnimationComponent = *obj.getComponent<SkeletalAnimationComponent>().get();
 
         if (skeletalAnimationComponent.getAnimationStatesMachineRef().isActive()) {
@@ -87,7 +101,7 @@ void MeshRenderingSystem::render()
         .material = meshComponent->getMaterialInstance(subMeshIndex).get(),
         .mesh = mesh,
         .subMeshIndex = static_cast<uint16_t>(subMeshIndex),
-        .transform = &transform.getTransformationMatrix(),
+        .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) : &transform.getTransformationMatrix()),
         .matrixPalette = matrixPalette,
       });
 
