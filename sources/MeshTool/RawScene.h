@@ -42,10 +42,19 @@ struct RawMeshNode {
   std::vector<std::optional<RawMaterial>> materials;
 
   bool isInteractive{};
+
+  size_t skeletonIndex = NONE_SKELETON;
+
+  static constexpr size_t NONE_SKELETON = std::numeric_limits<size_t>::max();
+};
+
+struct RawSkeletonDescription {
+  RawSkeleton skeleton;
+  std::vector<size_t> animationClips;
 };
 
 struct RawScene {
   std::vector<RawMeshNode> meshesNodes;
-  std::vector<RawSkeleton> skeletons;
+  std::vector<RawSkeletonDescription> skeletons;
   std::vector<RawSkeletalAnimationClip> animationClips;
 };

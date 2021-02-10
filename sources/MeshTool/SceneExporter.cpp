@@ -59,11 +59,13 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
     std::filesystem::create_directory(animationClipsDirPath);
   }
 
-  for (const RawSkeleton& skeleton : scene.skeletons) {
+  for (const RawSkeletonDescription& skeleton : scene.skeletons) {
     SkeletonExportOptions skeletonExportOptions{};
 
     SkeletonExporter exporter;
-    exporter.exportToFile(getSkeletonExportPath(exportDir, skeleton).string(), skeleton, skeletonExportOptions);
+    exporter.exportToFile(getSkeletonExportPath(exportDir, skeleton.skeleton).string(),
+      skeleton.skeleton,
+      skeletonExportOptions);
   }
 
   for (const RawSkeletalAnimationClip& animationClip : scene.animationClips) {
@@ -85,8 +87,21 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
     RawMeshAttributes posNormUVAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
       | RawMeshAttributes::UV;
 
-    if ((meshAttributes & posNormTanUVAttributesMask) == posNormTanUVAttributesMask) {
-      meshExportOptions.format = MeshExportFormat::Pos3Norm3Tan3UV;
+    RawMeshAttributes posNormUVSkinnedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
+      | RawMeshAttributes::UV;
+
+    RawMeshAttributes posNormTanUVSkinnedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
+      | RawMeshAttributes::UV;
+
+
+    if ((meshAttributes & posNormUVSkinnedAttributesMask) == posNormUVSkinnedAttributesMask) {
+      meshExportOptions.format = MeshExportFormat::Pos3Norm3UVSkinned;
+    }
+    else if ((meshAttributes & posNormTanUVSkinnedAttributesMask) == posNormTanUVSkinnedAttributesMask) {
+      meshExportOptions.format = MeshExportFormat::Pos3Norm3Tan3UVSkinned;
+    }
+    else if ((meshAttributes & posNormTanUVAttributesMask) == posNormTanUVAttributesMask) {
+      meshExportOptions.format = MeshExportFormat::Pos3Norm3UV;
     }
     else if ((meshAttributes & posNormUVAttributesMask) == posNormUVAttributesMask) {
       meshExportOptions.format = MeshExportFormat::Pos3Norm3UV;
@@ -138,6 +153,7 @@ pugi::xml_document SceneExporter::generateResourcesDeclarations(
 
   pugi::xml_node resourcesNode = declarationsDocument.append_child("resources");
 
+  // Meshes export
   for (const auto& meshNode : scene.meshesNodes) {
     pugi::xml_node meshResourceNode = resourcesNode.append_child("resource");
 
@@ -209,6 +225,66 @@ pugi::xml_document SceneExporter::generateResourcesDeclarations(
   for (const auto& materialIt : materialsToExport) {
     const RawMaterial& material = materialIt.second;
     generateMaterialResourceDeclaration(resourcesNode, material);
+  }
+
+  // Skeletons export
+
+  for (const RawSkeletonDescription& skeletonDescription : scene.skeletons) {
+    pugi::xml_node skeletonResourceNode = resourcesNode.append_child("resource");
+    skeletonResourceNode.append_attribute("type").set_value("skeleton");
+    skeletonResourceNode.append_attribute("id").set_value(getSkeletonResourceId(skeletonDescription.skeleton).c_str());
+
+    std::string skeletonExportPath = getSkeletonExportPath(exportDir, skeletonDescription.skeleton).string();
+    skeletonResourceNode.append_attribute("source").set_value(skeletonExportPath.c_str());
+  }
+
+  // Animations export
+
+  for (const RawSkeletalAnimationClip& animationClip : scene.animationClips) {
+    pugi::xml_node animationClipResourceNode = resourcesNode.append_child("resource");
+    animationClipResourceNode.append_attribute("type").set_value("animation");
+    animationClipResourceNode.append_attribute("id").set_value(getAnimationClipResourceId(animationClip).c_str());
+
+    std::string animationClipExportPath = getAnimationClipExportPath(exportDir, animationClip).string();
+    animationClipResourceNode.append_attribute("source").set_value(animationClipExportPath.c_str());
+  }
+
+  // Animation states machines export
+
+  for (const RawSkeletonDescription& skeletonDescription : scene.skeletons) {
+    pugi::xml_node statesMachineResourceNode = resourcesNode.append_child("resource");
+    statesMachineResourceNode.append_attribute("type").set_value("animation_states_machine");
+    statesMachineResourceNode.append_attribute("id")
+      .set_value(getStatesMachineResourceId(skeletonDescription.skeleton).c_str());
+
+    pugi::xml_node skeletonNode = statesMachineResourceNode.append_child("skeleton");
+    skeletonNode.append_attribute("id").set_value(getSkeletonResourceId(skeletonDescription.skeleton).c_str());
+
+    pugi::xml_node statesNode = statesMachineResourceNode.append_child("states");
+
+    for (size_t animationClipIndex : skeletonDescription.animationClips) {
+      const RawSkeletalAnimationClip& rawClip = scene.animationClips[animationClipIndex];
+
+      pugi::xml_node stateNode = statesNode.append_child("state");
+      stateNode.append_attribute("name").set_value(getAnimationClipResourceId(rawClip).c_str());
+
+      {
+        pugi::xml_node animationHierarchyNode = stateNode.append_child("anim");
+
+        pugi::xml_node simpleAnimationNode = animationHierarchyNode.append_child("node");
+        simpleAnimationNode.append_attribute("type").set_value("clip");
+
+        pugi::xml_node clipNode = simpleAnimationNode.append_child("clip");
+        clipNode.append_attribute("scale").set_value(1.0);
+        clipNode.append_attribute("id").set_value(getAnimationClipResourceId(rawClip).c_str());
+      }
+
+      pugi::xml_node finalActionNode = stateNode.append_child("final_action");
+      finalActionNode.append_attribute("type").set_value("repeat");
+
+      pugi::xml_node transitionsNode = stateNode.append_child("transitions");
+      ARG_UNUSED(transitionsNode);
+    }
   }
 
   return std::move(declarationsDocument);
@@ -297,59 +373,8 @@ pugi::xml_document SceneExporter::generateStaticSpawnDeclarations(const std::str
   environmentComponentNode.append_attribute("material").set_value("materials_common_environment");
 
   for (const auto& meshNode : scene.meshesNodes) {
-    pugi::xml_node meshResourceNode = objectsNode.append_child("object");
-
-    std::string meshSpawnName = "spawn_static_mesh_" + std::string(meshNode.name);
-    std::string meshObjectId = "static_mesh_" + std::string(meshNode.name);
-
-    meshResourceNode.append_attribute("class").set_value("generic");
-    meshResourceNode.append_attribute("spawn_name").set_value(meshSpawnName.c_str());
-    meshResourceNode.append_attribute("id").set_value(meshObjectId.c_str());
-
-    pugi::xml_node transformComponentNode = meshResourceNode.append_child("transform");
-    transformComponentNode.append_attribute("position").set_value(
-      fmt::format("{} {} {}", meshNode.position.x, meshNode.position.y, meshNode.position.z).c_str());
-
-    glm::vec3 directionVector = glm::eulerAngles(glm::quat(meshNode.orientation.w,
-      meshNode.orientation.x,
-      meshNode.orientation.y,
-      meshNode.orientation.z));
-
-    transformComponentNode.append_attribute("direction").set_value(
-      fmt::format("{} {} {}", glm::degrees(directionVector.x),
-        glm::degrees(directionVector.y), glm::degrees(directionVector.z)).c_str());
-
-    transformComponentNode.append_attribute("scale").set_value(
-      fmt::format("{} {} {}", meshNode.scale.x, meshNode.scale.y, meshNode.scale.z).c_str());
-
-    pugi::xml_node visualComponentNode = meshResourceNode.append_child("visual");
-    visualComponentNode.append_attribute("mesh").set_value(getMeshResourceId(meshNode).c_str());
-
-    pugi::xml_node visualComponentMaterialsNode = visualComponentNode.append_child("materials");
-
-    for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
-      pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
-
-      std::string materialResourceId = "materials_common_checker";
-
-      if (meshNode.materials[subMeshIndex].has_value()) {
-        materialResourceId = getMaterialResourceId(meshNode.materials[subMeshIndex].value());
-      }
-
-      materialNode.append_attribute("id").set_value(materialResourceId.c_str());
-      materialNode.append_attribute("index").set_value(subMeshIndex);
-    }
-
-    if (meshNode.collisionsResolutionEnabled) {
-      pugi::xml_node rigidBodyComponentNode = meshResourceNode.append_child("rigid_body");
-
-      if (meshNode.collisionData.collisionShapes.empty()) {
-        rigidBodyComponentNode.append_attribute("collision_model").set_value("visual_aabb");
-      }
-      else {
-        rigidBodyComponentNode.append_attribute("collision_model").set_value(
-          getColliderResourceId(meshNode).c_str());
-      }
+    if (!isMeshNodeDynamic(meshNode)) {
+      generateSpawnDeclaration(scene, meshNode, objectsNode);
     }
   }
 
@@ -367,7 +392,91 @@ pugi::xml_document SceneExporter::generateDynamicSpawnDeclarations(const std::st
   pugi::xml_document dynamicSpawnDocument;
   pugi::xml_node objectsNode = dynamicSpawnDocument.append_child("objects");
 
+  for (const auto& meshNode : scene.meshesNodes) {
+    if (isMeshNodeDynamic(meshNode)) {
+      generateSpawnDeclaration(scene, meshNode, objectsNode);
+    }
+  }
+
   return std::move(dynamicSpawnDocument);
+}
+
+void SceneExporter::generateSpawnDeclaration(
+  const RawScene& scene,
+  const RawMeshNode& meshNode,
+  pugi::xml_node& objectsNode)
+{
+  pugi::xml_node meshResourceNode = objectsNode.append_child("object");
+
+  std::string meshType = isMeshNodeDynamic(meshNode) ? "dynamic" : "static";
+
+  std::string meshSpawnName = "spawn_" + meshType + "_mesh_" + meshNode.name;
+  std::string meshObjectId = meshType + "_mesh_" + meshNode.name;
+
+  meshResourceNode.append_attribute("class").set_value("generic");
+  meshResourceNode.append_attribute("spawn_name").set_value(meshSpawnName.c_str());
+  meshResourceNode.append_attribute("id").set_value(meshObjectId.c_str());
+
+  pugi::xml_node transformComponentNode = meshResourceNode.append_child("transform");
+  transformComponentNode.append_attribute("position").set_value(
+    fmt::format("{} {} {}", meshNode.position.x, meshNode.position.y, meshNode.position.z).c_str());
+
+  glm::vec3 directionVector = glm::eulerAngles(glm::quat(meshNode.orientation.w,
+    meshNode.orientation.x,
+    meshNode.orientation.y,
+    meshNode.orientation.z));
+
+  transformComponentNode.append_attribute("direction").set_value(
+    fmt::format("{} {} {}", glm::degrees(directionVector.x),
+      glm::degrees(directionVector.y), glm::degrees(directionVector.z)).c_str());
+
+  transformComponentNode.append_attribute("scale").set_value(
+    fmt::format("{} {} {}", meshNode.scale.x, meshNode.scale.y, meshNode.scale.z).c_str());
+
+  pugi::xml_node visualComponentNode = meshResourceNode.append_child("visual");
+  visualComponentNode.append_attribute("mesh").set_value(getMeshResourceId(meshNode).c_str());
+
+  if (meshNode.skeletonIndex != RawMeshNode::NONE_SKELETON) {
+    visualComponentNode.append_attribute("skeleton").set_value(
+      getSkeletonResourceId(scene.skeletons[meshNode.skeletonIndex].skeleton).c_str());
+  }
+
+  pugi::xml_node visualComponentMaterialsNode = visualComponentNode.append_child("materials");
+
+  for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
+    pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
+
+    std::string materialResourceId = "materials_common_checker";
+
+    if (meshNode.materials[subMeshIndex].has_value()) {
+      materialResourceId = getMaterialResourceId(meshNode.materials[subMeshIndex].value());
+    }
+
+    materialNode.append_attribute("id").set_value(materialResourceId.c_str());
+    materialNode.append_attribute("index").set_value(subMeshIndex);
+  }
+
+  if (meshNode.skeletonIndex != RawMeshNode::NONE_SKELETON) {
+    const RawSkeleton& skeleton = scene.skeletons[meshNode.skeletonIndex].skeleton;
+
+    pugi::xml_node animationComponentNode = meshResourceNode.append_child("animation");
+    animationComponentNode.append_attribute("skeleton").set_value(getSkeletonResourceId(skeleton).c_str());
+    animationComponentNode.append_attribute("state_machine").set_value(getStatesMachineResourceId(skeleton).c_str());
+    animationComponentNode.append_attribute("start_state").set_value(
+      getAnimationClipResourceId(scene.animationClips.at(*scene.skeletons[meshNode.skeletonIndex].animationClips.begin())).c_str());
+  }
+
+  if (meshNode.collisionsResolutionEnabled) {
+    pugi::xml_node rigidBodyComponentNode = meshResourceNode.append_child("rigid_body");
+
+    if (meshNode.collisionData.collisionShapes.empty()) {
+      rigidBodyComponentNode.append_attribute("collision_model").set_value("visual_aabb");
+    }
+    else {
+      rigidBodyComponentNode.append_attribute("collision_model").set_value(
+        getColliderResourceId(meshNode).c_str());
+    }
+  }
 }
 
 std::filesystem::path SceneExporter::getMeshExportPath(const std::string& exportDir, const RawMeshNode& meshNode)
@@ -467,3 +576,14 @@ std::string SceneExporter::getMaterialResourceId(const RawMaterial& materialInfo
 
   return materialResourceName;
 }
+
+std::string SceneExporter::getStatesMachineResourceId(const RawSkeleton& skeleton)
+{
+  return "resource_states_machine_" + getSkeletonResourceId(skeleton);
+}
+
+bool SceneExporter::isMeshNodeDynamic(const RawMeshNode& meshNode)
+{
+  return meshNode.skeletonIndex != RawMeshNode::NONE_SKELETON;
+}
+

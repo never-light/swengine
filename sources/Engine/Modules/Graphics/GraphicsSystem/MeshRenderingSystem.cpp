@@ -5,6 +5,7 @@
 #include "MeshRenderingSystem.h"
 
 #include <utility>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
@@ -104,6 +105,14 @@ void MeshRenderingSystem::render()
         .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) : &transform.getTransformationMatrix()),
         .matrixPalette = matrixPalette,
       });
+
+//      if (matrixPalette != nullptr) {
+//        for (size_t i = 0; i < mesh->getSkeleton()->getBonesCount(); i++) {
+//          spdlog::debug("#{}: {}", i, glm::to_string(matrixPalette[i]));
+//        }
+//
+//        DEBUG_BREAK();
+//      }
 
       if (m_isBoundsRenderingEnabled) {
         if (transformComponent.isStatic()) {

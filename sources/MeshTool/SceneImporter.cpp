@@ -98,7 +98,7 @@ std::unique_ptr<RawScene> SceneImporter::importFromFile(const std::string& path,
 
   auto rawScene = std::make_unique<RawScene>();
   rawScene->skeletons = convertSceneSkeletonsToRawData(model, scene);
-  rawScene->animationClips = convertSceneAnimationsToRawData(model, scene);
+  rawScene->animationClips = convertSceneAnimationsToRawData(model, scene, rawScene->skeletons);
   rawScene->meshesNodes.clear();
 
   std::vector<RawMeshNodeImportData> rawMeshNodesImportData = convertSceneToRawData(model, scene);
@@ -329,9 +329,6 @@ void SceneImporter::validateTexture(const tinygltf::Model& model, const tinygltf
 std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const tinygltf::Model& model,
   const tinygltf::Scene& scene)
 {
-  ARG_UNUSED(model);
-  ARG_UNUSED(scene);
-
   std::vector<RawMeshNodeImportData> rawNodesList;
 
   std::unordered_map<size_t, std::vector<size_t>> skinsToRawMeshesMap;
@@ -460,6 +457,7 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
 
     mergedRawNode.collisionData.header.collisionShapesCount = 0;
     mergedRawNode.collisionData.header.formatVersion = MESH_COLLISION_DATA_FORMAT_VERSION;
+    mergedRawNode.skeletonIndex = rawNodesList[skinMeshesList[0]].rawNode.skeletonIndex;
 
     auto& mergedRawMesh = mergedRawNode.rawMesh;
 
@@ -939,6 +937,10 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 
   size_t rawMeshVerticesCount = rawNode.rawMesh.positions.size();
 
+  if (node.skin != -1) {
+    rawNode.skeletonIndex = m_skinsToRawSkeletonsMap.at(node.skin);
+  }
+
   if (!rawNode.rawMesh.normals.empty() && rawNode.rawMesh.normals.size() != rawMeshVerticesCount ||
     !rawNode.rawMesh.tangents.empty() && rawNode.rawMesh.tangents.size() != rawMeshVerticesCount ||
     !rawNode.rawMesh.uv.empty() && rawNode.rawMesh.uv.size() != rawMeshVerticesCount ||
@@ -1109,10 +1111,10 @@ RawTextureInfo SceneImporter::exportTextureToTempLocation(const tinygltf::Model&
   return rawTextureInfo;
 }
 
-std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tinygltf::Model& model,
+std::vector<RawSkeletonDescription> SceneImporter::convertSceneSkeletonsToRawData(const tinygltf::Model& model,
   const tinygltf::Scene& scene)
 {
-  std::vector<RawSkeleton> rawSkeletonsList;
+  std::vector<RawSkeletonDescription> rawSkeletonsList;
 
   for (size_t skinId = 0; skinId < model.skins.size(); skinId++) {
     const tinygltf::Skin& skin = model.skins[skinId];
@@ -1241,7 +1243,9 @@ std::vector<RawSkeleton> SceneImporter::convertSceneSkeletonsToRawData(const tin
 
     m_modelNodesSkeletonsRawIndices[skinId] = rawBonesIndicesMap;
 
-    rawSkeletonsList.push_back(rawSkeleton);
+    m_skinsToRawSkeletonsMap.insert({ skinId, rawSkeletonsList.size() });
+
+    rawSkeletonsList.push_back(RawSkeletonDescription{.skeleton = rawSkeleton});
   }
 
   spdlog::info("Skeletons conversion to raw format is finished");
@@ -1289,7 +1293,7 @@ std::vector<glm::mat4> SceneImporter::getSkinInverseBindPoseMatrices(const tinyg
 }
 
 std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRawData(const tinygltf::Model& model,
-  const tinygltf::Scene& scene)
+  const tinygltf::Scene& scene, std::vector<RawSkeletonDescription>& skeletonsDescriptions)
 {
   ARG_UNUSED(scene);
 
@@ -1423,6 +1427,8 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
     }
 
     rawClip.header.duration = maxChannelDuration;
+
+    skeletonsDescriptions[clipSkeletonIndex].animationClips.push_back(rawClips.size());
 
     rawClips.push_back(rawClip);
   }

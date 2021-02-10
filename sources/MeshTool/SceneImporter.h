@@ -45,10 +45,10 @@ class SceneImporter {
 
   [[nodiscard]] std::vector<RawMeshNodeImportData> convertSceneToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);
-  [[nodiscard]] std::vector<RawSkeleton> convertSceneSkeletonsToRawData(const tinygltf::Model& model,
+  [[nodiscard]] std::vector<RawSkeletonDescription> convertSceneSkeletonsToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene);
   [[nodiscard]] std::vector<RawSkeletalAnimationClip> convertSceneAnimationsToRawData(const tinygltf::Model& model,
-    const tinygltf::Scene& scene);
+    const tinygltf::Scene& scene, std::vector<RawSkeletonDescription>& skeletonsDescriptions);
 
   RawMeshNode convertMeshNodeToRawData(const tinygltf::Model& model,
     const tinygltf::Scene& scene,
@@ -111,4 +111,6 @@ class SceneImporter {
 
   std::unordered_set<std::string> m_materialsNames;
   std::unordered_set<std::string> m_animationClipsNames;
+
+  std::unordered_map<size_t, size_t> m_skinsToRawSkeletonsMap;
 };

@@ -35,6 +35,13 @@ class SceneExporter {
     const RawScene& scene,
     const SceneExportOptions& options);
 
+  static void generateSpawnDeclaration(
+    const RawScene& scene,
+    const RawMeshNode& meshNode,
+    pugi::xml_node& objectsNode);
+
+  [[nodiscard]] static bool isMeshNodeDynamic(const RawMeshNode& meshNode);
+
   [[nodiscard]] static std::filesystem::path getMeshExportPath(const std::string& exportDir,
     const RawMeshNode& meshNode);
   [[nodiscard]] static std::filesystem::path getColliderExportPath(const std::string& exportDir,
@@ -53,4 +60,5 @@ class SceneExporter {
   [[nodiscard]] static std::string getMaterialResourceId(const RawMaterial& materialInfo);
   [[nodiscard]] static std::string getSkeletonResourceId(const RawSkeleton& skeleton);
   [[nodiscard]] static std::string getAnimationClipResourceId(const RawSkeletalAnimationClip& animationClip);
+  [[nodiscard]] static std::string getStatesMachineResourceId(const RawSkeleton& skeleton);
 };
