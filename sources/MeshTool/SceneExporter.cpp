@@ -302,6 +302,7 @@ void SceneExporter::generateMaterialResourceDeclaration(pugi::xml_node resources
 
   pugi::xml_node shadersPipelineNode = materialResourceNode.append_child("shaders_pipeline");
 
+  // TODO: set skinned vertex shader for skinned meshes
   pugi::xml_node vertexShaderNode = shadersPipelineNode.append_child("vertex");
   vertexShaderNode.append_attribute("id").set_value("deferred_gpass_vertex_shader");
 

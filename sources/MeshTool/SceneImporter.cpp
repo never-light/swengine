@@ -534,7 +534,12 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
 
     mergedRawMesh.aabb = {.min = glmVector3ToRawVector3(mergedAABB.getMin()),
       .max = glmVector3ToRawVector3(mergedAABB.getMax())};
-    mergedRawMesh.inverseSceneTransform = rawNodesList[skinMeshesList[0]].rawNode.rawMesh.inverseSceneTransform;
+
+    const RawMeshNode& originRawMeshNode = rawNodesList[skinMeshesList[0]].rawNode;
+    mergedRawMesh.inverseSceneTransform = originRawMeshNode.rawMesh.inverseSceneTransform;
+    mergedRawNode.position = originRawMeshNode.position;
+    mergedRawNode.scale = originRawMeshNode.scale;
+    mergedRawNode.orientation = originRawMeshNode.orientation;
 
     rawNodesList.push_back(RawMeshNodeImportData{.rawNode=mergedRawNode, .sceneNodeIndex = -1});
   }
