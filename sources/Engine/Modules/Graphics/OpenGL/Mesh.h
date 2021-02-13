@@ -46,7 +46,7 @@ class Mesh : public Resource {
   explicit Mesh(bool isDynamic = false, size_t minStorageCapacity = 0);
   ~Mesh() override;
 
-  [[nodiscard]] size_t addSubMesh(const std::vector<uint16_t>& indices);
+  void addSubMesh(const std::vector<uint16_t>& indices);
   void setIndices(const std::vector<uint16_t>& indices, size_t subMeshIndex);
 
   void setVertices(const std::vector<glm::vec3>& vertices);
@@ -63,8 +63,6 @@ class Mesh : public Resource {
   [[nodiscard]] bool isSkinned() const;
   [[nodiscard]] bool hasSkeleton() const;
 
-  void setSubMeshesIndices(const std::vector<uint16_t>& indices, const std::vector<uint16_t>& subMeshesOffsets);
-
   [[nodiscard]] size_t getSubMeshesCount() const;
   [[nodiscard]] size_t getSubMeshIndicesOffset(size_t subMeshIndex) const;
   [[nodiscard]] size_t getSubMeshIndicesCount(size_t subMeshIndex) const;
@@ -73,6 +71,9 @@ class Mesh : public Resource {
 
   void setAABB(const AABB& aabb);
   [[nodiscard]] const AABB& getAABB() const;
+
+  void setInverseSceneTransform(const glm::mat4& transform);
+  [[nodiscard]] const glm::mat4& getInverseSceneTransform() const;
 
   void setSkeleton(ResourceHandle<Skeleton> skeleton);
   [[nodiscard]] ResourceHandle<Skeleton> getSkeleton() const;
@@ -90,7 +91,7 @@ class Mesh : public Resource {
   std::vector<glm::vec3> m_vertices;
 
   std::vector<std::vector<uint16_t>> m_indices;
-  std::vector<size_t> m_subMeshesOffsets;
+  std::vector<uint32_t> m_subMeshesIndicesOffsets;
 
   std::vector<glm::vec3> m_normals;
   std::vector<glm::vec3> m_tangents;
@@ -101,6 +102,7 @@ class Mesh : public Resource {
   bool m_needGeometryBufferUpdate = false;
 
   AABB m_aabb;
+  glm::mat4 m_inverseSceneTransform = glm::identity<glm::mat4>();
 
   std::optional<ResourceHandle<Skeleton>> m_skeleton;
   bool m_isDynamic = false;

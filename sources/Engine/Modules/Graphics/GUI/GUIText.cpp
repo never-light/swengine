@@ -105,8 +105,7 @@ Mesh* GUIText::updateAndGetGeometryStore()
       m_textGeometryCache->setUV(uv);
       m_textGeometryCache->setNormals(normals);
 
-      size_t subMeshIndex = m_textGeometryCache->addSubMesh(std::get<2>(geometryStoreParams));
-      LOCAL_VALUE_UNUSED(subMeshIndex);
+      m_textGeometryCache->addSubMesh(std::get<2>(geometryStoreParams));
     }
     else {
       m_textGeometryCache->setVertices(std::get<0>(geometryStoreParams));

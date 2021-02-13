@@ -1,9 +1,9 @@
 [requires]
+sdl2/2.0.14@bincrafters/stable
 glm/0.9.9.8
 catch2/2.11.3
 openal/1.20.1
 pugixml/1.10
-sdl2/2.0.12@bincrafters/stable
 spdlog/1.5.0
 stb/20200203
 cxxopts/2.2.0
@@ -11,6 +11,7 @@ boost/1.72.0
 bullet3/2.89
 luajit-rocks/2.0.5@gsage/master
 tinygltf/2.4.0
+cereal/1.3.0
 
 [generators]
 cmake

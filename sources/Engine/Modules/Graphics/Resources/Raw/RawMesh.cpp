@@ -29,7 +29,7 @@ RawMesh RawMesh::readFromFile(const std::string& path)
   }
 
   const uint16_t verticesCount = rawMesh.header.verticesCount;
-  RawMeshAttributes storedAttributesMask = static_cast<RawMeshAttributes>(rawMesh.header.storedAttributesMask);
+  auto storedAttributesMask = static_cast<RawMeshAttributes>(rawMesh.header.storedAttributesMask);
 
   if ((storedAttributesMask & RawMeshAttributes::Positions) != RawMeshAttributes::Empty) {
     rawMesh.positions.resize(rawMesh.header.verticesCount);
@@ -67,19 +67,22 @@ RawMesh RawMesh::readFromFile(const std::string& path)
       sizeof(*rawMesh.bonesWeights.begin()) * verticesCount);
   }
 
-  const uint16_t indicesCount = rawMesh.header.indicesCount;
+  for (size_t subMeshIndex = 0; subMeshIndex < rawMesh.header.subMeshesCount; subMeshIndex++) {
+    RawSubMeshDescription subMeshDescription;
 
-  rawMesh.indices.resize(indicesCount);
-  meshFile.read(reinterpret_cast<char*>(rawMesh.indices.data()),
-    sizeof(*rawMesh.indices.begin()) * indicesCount);
+    meshFile.read(reinterpret_cast<char*>(&subMeshDescription.indicesCount),
+      sizeof(subMeshDescription.indicesCount));
 
-  const uint16_t subMeshesIndicesOffsetsCount = rawMesh.header.subMeshesIndicesOffsetsCount;
+    subMeshDescription.indices.resize(subMeshDescription.indicesCount);
+    meshFile.read(reinterpret_cast<char*>(subMeshDescription.indices.data()),
+      sizeof(*subMeshDescription.indices.begin()) * subMeshDescription.indicesCount);
 
-  rawMesh.subMeshesIndicesOffsets.resize(subMeshesIndicesOffsetsCount);
-  meshFile.read(reinterpret_cast<char*>(rawMesh.subMeshesIndicesOffsets.data()),
-    sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
+    rawMesh.subMeshesDescriptions.push_back(subMeshDescription);
+  }
 
   meshFile.read(reinterpret_cast<char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+  meshFile.read(reinterpret_cast<char*>(&rawMesh.inverseSceneTransform.data),
+    sizeof(rawMesh.inverseSceneTransform.data));
 
   meshFile.close();
 
@@ -89,9 +92,7 @@ RawMesh RawMesh::readFromFile(const std::string& path)
 void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
 {
   SW_ASSERT(rawMesh.header.formatVersion == MESH_FORMAT_VERSION);
-
-  SW_ASSERT(rawMesh.header.indicesCount == rawMesh.indices.size() &&
-    rawMesh.header.subMeshesIndicesOffsetsCount == rawMesh.subMeshesIndicesOffsets.size());
+  SW_ASSERT(rawMesh.header.subMeshesCount == rawMesh.subMeshesDescriptions.size());
 
   std::ofstream meshFile(path, std::ios::binary);
 
@@ -99,7 +100,7 @@ void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
 
   meshFile.write(reinterpret_cast<const char*>(&rawMesh.header), sizeof(rawMesh.header));
 
-  RawMeshAttributes storedAttributesMask = static_cast<RawMeshAttributes>(rawMesh.header.storedAttributesMask);
+  auto storedAttributesMask = static_cast<RawMeshAttributes>(rawMesh.header.storedAttributesMask);
 
   if ((storedAttributesMask & RawMeshAttributes::Positions) != RawMeshAttributes::Empty) {
     SW_ASSERT(rawMesh.positions.size() == rawMesh.header.verticesCount);
@@ -143,17 +144,19 @@ void RawMesh::writeToFile(const std::string& path, const RawMesh& rawMesh)
       sizeof(*rawMesh.bonesWeights.begin()) * verticesCount);
   }
 
-  const uint16_t indicesCount = rawMesh.header.indicesCount;
+  for (const RawSubMeshDescription& rawSubMeshDescription : rawMesh.subMeshesDescriptions) {
+    SW_ASSERT(rawSubMeshDescription.indicesCount == rawSubMeshDescription.indices.size());
 
-  meshFile.write(reinterpret_cast<const char*>(rawMesh.indices.data()),
-    sizeof(*rawMesh.indices.begin()) * indicesCount);
+    meshFile.write(reinterpret_cast<const char*>(&rawSubMeshDescription.indicesCount),
+      sizeof(rawSubMeshDescription.indicesCount));
 
-  const uint16_t subMeshesIndicesOffsetsCount = rawMesh.header.subMeshesIndicesOffsetsCount;
-
-  meshFile.write(reinterpret_cast<const char*>(rawMesh.subMeshesIndicesOffsets.data()),
-    sizeof(*rawMesh.subMeshesIndicesOffsets.begin()) * subMeshesIndicesOffsetsCount);
+    meshFile.write(reinterpret_cast<const char*>(rawSubMeshDescription.indices.data()),
+      sizeof(*rawSubMeshDescription.indices.begin()) * rawSubMeshDescription.indicesCount);
+  }
 
   meshFile.write(reinterpret_cast<const char*>(&rawMesh.aabb), sizeof(rawMesh.aabb));
+  meshFile.write(reinterpret_cast<const char*>(&rawMesh.inverseSceneTransform.data),
+    sizeof(rawMesh.inverseSceneTransform.data));
 
   meshFile.close();
 }

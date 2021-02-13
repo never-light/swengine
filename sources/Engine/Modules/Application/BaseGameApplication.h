@@ -8,6 +8,7 @@
 #include "Modules/ResourceManagement/ResourceManagementModule.h"
 #include "Modules/Input/InputSystem.h"
 #include "Modules/ECS/ECS.h"
+#include "Modules/ECS/OnlineManagementSystem.h"
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
@@ -28,6 +29,8 @@
 #include "Modules/ScreenManagement/ScreenManager.h"
 #include "Modules/LevelsManagement/LevelsManager.h"
 #include "Modules/LevelsManagement/GameObjectsSpawnSystem.h"
+
+#include "Modules/Scripting/ScriptingSystem.h"
 
 #include "GameConsole.h"
 
@@ -78,6 +81,9 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;
+
+  std::shared_ptr<OnlineManagementSystem> m_onlineManagementSystem;
+
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
   std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 
@@ -94,6 +100,7 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<GameObjectsSpawnSystem> m_spawnSystem;
 
   std::shared_ptr<GameConsole> m_gameConsole;
+  std::shared_ptr<ScriptingSystem> m_scriptingSystem;
 
   bool m_isMainLoopActive = false;
 };

@@ -32,7 +32,29 @@ struct InteractiveObjectActionTriggeredEvent {
   InteractiveObjectActionType triggerType;
 };
 
+struct InteractiveComponentBindingParameters {
+  std::string title;
+
+  bool isTakeable = false;
+  bool isTalkable = false;
+  bool isUsable = false;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("title", title),
+      cereal::make_nvp("is_takeable", isTakeable),
+      cereal::make_nvp("is_talkable", isTalkable),
+      cereal::make_nvp("is_usable", isUsable));
+  };
+};
+
 struct InteractiveObjectComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = InteractiveComponentBindingParameters;
+
  public:
   // Owner, item
   using ActionCallback = std::function<void(GameObject, GameObject)>;
@@ -73,6 +95,8 @@ struct InteractiveObjectComponent {
   void setTakeCallback(const ActionCallback& callback);
   [[nodiscard]] ActionCallback getTakeCallback() const;
 
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+
  private:
   std::string m_name;
 
@@ -85,3 +109,12 @@ struct InteractiveObjectComponent {
 
 };
 
+class InteractiveComponentBinder : public GameObjectsComponentBinder<InteractiveObjectComponent> {
+ public:
+  explicit InteractiveComponentBinder(const ComponentBindingParameters& componentParameters);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};

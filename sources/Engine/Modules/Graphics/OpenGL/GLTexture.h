@@ -27,6 +27,12 @@ enum class GLTextureInternalFormat {
   Depth24Stencil8 = GL_DEPTH24_STENCIL8
 };
 
+struct TextureTransform {
+  glm::vec2 offset{0.0f, 0.0f};
+  glm::vec2 scale{1.0f, 1.0f};
+  float rotation{0.0f};
+};
+
 class GLTexture : public Resource {
  public:
   GLTexture(GLTextureType type, int width, int height, GLTextureInternalFormat internalFormat);

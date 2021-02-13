@@ -66,6 +66,8 @@ void BulletPhysicsSystemBackend::configure()
 
   m_gameWorld->subscribeEventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>(this);
   m_gameWorld->subscribeEventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>(this);
+
+  m_gameWorld->subscribeEventsListener<GameObjectOnlineStatusChangeEvent>(this);
 }
 
 void BulletPhysicsSystemBackend::unconfigure()
@@ -75,6 +77,8 @@ void BulletPhysicsSystemBackend::unconfigure()
 
   m_gameWorld->unsubscribeEventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>(this);
   m_gameWorld->unsubscribeEventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>(this);
+
+  m_gameWorld->unsubscribeEventsListener<GameObjectOnlineStatusChangeEvent>(this);
 
   delete m_physicsDebugPainter;
   m_physicsDebugPainter = nullptr;
@@ -114,9 +118,7 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
 EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectAddComponentEvent<RigidBodyComponent>& event)
 {
-  if (!isConfigured()) {
-    return EventProcessStatus::Skipped;
-  }
+  SW_ASSERT(isConfigured());
 
   SW_ASSERT(event.gameObject.hasComponent<TransformComponent>());
 
@@ -143,15 +145,18 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
 
   m_dynamicsWorld->addRigidBody(bulletRigidBodyComponent->m_rigidBodyInstance);
 
+  // Only online objects should be affected by physics simulation
+  if (!event.gameObject.getComponent<TransformComponent>()->isOnline()) {
+    rigidBodyComponent->enableSimulation(false);
+  }
+
   return EventProcessStatus::Processed;
 }
 
 EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event)
 {
-  if (!isConfigured()) {
-    return EventProcessStatus::Skipped;
-  }
+  SW_ASSERT(isConfigured());
 
   GameObjectComponentHandle<KinematicCharacterComponent> kinematicCharacterComponent = event.component;
 
@@ -169,9 +174,7 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
 EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
   const GameObjectAddComponentEvent<KinematicCharacterComponent>& event)
 {
-  if (!isConfigured()) {
-    return EventProcessStatus::Skipped;
-  }
+  SW_ASSERT(isConfigured());
 
   SW_ASSERT(event.gameObject.hasComponent<TransformComponent>());
 
@@ -198,6 +201,28 @@ EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(
 
   m_dynamicsWorld->addCollisionObject(ghostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter);
   m_dynamicsWorld->addAction(kinematicController);
+
+  // Only online objects should be affected by physics simulation
+  if (!event.gameObject.getComponent<TransformComponent>()->isOnline()) {
+    kinematicCharacterComponent->enableSimulation(false);
+  }
+
+  return EventProcessStatus::Processed;
+}
+
+EventProcessStatus BulletPhysicsSystemBackend::receiveEvent(const GameObjectOnlineStatusChangeEvent& event)
+{
+  SW_ASSERT(isConfigured());
+
+  GameObject affectedObject = event.gameObject;
+
+  if (affectedObject.hasComponent<RigidBodyComponent>()) {
+    affectedObject.getComponent<RigidBodyComponent>()->enableSimulation(event.makeOnline);
+  }
+
+  if (affectedObject.hasComponent<KinematicCharacterComponent>()) {
+    affectedObject.getComponent<KinematicCharacterComponent>()->enableSimulation(event.makeOnline);
+  }
 
   return EventProcessStatus::Processed;
 }

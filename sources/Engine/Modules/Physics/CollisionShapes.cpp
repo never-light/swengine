@@ -99,8 +99,8 @@ const std::vector<glm::vec3>& CollisionShapeTriangleMesh::getVertices() const
   return m_vertices;
 }
 
-CollisionShape::CollisionShape(const CollisionShapeData& shapeData)
-  : m_shapeData(shapeData)
+CollisionShape::CollisionShape(CollisionShapeData  shapeData)
+  : m_shapeData(std::move(shapeData))
 {
 
 }

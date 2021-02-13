@@ -36,6 +36,12 @@ void GameScreen::activate()
 
   m_gameWorld->subscribeEventsListener<InputActionToggleEvent>(this);
   m_gameWorld->subscribeEventsListener<GameConsoleChangeVisibilityEvent>(this);
+
+  if (!m_game->isLoaded()) {
+//    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
+    m_game->createNewGame("../../../bin/crossroads/paul");
+    m_game->setupGameState(true);
+  }
 }
 
 void GameScreen::deactivate()
@@ -109,7 +115,7 @@ void GameScreen::initializeGame()
 {
   spdlog::info("Load game...");
 
-  m_game = std::make_unique<Game>(m_gameWorld,
+  m_game = std::make_shared<Game>(m_gameWorld,
     m_gameApplicationSystemsGroup,
     m_inputModule,
     m_graphicsModule->getGraphicsContext(),
@@ -124,9 +130,11 @@ void GameScreen::initializeGame()
 
 void GameScreen::deinitializeGame()
 {
+  if (m_game->isLoaded()) {
+    m_game->unload();
+  }
+  
   spdlog::info("Unload game...");
-
-  m_game.reset();
 }
 
 void GameScreen::initializeDebugGUI()
@@ -151,4 +159,9 @@ void GameScreen::deinitializeDebugGUI()
   m_subMeshesCountText.reset();
 
   m_gameGUILayout->removeChildWidget(m_debugGUILayout);
+}
+
+std::shared_ptr<Game> GameScreen::getGame() const
+{
+  return m_game;
 }

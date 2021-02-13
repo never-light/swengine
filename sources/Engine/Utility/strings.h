@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <regex>
 #include <unordered_map>
@@ -16,11 +17,17 @@ class StringUtils {
   StringUtils() = delete;
 
   [[nodiscard]] static std::vector<std::string> split(const std::string& str, char delimiter);
+  [[nodiscard]] static std::string join(const std::vector<std::string>& strings, const std::string& delimiter = " ");
+
   [[nodiscard]] static std::string toLowerCase(const std::string& str);
 
   template<class T>
   [[nodiscard]] static T filterValue(const std::string& rawValue,
     const std::unordered_map<std::string, T>& allowedValues, T defaultValue);
+
+  [[nodiscard]] static std::string filter(const std::string& string, std::function<bool(char)> predicate);
+  [[nodiscard]] static std::string filterBlacklist(const std::string& string, const std::vector<char>& blacklist);
+  [[nodiscard]] static std::string filterFilename(const std::string& filename);
 
   [[nodiscard]] static std::string regexReplace(const std::string& expression, std::string str,
     const std::function<std::string(const std::smatch&)>& callback);
@@ -29,6 +36,7 @@ class StringUtils {
     const std::string& pattern,
     const std::string& replacement);
 
+  [[nodiscard]] static glm::vec2 stringToVec2(const std::string& string);
   [[nodiscard]] static glm::vec3 stringToVec3(const std::string& string);
   [[nodiscard]] static glm::vec4 stringToVec4(const std::string& string);
 

@@ -5,6 +5,7 @@
 #include "MeshRenderingSystem.h"
 
 #include <utility>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
@@ -38,7 +39,14 @@ void MeshRenderingSystem::update(float delta)
 
 void MeshRenderingSystem::render()
 {
+  // TODO: reorganize this logic and get rid of these static cache variables
+  static std::vector<glm::mat4> skinnedMeshesPremultipliedTransforms;
+  SW_ASSERT(skinnedMeshesPremultipliedTransforms.size() < 128);
+  skinnedMeshesPremultipliedTransforms.reserve(128);
+  skinnedMeshesPremultipliedTransforms.clear();
+
   static std::vector<GameObject> visibleObjects;
+  SW_ASSERT(visibleObjects.size() < 1024);
   visibleObjects.reserve(1024);
   visibleObjects.clear();
 
@@ -63,11 +71,20 @@ void MeshRenderingSystem::render()
 
     frameStats.increaseSubMeshesCount(subMeshesCount);
 
+    bool isMeshAnimated = mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>();
+
+    if (isMeshAnimated) {
+      // TODO: investigate and debug getInverseSceneTransform behaviour, check
+      //  that this multiplication is correct
+      skinnedMeshesPremultipliedTransforms
+        .push_back(transform.getTransformationMatrix() * mesh->getInverseSceneTransform());
+    }
+
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
 
       const glm::mat4* matrixPalette = nullptr;
 
-      if (mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>()) {
+      if (isMeshAnimated) {
         auto& skeletalAnimationComponent = *obj.getComponent<SkeletalAnimationComponent>().get();
 
         if (skeletalAnimationComponent.getAnimationStatesMachineRef().isActive()) {
@@ -87,9 +104,17 @@ void MeshRenderingSystem::render()
         .material = meshComponent->getMaterialInstance(subMeshIndex).get(),
         .mesh = mesh,
         .subMeshIndex = static_cast<uint16_t>(subMeshIndex),
-        .transform = &transform.getTransformationMatrix(),
+        .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) : &transform.getTransformationMatrix()),
         .matrixPalette = matrixPalette,
       });
+
+//      if (matrixPalette != nullptr) {
+//        for (size_t i = 0; i < mesh->getSkeleton()->getBonesCount(); i++) {
+//          spdlog::debug("#{}: {}", i, glm::to_string(matrixPalette[i]));
+//        }
+//
+//        DEBUG_BREAK();
+//      }
 
       if (m_isBoundsRenderingEnabled) {
         if (transformComponent.isStatic()) {

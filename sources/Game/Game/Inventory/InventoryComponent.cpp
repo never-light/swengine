@@ -39,3 +39,42 @@ GameObject InventoryComponent::getItem(const std::string& itemId) const
 
   return GameObject();
 }
+
+InventoryComponent::BindingParameters InventoryComponent::getBindingParameters() const
+{
+  std::vector<std::string> itemsNames;
+
+  for (GameObject object : m_inventoryItems) {
+    itemsNames.push_back(object.getComponent<InventoryItemComponent>()->getId());
+  }
+
+  return InventoryComponent::BindingParameters{.itemsNames=itemsNames};
+}
+
+InventoryComponentBinder::InventoryComponentBinder(const ComponentBindingParameters& componentParameters,
+  std::shared_ptr<GameWorld> gameWorld)
+  : m_bindingParameters(componentParameters),
+    m_gameWorld(std::move(gameWorld))
+{
+
+}
+
+void InventoryComponentBinder::bindToObject(GameObject& gameObject)
+{
+  gameObject.addComponent<InventoryComponent>();
+
+  for (const std::string& itemObjectName : m_bindingParameters.itemsNames) {
+    GameObject itemObject = m_gameWorld->findGameObject(itemObjectName);
+
+    if (!itemObject.isAlive()) {
+      THROW_EXCEPTION(EngineRuntimeException,
+        fmt::format("Inventory item object {} is not alive at the loading time", itemObjectName));
+    }
+
+    m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
+      {gameObject,
+        InventoryItemActionTriggerType::RelocateToInventory,
+        itemObject});
+  }
+
+}

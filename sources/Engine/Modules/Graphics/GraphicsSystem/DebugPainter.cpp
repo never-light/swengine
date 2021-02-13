@@ -42,6 +42,10 @@ void DebugPainter::initialize(std::shared_ptr<ResourcesManager> resourceManager,
 
   s_debugShaderPipeline = std::make_shared<GLShadersPipeline>(vertexShader, fragmentShader,
     std::optional<ResourceHandle<GLShader>>());
+
+  s_primitivesTransforms.reserve(65000);
+  s_primitivesGeometry.reserve(65000);
+  s_debugRenderQueue.reserve(65000);
 }
 
 
@@ -229,8 +233,7 @@ void DebugPainter::createRenderingTask(
     indices[pointIndex] = static_cast<uint16_t>(pointIndex);
   }
 
-  size_t subMeshIndex = mesh.addSubMesh(indices);
-  LOCAL_VALUE_UNUSED(subMeshIndex);
+  mesh.addSubMesh(indices);
 
   createRenderingTask(&mesh, transformationMatrix, primitivesType, color, wireframe);
 }

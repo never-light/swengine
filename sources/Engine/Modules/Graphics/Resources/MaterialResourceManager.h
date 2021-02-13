@@ -9,23 +9,31 @@
 
 struct MaterialResourceConfig {
   enum class ShaderParamType {
-    Texture, Int, Float, Boolean
+    Texture, Int, Float, Boolean, Color
   };
 
   enum class ParametersSetType {
     Generic, OpaqueMesh
   };
 
+  struct ShaderParamTextureTransform {
+    glm::vec2 offset{ 0.0f, 0.0f };
+    glm::vec2 scale{ 1.0f, 1.0f };
+    float rotation{};
+  };
+
   struct ShaderParamTexture {
     std::string id;
     size_t slotIndex;
+
+    std::optional<ShaderParamTextureTransform> transform;
   };
 
   struct ShaderParam {
     ShaderType shaderType;
     std::string name;
     ShaderParamType type;
-    std::variant<ShaderParamTexture, int, float> value;
+    std::variant<ShaderParamTexture, int, float, glm::vec4> value;
   };
 
   struct {

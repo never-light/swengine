@@ -4,6 +4,7 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "Modules/ECS/ECS.h"
+#include "Modules/ECS/OnlineManagementSystem.h"
 
 #include "Modules/Physics/BaseBackend/PhysicsSystemBackend.h"
 #include "Modules/Physics/RigidBodyComponent.h"
@@ -22,7 +23,8 @@ class BulletPhysicsSystemBackend :
   public EventsListener<GameObjectAddComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectRemoveComponentEvent<RigidBodyComponent>>,
   public EventsListener<GameObjectAddComponentEvent<KinematicCharacterComponent>>,
-  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>> {
+  public EventsListener<GameObjectRemoveComponentEvent<KinematicCharacterComponent>>,
+  public EventsListener<GameObjectOnlineStatusChangeEvent> {
  public:
   explicit BulletPhysicsSystemBackend(GameWorld* gameWorld);
   ~BulletPhysicsSystemBackend() override;
@@ -48,6 +50,8 @@ class BulletPhysicsSystemBackend :
   EventProcessStatus receiveEvent(
     const GameObjectRemoveComponentEvent<KinematicCharacterComponent>& event) override;
 
+  EventProcessStatus receiveEvent(const GameObjectOnlineStatusChangeEvent& event) override;
+
   void enableDebugDrawing(bool enable) override;
   bool isDebugDrawingEnabled() override;
 
@@ -58,7 +62,7 @@ class BulletPhysicsSystemBackend :
 
   void nearCallback(btBroadphasePair& collisionPair,
     btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
-  static CollisionCallback getCollisionsCallback(GameObject& object) ;
+  static CollisionCallback getCollisionsCallback(GameObject& object);
 
   static void synchronizeTransforms(GameObject& object, const btTransform& transform);
 

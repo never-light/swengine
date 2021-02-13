@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cereal/types/vector.hpp>
 #include <Engine/Modules/ECS/ECS.h>
 #include "InventoryItemComponent.h"
 
@@ -71,7 +72,23 @@ struct InventoryItemTransferCommandEvent : public InventoryItemTransferEvent {
   }
 };
 
+struct InventoryComponentBindingParameters {
+ public:
+  std::vector<std::string> itemsNames;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("items", itemsNames));
+  };
+};
+
 class InventoryComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = InventoryComponentBindingParameters;
+
  public:
   InventoryComponent() = default;
 
@@ -83,6 +100,20 @@ class InventoryComponent {
   [[nodiscard]] bool hasItem(const std::string& itemId) const;
   [[nodiscard]] GameObject getItem(const std::string& itemId) const;
 
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+
  private:
   std::vector<GameObject> m_inventoryItems;
+};
+
+class InventoryComponentBinder : public GameObjectsComponentBinder<InventoryComponent> {
+ public:
+  explicit InventoryComponentBinder(const ComponentBindingParameters& componentParameters,
+    std::shared_ptr<GameWorld> gameWorld);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+  std::shared_ptr<GameWorld> m_gameWorld;
 };

@@ -8,8 +8,10 @@
 #include <Engine/Modules/Graphics/Resources/MaterialResourceManager.h>
 
 #include <Engine/Modules/Math/MathUtils.h>
+#include <Engine/Utility/DataArchive.h>
 
 #include "utility/resourcesUtility.h"
+#include "utility/streamsUtility.h"
 
 struct TestStringResourceConfig {
   TestStringResourceConfig() = default;
@@ -188,4 +190,33 @@ TEST_CASE("resource_references_management", "[resources]")
 
   REQUIRE(resourceState.getReferencesCount() == 0);
   REQUIRE(resourceState.getLoadingState() == ResourceLoadingState::Unloaded);
+}
+
+TEST_CASE("resource_handle_serialization", "[resources]")
+{
+  std::shared_ptr<ResourcesManager> manager = generateTestResourcesManager();
+
+  ResourceHandle<CollisionShape> shape =
+    manager->createNamedResourceInPlace<CollisionShape>("inplace_resource", CollisionShapeSphere(1.0f));
+
+  ResourceHandle<CollisionShape> resourceHandle = manager->getResource<CollisionShape>("inplace_resource");
+
+  {
+    std::ofstream outStream("resource_handle_serialization.save");
+    OutputDataArchive outArchive(outStream, manager);
+
+    outArchive(resourceHandle);
+  }
+
+  ResourceHandle<CollisionShape> loadedShape;
+
+  {
+    std::ifstream inStream("resource_handle_serialization.save");
+    InputDataArchive inArchive(inStream, manager);
+
+    inArchive(loadedShape);
+  }
+
+  REQUIRE(loadedShape.getResourceId() == shape.getResourceId());
+  REQUIRE(loadedShape.getResourceIndex() == shape.getResourceIndex());
 }

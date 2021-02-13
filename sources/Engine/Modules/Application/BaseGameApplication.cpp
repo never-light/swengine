@@ -7,6 +7,7 @@
 #include <Exceptions/exceptions.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
@@ -153,6 +154,15 @@ EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEve
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "camera-position") {
+    m_gameConsole->print("Position: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getPosition()));
+
+    m_gameConsole->print("Direction: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getFrontDirection()));
+
+    return EventProcessStatus::Processed;
+  }
 
   return EventProcessStatus::Skipped;
 }
@@ -187,7 +197,7 @@ void BaseGameApplication::initializePlatform(int argc,
 
   StartupSettings startupSettings = StartupSettings::loadFromFile();
 
-  int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
+  int initStatus = SDL_Init(SDL_INIT_EVERYTHING & (~SDL_INIT_SENSOR));
 
   if (initStatus != 0) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
@@ -289,6 +299,47 @@ void BaseGameApplication::initializeEngine()
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
   m_gameWorld = GameWorld::createInstance();
+  m_gameWorld->registerComponentBinderFactory<TransformComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<TransformComponent, TransformComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<AudioSourceComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<AudioSourceComponent,
+                                                                AudioSourceComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<CameraComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<CameraComponent, CameraComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<EnvironmentComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<EnvironmentComponent,
+                                                                EnvironmentComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<ObjectSceneNodeComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<ObjectSceneNodeComponent,
+                                                                ObjectSceneNodeComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<MeshRendererComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<MeshRendererComponent,
+                                                                MeshRendererComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<SkeletalAnimationComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<SkeletalAnimationComponent,
+                                                                AnimationComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<RigidBodyComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<RigidBodyComponent,
+                                                                RigidBodyComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<KinematicCharacterComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<KinematicCharacterComponent,
+                                                                KinematicCharacterComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<GameObjectSpawnComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<GameObjectSpawnComponent,
+                                                                GameObjectSpawnComponentBinder>>());
+
   m_screenManager = std::make_shared<ScreenManager>(
     m_gameWorld,
     m_graphicsModule,
@@ -305,6 +356,10 @@ void BaseGameApplication::initializeEngineSystems()
 
   m_engineGameSystems = std::make_shared<GameSystemsGroup>();
   m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
+
+  // Online management system
+  m_onlineManagementSystem = std::make_shared<OnlineManagementSystem>();
+  m_engineGameSystems->addGameSystem(m_onlineManagementSystem);
 
   // Input system
   m_inputSystem = std::make_shared<InputSystem>(m_inputModule);
@@ -388,6 +443,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_spawnSystem = std::make_shared<GameObjectsSpawnSystem>(m_levelsManager);
   m_engineGameSystems->addGameSystem(m_spawnSystem);
 
+  // Scripting system
+  m_scriptingSystem = std::make_shared<ScriptingSystem>(m_gameWorld);
+  m_engineGameSystems->addGameSystem(m_scriptingSystem);
+
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>();
   m_engineGameSystems->addGameSystem(m_gameApplicationSystems);
@@ -460,7 +519,9 @@ void BaseGameApplication::performRender()
 
   render();
 
+  DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
   m_graphicsModule->getGraphicsContext()->executeRenderTasks();
+  DebugPainter::resetRenderQueue();
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();

@@ -31,6 +31,9 @@ class BulletKinematicCharacterComponent : public KinematicCharacterComponentBack
   void setOriginOffset(const glm::vec3& offset) override;
   [[nodiscard]] glm::vec3 getOriginOffset() const override;
 
+  void enableSimulation(bool enable) override;
+  [[nodiscard]] bool isSimulationEnabled() const override;
+
  private:
   btConvexShape* m_collisionShape = nullptr;
   BulletKinematicCharacterController* m_kinematicController = nullptr;

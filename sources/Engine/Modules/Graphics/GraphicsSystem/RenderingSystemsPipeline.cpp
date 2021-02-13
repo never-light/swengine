@@ -28,11 +28,8 @@ void RenderingSystemsPipeline::render()
     auto* renderingSystem = dynamic_cast<RenderingSystem*>(system.get());
     renderingSystem->render();
   }
-
-  DebugPainter::flushRenderQueue(m_graphicsContext.get());
 }
 
 void RenderingSystemsPipeline::afterRender()
 {
-  DebugPainter::resetRenderQueue();
 }

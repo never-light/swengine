@@ -1,4 +1,5 @@
 #include "PlayerComponent.h"
+#include <Engine/Modules/ECS/ECS.h>
 
 PlayerComponent::PlayerComponent(float playerHeight)
   : m_playerHeight(playerHeight)
@@ -65,3 +66,21 @@ float PlayerComponent::getPlayerHeight() const
 {
   return m_playerHeight;
 }
+
+PlayerComponent::BindingParameters PlayerComponent::getBindingParameters() const
+{
+  return PlayerComponent::BindingParameters{.height=m_playerHeight, .walkSpeed = m_movementSpeed};
+}
+
+PlayerComponentBinder::PlayerComponentBinder(const ComponentBindingParameters& componentParameters)
+  : m_bindingParameters(componentParameters)
+{
+
+}
+
+void PlayerComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& playerComponent = *gameObject.addComponent<PlayerComponent>(m_bindingParameters.height).get();
+  playerComponent.setMovementSpeed(m_bindingParameters.walkSpeed);
+}
+

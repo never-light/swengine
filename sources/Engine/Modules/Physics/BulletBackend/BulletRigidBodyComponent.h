@@ -37,6 +37,9 @@ class BulletRigidBodyComponent : public RigidBodyComponentBackend {
 
   void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
 
+  void enableSimulation(bool enable) override;
+  [[nodiscard]] bool isSimulationEnabled() const override;
+
  private:
   btCollisionShape* m_collisionShape = nullptr;
 

@@ -88,7 +88,7 @@ struct CollisionShapeCompoundChild {
 class CollisionShape : public Resource {
  public:
   CollisionShape() = default;
-  explicit CollisionShape(const CollisionShapeData& shapeData);
+  explicit CollisionShape(CollisionShapeData  shapeData);
 
   ~CollisionShape() override = default;
 

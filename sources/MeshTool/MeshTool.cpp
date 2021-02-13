@@ -22,9 +22,11 @@ int main(int argc, char* argv[])
     spdlog::error("Processing error: {} [file: {}, line: {}, function: {}",
       ex.what(), ex.getFile(), ex.getLine(), ex.getFunction());
   }
+#ifndef _DEBUG
   catch (const std::exception& ex) {
     spdlog::error("Unknown error: {}", ex.what());
   }
+#endif
 
   return 0;
 }

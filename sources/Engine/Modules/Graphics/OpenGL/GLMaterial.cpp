@@ -188,6 +188,22 @@ void GLShadingParametersOpaqueMeshBinder::bindParameters(GLShadersPipeline& shad
     dynamic_cast<ShadingParametersOpaqueMesh&>(getParametersSet());
 
   GLShader* fragmentShader = shadersPipeline.getShader(ShaderType::Fragment);
+  GLShader* vertexShader = shadersPipeline.getShader(ShaderType::Vertex);
 
-  fragmentShader->setParameter("albedo", *parametersSet.getAlbedoTexture(), 0);
+  const auto& baseColorTextureEntry = parametersSet.getBaseColorMap();
+
+  fragmentShader->setParameter("base_color", parametersSet.getBaseColorFactor());
+  fragmentShader->setParameter("use_base_color_map", baseColorTextureEntry.has_value());
+
+  if (baseColorTextureEntry.has_value()) {
+    fragmentShader->setParameter("base_color_map", *baseColorTextureEntry.value().getTexture(), 0);
+
+    if (baseColorTextureEntry->hasTransformation()) {
+      vertexShader->setParameter("base_color_map_uv_transform", baseColorTextureEntry->getTransformationMatrix());
+    }
+
+    vertexShader->setParameter("use_base_color_map_uv_transform", baseColorTextureEntry->hasTransformation());
+  }
+
+
 }

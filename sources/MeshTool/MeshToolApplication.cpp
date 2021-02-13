@@ -20,9 +20,11 @@
 #include "SceneImporter.h"
 #include "SceneExporter.h"
 
+#include "AssetsDump.h"
+
 MeshToolApplication::MeshToolApplication()
 {
-
+  spdlog::set_level(spdlog::level::debug);
 }
 
 void MeshToolApplication::execute(int argc, char* argv[])
@@ -32,9 +34,9 @@ void MeshToolApplication::execute(int argc, char* argv[])
     ("h,help", "Help")
     ("i,input", "Input file", cxxopts::value<std::string>())
     ("o,output", "Output file", cxxopts::value<std::string>())
-    ("a,action", "Action (import)", cxxopts::value<std::string>()->default_value("import"))
+    ("a,action", "Action (import, dump)", cxxopts::value<std::string>()->default_value("import"))
     ("t,type", "Import type (mesh, skeleton, animation, collisions, scene)",
-        cxxopts::value<std::string>()->default_value("mesh"))
+      cxxopts::value<std::string>()->default_value("mesh"))
     ("format", "Output mesh format (pos3_norm3_uv, pos3_norm3_uv_skinned,"
                "pos3_norm3_tan3_uv, pos3_norm3_tan3_uv_skinned)",
       cxxopts::value<std::string>()->default_value("pos3_norm3_uv"))
@@ -50,6 +52,7 @@ void MeshToolApplication::execute(int argc, char* argv[])
     std::cout << "./MeshTool -i mesh.dae -o mesh.anim -a import -t animation --clip-name idle" << std::endl;
     std::cout << "./MeshTool -i mesh.dae -o mesh.collision -a import -t collisions" << std::endl;
     std::cout << "./MeshTool -i scene.gltf -o scene_dir/ -a import -t scene" << std::endl;
+    std::cout << "./MeshTool -a dump -i teapot.mesh" << std::endl;
 
     return;
   }
@@ -77,6 +80,12 @@ void MeshToolApplication::execute(int argc, char* argv[])
     else {
       THROW_EXCEPTION(EngineRuntimeException, "Unknown import type");
     }
+  }
+  else if (action == "dump") {
+    const std::string inputPath = parsedArgs["input"].as<std::string>();
+
+    AssetsDump assetsDump;
+    assetsDump.dumpAssetData(inputPath);
   }
   else {
     THROW_EXCEPTION(EngineRuntimeException, "Unknown action");

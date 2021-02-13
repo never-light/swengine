@@ -19,6 +19,31 @@ GLMaterial* EnvironmentComponent::getEnvironmentMaterial() const
   return m_environmentMaterial.get();
 }
 
+EnvironmentComponent::BindingParameters EnvironmentComponent::getBindingParameters() const
+{
+  return EnvironmentComponent::BindingParameters{
+    .materialResourceName = m_environmentMaterial.getResourceId()
+  };
+}
+
+EnvironmentComponentBinder::EnvironmentComponentBinder(const ComponentBindingParameters& componentParameters,
+  std::shared_ptr<ResourcesManager> resourcesManager)
+  : m_bindingParameters(componentParameters),
+    m_resourcesManager(std::move(resourcesManager))
+{
+
+}
+
+void EnvironmentComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& environmentComponent = *gameObject.addComponent<EnvironmentComponent>().get();
+
+  ResourceHandle<GLMaterial> materialInstance =
+    m_resourcesManager->getResource<GLMaterial>(m_bindingParameters.materialResourceName);
+
+  environmentComponent.setEnvironmentMaterial(materialInstance);
+}
+
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GraphicsScene> graphicsScene,

@@ -9,9 +9,35 @@
 #include "Utility/xml.h"
 
 #include "GameObjectsClassLoader.h"
-#include "GameObjectsComponentBinder.h"
+
+#include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
+#include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
+#include "Modules/Graphics/GraphicsSystem/CameraComponent.h"
+#include "Modules/Graphics/GraphicsSystem/EnvironmentRenderingSystem.h"
+#include "Modules/Graphics/GraphicsSystem/Animation/AnimationStatesMachine.h"
+#include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
+#include "Modules/Physics/RigidBodyComponent.h"
+#include "Modules/Physics/KinematicCharacterComponent.h"
+#include "Modules/Audio/AudioSourceComponent.h"
+
+class GameObjectSpawnComponentBindingParameters {
+ public:
+  std::string spawnName;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("spawn_name", spawnName));
+  };
+
+};
 
 struct GameObjectSpawnComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = GameObjectSpawnComponentBindingParameters;
+
  public:
   GameObjectSpawnComponent() = default;
 
@@ -25,13 +51,36 @@ struct GameObjectSpawnComponent {
     m_spawnName = spawnName;
   }
 
+  [[nodiscard]] BindingParameters getBindingParameters() const
+  {
+    return GameObjectSpawnComponentBindingParameters{.spawnName=m_spawnName};
+  }
+
  private:
   std::string m_spawnName;
 };
 
+class GameObjectSpawnComponentBinder : public GameObjectsComponentBinder<GameObjectSpawnComponent> {
+ public:
+  explicit GameObjectSpawnComponentBinder(const ComponentBindingParameters& componentParameters)
+    : m_bindingParameters(componentParameters)
+  {
+
+  }
+
+  void bindToObject(GameObject& gameObject) override
+  {
+    auto spawnComponent = gameObject.addComponent<GameObjectSpawnComponent>();
+    spawnComponent->setSpawnName(m_bindingParameters.spawnName);
+  }
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};
+
 struct GameObjectFactoryData {
   GameObjectFactoryData(std::optional<std::string> gameObjectId,
-    std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> componentsFactories)
+    std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> componentsFactories)
     : gameObjectId(std::move(gameObjectId)),
       componentsFactories(std::move(componentsFactories))
   {
@@ -48,12 +97,12 @@ struct GameObjectFactoryData {
   }
 
   std::optional<std::string> gameObjectId;
-  std::unordered_map<std::string, std::unique_ptr<GameObjectsComponentBinder>> componentsFactories;
+  std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> componentsFactories;
 };
 
 class GameObjectsLoader {
  public:
-  using ComponentLoaderCallback = std::function<std::unique_ptr<GameObjectsComponentBinder>(const pugi::xml_node&)>;
+  using ComponentLoaderCallback = std::function<std::unique_ptr<BaseGameObjectsComponentBinder>(const pugi::xml_node&)>;
 
  public:
   GameObjectsLoader(std::shared_ptr<GameWorld> gameWorld,
@@ -113,15 +162,17 @@ class GameObjectsLoader {
 
   GameObject buildGameObject(const std::string& spawnName, const std::optional<std::string>& objectName = {});
 
+  void resetLoadedObjects();
+
  public:
-  std::unique_ptr<GameObjectsComponentBinder> loadTransformData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadVisualData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadRigidBodyData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadEnvironmentData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadAudioSourceData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadCameraData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadAnimationData(const pugi::xml_node& data);
-  std::unique_ptr<GameObjectsComponentBinder> loadKinematicCharacterData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadTransformData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadVisualData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadRigidBodyData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadEnvironmentData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadAudioSourceData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadCameraData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadAnimationData(const pugi::xml_node& data);
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadKinematicCharacterData(const pugi::xml_node& data);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

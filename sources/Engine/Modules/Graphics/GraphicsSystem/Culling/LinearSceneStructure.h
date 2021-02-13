@@ -18,6 +18,7 @@ class LinearSceneStructure : public SceneAccelerationStructure {
     std::vector<GameObject>& result) override;
 
   void queryVisibleObjects(Camera& camera, std::vector<GameObject>& result) override;
+  void queryAllObjects(std::vector<GameObject>& result) override;
 
   void clear() override;
 

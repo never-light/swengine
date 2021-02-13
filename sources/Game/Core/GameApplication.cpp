@@ -14,6 +14,10 @@
 #include "Game/Inventory/InventoryUI.h"
 #include "Game/Dynamic/DialoguesUI.h"
 
+#include "Game/Saving/SavingSystem.h"
+
+#include "Game/Game.h"
+
 GameApplication::GameApplication(int argc, char* argv[])
   : BaseGameApplication(argc, argv, "Game")
 {
@@ -34,6 +38,17 @@ void GameApplication::load()
   auto resourceMgr = m_resourceManagementModule->getResourceManager();
   resourceMgr->loadResourcesMapFile("../resources/resources.xml");
   resourceMgr->loadResourcesMapFile("../resources/game/resources.xml");
+
+  m_gameWorld->registerComponentBinderFactory<ActorComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<ActorComponent, ActorComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<InventoryComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<InventoryComponent, InventoryComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::GameWorld>>(m_gameWorld));
+  m_gameWorld->registerComponentBinderFactory<InventoryItemComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<InventoryItemComponent, InventoryItemComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(resourceMgr));
+  m_gameWorld->registerComponentBinderFactory<PlayerComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<PlayerComponent, PlayerComponentBinder>>());
 
   m_componentsLoader = std::make_unique<GameComponentsLoader>(m_gameWorld, resourceMgr);
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("player",
@@ -61,12 +76,12 @@ void GameApplication::load()
       return m_componentsLoader->loadActorData(data);
     });
 
-  m_screenManager->registerScreen(
-    std::make_shared<GameScreen>(m_inputModule,
-      getGameApplicationSystemsGroup(),
-      m_levelsManager,
-      m_graphicsScene,
-      m_guiSystem));
+  auto gameScreen = std::make_shared<GameScreen>(m_inputModule,
+    getGameApplicationSystemsGroup(),
+    m_levelsManager,
+    m_graphicsScene,
+    m_guiSystem);
+  m_screenManager->registerScreen(gameScreen);
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_main_menu"));
@@ -90,8 +105,10 @@ void GameApplication::load()
 
   m_graphicsModule->getGraphicsContext()->setupDeferredAccumulationMaterial(deferredAccumulationPipeline);
 
-  m_gameWorld->subscribeEventsListener<ScreenSwitchEvent>(this);
+  m_engineGameSystems->addGameSystem(std::make_shared<SavingSystem>(m_levelsManager,
+    gameScreen->getGame()));
 
+  m_gameWorld->subscribeEventsListener<ScreenSwitchEvent>(this);
   m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
 }
 

@@ -76,8 +76,12 @@ void MeshResourceManager::load(size_t resourceIndex)
     mesh->setSkinData(bonesIDs, bonesWeights);
   }
 
-  mesh->setSubMeshesIndices(rawMesh.indices, rawMesh.subMeshesIndicesOffsets);
-  mesh->setAABB(rawMesh.aabb);
+  for (const RawSubMeshDescription& rawSubMeshDescription : rawMesh.subMeshesDescriptions) {
+    mesh->addSubMesh(rawSubMeshDescription.indices);
+  }
+
+  mesh->setAABB(AABB(rawVector3ToGLMVector3(rawMesh.aabb.min), rawVector3ToGLMVector3(rawMesh.aabb.max)));
+  mesh->setInverseSceneTransform(rawMatrix4ToGLMMatrix4(rawMesh.inverseSceneTransform));
 
   if (config->skeletonResourceId.has_value()) {
     ResourceHandle<Skeleton> skeleton = getResourceManager()->getResource<Skeleton>(

@@ -28,6 +28,15 @@ class BulletDebugPainter : public btIDebugDraw {
 
   void draw3dText(const btVector3& location, const char* textString) override;
   void setDebugMode(int debugMode) override;
-  int getDebugMode() const override;
+  [[nodiscard]] int getDebugMode() const override;
+
+  void drawSphere(const btVector3& p, btScalar radius, const btVector3& color) override;
+  void drawSphere(btScalar radius, const btTransform& transform, const btVector3& color) override;
+
+  void drawBox(const btVector3& bbMin, const btVector3& bbMax, const btVector3& color) override;
+  void drawBox(const btVector3& bbMin,
+    const btVector3& bbMax,
+    const btTransform& trans,
+    const btVector3& color) override;
 
 };

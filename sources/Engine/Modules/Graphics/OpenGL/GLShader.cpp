@@ -124,6 +124,11 @@ void GLShader::setParameter(const std::string& name, const glm::vec4& value)
   glProgramUniform4fv(m_shaderProgram, m_uniformsCache[name].location, 1, &value[0]);
 }
 
+void GLShader::setParameter(const std::string& name, const glm::mat3x3& value)
+{
+  glProgramUniformMatrix3fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);
+}
+
 void GLShader::setParameter(const std::string& name, const glm::mat4x4& value)
 {
   glProgramUniformMatrix4fv(m_shaderProgram, m_uniformsCache[name].location, 1, GL_FALSE, &value[0][0]);

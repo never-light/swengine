@@ -18,4 +18,7 @@ class KinematicCharacterComponentBackend {
 
   virtual void setOriginOffset(const glm::vec3& offset) = 0;
   [[nodiscard]] virtual glm::vec3 getOriginOffset() const = 0;
+
+  virtual void enableSimulation(bool enable) = 0;
+  [[nodiscard]] virtual bool isSimulationEnabled() const = 0;
 };

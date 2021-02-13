@@ -9,12 +9,23 @@
 
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
+#include "GameObjectsFactory.h"
 #include "GameObjectsStorage.h"
 
 #include "GameObjectsSequentialView.h"
 #include "GameObjectsComponentsView.h"
 
 #include "EventsListener.h"
+
+struct GameWorldSerializeHeader {
+  uint32_t gameObjectsCount = 0;
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(gameObjectsCount);
+  }
+};
 
 /*!
  * \brief Class for representing the game world
@@ -198,7 +209,7 @@ class GameWorld {
    *
    * \return view for iterate over all game objects
    */
-  GameObjectsSequentialView all()
+  [[nodiscard]] GameObjectsSequentialView all() const
   {
     GameObjectsSequentialIterator begin(m_gameObjectsStorage.get(), 0, false);
     GameObjectsSequentialIterator end(m_gameObjectsStorage.get(), m_gameObjectsStorage->getSize(), true);
@@ -249,6 +260,86 @@ class GameWorld {
    */
   template<class T>
   EventProcessStatus emitEvent(const T& event);
+
+  template<class Archive>
+  void save(Archive& archive) const
+  {
+    size_t gameObjectsCount = 0;
+
+    for (GameObject gameObject : all()) {
+      if (gameObject.isAlive() && gameObject.isSerializable()) {
+        gameObjectsCount++;
+      }
+    }
+
+    GameWorldSerializeHeader serializeHeader{
+      .gameObjectsCount = static_cast<uint32_t>(gameObjectsCount)
+    };
+
+    archive(serializeHeader);
+
+    for (GameObject gameObject : all()) {
+      if (gameObject.isAlive() && gameObject.isSerializable()) {
+        std::string objectName = gameObject.getName();
+        archive(objectName);
+
+        SW_ASSERT(gameObject.isAlive());
+
+        std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask = gameObject.getComponentsMask();
+
+        archive(componentsMask);
+
+        for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
+          if (componentsMask.test(componentBitIndex)) {
+            if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
+              ComponentsTypeInfo::performSave(archive, componentBitIndex,
+                m_gameObjectsStorage->getComponentRawData(gameObject, componentBitIndex));
+            }
+          }
+        }
+
+      }
+    }
+  }
+
+  template<class Archive>
+  void load(Archive& archive)
+  {
+    GameWorldSerializeHeader serializeHeader;
+    archive(serializeHeader);
+
+    for (size_t gameObjectIndex = 0; gameObjectIndex < serializeHeader.gameObjectsCount; gameObjectIndex++) {
+      std::string objectName;
+      archive(objectName);
+
+      GameObject gameObject{};
+
+      if (objectName.empty()) {
+        gameObject = createGameObject();
+      }
+      else {
+        gameObject = createGameObject(objectName);
+      }
+
+      std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+      archive(componentsMask);
+
+      for (size_t componentBitIndex = 0; componentBitIndex < componentsMask.size(); componentBitIndex++) {
+        if (componentsMask.test(componentBitIndex)) {
+          if (ComponentsTypeInfo::isSerializable(componentBitIndex)) {
+            ComponentsTypeInfo::performLoad(archive, componentBitIndex,
+              gameObject, m_gameObjectsStorage->getComponentBinderFactory(componentBitIndex));
+          }
+        }
+      }
+    }
+  }
+
+  template<class ComponentType>
+  void registerComponentBinderFactory(std::shared_ptr<BaseGameObjectsComponentsBindersFactory> bindersFactory)
+  {
+    m_gameObjectsStorage->template registerComponentBinderFactory<ComponentType>(std::move(bindersFactory));
+  }
 
  public:
   static std::shared_ptr<GameWorld> createInstance()

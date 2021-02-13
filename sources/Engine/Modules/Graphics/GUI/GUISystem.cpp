@@ -41,7 +41,7 @@ GUISystem::GUISystem(
     {0.0f, 0.0f, 0.0f},
   });
 
-  RETURN_VALUE_UNUSED(m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3}));
+  m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3});
 
   m_gpuStateParameters.setDepthTestMode(DepthTestMode::Disabled);
   m_gpuStateParameters.setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);

@@ -42,5 +42,26 @@ class ContainersUtils {
 
     return result;
   }
+
+  template<class T>
+  static void append(T& target, const T& source)
+  {
+    target.insert(std::end(target), std::begin(source), std::end(source));
+  }
+
+  template<class SourceFormat, class TargetFormat = uint8_t>
+  static std::vector<TargetFormat> convertVectorBinaryData(const std::vector<SourceFormat>& vector)
+  {
+    static_assert(sizeof(SourceFormat) >= sizeof(TargetFormat) &&
+      sizeof(SourceFormat) % sizeof(TargetFormat) == 0);
+
+    std::vector<TargetFormat> bytesVector(vector.size() * (sizeof(SourceFormat) / sizeof(TargetFormat)));
+    memcpy_s(bytesVector.data(),
+      bytesVector.size() * sizeof(bytesVector[0]),
+      vector.data(),
+      bytesVector.size() * sizeof(bytesVector[0]));
+
+    return bytesVector;
+  }
 };
 

@@ -180,7 +180,7 @@ void PlayerControlSystem::update(float delta)
   auto& playerTransform = m_playerObject.getComponent<TransformComponent>()->getTransform();
 
   glm::vec3 playerOrigin = playerTransform.getPosition() +
-    glm::vec3(0.0f, playerComponent.getPlayerHeight() / 2.0f, 0.0f);
+    glm::vec3(0.0f, playerComponent.getPlayerHeight(), 0.0f);
 
   playerCameraTransform.setPosition(playerOrigin.x - horizontalOffsetX,
     playerOrigin.y + verticalOffset,

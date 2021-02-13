@@ -71,3 +71,31 @@ int BulletDebugPainter::getDebugMode() const
   return DBG_DrawWireframe;
 }
 
+void BulletDebugPainter::drawSphere(const btVector3& p, btScalar radius, const btVector3& color)
+{
+  DebugPainter::renderSphere(BulletUtils::btVec3ToGlm(p), radius, glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
+}
+
+void BulletDebugPainter::drawSphere(btScalar radius, const btTransform& transform, const btVector3& color)
+{
+  DebugPainter::renderSphere(BulletUtils::btVec3ToGlm(transform.getOrigin()), radius,
+    glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
+}
+
+void BulletDebugPainter::drawBox(const btVector3& bbMin, const btVector3& bbMax, const btVector3& color)
+{
+  AABB aabb(BulletUtils::btVec3ToGlm(bbMin), BulletUtils::btVec3ToGlm(bbMax));
+  DebugPainter::renderAABB(aabb, glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
+}
+
+void BulletDebugPainter::drawBox(const btVector3& bbMin,
+  const btVector3& bbMax,
+  const btTransform& trans,
+  const btVector3& color)
+{
+  AABB aabb(BulletUtils::btVec3ToGlm(bbMin), BulletUtils::btVec3ToGlm(bbMax));
+  aabb.applyTransform(BulletUtils::btTransformToInternal(trans).getTransformationMatrix());
+
+  DebugPainter::renderAABB(aabb, glm::vec4(BulletUtils::btVec3ToGlm(color), 0.0f));
+}
+

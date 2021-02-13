@@ -47,6 +47,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_operation.hpp>
 #include <glm/gtx/extended_min_max.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 #include <pugixml.hpp>
 #include <stb_image.h>
@@ -58,6 +59,10 @@
 #include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
 #include <BulletDynamics/btBulletDynamicsCommon.h>
+
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/archives/binary.hpp>
 
 // Engine headers to precompile
 #include "swdebug.h"

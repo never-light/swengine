@@ -2,4 +2,4 @@
 
 #pragma hdrstop
 
-#include "GameObjectsComponentBinder.h"
+#include "GameObjectsFactory.h"

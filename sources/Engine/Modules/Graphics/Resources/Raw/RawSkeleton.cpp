@@ -47,6 +47,7 @@ void RawSkeleton::writeToFile(const std::string& path, const RawSkeleton& rawSke
   SW_ASSERT(rawSkeleton.header.bonesCount > 0 && rawSkeleton.header.bonesCount == rawSkeleton.bones.size());
 
   std::ofstream out(path, std::ios::binary);
+  SW_ASSERT(out.is_open());
 
   const uint16_t bonesCount = rawSkeleton.header.bonesCount;
 
