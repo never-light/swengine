@@ -14,7 +14,8 @@ SET(ENGINE_SOURCES ${ENGINE_SOURCES} ${ENGINE_INCLUDES} Exceptions/exceptions.h)
 add_library(engine STATIC ${ENGINE_SOURCES})
 
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-        ../../ThirdParty/OpenGL)
+        ../../ThirdParty/OpenGL
+        ../../ThirdParty/sol2/single/include)
 
 target_link_libraries(engine ${ENGINE_LIBS})
 

@@ -2,30 +2,64 @@
 
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGraphicsContext.h"
+#include "Modules/ECS/GameObjectsFactory.h"
 
-#include "Material.h"
-#include "Mesh.h"
-#include "SharedGraphicsState.h"
+#include "Modules/Graphics/OpenGL/GLMaterial.h"
+#include "Modules/Graphics/OpenGL/Mesh.h"
+#include "FrameStats.h"
 #include "RenderingSystem.h"
+
+class EnvironmentComponentBindingParameters {
+ public:
+  std::string materialResourceName;
+
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("material_resource", materialResourceName));
+  };
+};
 
 class EnvironmentComponent {
  public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = EnvironmentComponentBindingParameters;
+
+ public:
   EnvironmentComponent();
 
-  void setEnvironmentMaterial(std::shared_ptr<Material> material);
-  [[nodiscard]] Material* getEnvironmentMaterial() const;
+  void setEnvironmentMaterial(ResourceHandle<GLMaterial> material);
+  [[nodiscard]] GLMaterial* getEnvironmentMaterial() const;
+
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+  
+ private:
+  ResourceHandle<GLMaterial> m_environmentMaterial;
+};
+
+class EnvironmentComponentBinder : public GameObjectsComponentBinder<EnvironmentComponent> {
+ public:
+  explicit EnvironmentComponentBinder(const ComponentBindingParameters& componentParameters,
+    std::shared_ptr<ResourcesManager> resourcesManager);
+
+  void bindToObject(GameObject& gameObject) override;
 
  private:
-  std::shared_ptr<Material> m_environmentMaterial;
+  ComponentBindingParameters m_bindingParameters;
+  std::shared_ptr<ResourcesManager> m_resourcesManager;
 };
+
 
 class EnvironmentRenderingSystem : public RenderingSystem {
  public:
   EnvironmentRenderingSystem(
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GraphicsScene> graphicsScene,
-    std::shared_ptr<Mesh> environmentMesh);
+    ResourceHandle<Mesh> environmentMesh);
 
   ~EnvironmentRenderingSystem() override;
 
@@ -33,10 +67,10 @@ class EnvironmentRenderingSystem : public RenderingSystem {
   void unconfigure() override;
 
   void update(float delta) override;
-  void renderForward() override;
+  void render() override;
 
  private:
-  std::shared_ptr<Mesh> m_environmentMesh;
+  ResourceHandle<Mesh> m_environmentMesh;
 };
 
 

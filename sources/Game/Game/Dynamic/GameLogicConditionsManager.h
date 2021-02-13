@@ -201,6 +201,23 @@ class GameLogicAction {
   GameLogicConditionsManager* m_conditionsManager;
 };
 
+class GameLogicActionSpawnObject : public GameLogicAction {
+ public:
+  explicit GameLogicActionSpawnObject(
+    GameLogicConditionsManager* conditionsManager,
+    std::string objectSpawnName,
+    const glm::vec3& position,
+    const glm::vec3& direction);
+  ~GameLogicActionSpawnObject() override = default;
+
+  void execute() override;
+
+ private:
+  std::string m_objectSpawnName;
+  glm::vec3 m_position;
+  glm::vec3 m_direction;
+};
+
 class GameLogicActorAction : public GameLogicAction {
  public:
   explicit GameLogicActorAction(

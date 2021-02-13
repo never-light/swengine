@@ -64,3 +64,29 @@ bool InteractiveObjectComponent::isTalkable() const
 {
   return m_isTalkable;
 }
+
+InteractiveObjectComponent::BindingParameters InteractiveObjectComponent::getBindingParameters() const
+{
+  return InteractiveObjectComponent::BindingParameters{
+    .title = m_name,
+    .isTakeable = m_isTakeable,
+    .isTalkable = m_isTalkable,
+    .isUsable = m_isUsable
+  };
+}
+
+InteractiveComponentBinder::InteractiveComponentBinder(const ComponentBindingParameters& componentParameters)
+  : m_bindingParameters(componentParameters)
+{
+
+}
+
+void InteractiveComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& interactiveComponent = *gameObject.addComponent<InteractiveObjectComponent>().get();
+
+  interactiveComponent.setName(m_bindingParameters.title);
+  interactiveComponent.setTakeable(m_bindingParameters.isTakeable);
+  interactiveComponent.setUsable(m_bindingParameters.isUsable);
+  interactiveComponent.setTalkable(m_bindingParameters.isTalkable);
+}

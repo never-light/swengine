@@ -2,7 +2,7 @@
 
 #include <Engine/Modules/ECS/ECS.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 
 #include <Game/Game/Dynamic/GameLogicConditionsManager.h>
 #include <Game/Game/PlayerComponent.h>
@@ -18,7 +18,7 @@
 static std::shared_ptr<GameWorld> createTestGameWorld()
 {
   auto gameWorld = GameWorld::createInstance();
-  auto resourcesManager = std::make_shared<ResourceManager>();
+  auto resourcesManager = std::make_shared<ResourcesManager>();
   auto levelsManager = std::make_shared<LevelsManager>(gameWorld, resourcesManager);
 
   auto infoportionsSystem = std::make_shared<InfoportionsSystem>();
@@ -31,7 +31,8 @@ static std::shared_ptr<GameWorld> createTestGameWorld()
   infoportionsSystem->addInfoportion("test_infoportion_2");
 
   GameObject testInventoryItem = gameWorld->createGameObject();
-  testInventoryItem.addComponent<InventoryItemComponent>(nullptr, "test_item_id", "test_item_name");
+  testInventoryItem.addComponent<InventoryItemComponent>(
+    ResourceHandle<GLTexture>(), "test_item_id", "test_item_name");
 
   GameObject player = gameWorld->createGameObject("player");
   player.addComponent<PlayerComponent>(1.0f);
@@ -201,4 +202,76 @@ TEST_CASE("game_logic_inventory_transfer_item_action", "[game]")
 
   REQUIRE(npcHasObjectCondition->calculateValue());
   REQUIRE(npcInventory->hasItem("test_item_id"));
+}
+
+TEST_CASE("game_logic_has_not_infoportion_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+
+    auto hasNotInfoConditionPositive = std::make_shared<GameLogicConditionHasNotInfoportion>(conditionsManager.get(),
+                                                                                             "test_infoportion_1");
+    hasNotInfoConditionPositive->setActor(playerObject);
+
+    auto hasNotInfoConditionNegative = std::make_shared<GameLogicConditionHasNotInfoportion>(conditionsManager.get(),
+                                                                                             "test_infoportion_2");
+    hasNotInfoConditionNegative->setActor(playerObject);
+
+    auto addInfoportionAction = std::make_shared<GameLogicActionAddInfoportion>(conditionsManager.get(),
+                                                                                "test_infoportion_2");
+    addInfoportionAction->setActor(playerObject);
+
+    addInfoportionAction->execute();
+
+    REQUIRE(hasNotInfoConditionPositive->calculateValue());
+    REQUIRE_FALSE(hasNotInfoConditionNegative->calculateValue());
+
+    auto removeInfoportionAction = std::make_shared<GameLogicActionRemoveInfoportion>(conditionsManager.get(),
+                                                                                      "test_infoportion_2");
+    removeInfoportionAction->setActor(playerObject);
+
+    removeInfoportionAction->execute();
+
+    REQUIRE(hasNotInfoConditionPositive->calculateValue());
+    REQUIRE(hasNotInfoConditionNegative->calculateValue());
+}
+
+TEST_CASE("game_logic_has_item_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+    auto playerInventory = playerObject.getComponent<InventoryComponent>();
+
+    auto playerHasItemConditionPositive = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                        "test_item_id");
+    playerHasItemConditionPositive->setActor(playerObject);
+
+    auto playerHasItemConditionNegative = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                        "test_item_id_2");
+    playerHasItemConditionNegative->setActor(playerObject);
+
+    REQUIRE(playerHasItemConditionPositive->calculateValue());
+}
+
+TEST_CASE("game_logic_has_not_item_condition", "[game]")
+{
+    auto gameWorld = createTestGameWorld();
+    auto conditionsManager = std::make_shared<GameLogicConditionsManager>(gameWorld);
+
+    auto playerObject = gameWorld->findGameObject("player");
+
+    auto playerHasNotItemConditionPositive = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                           "test_item_id_2");
+    playerHasNotItemConditionPositive->setActor(playerObject);
+
+    auto playerHasNotItemConditionNegative = std::make_shared<GameLogicConditionHasObject>(conditionsManager.get(),
+                                                                                           "test_item_id");
+    playerHasNotItemConditionNegative->setActor(playerObject);
+
+    REQUIRE_FALSE(playerHasNotItemConditionPositive->calculateValue());
+    REQUIRE(playerHasNotItemConditionNegative->calculateValue());
 }

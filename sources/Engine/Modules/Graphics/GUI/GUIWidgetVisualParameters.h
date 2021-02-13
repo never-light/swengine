@@ -12,7 +12,7 @@
 class GUIWidgetVisualParameters {
  public:
   using ParamVec4 = std::optional<glm::vec4>;
-  using ParamTexture = std::shared_ptr<GLTexture>;
+  using ParamTexture = ResourceHandle<GLTexture>;
   using ParamInt = std::optional<int>;
 
  public:
@@ -28,12 +28,12 @@ class GUIWidgetVisualParameters {
     return m_backgroundColor;
   }
 
-  void setBackgroundImage(std::shared_ptr<GLTexture> image)
+  void setBackgroundImage(std::optional<ResourceHandle<GLTexture>> image)
   {
-    m_backgroundImage = std::move(image);
+    m_backgroundImage = image;
   }
 
-  [[nodiscard]] inline std::shared_ptr<GLTexture> getBackgroundImage() const
+  [[nodiscard]] inline std::optional<ResourceHandle<GLTexture>> getBackgroundImage() const
   {
     return m_backgroundImage;
   }
@@ -60,7 +60,7 @@ class GUIWidgetVisualParameters {
 
  private:
   ParamVec4 m_backgroundColor{};
-  std::shared_ptr<GLTexture> m_backgroundImage;
+  std::optional<ResourceHandle<GLTexture>> m_backgroundImage;
 
   ParamInt m_borderWidth{};
   ParamVec4 m_borderColor{};

@@ -11,7 +11,7 @@ class InventoryUI : public GUILayout {
   using ItemActionCallback = std::function<void(GameObject)>;
 
  public:
-  InventoryUI(std::shared_ptr<GameWorld> gameWorld,
+  InventoryUI(std::weak_ptr<GameWorld> gameWorld,
     std::shared_ptr<InputModule> inputModule);
 
   void setPadding(int padding);
@@ -57,7 +57,7 @@ class InventoryUI : public GUILayout {
   void syncGUIWithOwnerInventory();
 
  private:
-  std::shared_ptr<GameWorld> m_gameWorld;
+  std::weak_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<InputModule> m_inputModule;
 
   GameObject m_inventoryOwner{};

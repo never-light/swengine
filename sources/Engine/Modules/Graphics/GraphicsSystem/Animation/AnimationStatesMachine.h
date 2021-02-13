@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+
 #include "AnimationClip.h"
 #include "AnimationState.h"
 #include "AnimationStatesMachineVariables.h"
@@ -13,9 +15,10 @@
 #include "AnimationPose.h"
 #include "AnimationTransition.h"
 
-class AnimationStatesMachine {
+class AnimationStatesMachine : public Resource {
  public:
-  explicit AnimationStatesMachine(std::shared_ptr<Skeleton> skeleton);
+  explicit AnimationStatesMachine(ResourceHandle<Skeleton> skeleton);
+  ~AnimationStatesMachine() override = default;
 
   [[nodiscard]] int16_t getStateIdByName(const std::string& name) const;
 
@@ -48,6 +51,8 @@ class AnimationStatesMachine {
   [[nodiscard]] const AnimationStatesMachineVariables& getVariablesSet() const;
   [[nodiscard]] AnimationStatesMachineVariables& getVariablesSet();
 
+  [[nodiscard]] ResourceHandle<Skeleton> getSkeleton() const;
+
   void increaseCurrentTime(float delta);
 
  private:
@@ -58,7 +63,7 @@ class AnimationStatesMachine {
   static constexpr int16_t INVALID_STATE_ID = -1;
 
  private:
-  std::shared_ptr<Skeleton> m_skeleton;
+  ResourceHandle<Skeleton> m_skeleton;
 
   std::unordered_map<std::string, int16_t> m_statesNameToIdMap;
   std::vector<AnimationState> m_states;

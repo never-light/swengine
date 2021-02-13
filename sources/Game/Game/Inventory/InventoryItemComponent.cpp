@@ -3,7 +3,7 @@
 #include <utility>
 
 InventoryItemComponent::InventoryItemComponent(
-  std::shared_ptr<GLTexture> icon,
+  ResourceHandle<GLTexture> icon,
   std::string id,
   std::string name)
   : m_icon(std::move(icon)),
@@ -13,12 +13,12 @@ InventoryItemComponent::InventoryItemComponent(
 
 }
 
-void InventoryItemComponent::setIcon(std::shared_ptr<GLTexture> icon)
+void InventoryItemComponent::setIcon(ResourceHandle<GLTexture> icon)
 {
-  m_icon = std::move(icon);
+  m_icon = icon;
 }
 
-std::shared_ptr<GLTexture> InventoryItemComponent::getIcon() const
+ResourceHandle<GLTexture> InventoryItemComponent::getIcon() const
 {
   return m_icon;
 }
@@ -141,4 +141,40 @@ void InventoryItemComponent::setReadCallback(const InventoryItemComponent::Actio
 InventoryItemComponent::ActionCallback InventoryItemComponent::getReadCallback() const
 {
   return m_readCallback;
+}
+
+InventoryItemComponent::BindingParameters InventoryItemComponent::getBindingParameters() const
+{
+  return InventoryItemComponent::BindingParameters{.shortDescription=getShortDescription(),
+    .longDescription=getLongDescription(),
+    .name=getId(),
+    .title=getName(),
+    .iconResourceName=m_icon.getResourceId(),
+    .isReadable=isReadable(),
+    .isUsable=isUsable(),
+    .isDroppable=isDroppable()
+  };
+}
+
+InventoryItemComponentBinder::InventoryItemComponentBinder(const ComponentBindingParameters& componentParameters,
+  std::shared_ptr<ResourcesManager> resourceManager)
+  : m_bindingParameters(componentParameters),
+    m_resourceManager(std::move(resourceManager))
+{
+
+}
+
+void InventoryItemComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto iconTexture = m_resourceManager->getResource<GLTexture>(m_bindingParameters.iconResourceName);
+
+  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(
+    iconTexture, m_bindingParameters.name, m_bindingParameters.title).get();
+
+  inventoryItemComponent.setReadable(m_bindingParameters.isReadable);
+  inventoryItemComponent.setUsable(m_bindingParameters.isUsable);
+  inventoryItemComponent.setDroppable(m_bindingParameters.isDroppable);
+
+  inventoryItemComponent.setShortDescription(m_bindingParameters.shortDescription);
+  inventoryItemComponent.setLongDescription(m_bindingParameters.longDescription);
 }

@@ -10,12 +10,12 @@
 
 // TODO: do not generate AL sources in constructors. Create and use sources pool instead.
 
-AudioSource::AudioSource(std::shared_ptr<AudioClip> clip)
+AudioSource::AudioSource(ResourceHandle<AudioClip> clip)
 {
   AL_CALL(alGenSources(1, &m_source));
 
   AL_CALL_BLOCK_BEGIN();
-  setClip(std::move(clip));
+  setClip(clip);
 
   setPitch(1.0f);
   setVolume(1.0f);
@@ -33,7 +33,7 @@ AudioSource::AudioSource(const AudioSource& source)
   AL_CALL(alGenSources(1, &m_source));
 
   AL_CALL_BLOCK_BEGIN();
-  setClip(std::move(source.getClip()));
+  setClip(source.getClip());
 
   setPitch(source.getPitch());
   setVolume(source.getVolume());
@@ -85,14 +85,14 @@ float AudioSource::getVolume() const
   return volume;
 }
 
-void AudioSource::setClip(std::shared_ptr<AudioClip> clip)
+void AudioSource::setClip(ResourceHandle<AudioClip> clip)
 {
   m_audioClip = std::move(clip);
 
   alSourcei(m_source, AL_BUFFER, m_audioClip->getALBuffer());
 }
 
-std::shared_ptr<AudioClip> AudioSource::getClip() const
+ResourceHandle<AudioClip> AudioSource::getClip() const
 {
   return m_audioClip;
 }
@@ -220,7 +220,7 @@ bool AudioSource::isRelativeToListener() const
   return static_cast<bool>(isRelativeToListener);
 }
 
-void AudioSource::playOnce(std::shared_ptr<AudioClip> clip)
+void AudioSource::playOnce(ResourceHandle<AudioClip> clip)
 {
   m_subSources.emplace_back(*this);
   m_subSources.rbegin()->setLooped(false);

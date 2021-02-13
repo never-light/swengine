@@ -15,6 +15,8 @@ void LinearSceneStructure::clear()
 
 void LinearSceneStructure::addObject(GameObject object)
 {
+  SW_ASSERT(object.hasComponent<TransformComponent>());
+
   if (object.getComponent<TransformComponent>()->isStatic()) {
     m_staticObjects.push_back(object);
   }
@@ -25,6 +27,8 @@ void LinearSceneStructure::addObject(GameObject object)
 
 void LinearSceneStructure::removeObject(GameObject object)
 {
+  SW_ASSERT(object.hasComponent<TransformComponent>());
+
   if (object.getComponent<TransformComponent>()->isStatic()) {
     std::erase(m_staticObjects, object);
   }
@@ -102,4 +106,12 @@ void LinearSceneStructure::queryVisibleObjects(Camera& camera,
       result.push_back(object);
     }
   }
+}
+
+void LinearSceneStructure::queryAllObjects(std::vector<GameObject>& result)
+{
+  SW_ASSERT(result.empty());
+
+  result.insert(std::end(result), std::begin(m_staticObjects), std::end(m_staticObjects));
+  result.insert(std::end(result), std::begin(m_dynamicObjects), std::end(m_dynamicObjects));
 }

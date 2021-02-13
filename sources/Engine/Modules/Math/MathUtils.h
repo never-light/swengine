@@ -14,6 +14,7 @@ class MathUtils {
   static bool isEqual(const glm::mat4& a, const glm::mat4& b, float eps = 1e-6f);
   static bool isEqual(const glm::quat& a, const glm::quat& b, float eps = 1e-6f);
   static bool isEqual(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f);
+  static bool isEqual(const glm::vec4& a, const glm::vec4& b, float eps = 1e-6f);
   static bool isEqual(float a, float b, float eps = 1e-6f);
   static bool isEqual(const Plane& a, const Plane& b);
 
@@ -22,6 +23,7 @@ class MathUtils {
   static bool isMatrixIdentity(const glm::mat4& matrix, float eps = 1e-6f);
 
   static glm::mat4 getTranslationMatrix(const glm::vec3& translation);
+  static glm::mat4 getRotationMatrix(const glm::quat& orientation);
   static glm::mat4 getRotationMatrix(const glm::vec3& axis, float angle);
   static glm::mat4 getRotationMatrixFromYawPitchRoll(float yaw, float pitch, float roll);
   static glm::mat4 getScaleMatrix(const glm::vec3& scale);
@@ -43,6 +45,13 @@ class MathUtils {
 
   static float fractionToPercents(float numerator, float denominator);
   static float fractionToPercents(int numerator, int denominator);
+
+  static std::tuple<glm::vec3, glm::vec3> generateTangentBitangent(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
+    const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2);
+  static glm::vec3 generateTangent(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,
+    const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2);
+
+  static glm::vec3 extractScale2(const glm::mat4& matrix);
 
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};

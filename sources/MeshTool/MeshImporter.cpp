@@ -45,10 +45,15 @@ std::unique_ptr<RawMesh> MeshImporter::importFromFile(const std::string& path, c
 
   std::unique_ptr<RawMesh> mesh = convertSceneToMesh(scene->getScene(), skeleton.get(), options);
 
+  size_t totalIndicesCount = std::accumulate(mesh->subMeshesDescriptions.begin(),
+    mesh->subMeshesDescriptions.end(), 0,
+    [](uint32_t sum, RawSubMeshDescription& subMeshDescription) {
+      return sum + subMeshDescription.indicesCount;
+    });
+
   spdlog::info("Mesh is parsed ({} vertices, {} indices, {} submeshes)",
-    mesh->header.verticesCount,
-    mesh->header.indicesCount,
-    mesh->header.subMeshesIndicesOffsetsCount);
+    mesh->header.verticesCount, totalIndicesCount,
+    mesh->header.subMeshesCount);
 
   return mesh;
 }
@@ -250,16 +255,17 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
   mesh->bonesWeights = convertedBonesWeights;
 
   for (const auto& subMeshIndices : subMeshesIndices) {
-    mesh->subMeshesIndicesOffsets.push_back(static_cast<uint16_t>(mesh->indices.size()));
-    mesh->indices.insert(mesh->indices.end(), subMeshIndices.begin(), subMeshIndices.end());
+    mesh->subMeshesDescriptions.push_back(RawSubMeshDescription{
+      .indicesCount = static_cast<uint16_t>(subMeshIndices.size()),
+      .indices = subMeshIndices
+    });
   }
 
-  mesh->aabb = AABB(aabbMin, aabbMax);
+  mesh->aabb = RawAABB{glmVector3ToRawVector3(aabbMin), glmVector3ToRawVector3(aabbMax)};
 
   mesh->header.formatVersion = MESH_FORMAT_VERSION;
   mesh->header.verticesCount = static_cast<uint16_t>(mesh->positions.size());
-  mesh->header.indicesCount = static_cast<uint16_t>(mesh->indices.size());
-  mesh->header.subMeshesIndicesOffsetsCount = static_cast<uint16_t>(subMeshesIndices.size());
+  mesh->header.subMeshesCount = static_cast<uint16_t>(subMeshesIndices.size());
 
   RawMeshAttributes storedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals |
     RawMeshAttributes::UV | RawMeshAttributes::Tangents;

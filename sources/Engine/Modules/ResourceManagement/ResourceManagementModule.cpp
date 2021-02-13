@@ -7,17 +7,14 @@
 #include <spdlog/spdlog.h>
 
 ResourceManagementModule::ResourceManagementModule()
-  : m_resourceManager(std::make_shared<ResourceManager>())
+  : m_resourceManager(std::make_shared<ResourcesManager>())
 {
   spdlog::info("Initialize resource management module...");
 }
 
-ResourceManagementModule::~ResourceManagementModule()
-{
+ResourceManagementModule::~ResourceManagementModule() = default;
 
-}
-
-std::shared_ptr<ResourceManager> ResourceManagementModule::getResourceManager() const
+std::shared_ptr<ResourcesManager> ResourceManagementModule::getResourceManager() const
 {
   return m_resourceManager;
 }

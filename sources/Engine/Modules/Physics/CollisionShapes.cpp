@@ -60,7 +60,7 @@ float CollisionShapeCapsule::getHeight() const
 
 CollisionShapeCapsule::CollisionShapeCapsule(float radius, float height)
   : m_radius(radius),
-  m_height(height)
+    m_height(height)
 {
 
 }
@@ -97,4 +97,20 @@ void CollisionShapeTriangleMesh::setVertices(const std::vector<glm::vec3>& verti
 const std::vector<glm::vec3>& CollisionShapeTriangleMesh::getVertices() const
 {
   return m_vertices;
+}
+
+CollisionShape::CollisionShape(CollisionShapeData  shapeData)
+  : m_shapeData(std::move(shapeData))
+{
+
+}
+
+void CollisionShape::setShapeData(const CollisionShapeData& shapeData)
+{
+  m_shapeData = shapeData;
+}
+
+const CollisionShapeData& CollisionShape::getShapeData() const
+{
+  return m_shapeData;
 }

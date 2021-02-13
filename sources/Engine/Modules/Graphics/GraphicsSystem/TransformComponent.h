@@ -3,9 +3,36 @@
 #include <memory>
 
 #include "Transform.h"
+#include "Modules/ECS/GameObjectsFactory.h"
 #include "Modules/Math/geometry.h"
+#include "Modules/Math/MathUtils.h"
+
+struct TransformComponentBindingParameters {
+  glm::vec3 position{};
+  glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
+  glm::vec3 frontDirection{};
+  bool isStatic{};
+  std::string levelId;
+  bool isOnline{};
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("position", position),
+      cereal::make_nvp("scale", scale),
+      cereal::make_nvp("front_direction", frontDirection),
+      cereal::make_nvp("is_static", isStatic),
+      cereal::make_nvp("level_id", levelId),
+      cereal::make_nvp("is_online", isOnline));
+  };
+};
 
 class TransformComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = TransformComponentBindingParameters;
+
  public:
   TransformComponent();
 
@@ -28,6 +55,14 @@ class TransformComponent {
   void setBounds(const AABB& bounds);
   [[nodiscard]] const AABB& getOriginalBounds() const;
 
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+
+  void setLevelId(const std::string& levelId);
+  [[nodiscard]] const std::string& getLevelId() const;
+
+  void setOnlineMode(bool isOnline);
+  [[nodiscard]] bool isOnline() const;
+
  private:
   std::shared_ptr<Transform> m_transform;
 
@@ -37,5 +72,17 @@ class TransformComponent {
   Sphere m_boundingSphere;
 
   AABB m_originalBounds;
+
+  std::string m_levelId;
+  bool m_isOnline = false;
 };
 
+class TransformComponentBinder : public GameObjectsComponentBinder<TransformComponent> {
+ public:
+  explicit TransformComponentBinder(ComponentBindingParameters  componentParameters);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};

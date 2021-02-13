@@ -1,7 +1,9 @@
 #include "precompiled.h"
+
 #pragma hdrstop
 
 #include "files.h"
+#include "strings.h"
 
 #include <fstream>
 #include <filesystem>
@@ -45,4 +47,54 @@ std::string FileUtils::getGUISchemePath(const std::string& schemeName)
 std::string FileUtils::getGameResourcePath(const std::string& resourceLocalPath)
 {
   return std::string(RESOURCES_GAME_PATH) + "/" + resourceLocalPath;
+}
+
+std::string FileUtils::getSpawnListPath(const std::string& spawnListName)
+{
+  return std::string(SPAWN_LISTS_PATH) + "/" + spawnListName + ".xml";
+}
+
+std::string FileUtils::getScriptPath(const std::string& scriptName)
+{
+  std::string scriptPath = std::string(SCRIPTS_PATH) + "/" + scriptName;
+
+  if (scriptName.find(".lua") == std::string::npos) {
+    scriptPath += ".lua";
+  }
+
+  return scriptPath;
+}
+
+std::vector<std::string> FileUtils::getScriptsList()
+{
+  std::vector<std::string> scriptsList;
+
+  for (const auto& entry : std::filesystem::directory_iterator(SCRIPTS_PATH)) {
+    scriptsList.push_back(entry.path().stem().string());
+  }
+
+  return scriptsList;
+}
+
+std::string FileUtils::getSavePath(const std::string& saveName)
+{
+  return std::string(SAVES_PATH) + "/" + saveName + ".save";
+}
+
+std::string FileUtils::getFileExtension(const std::string& path)
+{
+  return *StringUtils::split(path, '.').rbegin();
+}
+
+std::vector<std::string> FileUtils::listDirectories(const std::string& path)
+{
+  std::vector<std::string> directories;
+
+  for (auto& entry : std::filesystem::directory_iterator(path)) {
+    if (entry.is_directory()) {
+      directories.push_back(entry.path().filename().string());
+    }
+  }
+
+  return directories;
 }

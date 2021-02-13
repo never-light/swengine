@@ -1,6 +1,6 @@
 #include "GameComponentsLoader.h"
 
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
+#include <Engine/Modules/Graphics/Resources/TextureResourceManager.h>
 #include <Engine/Exceptions/exceptions.h>
 
 #include <utility>
@@ -12,95 +12,97 @@
 
 GameComponentsLoader::GameComponentsLoader(
   std::shared_ptr<GameWorld> gameWorld,
-  std::shared_ptr<ResourceManager> resourceManager)
+  std::shared_ptr<ResourcesManager> resourceManager)
   : m_gameWorld(std::move(gameWorld)),
     m_resourceManager(std::move(std::move(resourceManager)))
 {
 
 }
 
-void GameComponentsLoader::loadPlayerData(GameObject& gameObject,
+std::unique_ptr<BaseGameObjectsComponentBinder> GameComponentsLoader::loadPlayerData(
   const pugi::xml_node& data)
 {
-  float height = data.attribute("height").as_float(1.0f);
+  PlayerComponentBindingParameters bindingParameters;
 
-  auto& playerComponent = *gameObject.addComponent<PlayerComponent>(height).get();
+  float height = data.attribute("height").as_float(1.0f);
+  bindingParameters.height = height;
 
   float walk_speed = data.attribute("walk_speed").as_float(1.0f);
-  playerComponent.setMovementSpeed(walk_speed);
+  bindingParameters.walkSpeed = walk_speed;
+
+  return std::make_unique<PlayerComponentBinder>(bindingParameters);
 }
 
-void GameComponentsLoader::loadInventoryItemData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<BaseGameObjectsComponentBinder> GameComponentsLoader::loadInventoryItemData(const pugi::xml_node& data)
 {
-  std::string itemId = data.attribute("name").as_string();
-  std::string itemName = data.attribute("title").as_string();
+  InventoryItemComponentBindingParameters bindingParameters;
+
+  std::string itemName = data.attribute("name").as_string();
+  bindingParameters.name = itemName;
+
+  std::string itemTitle = data.attribute("title").as_string();
+  bindingParameters.title = itemTitle;
+
   std::string iconName = data.attribute("icon").as_string();
+  bindingParameters.iconResourceName = iconName;
 
-  auto iconTexture = m_resourceManager->getResourceFromInstance<TextureResource>(iconName)->getTexture();
+  bindingParameters.isReadable = data.attribute("readable").as_bool();
+  bindingParameters.isUsable = data.attribute("usable").as_bool();
+  bindingParameters.isDroppable = data.attribute("droppable").as_bool();
 
-  auto& inventoryItemComponent = *gameObject.addComponent<InventoryItemComponent>(iconTexture, itemId, itemName).get();
+  bindingParameters.shortDescription = data.child_value("short_desc");
+  bindingParameters.longDescription = data.child_value("long_desc");
 
-  inventoryItemComponent.setReadable(data.attribute("readable").as_bool());
-  inventoryItemComponent.setUsable(data.attribute("usable").as_bool());
-  inventoryItemComponent.setDroppable(data.attribute("droppable").as_bool());
-
-  inventoryItemComponent.setShortDescription(data.child_value("short_desc"));
-  inventoryItemComponent.setLongDescription(data.child_value("long_desc"));
+  return std::make_unique<InventoryItemComponentBinder>(bindingParameters, m_resourceManager);
 }
 
-void GameComponentsLoader::loadInventoryData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<BaseGameObjectsComponentBinder> GameComponentsLoader::loadInventoryData(const pugi::xml_node& data)
 {
-  gameObject.addComponent<InventoryComponent>().get();
+  InventoryComponentBindingParameters bindingParameters;
 
   for (pugi::xml_node itemNode : data.child("items").children("item")) {
     std::string itemObjectName = itemNode.attribute("name").as_string();
 
-    GameObject itemObject = m_gameWorld->findGameObject(itemObjectName);
-
-    if (!itemObject.isAlive()) {
-      THROW_EXCEPTION(EngineRuntimeException,
-        fmt::format("Inventory item object {} is not alive at the loading time", itemObjectName));
-    }
-
-    m_gameWorld->emitEvent<InventoryItemActionCommandEvent>(
-      {gameObject,
-        InventoryItemActionTriggerType::RelocateToInventory,
-        itemObject});
+    bindingParameters.itemsNames.push_back(itemObjectName);
   }
+
+  return std::make_unique<InventoryComponentBinder>(bindingParameters, m_gameWorld);
 }
 
-void GameComponentsLoader::loadInteractiveData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<BaseGameObjectsComponentBinder> GameComponentsLoader::loadInteractiveData(const pugi::xml_node& data)
 {
-  auto& interactiveComponent = *gameObject.addComponent<InteractiveObjectComponent>().get();
+  InteractiveComponentBindingParameters bindingParameters;
 
   std::string objectName = data.attribute("name").as_string();
-  interactiveComponent.setName(objectName);
+  bindingParameters.title = objectName;
 
   pugi::xml_node takeableConditions = data.child("takeable");
 
   if (takeableConditions) {
-    interactiveComponent.setTakeable(true);
+    bindingParameters.isTakeable = true;
   }
 
   pugi::xml_node usableConditions = data.child("usable");
 
   if (usableConditions) {
-    interactiveComponent.setUsable(true);
+    bindingParameters.isUsable = true;
   }
 
   pugi::xml_node talkableConditions = data.child("talkable");
 
   if (talkableConditions) {
-    interactiveComponent.setTalkable(true);
+    bindingParameters.isTalkable = true;
   }
+
+  return std::make_unique<InteractiveComponentBinder>(bindingParameters);
 }
 
-void GameComponentsLoader::loadActorData(GameObject& gameObject, const pugi::xml_node& data)
+std::unique_ptr<BaseGameObjectsComponentBinder> GameComponentsLoader::loadActorData(const pugi::xml_node& data)
 {
-  auto& actorComponent = *gameObject.addComponent<ActorComponent>().get();
+  ActorComponentBindingParameters bindingParameters;
 
   std::string actorName = data.attribute("name").as_string();
-  actorComponent.setName(actorName);
+  bindingParameters.name = actorName;
 
   pugi::xml_node dialoguesNode = data.child("dialogues");
 
@@ -108,13 +110,15 @@ void GameComponentsLoader::loadActorData(GameObject& gameObject, const pugi::xml
     std::string dialogueId = dialogueNode.attribute("id").as_string();
     bool isStartedByNPC = dialogueNode.attribute("npc_start").as_bool(false);
 
-    actorComponent.addDialogue(ActorDialogue(dialogueId, isStartedByNPC));
+    bindingParameters.dialoguesList.emplace_back(dialogueId, isStartedByNPC);
   }
 
   pugi::xml_node healthNode = data.child("health");
 
   if (healthNode) {
-    actorComponent.setHealth(healthNode.attribute("value").as_float(0.0f));
-    actorComponent.setHealthLimit(healthNode.attribute("limit").as_float(100.0f));
+    bindingParameters.health = healthNode.attribute("value").as_float(0.0f);
+    bindingParameters.healthLimit = healthNode.attribute("limit").as_float(100.0f);
   }
+
+  return std::make_unique<ActorComponentBinder>(bindingParameters);
 }

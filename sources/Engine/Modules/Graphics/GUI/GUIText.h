@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLGeometryStore.h"
 #include "GUIWidget.h"
 #include "BitmapFont.h"
@@ -12,10 +13,10 @@ class GUITextBox;
 class GUIText : public GUIWidget {
  public:
   GUIText();
-  GUIText(std::shared_ptr<BitmapFont> font, std::string text);
+  GUIText(ResourceHandle<BitmapFont> font, std::string text);
 
-  void setFont(std::shared_ptr<BitmapFont> font);
-  [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;
+  void setFont(ResourceHandle<BitmapFont> font);
+  [[nodiscard]] ResourceHandle<BitmapFont> getFont() const;
 
   void setText(const std::string& text);
   [[nodiscard]] std::string getText() const;
@@ -42,21 +43,24 @@ class GUIText : public GUIWidget {
  private:
   void resetTextGeometryCache();
 
-  std::tuple<std::vector<VertexPos3Norm3UV>,
+  std::tuple<std::vector<glm::vec3>,
+             std::vector<glm::vec2>,
              std::vector<uint16_t>, glm::ivec2> getStringGeometryStoreParams(const std::string& str) const;
 
-  GLGeometryStore* updateAndGetGeometryStore();
-  GLGeometryStore* createStringGeometryBuffer(const std::string& str);
+  Mesh* updateAndGetGeometryStore();
 
  private:
-  std::shared_ptr<BitmapFont> m_font;
+  ResourceHandle<BitmapFont> m_font;
 
   std::string m_text;
 
   int m_fontSize;
 
-  mutable std::unique_ptr<GLGeometryStore> m_textGeometryCache;
+  mutable std::unique_ptr<Mesh> m_textGeometryCache;
   mutable bool m_needTextGeometryUpdate = true;
+
+ private:
+  static constexpr size_t MIN_TEXT_BLOCK_VERTICES_STORAGE_SIZE = 512;
 
  private:
   friend class GUITextBox;

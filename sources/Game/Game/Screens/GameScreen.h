@@ -33,6 +33,8 @@ class GameScreen : public BaseGameScreen,
   EventProcessStatus receiveEvent(const InputActionToggleEvent& event) override;
   EventProcessStatus receiveEvent(const GameConsoleChangeVisibilityEvent& event) override;
 
+  [[nodiscard]] std::shared_ptr<Game> getGame() const;
+
  private:
   void initializeGame();
   void deinitializeGame();
@@ -47,7 +49,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<GUISystem> m_guiSystem;
 
-  std::unique_ptr<Game> m_game;
+  std::shared_ptr<Game> m_game;
 
   std::shared_ptr<GUILayout> m_gameGUILayout;
   std::shared_ptr<GUILayout> m_debugGUILayout;

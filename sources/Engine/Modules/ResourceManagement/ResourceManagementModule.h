@@ -3,15 +3,15 @@
 #include <unordered_map>
 #include <memory>
 
-#include "ResourceManager.h"
+#include "ResourcesManager.h"
 
 class ResourceManagementModule final {
  public:
   ResourceManagementModule();
   ~ResourceManagementModule();
 
-  [[nodiscard]] std::shared_ptr<ResourceManager> getResourceManager() const;
+  [[nodiscard]] std::shared_ptr<ResourcesManager> getResourceManager() const;
 
  private:
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 };

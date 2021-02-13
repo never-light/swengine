@@ -6,9 +6,9 @@
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/Graphics/GUI/GUILayout.h"
 #include "Modules/Graphics/GraphicsModule.h"
-#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Modules/Graphics/GraphicsSystem/FrameStats.h"
 #include "Modules/ECS/ECS.h"
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 class ScreenManager;
 
@@ -39,8 +39,7 @@ class Screen {
   void performInternalInitialization(std::shared_ptr<ScreenManager> screenManager,
     std::shared_ptr<GameWorld> gameWorld,
     std::shared_ptr<GraphicsModule> graphicsModule,
-    std::shared_ptr<SharedGraphicsState> sharedGraphicsState,
-    std::shared_ptr<ResourceManager> resourceManager);
+    std::shared_ptr<ResourcesManager> resourceManager);
 
   void performActivate();
   void performDeactivate();
@@ -48,8 +47,7 @@ class Screen {
  protected:
   std::shared_ptr<GameWorld> m_gameWorld;
   std::shared_ptr<GraphicsModule> m_graphicsModule;
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
 
  private:
   std::string m_name;

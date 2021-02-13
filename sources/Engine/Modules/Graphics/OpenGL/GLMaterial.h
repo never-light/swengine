@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <memory>
 #include <utility>
@@ -13,102 +14,83 @@
 
 #include "GLTexture.h"
 
-#include "Modules/Graphics/Resources/ShaderResource.h"
-#include "Modules/ResourceManagement/ResourceInstance.h"
+#include "Modules/Graphics/BaseGraphicsBackend/GpuStateParameters.h"
+#include "Modules/Graphics/BaseGraphicsBackend/ShadingParameters.h"
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
 #include "Modules/Math/Rect.h"
 
-enum class DepthTestMode {
-  Disabled, Unspecified, Less, LessOrEqual, NotEqual
+class GLShadingParametersBaseBinder {
+ public:
+  explicit GLShadingParametersBaseBinder(std::unique_ptr<ShadingParametersBaseSet> parametersSet);
+  virtual ~GLShadingParametersBaseBinder() = default;
+
+  [[nodiscard]] const ShadingParametersBaseSet& getParametersSet() const;
+  [[nodiscard]] ShadingParametersBaseSet& getParametersSet();
+
+  virtual void bindParameters(GLShadersPipeline& shadersPipeline) = 0;
+
+ private:
+  std::unique_ptr<ShadingParametersBaseSet> m_parametersSet;
 };
 
-enum class FaceCullingMode {
-  Disabled, Unspecified, Back, Front
+class GLShadingParametersGenericBinder : public GLShadingParametersBaseBinder {
+ public:
+  explicit GLShadingParametersGenericBinder(std::unique_ptr<ShadingParametersBaseSet> parametersSet);
+  ~GLShadingParametersGenericBinder() override = default;
+
+  void bindParameters(GLShadersPipeline& shadersPipeline) override;
 };
 
-enum class PolygonFillingMode {
-  Unspecified, Fill, Wireframe
+class GLShadingParametersGUIBinder : public GLShadingParametersBaseBinder {
+ public:
+  explicit GLShadingParametersGUIBinder(std::unique_ptr<ShadingParametersBaseSet> parametersSet);
+  ~GLShadingParametersGUIBinder() override = default;
+
+  void bindParameters(GLShadersPipeline& shadersPipeline) override;
 };
 
-enum class BlendingMode {
-  Disabled, Unspecified, Alpha_OneMinusAlpha
-};
+class GLShadingParametersOpaqueMeshBinder : public GLShadingParametersBaseBinder {
+ public:
+  explicit GLShadingParametersOpaqueMeshBinder(std::unique_ptr<ShadingParametersBaseSet> parametersSet);
+  ~GLShadingParametersOpaqueMeshBinder() override = default;
 
-enum class DepthWritingMode {
-  Disabled, Unspecified, Enabled
-};
-
-enum class ScissorsTestMode {
-  Disabled, Unspecified, Enabled
+  void bindParameters(GLShadersPipeline& shadersPipeline) override;
 };
 
 class GLGraphicsContext;
 
-class GLMaterial {
+class GLMaterial : public Resource {
  public:
-  struct TextureParameter {
-    TextureParameter(std::shared_ptr<GLTexture> texture, size_t slotIndex)
-      : texture(texture), slotIndex(slotIndex)
-    {
+  GLMaterial(RenderingStage renderingStage,
+    std::shared_ptr<GLShadersPipeline> shadersPipeline,
+    GpuStateParameters gpuState,
+    std::unique_ptr<ShadingParametersBaseSet> shadingParameters);
 
-    }
+  ~GLMaterial() override;
 
-    std::shared_ptr<GLTexture> texture;
-    size_t slotIndex;
-  };
+  [[nodiscard]] const GLShadersPipeline& getShadersPipeline() const;
+  [[nodiscard]] GLShadersPipeline& getShadersPipeline();
 
-  using GenericParameterValue = std::variant<int, float, glm::vec3, glm::vec4, glm::mat3, glm::mat4, TextureParameter>;
+  [[nodiscard]] RenderingStage getRenderingStage() const;
+  [[nodiscard]] const GpuStateParameters& getGpuStateParameters() const;
 
-  struct GenericParameter {
-    GenericParameter(ShaderType shaderType, GenericParameterValue value)
-      : shaderType(shaderType), value(std::move(value))
-    {
+  [[nodiscard]] GLShadingParametersBaseBinder* getGLParametersBinder() const;
 
-    }
-
-    ShaderType shaderType;
-    GenericParameterValue value;
-  };
-
- public:
-  GLMaterial();
-  ~GLMaterial();
-
-  void setShadersPipeline(std::shared_ptr<GLShadersPipeline> shadersPipeline);
-  [[nodiscard]] std::shared_ptr<GLShadersPipeline> getShadersPipeline() const;
-
-  void setDepthTestMode(DepthTestMode mode);
-  [[nodiscard]] DepthTestMode getDepthTestMode() const;
-
-  void setFaceCullingMode(FaceCullingMode mode);
-  [[nodiscard]] FaceCullingMode getFaceCullingMode() const;
-
-  void setPolygonFillingMode(PolygonFillingMode mode);
-  [[nodiscard]] PolygonFillingMode getPolygonFillingMode() const;
-
-  void setBlendingMode(BlendingMode mode);
-  [[nodiscard]] BlendingMode getBlendingMode() const;
-
-  void setDepthWritingMode(DepthWritingMode mode);
-  [[nodiscard]] DepthWritingMode getDepthWritingMode() const;
-
-  void setScissorsTestMode(ScissorsTestMode mode);
-  [[nodiscard]] ScissorsTestMode getScissorsTestMode() const;
-
-  void setShaderParameter(ShaderType shaderType, const std::string& name, const GenericParameterValue& value);
-  [[nodiscard]] const GenericParameterValue& getShaderParameterValue(const std::string& name) const;
+  [[nodiscard]] const ShadingParametersBaseSet& getParametersSet() const;
+  [[nodiscard]] ShadingParametersBaseSet& getParametersSet();
 
  private:
-  std::unordered_map<std::string, GenericParameter> m_parameters;
+  static std::unique_ptr<GLShadingParametersBaseBinder> createShadingParametersBinder(
+    std::unique_ptr<ShadingParametersBaseSet> shadingParameters);
 
+ private:
   std::shared_ptr<GLShadersPipeline> m_shadersPipeline;
 
-  DepthTestMode m_depthTestMode = DepthTestMode::Unspecified;
-  FaceCullingMode m_faceCullingMode = FaceCullingMode::Unspecified;
-  PolygonFillingMode m_polygonFillingMode = PolygonFillingMode::Unspecified;
-  BlendingMode m_materialBlendingMode = BlendingMode::Unspecified;
-  DepthWritingMode m_depthWritingMode = DepthWritingMode::Unspecified;
-  ScissorsTestMode m_scissorsTestMode = ScissorsTestMode::Disabled;
+  RenderingStage m_renderingStage = RenderingStage::Count;
+  GpuStateParameters m_gpuStateParameters;
+  std::unique_ptr<GLShadingParametersBaseBinder> m_shadingParametersBinder;
 
  private:
   friend class GLGraphicsContext;

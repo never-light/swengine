@@ -3,16 +3,17 @@
 #include <string>
 #include <memory>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "GUIWidget.h"
 #include "BitmapFont.h"
 #include "GUIText.h"
 
 class GUITextBox : public GUIWidgetRect {
  public:
-  explicit GUITextBox(std::shared_ptr<BitmapFont> font);
+  explicit GUITextBox(ResourceHandle<BitmapFont> font);
 
-  void setFont(std::shared_ptr<BitmapFont> font);
-  [[nodiscard]] std::shared_ptr<BitmapFont> getFont() const;
+  void setFont(ResourceHandle<BitmapFont> font);
+  [[nodiscard]] ResourceHandle<BitmapFont> getFont() const;
 
   void setText(const std::string& text);
   [[nodiscard]] std::string getText() const;
@@ -38,6 +39,6 @@ class GUITextBox : public GUIWidgetRect {
   [[nodiscard]] glm::mat4 updateTransformationMatrix() override;
 
  private:
-  std::shared_ptr<BitmapFont> m_font;
+  ResourceHandle<BitmapFont> m_font;
   std::shared_ptr<GUIText> m_text;
 };

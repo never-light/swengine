@@ -1,4 +1,5 @@
 #include "precompiled.h"
+
 #pragma hdrstop
 
 #include "GameObjectsGenericClassLoader.h"
@@ -14,33 +15,40 @@ GameObjectsGenericClassLoader::GameObjectsGenericClassLoader(std::weak_ptr<Level
 
 }
 
-void GameObjectsGenericClassLoader::loadGameObject(GameObject& gameObject, const pugi::xml_node& objectNode)
+std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> GameObjectsGenericClassLoader::loadGameObject(
+  const pugi::xml_node& objectNode)
 {
+  std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>> componentsBinders;
+
   for (const pugi::xml_node& componentNode : objectNode.children()) {
     auto componentName = componentNode.name();
 
-    loadComponent(gameObject, componentNode);
-    onComponentLoaded(gameObject, componentName);
+    componentsBinders.insert({componentName, std::move(loadComponent(componentNode))});
+    onComponentLoaded(componentName, *componentsBinders.at(componentName).get());
   }
+
+  return std::move(componentsBinders);
 }
 
-void GameObjectsGenericClassLoader::loadComponent(GameObject& gameObject, const pugi::xml_node& componentNode)
+std::unique_ptr<BaseGameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
+  const pugi::xml_node& componentNode)
 {
   auto componentName = componentNode.name();
   auto componentLoader = m_levelsManager.lock()->getObjectsLoader().getComponentLoader(componentName);
 
-  componentLoader(gameObject, componentNode);
+  return componentLoader(componentNode);
 }
 
-void GameObjectsGenericClassLoader::onComponentLoaded(GameObject& gameObject, const std::string& componentName)
+void GameObjectsGenericClassLoader::onComponentLoaded(const std::string& componentName,
+  BaseGameObjectsComponentBinder& componentBinder)
 {
-  ARG_UNUSED(gameObject);
   ARG_UNUSED(componentName);
+  ARG_UNUSED(componentBinder);
 }
 
-void GameObjectsGenericClassLoader::loadComponent(GameObject& gameObject,
+std::unique_ptr<BaseGameObjectsComponentBinder> GameObjectsGenericClassLoader::loadComponent(
   const pugi::xml_node& objectNode,
   const std::string& componentName)
 {
-  loadComponent(gameObject, objectNode.child(componentName.c_str()));
+  return loadComponent(objectNode.child(componentName.c_str()));
 }

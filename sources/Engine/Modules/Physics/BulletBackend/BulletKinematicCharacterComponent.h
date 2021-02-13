@@ -4,6 +4,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <BulletDynamics/Character/btKinematicCharacterController.h>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Physics/BaseBackend/KinematicCharacterComponentBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
@@ -15,7 +16,7 @@ class BulletPhysicsSystemBackend;
 
 class BulletKinematicCharacterComponent : public KinematicCharacterComponentBackend {
  public:
-  explicit BulletKinematicCharacterComponent(std::shared_ptr<CollisionShape> collisionShape);
+  explicit BulletKinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape);
   ~BulletKinematicCharacterComponent() override;
 
   void setTransform(const Transform& transform) override;
@@ -29,6 +30,9 @@ class BulletKinematicCharacterComponent : public KinematicCharacterComponentBack
 
   void setOriginOffset(const glm::vec3& offset) override;
   [[nodiscard]] glm::vec3 getOriginOffset() const override;
+
+  void enableSimulation(bool enable) override;
+  [[nodiscard]] bool isSimulationEnabled() const override;
 
  private:
   btConvexShape* m_collisionShape = nullptr;

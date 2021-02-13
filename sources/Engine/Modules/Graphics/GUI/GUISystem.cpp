@@ -10,7 +10,7 @@
 
 GUISystem::GUISystem(
   std::shared_ptr<InputModule> inputModule,
-  std::shared_ptr<ResourceManager> resourceManager,
+  std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline)
   : m_inputModule(std::move(inputModule)),
@@ -41,15 +41,13 @@ GUISystem::GUISystem(
     {0.0f, 0.0f, 0.0f},
   });
 
-  RETURN_VALUE_UNUSED(m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3}));
+  m_guiNDCQuad->addSubMesh({0, 2, 1, 1, 2, 3});
 
-  m_guiMaterial = std::make_unique<GLMaterial>();
-
-  m_guiMaterial->setShadersPipeline(m_guiShadersPipeline);
-  m_guiMaterial->setDepthTestMode(DepthTestMode::Disabled);
-  m_guiMaterial->setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
-  m_guiMaterial->setPolygonFillingMode(PolygonFillingMode::Fill);
-  m_guiMaterial->setScissorsTestMode(ScissorsTestMode::Enabled);
+  m_gpuStateParameters.setDepthTestMode(DepthTestMode::Disabled);
+  m_gpuStateParameters.setBlendingMode(BlendingMode::Alpha_OneMinusAlpha);
+  m_gpuStateParameters.setPolygonFillingMode(PolygonFillingMode::Fill);
+  m_gpuStateParameters.setScissorsTestMode(ScissorsTestMode::Enabled);
+  m_gpuStateParameters.setDepthWritingMode(DepthWritingMode::Disabled);
 }
 
 void GUISystem::configure()
@@ -59,9 +57,11 @@ void GUISystem::configure()
   gameWorld->subscribeEventsListener<MouseButtonEvent>(this);
   gameWorld->subscribeEventsListener<KeyboardEvent>(this);
 
-  m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getWidth()),
-    static_cast<float>(m_graphicsContext->getDefaultFramebuffer().getHeight()),
+  m_guiProjectionMatrix = glm::ortho(0.0f, static_cast<float>(m_graphicsContext->getViewportWidth()),
+    static_cast<float>(m_graphicsContext->getViewportHeight()),
     0.0f, -1.0f, 1.0f);
+
+  m_graphicsContext->setGUIProjectionMatrix(m_guiProjectionMatrix);
 
   m_widgetsLoader = std::make_unique<GUIWidgetsLoader>(weak_from_this(), m_resourceManager);
 }
@@ -91,9 +91,6 @@ void GUISystem::update(float delta)
 
 void GUISystem::render()
 {
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
-  vertexShader->setParameter("scene.projection", m_guiProjectionMatrix);
-
   if (m_activeLayout != nullptr) {
     renderGUIWidget(m_activeLayout.get());
   }
@@ -109,12 +106,12 @@ std::shared_ptr<GUILayout> GUISystem::getActiveLayout()
   return m_activeLayout;
 }
 
-void GUISystem::setDefaultFont(std::shared_ptr<BitmapFont> font)
+void GUISystem::setDefaultFont(ResourceHandle<BitmapFont> font)
 {
   m_defaultFont = std::move(font);
 }
 
-std::shared_ptr<BitmapFont> GUISystem::getDefaultFont() const
+ResourceHandle<BitmapFont> GUISystem::getDefaultFont() const
 {
   return m_defaultFont;
 }
@@ -126,13 +123,6 @@ std::shared_ptr<GLGraphicsContext> GUISystem::getGraphicsContext() const
 
 RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 {
-  // Transformation
-  GLShader* vertexShader = m_guiShadersPipeline->getShader(ShaderType::Vertex);
-  vertexShader->setParameter("transform.localToScreen", widget->getTransformationMatrix());
-
-  // Visual parameters
-  GLShader* fragmentShader = m_guiShadersPipeline->getShader(ShaderType::Fragment);
-
   // Background
   GUIWidgetVisualState visualState = GUIWidgetVisualState::Default;
 
@@ -155,56 +145,49 @@ RenderTask GUISystem::getRenderTaskTemplate(GUIWidget* widget) const
 
   auto backgroundTexture = currentVisualParameters.getBackgroundImage();
 
-  if (backgroundTexture == nullptr) {
+  if (!backgroundTexture.has_value()) {
     backgroundTexture = defaultVisualParameters.getBackgroundImage();
   }
 
-  fragmentShader->setParameter("widget.backgroundColor", backgroundColor.value());
-  fragmentShader->setParameter("widget.useBackgroundTexture", backgroundTexture != nullptr);
+  if (widget->m_renderingMaterial == nullptr) {
+    widget->m_renderingMaterial = std::make_shared<GLMaterial>(RenderingStage::GUI,
+      m_guiShadersPipeline,
+      m_gpuStateParameters,
+      std::make_unique<ShadingParametersGUI>());
 
-  if (backgroundTexture != nullptr) {
-    fragmentShader->setParameter("widget.backgroundTexture", *backgroundTexture, 0);
   }
 
-  fragmentShader->setParameter("widget.useColorAlphaTexture", false);
+  auto& shadingParameters = dynamic_cast<ShadingParametersGUI&>(widget->m_renderingMaterial->getParametersSet());
 
-  // Border
-  // TODO: implement border filling
-  //fragmentShader->setParameter("widget.borderWidth", widget->getBorderWidth());
-
-  //glm::vec4 borderColor = widget->getBorderColor();
-
-  //if (widget->isHovered()) {
-  //borderColor = widget->getHoverBorderColor();
-  //}
-
-  //fragmentShader->setParameter("widget.borderColor", borderColor);
+  shadingParameters.setBackgroundColor(backgroundColor.value());
+  shadingParameters.setBackgroundTexture(backgroundTexture.value_or(ResourceHandle<GLTexture>()));
 
   // Render task
-  RenderTask task;
-  task.geometryStore = m_guiNDCQuad->getGeometryStore();
-  task.startOffset = m_guiNDCQuad->getSubMeshIndicesOffset(0);
-  task.partsCount = m_guiNDCQuad->getSubMeshIndicesCount(0);
-  task.material = m_guiMaterial.get();
+  RenderTask renderTask{
+    .material = widget->m_renderingMaterial.get(),
+    .mesh = m_guiNDCQuad.get(),
+    .subMeshIndex = 0,
+    .transform = &widget->getTransformationMatrix(),
+  };
 
   if (widget->getParent() != nullptr) {
-    task.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
+    renderTask.scissorsRect = RectI(widget->getParent()->getAbsoluteOrigin(), widget->getParent()->getSize());
   }
   else {
-    task.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
+    renderTask.scissorsRect = RectI({ 0, 0 }, { getScreenWidth(), getScreenHeight() });
   }
 
-  return task;
+  return renderTask;
 }
 
 int GUISystem::getScreenWidth() const
 {
-  return m_graphicsContext->getDefaultFramebuffer().getWidth();
+  return m_graphicsContext->getViewportWidth();
 }
 
 int GUISystem::getScreenHeight() const
 {
-  return m_graphicsContext->getDefaultFramebuffer().getHeight();
+  return m_graphicsContext->getViewportHeight();
 }
 
 EventProcessStatus GUISystem::receiveEvent(const MouseButtonEvent& event)

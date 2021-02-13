@@ -14,10 +14,8 @@ MeshExporter::MeshExporter()
 
 void MeshExporter::exportToFile(const std::string& path, const RawMesh& mesh, const MeshExportOptions& options)
 {
-  ARG_UNUSED(options);
-
   // Check mesh and format compatibility
-  RawMeshAttributes meshAttributes = static_cast<RawMeshAttributes>(mesh.header.storedAttributesMask);
+  auto meshAttributes = static_cast<RawMeshAttributes>(mesh.header.storedAttributesMask);
   RawMeshAttributes targetAttributesMask = RawMeshAttributes::Empty;
 
   switch (options.format) {

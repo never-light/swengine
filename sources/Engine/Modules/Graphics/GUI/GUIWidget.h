@@ -191,6 +191,8 @@ class GUIWidget : public std::enable_shared_from_this<GUIWidget> {
 
   std::vector<GUIWidgetStylesheet> m_stylesheets;
 
+  std::shared_ptr<GLMaterial> m_renderingMaterial;
+
  private:
   friend class GUISystem;
 };
@@ -216,13 +218,13 @@ class GUIWidgetRect : public GUIWidget {
     return getVisualParameters(visualState).getBackgroundColor().value();
   }
 
-  inline void setBackgroundImage(std::shared_ptr<GLTexture> image,
+  inline void setBackgroundImage(std::optional<ResourceHandle<GLTexture>> image,
     GUIWidgetVisualState visualState = GUIWidgetVisualState::Default)
   {
-    return getVisualParameters(visualState).setBackgroundImage(std::move(image));
+    return getVisualParameters(visualState).setBackgroundImage(image);
   }
 
-  [[nodiscard]] inline std::shared_ptr<GLTexture> getBackgroundImage(
+  [[nodiscard]] inline std::optional<ResourceHandle<GLTexture>> getBackgroundImage(
     GUIWidgetVisualState visualState = GUIWidgetVisualState::Default) const
   {
     return getVisualParameters(visualState).getBackgroundImage();
@@ -239,11 +241,11 @@ class GUIWidgetRect : public GUIWidget {
           [](auto arg) { ARG_UNUSED(arg); SW_ASSERT(false); },
           // Background color
           [this, visualState](const glm::vec4& color) {
-            this->setBackgroundImage(nullptr, visualState);
+            //this->setBackgroundImage(nullptr, visualState);
             this->setBackgroundColor(color, visualState);
           },
           // Background image
-          [this, visualState](const std::shared_ptr<GLTexture>& image) {
+          [this, visualState](const ResourceHandle<GLTexture>& image) {
             this->setBackgroundImage(image, visualState);
           },
         }, property.getValue());

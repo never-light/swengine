@@ -8,7 +8,7 @@ file(GLOB_RECURSE GAME_SOURCES
 
 SET(GAME_SOURCES ${GAME_SOURCES} ${GAME_INCLUDES})
 
-add_library(game_static ${GAME_SOURCES})
+add_library(game_static STATIC ${GAME_SOURCES})
 
 target_include_directories(game_static PUBLIC ../)
 target_include_directories(game_static PUBLIC ../Game/)

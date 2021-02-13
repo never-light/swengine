@@ -3,11 +3,10 @@
 #include <Engine/Modules/Input/InputModule.h>
 #include <Engine/Modules/Graphics/OpenGL/GLGraphicsContext.h>
 #include <Engine/Modules/Graphics/GraphicsSystem/GraphicsScene.h>
-#include <Engine/Modules/ResourceManagement/ResourceManager.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
 
-#include "GameLevel.h"
 #include "PlayerControlSystem.h"
 #include "FreeCameraControlSystem.h"
 
@@ -25,7 +24,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GLGraphicsContext> graphicsContext,
     std::shared_ptr<GraphicsScene> graphicsScene,
     std::shared_ptr<GUISystem> guiSystem,
-    std::shared_ptr<ResourceManager> resourceManager,
+    std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GUILayout> gameUILayout);
 
@@ -37,10 +36,34 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   void enterConsoleMode();
   void leaveConsoleMode();
 
+  /**
+   * @brief Creates new game
+   * Creation order:
+   *    1. Create new game (load static level data, load all levels spawns lists, spawn objects from them from scripts)
+   *    2. Setup game state
+   * @param levelName
+   */
+  void createNewGame(const std::string& levelName);
+
+  /**
+   * @brief Create game for loading from save
+   * Loading order:
+   *    1. Create loaded game (load static level data)
+   *    2. Load dynamic objects list from save
+   *    3. Setup game state
+   * @param levelName
+   */
+  void createLoadedGame(const std::string& levelName);
+  void setupGameState(bool isNewGame);
+
+  void unload();
+
   EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
 
+  [[nodiscard]] bool isLoaded() const;
+
  private:
-  void initializeGameSystems();
+  void loadLevel(const std::string& levelName, bool isNewGame);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;
@@ -48,10 +71,8 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<GLGraphicsContext> m_graphicsContext;
   std::shared_ptr<GraphicsScene> m_graphicsScene;
   std::shared_ptr<GUISystem> m_guiSystem;
-  std::shared_ptr<ResourceManager> m_resourceManager;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
-
-  std::shared_ptr<GameLevel> m_level;
 
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
   std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
@@ -71,4 +92,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
 
   std::shared_ptr<GUILayout> m_gameUILayout;
   PlayerUILayout m_playerUILayout{};
+
+  bool m_isGameLoaded = false;
+  bool m_isGamePreloaded = false;
 };

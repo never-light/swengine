@@ -8,7 +8,7 @@
 #include <utility>
 #include "BulletUtils.h"
 
-BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape)
+BulletRigidBodyComponent::BulletRigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape)
   : m_collisionShape(BulletUtils::convertCollisionShapeToBulletShape(*collisionShape))
 {
   btTransform defaultTransform;
@@ -60,6 +60,8 @@ void BulletRigidBodyComponent::setTransform(const Transform& transform)
 
   m_motionState->setWorldTransform(internalTransform);
   m_rigidBodyInstance->setWorldTransform(internalTransform);
+
+  m_rigidBodyInstance->getCollisionShape()->setLocalScaling(BulletUtils::glmVec3ToBt(transform.getScale()));
 }
 
 void BulletRigidBodyComponent::setLinearVelocity(const glm::vec3& velocity)
@@ -98,4 +100,14 @@ void BulletRigidBodyComponent::setUpdateCallback(std::function<void(const btTran
 {
   auto* motionState = dynamic_cast<BulletMotionState*>(m_rigidBodyInstance->getMotionState());
   motionState->setUpdateCallback(std::move(updateCallback));
+}
+
+void BulletRigidBodyComponent::enableSimulation(bool enable)
+{
+  m_rigidBodyInstance->setActivationState(((enable) ? ACTIVE_TAG : DISABLE_SIMULATION));
+}
+
+bool BulletRigidBodyComponent::isSimulationEnabled() const
+{
+  return m_rigidBodyInstance->getActivationState() != DISABLE_SIMULATION;
 }

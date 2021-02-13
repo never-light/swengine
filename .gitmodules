@@ -1,6 +1,9 @@
 [submodule "ThirdParty/assimp"]
 	path = ThirdParty/assimp
-	url = git@github.com:assimp/assimp.git
+	url = https://github.com/assimp/assimp.git
 [submodule "resources"]
 	path = resources
 	url = git@45.90.34.132:repos/sw-resources.git
+[submodule "ThirdParty/sol2"]
+	path = ThirdParty/sol2
+	url = https://github.com/ThePhD/sol2.git

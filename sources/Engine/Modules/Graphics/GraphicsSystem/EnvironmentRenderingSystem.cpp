@@ -9,20 +9,45 @@
 
 EnvironmentComponent::EnvironmentComponent() = default;
 
-void EnvironmentComponent::setEnvironmentMaterial(std::shared_ptr<Material> material)
+void EnvironmentComponent::setEnvironmentMaterial(ResourceHandle<GLMaterial> material)
 {
   m_environmentMaterial = std::move(material);
 }
 
-Material* EnvironmentComponent::getEnvironmentMaterial() const
+GLMaterial* EnvironmentComponent::getEnvironmentMaterial() const
 {
   return m_environmentMaterial.get();
+}
+
+EnvironmentComponent::BindingParameters EnvironmentComponent::getBindingParameters() const
+{
+  return EnvironmentComponent::BindingParameters{
+    .materialResourceName = m_environmentMaterial.getResourceId()
+  };
+}
+
+EnvironmentComponentBinder::EnvironmentComponentBinder(const ComponentBindingParameters& componentParameters,
+  std::shared_ptr<ResourcesManager> resourcesManager)
+  : m_bindingParameters(componentParameters),
+    m_resourcesManager(std::move(resourcesManager))
+{
+
+}
+
+void EnvironmentComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& environmentComponent = *gameObject.addComponent<EnvironmentComponent>().get();
+
+  ResourceHandle<GLMaterial> materialInstance =
+    m_resourcesManager->getResource<GLMaterial>(m_bindingParameters.materialResourceName);
+
+  environmentComponent.setEnvironmentMaterial(materialInstance);
 }
 
 EnvironmentRenderingSystem::EnvironmentRenderingSystem(
   std::shared_ptr<GLGraphicsContext> graphicsContext,
   std::shared_ptr<GraphicsScene> graphicsScene,
-  std::shared_ptr<Mesh> environmentMesh)
+  ResourceHandle<Mesh> environmentMesh)
   : RenderingSystem(std::move(graphicsContext), std::move(graphicsScene)),
     m_environmentMesh(std::move(environmentMesh))
 {
@@ -44,7 +69,7 @@ void EnvironmentRenderingSystem::update(float delta)
   ARG_UNUSED(delta);
 }
 
-void EnvironmentRenderingSystem::renderForward()
+void EnvironmentRenderingSystem::render()
 {
   GameObject environmentObject = getGameWorld()->allWith<EnvironmentComponent>().begin().getGameObject();
 
@@ -53,30 +78,16 @@ void EnvironmentRenderingSystem::renderForward()
     return;
   }
 
-  Material* material = environmentObject.getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
+  GLMaterial* material = environmentObject.getComponent<EnvironmentComponent>()->getEnvironmentMaterial();
 
-  Camera* camera = m_graphicsScene->getActiveCamera().get();
+  auto& frameStats = m_graphicsScene->getFrameStats();
 
-  if (camera != nullptr) {
-    GLShader* vertexShader = material->getGpuMaterial().getShadersPipeline()->getShader(ShaderType::Vertex);
+  frameStats.increaseSubMeshesCount(1);
+  frameStats.increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
 
-    if (vertexShader->hasParameter("scene.worldToCamera")) {
-      glm::mat4 untranslatedViewMatrix = camera->getViewMatrix();
-      untranslatedViewMatrix[3] = glm::vec4(0, 0, 0, 1);
-
-      vertexShader->setParameter("scene.worldToCamera", untranslatedViewMatrix);
-      vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
-    }
-  }
-
-  auto& shaderGraphicsState = *m_graphicsScene->getSharedGraphicsState();
-
-  shaderGraphicsState.getFrameStats().increaseSubMeshesCount(1);
-  shaderGraphicsState.getFrameStats().increasePrimitivesCount(m_environmentMesh->getSubMeshIndicesCount(0) / 3);
-
-  m_graphicsContext->executeRenderTask(RenderTask{&material->getGpuMaterial(),
-    m_environmentMesh->getGeometryStore(), 0, m_environmentMesh->getSubMeshIndicesCount(0),
-    GL_TRIANGLES, &shaderGraphicsState.getForwardFramebuffer()
+  m_graphicsContext->scheduleRenderTask(RenderTask{
+    .material = material,
+    .mesh = m_environmentMesh.get(),
+    .subMeshIndex = 0,
   });
-
 }

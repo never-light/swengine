@@ -6,20 +6,22 @@
 
 #include <Exceptions/exceptions.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/Graphics/GUI/GUIConsole.h"
 
-#include "Modules/Graphics/Resources/ShaderResource.h"
-#include "Modules/Graphics/Resources/MeshResource.h"
-#include "Modules/Graphics/Resources/TextureResource.h"
-#include "Modules/Graphics/Resources/BitmapFontResource.h"
-#include "Modules/Graphics/Resources/MaterialResource.h"
-#include "Modules/Graphics/Resources/SkeletonResource.h"
-#include "Modules/Graphics/Resources/SkeletalAnimationResource.h"
-#include "Modules/Graphics/Resources/AnimationStatesMachineResource.h"
+#include "Modules/Graphics/Resources/ShaderResourceManager.h"
+#include "Modules/Graphics/Resources/MeshResourceManager.h"
+#include "Modules/Graphics/Resources/TextureResourceManager.h"
+#include "Modules/Graphics/Resources/BitmapFontResourceManager.h"
+#include "Modules/Graphics/Resources/MaterialResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletonResourceManager.h"
+#include "Modules/Graphics/Resources/SkeletalAnimationResourceManager.h"
+#include "Modules/Graphics/Resources/AnimationStatesMachineResourceManager.h"
 
-#include "Modules/Physics/Resources/CollisionDataResource.h"
-#include "Modules/Audio/Resources/AudioClipResource.h"
+#include "Modules/Physics/Resources/CollisionShapeResourceManager.h"
+#include "Modules/Audio/Resources/AudioClipResourceManager.h"
 
 #include "Modules/LevelsManagement/GameObjectsGenericClassLoader.h"
 
@@ -49,6 +51,7 @@ BaseGameApplication::BaseGameApplication(int argc,
 BaseGameApplication::~BaseGameApplication()
 {
   SDL_DestroyWindow(m_mainWindow);
+  SDL_Quit();
 }
 
 void BaseGameApplication::load()
@@ -151,6 +154,15 @@ EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEve
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "camera-position") {
+    m_gameConsole->print("Position: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getPosition()));
+
+    m_gameConsole->print("Direction: " +
+      glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getFrontDirection()));
+
+    return EventProcessStatus::Processed;
+  }
 
   return EventProcessStatus::Skipped;
 }
@@ -185,7 +197,7 @@ void BaseGameApplication::initializePlatform(int argc,
 
   StartupSettings startupSettings = StartupSettings::loadFromFile();
 
-  int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
+  int initStatus = SDL_Init(SDL_INIT_EVERYTHING & (~SDL_INIT_SENSOR));
 
   if (initStatus != 0) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
@@ -256,39 +268,98 @@ void BaseGameApplication::initializeEngine()
   m_inputModule = std::make_shared<InputModule>(m_mainWindow);
 
   m_graphicsModule = std::make_shared<GraphicsModule>(m_mainWindow);
-  m_sharedGraphicsState = std::make_shared<SharedGraphicsState>(m_graphicsModule->getGraphicsContext());
-  m_graphicsScene = std::make_shared<GraphicsScene>(m_sharedGraphicsState);
+  m_graphicsScene = std::make_shared<GraphicsScene>();
+
+  m_graphicsModule->getGraphicsContext()->setupGraphicsScene(m_graphicsScene);
 
   m_resourceManagementModule = std::make_shared<ResourceManagementModule>();
 
-  std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
-  resourceManager->declareResourceType<ShaderResource>("shader");
-  resourceManager->declareResourceType<MeshResource>("mesh");
-  resourceManager->declareResourceType<TextureResource>("texture");
-  resourceManager->declareResourceType<BitmapFontResource>("bitmap_font");
-  resourceManager->declareResourceType<MaterialResource>("material");
-  resourceManager->declareResourceType<SkeletonResource>("skeleton");
-  resourceManager->declareResourceType<SkeletalAnimationResource>("animation");
-  resourceManager->declareResourceType<AnimationStatesMachineResource>("animation_states_machine");
-
-  resourceManager->declareResourceType<CollisionDataResource>("collision");
-  resourceManager->declareResourceType<AudioClipResource>("audio");
+  std::shared_ptr<ResourcesManager> resourceManager = m_resourceManagementModule->getResourceManager();
+  resourceManager->registerResourceType<GLShader>("shader",
+    std::make_unique<ShaderResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<Mesh>("mesh",
+    std::make_unique<MeshResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<GLTexture>("texture",
+    std::make_unique<TextureResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<BitmapFont>("bitmap_font",
+    std::make_unique<BitmapFontResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<GLMaterial>("material",
+    std::make_unique<MaterialResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<Skeleton>("skeleton",
+    std::make_unique<SkeletonResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<AnimationClip>("animation",
+    std::make_unique<SkeletalAnimationResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<AnimationStatesMachine>("animation_states_machine",
+    std::make_unique<AnimationStatesMachineResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<CollisionShape>("collision",
+    std::make_unique<CollisionShapeResourceManager>(resourceManager.get()));
+  resourceManager->registerResourceType<AudioClip>("audio",
+    std::make_unique<AudioClipResourceManager>(resourceManager.get()));
 
   resourceManager->loadResourcesMapFile("../resources/engine_resources.xml");
 
   m_gameWorld = GameWorld::createInstance();
-  m_screenManager = std::make_shared<ScreenManager>(m_gameWorld, m_graphicsModule,
-    m_sharedGraphicsState, resourceManager);
+  m_gameWorld->registerComponentBinderFactory<TransformComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<TransformComponent, TransformComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<AudioSourceComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<AudioSourceComponent,
+                                                                AudioSourceComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<CameraComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<CameraComponent, CameraComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<EnvironmentComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<EnvironmentComponent,
+                                                                EnvironmentComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<ObjectSceneNodeComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<ObjectSceneNodeComponent,
+                                                                ObjectSceneNodeComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<MeshRendererComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<MeshRendererComponent,
+                                                                MeshRendererComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<SkeletalAnimationComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<SkeletalAnimationComponent,
+                                                                AnimationComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<RigidBodyComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<RigidBodyComponent,
+                                                                RigidBodyComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<KinematicCharacterComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<KinematicCharacterComponent,
+                                                                KinematicCharacterComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(
+      resourceManager));
+  m_gameWorld->registerComponentBinderFactory<GameObjectSpawnComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<GameObjectSpawnComponent,
+                                                                GameObjectSpawnComponentBinder>>());
+
+  m_screenManager = std::make_shared<ScreenManager>(
+    m_gameWorld,
+    m_graphicsModule,
+    resourceManager,
+    m_graphicsModule->getGraphicsContext()->getViewportWidth(),
+    m_graphicsModule->getGraphicsContext()->getViewportHeight());
 
   DebugPainter::initialize(m_resourceManagementModule->getResourceManager(), m_graphicsScene);
 }
 
 void BaseGameApplication::initializeEngineSystems()
 {
-  std::shared_ptr<ResourceManager> resourceManager = m_resourceManagementModule->getResourceManager();
+  std::shared_ptr<ResourcesManager> resourceManager = m_resourceManagementModule->getResourceManager();
 
   m_engineGameSystems = std::make_shared<GameSystemsGroup>();
   m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
+
+  // Online management system
+  m_onlineManagementSystem = std::make_shared<OnlineManagementSystem>();
+  m_engineGameSystems->addGameSystem(m_onlineManagementSystem);
 
   // Input system
   m_inputSystem = std::make_shared<InputSystem>(m_inputModule);
@@ -307,8 +378,7 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(sceneManagementSystem);
 
   // Rendering pipeline
-  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext(),
-    m_graphicsScene);
+  m_renderingSystemsPipeline = std::make_shared<RenderingSystemsPipeline>(m_graphicsModule->getGraphicsContext());
 
   m_engineGameSystems->addGameSystem(m_renderingSystemsPipeline);
 
@@ -320,19 +390,19 @@ void BaseGameApplication::initializeEngineSystems()
   // Environment rendering
   auto environmentRenderingSystem = std::make_shared<EnvironmentRenderingSystem>(m_graphicsModule->getGraphicsContext(),
     m_graphicsScene,
-    resourceManager->getResourceFromInstance<MeshResource>("mesh_identity_sphere")->getMesh());
+    resourceManager->getResource<Mesh>("mesh_identity_sphere"));
 
   m_renderingSystemsPipeline->addGameSystem(environmentRenderingSystem);
 
   // GUI system
-  std::shared_ptr<GLShader> guiVertexShader = resourceManager->
-    getResourceFromInstance<ShaderResource>("gui_vertex_shader")->getShader();
+  ResourceHandle<GLShader> guiVertexShader = resourceManager->
+    getResource<GLShader>("gui_vertex_shader");
 
-  std::shared_ptr<GLShader> guiFragmentShader = resourceManager->
-    getResourceFromInstance<ShaderResource>("gui_fragment_shader")->getShader();
+  ResourceHandle<GLShader> guiFragmentShader = resourceManager->
+    getResource<GLShader>("gui_fragment_shader");
 
   std::shared_ptr<GLShadersPipeline> guiShadersPipeline = std::make_shared<GLShadersPipeline>(
-    guiVertexShader, guiFragmentShader, nullptr);
+    guiVertexShader, guiFragmentShader, std::optional<ResourceHandle<GLShader>>());
 
   m_guiSystem = std::make_shared<GUISystem>(
     m_inputModule,
@@ -340,8 +410,8 @@ void BaseGameApplication::initializeEngineSystems()
     m_graphicsModule->getGraphicsContext(),
     guiShadersPipeline);
 
-  std::shared_ptr<BitmapFont> guiDefaultFont = resourceManager->
-    getResourceFromInstance<BitmapFontResource>("gui_default_font")->getFont();
+  ResourceHandle<BitmapFont> guiDefaultFont = resourceManager->
+    getResource<BitmapFont>("gui_default_font");
   m_guiSystem->setDefaultFont(guiDefaultFont);
   m_guiSystem->setActiveLayout(m_screenManager->getCommonGUILayout());
 
@@ -368,6 +438,14 @@ void BaseGameApplication::initializeEngineSystems()
 
   m_levelsManager->getObjectsLoader().registerClassLoader("generic",
     std::make_unique<GameObjectsGenericClassLoader>(m_levelsManager));
+
+  // Spawn system
+  m_spawnSystem = std::make_shared<GameObjectsSpawnSystem>(m_levelsManager);
+  m_engineGameSystems->addGameSystem(m_spawnSystem);
+
+  // Scripting system
+  m_scriptingSystem = std::make_shared<ScriptingSystem>(m_gameWorld);
+  m_engineGameSystems->addGameSystem(m_scriptingSystem);
 
   // Game application systems
   m_gameApplicationSystems = std::make_shared<GameSystemsGroup>();
@@ -406,9 +484,18 @@ void BaseGameApplication::performUnload()
 {
   unload();
 
+  DebugPainter::deinitialize();
+
+  m_spawnSystem.reset();
   m_screenManager.reset();
 
-  SDL_Quit();
+  m_levelsManager->unloadLevel();
+  m_graphicsScene.reset();
+
+  m_gameWorld->reset();
+
+  m_graphicsModule->getGraphicsContext()->unloadResources();
+  m_graphicsModule.reset();
 }
 
 void BaseGameApplication::performUpdate(float delta)
@@ -423,7 +510,7 @@ void BaseGameApplication::performRender()
 {
   GLGraphicsContext* graphicsContext = m_graphicsModule->getGraphicsContext().get();
 
-  m_sharedGraphicsState->getFrameStats().reset();
+  m_graphicsScene->getFrameStats().reset();
 
   m_gameWorld->beforeRender();
 
@@ -431,6 +518,10 @@ void BaseGameApplication::performRender()
   m_screenManager->render();
 
   render();
+
+  DebugPainter::flushRenderQueue(m_graphicsModule->getGraphicsContext().get());
+  m_graphicsModule->getGraphicsContext()->executeRenderTasks();
+  DebugPainter::resetRenderQueue();
 
   m_gameWorld->afterRender();
   graphicsContext->swapBuffers();

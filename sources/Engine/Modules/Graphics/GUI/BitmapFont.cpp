@@ -4,7 +4,7 @@
 
 #include "BitmapFont.h"
 
-BitmapFont::BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
+BitmapFont::BitmapFont(ResourceHandle<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
   int baseSize, int height)
   : m_bitmap(bitmap),
     m_characters(characters),
@@ -18,9 +18,9 @@ const BitmapCharacter& BitmapFont::getCharacter(unsigned char character) const
   return m_characters[character];
 }
 
-std::shared_ptr<GLTexture> BitmapFont::getBitmap() const
+GLTexture* BitmapFont::getBitmap() const
 {
-  return m_bitmap;
+  return m_bitmap.get();
 }
 
 int BitmapFont::getBaseSize() const
@@ -31,4 +31,9 @@ int BitmapFont::getBaseSize() const
 int BitmapFont::getHeight() const
 {
   return m_height;
+}
+
+ResourceHandle<GLTexture> BitmapFont::getBitmapResource() const
+{
+  return m_bitmap;
 }

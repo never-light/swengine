@@ -4,6 +4,9 @@
 
 #include "TransformComponent.h"
 
+#include <utility>
+#include "Modules/ECS/ECS.h"
+
 TransformComponent::TransformComponent()
   : m_transform(std::make_shared<Transform>())
 {
@@ -38,37 +41,12 @@ bool TransformComponent::isStatic() const
 void TransformComponent::updateBounds(const glm::mat4& transformation)
 {
   if (m_isStatic) {
-    glm::vec3 newMin(std::numeric_limits<float>::max());
-    glm::vec3 newMax(std::numeric_limits<float>::lowest());
-
-    for (glm::vec3 corner : m_originalBounds.getCorners()) {
-      glm::vec4 newCorner = transformation * glm::vec4(corner, 1.0f);
-
-      newMin.x = std::fminf(newMin.x, newCorner.x);
-      newMin.y = std::fminf(newMin.y, newCorner.y);
-      newMin.z = std::fminf(newMin.z, newCorner.z);
-
-      newMax.x = std::fmaxf(newMax.x, newCorner.x);
-      newMax.y = std::fmaxf(newMax.y, newCorner.y);
-      newMax.z = std::fmaxf(newMax.z, newCorner.z);
-    }
-
-    m_boundingBox.setMin(newMin);
-    m_boundingBox.setMax(newMax);
+    m_boundingBox = m_originalBounds;
+    m_boundingBox.applyTransform(transformation);
   }
   else {
-    Sphere originalBoundingSphere = m_originalBounds.toSphere();
-
-    glm::vec3 origin = originalBoundingSphere.getOrigin() + glm::vec3(transformation[3]);
-
-    float radiusFactor = glm::max(glm::max(transformation[0][0],
-      transformation[1][1]),
-      transformation[2][2]);
-
-    float radius = originalBoundingSphere.getRadius() * radiusFactor;
-
-    m_boundingSphere.setOrigin(origin);
-    m_boundingSphere.setRadius(radius);
+    m_boundingSphere = m_originalBounds.toSphere();
+    m_boundingSphere.applyTransform(transformation);
   }
 }
 
@@ -85,10 +63,10 @@ const Sphere& TransformComponent::getBoundingSphere() const
 void TransformComponent::updateBounds(const glm::vec3& origin, const glm::quat& orientation)
 {
   if (m_isStatic) {
-    updateBounds(glm::translate(glm::identity<glm::mat4>(), origin) * glm::mat4_cast(orientation));
+    updateBounds(glm::translate(glm::identity<glm::mat4>(), origin * m_transform->getScale()) * glm::mat4_cast(orientation));
   }
   else {
-    glm::vec3 newOrigin = m_originalBounds.toSphere().getOrigin() + origin;
+    glm::vec3 newOrigin = (m_originalBounds.toSphere().getOrigin() + origin) * m_transform->getScale();
     m_boundingSphere.setOrigin(newOrigin);
   }
 }
@@ -103,3 +81,54 @@ const AABB& TransformComponent::getOriginalBounds() const
   return m_originalBounds;
 }
 
+TransformComponent::BindingParameters TransformComponent::getBindingParameters() const
+{
+  return TransformComponent::BindingParameters{
+    .position = m_transform->getPosition(),
+    .scale = m_transform->getScale(),
+    .frontDirection = glm::eulerAngles(m_transform->getOrientation()),
+    .isStatic = m_isStatic,
+    .levelId = m_levelId
+  };
+}
+
+void TransformComponent::setLevelId(const std::string& levelId)
+{
+  m_levelId = levelId;
+}
+
+const std::string& TransformComponent::getLevelId() const
+{
+  return m_levelId;
+}
+
+void TransformComponent::setOnlineMode(bool isOnline)
+{
+  m_isOnline = isOnline;
+}
+
+bool TransformComponent::isOnline() const
+{
+  return m_isOnline;
+}
+
+TransformComponentBinder::TransformComponentBinder(ComponentBindingParameters  componentParameters)
+  : m_bindingParameters(std::move(componentParameters))
+{
+
+}
+
+void TransformComponentBinder::bindToObject(GameObject& gameObject)
+{
+  auto& transformComponent = *gameObject.addComponent<TransformComponent>().get();
+
+  transformComponent.setStaticMode(m_bindingParameters.isStatic);
+  transformComponent.getTransform().setPosition(m_bindingParameters.position);
+  transformComponent.getTransform()
+    .setOrientation(glm::quat(glm::vec3(
+      glm::radians(m_bindingParameters.frontDirection.x), glm::radians(m_bindingParameters.frontDirection.y),
+      glm::radians(m_bindingParameters.frontDirection.z))));
+  transformComponent.getTransform().setScale(m_bindingParameters.scale);
+  transformComponent.setLevelId(m_bindingParameters.levelId);
+  transformComponent.setOnlineMode(m_bindingParameters.isOnline);
+}

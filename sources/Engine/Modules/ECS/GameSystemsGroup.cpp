@@ -164,3 +164,8 @@ const std::vector<std::shared_ptr<GameSystem> >& GameSystemsGroup::getGameSystem
 {
   return m_gameSystems;
 }
+
+bool GameSystemsGroup::isConfigured() const
+{
+  return m_isConfigured;
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+
 #include "Skeleton.h"
 #include "AnimationClip.h"
 #include "AnimationPose.h"
@@ -17,8 +19,8 @@ enum class AnimationClipTimeIncrementResult {
 
 class AnimationClipInstance {
  public:
-  AnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
-    std::shared_ptr<AnimationClip> animationClip);
+  AnimationClipInstance(ResourceHandle<Skeleton> skeleton,
+    ResourceHandle<AnimationClip> animationClip);
 
   [[nodiscard]] const AnimationClip& getAnimationClip() const;
   [[nodiscard]] AnimationClip& getAnimationClip();
@@ -26,7 +28,7 @@ class AnimationClipInstance {
   [[nodiscard]] const AnimationPose& getAnimationPose() const;
   [[nodiscard]] const Skeleton& getSkeleton() const;
 
-  [[nodiscard]] std::shared_ptr<Skeleton> getSkeletonPtr() const;
+  [[nodiscard]] ResourceHandle<Skeleton> getSkeletonPtr() const;
 
   void resetAnimationPoseCache();
 
@@ -47,9 +49,9 @@ class AnimationClipInstance {
   AnimationClipState getCurrentState() const;
 
  private:
-  std::shared_ptr<Skeleton> m_skeleton;
+  ResourceHandle<Skeleton> m_skeleton;
+  ResourceHandle<AnimationClip> m_animationClip;
 
-  std::shared_ptr<AnimationClip> m_animationClip;
   mutable AnimationPose m_animationPose;
   mutable bool m_isAnimationPoseOutdated = true;
 

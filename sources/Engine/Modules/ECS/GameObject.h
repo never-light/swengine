@@ -21,7 +21,11 @@ struct GameObjectData {
 
   size_t revision{};
   std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> componentsMask;
+
+  // TODO: remove ghost game objects conception from engine code
   bool isGhost{};
+
+  bool isSerializable = false;
 };
 
 template<class T>
@@ -110,6 +114,12 @@ class GameObject {
    * @return Object validity status
    */
   [[nodiscard]] inline bool isValid() const;
+
+  [[nodiscard]] inline std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> getComponentsMask() const;
+
+  [[nodiscard]] inline bool isSerializable() const;
+  
+  inline void markAsSerializable(bool isSerializable);
 
  private:
   GameObjectId m_id;

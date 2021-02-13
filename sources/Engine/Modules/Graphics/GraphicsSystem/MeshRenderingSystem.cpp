@@ -5,6 +5,7 @@
 #include "MeshRenderingSystem.h"
 
 #include <utility>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Modules/ECS/ECS.h"
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationComponent.h"
@@ -36,20 +37,22 @@ void MeshRenderingSystem::update(float delta)
   ARG_UNUSED(delta);
 }
 
-void MeshRenderingSystem::renderForward()
+void MeshRenderingSystem::render()
 {
-}
+  // TODO: reorganize this logic and get rid of these static cache variables
+  static std::vector<glm::mat4> skinnedMeshesPremultipliedTransforms;
+  SW_ASSERT(skinnedMeshesPremultipliedTransforms.size() < 128);
+  skinnedMeshesPremultipliedTransforms.reserve(128);
+  skinnedMeshesPremultipliedTransforms.clear();
 
-void MeshRenderingSystem::renderDeferred()
-{
   static std::vector<GameObject> visibleObjects;
+  SW_ASSERT(visibleObjects.size() < 1024);
   visibleObjects.reserve(1024);
   visibleObjects.clear();
 
   m_graphicsScene->queryVisibleObjects(visibleObjects);
 
-  auto& sharedGraphicsState = *m_graphicsScene->getSharedGraphicsState();
-  auto& frameStats = sharedGraphicsState.getFrameStats();
+  auto& frameStats = m_graphicsScene->getFrameStats();
 
   frameStats.increaseCulledSubMeshesCount(
     m_graphicsScene->getDrawableObjectsCount() - visibleObjects.size());
@@ -68,59 +71,50 @@ void MeshRenderingSystem::renderDeferred()
 
     frameStats.increaseSubMeshesCount(subMeshesCount);
 
+    bool isMeshAnimated = mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>();
+
+    if (isMeshAnimated) {
+      // TODO: investigate and debug getInverseSceneTransform behaviour, check
+      //  that this multiplication is correct
+      skinnedMeshesPremultipliedTransforms
+        .push_back(transform.getTransformationMatrix() * mesh->getInverseSceneTransform());
+    }
+
     for (size_t subMeshIndex = 0; subMeshIndex < subMeshesCount; subMeshIndex++) {
-      Material* material = meshComponent->getMaterialInstance(subMeshIndex).get();
 
-      SW_ASSERT(material != nullptr);
+      const glm::mat4* matrixPalette = nullptr;
 
-      GLShadersPipeline* shadersPipeline = material->getGpuMaterial().getShadersPipeline().get();
+      if (isMeshAnimated) {
+        auto& skeletalAnimationComponent = *obj.getComponent<SkeletalAnimationComponent>().get();
 
-      SW_ASSERT(shadersPipeline != nullptr);
+        if (skeletalAnimationComponent.getAnimationStatesMachineRef().isActive()) {
 
-      GLShader* vertexShader = shadersPipeline->getShader(ShaderType::Vertex);
-
-      if (vertexShader->hasParameter("transform.localToWorld")) {
-        vertexShader->setParameter("transform.localToWorld", transform.getTransformationMatrix());
-      }
-
-      Camera* camera = m_graphicsScene->getActiveCamera().get();
-
-      if (camera != nullptr) {
-        if (vertexShader->hasParameter("scene.worldToCamera")) {
-          vertexShader->setParameter("scene.worldToCamera", camera->getViewMatrix());
-          vertexShader->setParameter("scene.cameraToProjection", camera->getProjectionMatrix());
-        }
-      }
-
-      if (mesh->isSkinned() && mesh->hasSkeleton() && vertexShader->hasParameter("animation.palette[0]")) {
-        if (obj.hasComponent<SkeletalAnimationComponent>() &&
-          obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef().isActive()) {
-          // Set animation data for shader
           const AnimationStatesMachine& animationStatesMachine =
-            obj.getComponent<SkeletalAnimationComponent>()->getAnimationStatesMachineRef();
+            skeletalAnimationComponent.getAnimationStatesMachineRef();
           const AnimationMatrixPalette& currentMatrixPalette =
             animationStatesMachine.getCurrentMatrixPalette();
 
-          vertexShader->setArrayParameter("animation.palette",
-            currentMatrixPalette.bonesTransforms);
-        }
-        else {
-          vertexShader->setArrayParameter("animation.palette",
-            std::vector<glm::mat4>(vertexShader->getArraySize("animation.palette"),
-              glm::identity<glm::mat4>()));
+          matrixPalette = currentMatrixPalette.bonesTransforms.data();
         }
       }
 
       frameStats.increasePrimitivesCount(mesh->getSubMeshIndicesCount(subMeshIndex) / 3);
 
-      m_graphicsContext->executeRenderTask({
-        &material->getGpuMaterial(),
-        mesh->getGeometryStore(),
-        mesh->getSubMeshIndicesOffset(subMeshIndex),
-        mesh->getSubMeshIndicesCount(subMeshIndex),
-        GL_TRIANGLES,
-        &sharedGraphicsState.getDeferredFramebuffer()
+      m_graphicsContext->scheduleRenderTask(RenderTask{
+        .material = meshComponent->getMaterialInstance(subMeshIndex).get(),
+        .mesh = mesh,
+        .subMeshIndex = static_cast<uint16_t>(subMeshIndex),
+        .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) : &transform.getTransformationMatrix()),
+        .matrixPalette = matrixPalette,
       });
+
+//      if (matrixPalette != nullptr) {
+//        for (size_t i = 0; i < mesh->getSkeleton()->getBonesCount(); i++) {
+//          spdlog::debug("#{}: {}", i, glm::to_string(matrixPalette[i]));
+//        }
+//
+//        DEBUG_BREAK();
+//      }
 
       if (m_isBoundsRenderingEnabled) {
         if (transformComponent.isStatic()) {

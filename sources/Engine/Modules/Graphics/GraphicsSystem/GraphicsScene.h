@@ -2,12 +2,28 @@
 
 #include "Culling/SceneAccelerationStructure.h"
 
-#include "SharedGraphicsState.h"
+#include "FrameStats.h"
+
+struct ObjectSceneNodeComponentBindingParameters {
+  bool isDrawable{};
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("is_drawable", isDrawable));
+  };
+};
 
 struct ObjectSceneNodeComponent {
  public:
-  explicit ObjectSceneNodeComponent(bool isDrawable)
-    : m_isDrawable(isDrawable)
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = ObjectSceneNodeComponentBindingParameters;
+
+ public:
+  ObjectSceneNodeComponent(bool isDrawable, bool isGhost=false)
+    : m_isDrawable(isDrawable),
+    m_isGhost(isGhost)
   {
 
   }
@@ -21,13 +37,40 @@ struct ObjectSceneNodeComponent {
     m_isDrawable = isDrawable;
   }
 
+  [[nodiscard]] ObjectSceneNodeComponentBindingParameters getBindingParameters() const {
+    return ObjectSceneNodeComponentBindingParameters{.isDrawable=m_isDrawable};
+  }
+
+  [[nodiscard]] bool isGhost() const {
+    return m_isGhost;
+  }
+
  private:
   bool m_isDrawable{};
+  bool m_isGhost{};
 };
+
+
+class ObjectSceneNodeComponentBinder : public GameObjectsComponentBinder<ObjectSceneNodeComponent> {
+ public:
+  explicit ObjectSceneNodeComponentBinder(const ComponentBindingParameters& componentParameters)
+    : m_bindingParameters(componentParameters)
+  {
+
+  }
+
+  void bindToObject(GameObject& gameObject) override {
+    gameObject.addComponent<ObjectSceneNodeComponent>(m_bindingParameters.isDrawable, true);
+  }
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+};
+
 
 class GraphicsScene {
  public:
-  explicit GraphicsScene(std::shared_ptr<SharedGraphicsState> sharedGraphicsState);
+  GraphicsScene();
 
   void buildFromObjectsList(std::vector<GameObject>& objects);
 
@@ -50,7 +93,8 @@ class GraphicsScene {
   void setActiveCamera(std::shared_ptr<Camera> camera);
   [[nodiscard]] std::shared_ptr<Camera> getActiveCamera() const;
 
-  std::shared_ptr<SharedGraphicsState> getSharedGraphicsState();
+  [[nodiscard]] const FrameStats& getFrameStats() const;
+  FrameStats& getFrameStats();
 
  private:
   void addSceneNodeComponent(GameObject& object);
@@ -58,10 +102,10 @@ class GraphicsScene {
   [[nodiscard]] static bool isObjectDrawable(GameObject& object);
 
  private:
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
-
   std::unique_ptr<SceneAccelerationStructure> m_accelerationStructure;
   std::shared_ptr<Camera> m_activeCamera;
 
   size_t m_drawableObjectsCount{};
+
+  FrameStats m_frameStats;
 };

@@ -8,10 +8,11 @@
 #include "Modules/ResourceManagement/ResourceManagementModule.h"
 #include "Modules/Input/InputSystem.h"
 #include "Modules/ECS/ECS.h"
+#include "Modules/ECS/OnlineManagementSystem.h"
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
-#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Modules/Graphics/GraphicsSystem/FrameStats.h"
 #include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 
 #include "Modules/Graphics/GraphicsSystem/Animation/SkeletalAnimationSystem.h"
@@ -27,6 +28,9 @@
 #include "Modules/Graphics/GUI/GUISystem.h"
 #include "Modules/ScreenManagement/ScreenManager.h"
 #include "Modules/LevelsManagement/LevelsManager.h"
+#include "Modules/LevelsManagement/GameObjectsSpawnSystem.h"
+
+#include "Modules/Scripting/ScriptingSystem.h"
 
 #include "GameConsole.h"
 
@@ -68,15 +72,18 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
  protected:
   SDL_Window* m_mainWindow;
 
-  std::shared_ptr<GraphicsModule> m_graphicsModule;
   std::shared_ptr<ResourceManagementModule> m_resourceManagementModule;
+
+  std::shared_ptr<GraphicsModule> m_graphicsModule;
   std::shared_ptr<InputModule> m_inputModule;
   std::shared_ptr<InputSystem> m_inputSystem;
 
-  std::shared_ptr<SharedGraphicsState> m_sharedGraphicsState;
   std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;
+
+  std::shared_ptr<OnlineManagementSystem> m_onlineManagementSystem;
+
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
   std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 
@@ -90,8 +97,10 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
 
   std::shared_ptr<ScreenManager> m_screenManager;
   std::shared_ptr<LevelsManager> m_levelsManager;
+  std::shared_ptr<GameObjectsSpawnSystem> m_spawnSystem;
 
   std::shared_ptr<GameConsole> m_gameConsole;
+  std::shared_ptr<ScriptingSystem> m_scriptingSystem;
 
   bool m_isMainLoopActive = false;
 };

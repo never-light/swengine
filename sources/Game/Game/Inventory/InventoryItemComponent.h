@@ -5,21 +5,52 @@
 #include <functional>
 
 #include <Engine/Modules/ECS/ECS.h>
+#include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 #include <Engine/Modules/Graphics/OpenGL/GLTexture.h>
 
+struct InventoryItemComponentBindingParameters {
+  std::string shortDescription;
+  std::string longDescription;
+  std::string name;
+  std::string title;
+  std::string iconResourceName;
+
+  bool isReadable{};
+  bool isUsable{};
+  bool isDroppable{};
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(
+      cereal::make_nvp("short_desc", shortDescription),
+      cereal::make_nvp("long_desc", longDescription),
+      cereal::make_nvp("name", name),
+      cereal::make_nvp("title", title),
+      cereal::make_nvp("icon_resource", iconResourceName),
+      cereal::make_nvp("is_readable", isReadable),
+      cereal::make_nvp("is_usable", isUsable),
+      cereal::make_nvp("is_droppable", isDroppable));
+  };
+};
+
 struct InventoryItemComponent {
+ public:
+  static constexpr bool s_isSerializable = true;
+  using BindingParameters = InventoryItemComponentBindingParameters;
+
  public:
   // Owner, item
   using ActionCallback = std::function<void(GameObject, GameObject)>;
 
  public:
   InventoryItemComponent(
-    std::shared_ptr<GLTexture> icon,
+    ResourceHandle<GLTexture> icon,
     std::string id,
     std::string name);
 
-  void setIcon(std::shared_ptr<GLTexture> icon);
-  [[nodiscard]] std::shared_ptr<GLTexture> getIcon() const;
+  void setIcon(ResourceHandle<GLTexture> icon);
+  [[nodiscard]] ResourceHandle<GLTexture> getIcon() const;
 
   void setId(const std::string& id);
   [[nodiscard]] const std::string& getId() const;
@@ -106,8 +137,10 @@ struct InventoryItemComponent {
   void setReadCallback(const ActionCallback& callback);
   [[nodiscard]] ActionCallback getReadCallback() const;
 
+  [[nodiscard]] BindingParameters getBindingParameters() const;
+
  private:
-  std::shared_ptr<GLTexture> m_icon;
+  ResourceHandle<GLTexture> m_icon;
   std::string m_id;
   std::string m_name;
   std::string m_shortDescription;
@@ -127,3 +160,14 @@ struct InventoryItemComponent {
   std::bitset<GameObjectData::MAX_COMPONENTS_COUNT> m_componentsToRestoreMask;
 };
 
+class InventoryItemComponentBinder : public GameObjectsComponentBinder<InventoryItemComponent> {
+ public:
+  explicit InventoryItemComponentBinder(const ComponentBindingParameters& componentParameters,
+    std::shared_ptr<ResourcesManager> resourceManager);
+
+  void bindToObject(GameObject& gameObject) override;
+
+ private:
+  ComponentBindingParameters m_bindingParameters;
+  std::shared_ptr<ResourcesManager> m_resourceManager;
+};

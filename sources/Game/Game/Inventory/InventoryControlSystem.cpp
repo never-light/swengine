@@ -116,12 +116,12 @@ void InventoryControlSystem::dropObjectFromInventory(
   inventoryItemComponent.setOwner(GameObject());
 
   if (inventoryItemComponent.shouldComponentBeRestored<MeshRendererComponent>()) {
-    m_levelsManager->loadGameObjectComponent<MeshRendererComponent>(objectToDrop);
+    m_levelsManager->buildGameObjectComponent<MeshRendererComponent>(objectToDrop);
     inventoryItemComponent.removeComponentToRestore<MeshRendererComponent>();
   }
 
   if (inventoryItemComponent.shouldComponentBeRestored<RigidBodyComponent>()) {
-    m_levelsManager->loadGameObjectComponent<RigidBodyComponent>(objectToDrop);
+    m_levelsManager->buildGameObjectComponent<RigidBodyComponent>(objectToDrop);
     inventoryItemComponent.removeComponentToRestore<RigidBodyComponent>();
   }
 

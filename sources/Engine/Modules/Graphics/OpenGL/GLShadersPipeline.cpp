@@ -3,42 +3,44 @@
 #pragma hdrstop
 
 #include "GLShadersPipeline.h"
+
+#include <utility>
 #include "Exceptions/exceptions.h"
 #include "GLDebug.h"
 
-GLShadersPipeline::GLShadersPipeline(std::shared_ptr<GLShader> vertexShader,
-  std::shared_ptr<GLShader> fragmentShader,
-  std::shared_ptr<GLShader> geometrySHader)
-  : m_vertexShader(vertexShader),
-    m_fragmentShader(fragmentShader),
-    m_geometryShader(geometrySHader)
+GLShadersPipeline::GLShadersPipeline(std::optional<ResourceHandle<GLShader>> vertexShader,
+  std::optional<ResourceHandle<GLShader>> fragmentShader,
+  std::optional<ResourceHandle<GLShader>> geometryShader)
+  : m_vertexShader(std::move(vertexShader)),
+    m_fragmentShader(std::move(fragmentShader)),
+    m_geometryShader(std::move(geometryShader))
 {
   GL_CALL_BLOCK_BEGIN();
 
   glCreateProgramPipelines(1, &m_programPipeline);
 
-  if (m_vertexShader != nullptr) {
-    if (m_vertexShader->getType() != ShaderType::Vertex) {
+  if (m_vertexShader.has_value()) {
+    if (m_vertexShader.value()->getType() != ShaderType::Vertex) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for vertex shader in pipeline");
     }
 
-    glUseProgramStages(m_programPipeline, GL_VERTEX_SHADER_BIT, vertexShader->m_shaderProgram);
+    glUseProgramStages(m_programPipeline, GL_VERTEX_SHADER_BIT, m_vertexShader.value()->m_shaderProgram);
   }
 
-  if (m_fragmentShader != nullptr) {
-    if (m_fragmentShader->getType() != ShaderType::Fragment) {
+  if (m_fragmentShader.has_value()) {
+    if (m_fragmentShader.value()->getType() != ShaderType::Fragment) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for fragment shader in pipeline");
     }
 
-    glUseProgramStages(m_programPipeline, GL_FRAGMENT_SHADER_BIT, fragmentShader->m_shaderProgram);
+    glUseProgramStages(m_programPipeline, GL_FRAGMENT_SHADER_BIT, m_fragmentShader.value()->m_shaderProgram);
   }
 
-  if (m_geometryShader != nullptr) {
-    if (m_vertexShader->getType() != ShaderType::Geometry) {
+  if (m_geometryShader.has_value()) {
+    if (m_vertexShader.value()->getType() != ShaderType::Geometry) {
       THROW_EXCEPTION(EngineRuntimeException, "Shader type mismatch for geometry shader in pipeline");
     }
 
-    glUseProgramStages(m_programPipeline, GL_GEOMETRY_SHADER_BIT, geometrySHader->m_shaderProgram);
+    glUseProgramStages(m_programPipeline, GL_GEOMETRY_SHADER_BIT, m_geometryShader.value()->m_shaderProgram);
   }
 
   GL_CALL_BLOCK_END();
@@ -53,11 +55,11 @@ bool GLShadersPipeline::hasShader(ShaderType type) const
 {
   switch (type) {
     case ShaderType::Vertex:
-      return m_vertexShader != nullptr;
+      return m_vertexShader.has_value();
     case ShaderType::Fragment:
-      return m_fragmentShader != nullptr;
+      return m_fragmentShader.has_value();
     case ShaderType::Geometry:
-      return m_geometryShader != nullptr;
+      return m_geometryShader.has_value();
   }
 
   THROW_EXCEPTION(EngineRuntimeException, "Trying to check existing of invalid shader type");
@@ -67,11 +69,11 @@ GLShader* GLShadersPipeline::getShader(ShaderType type) const
 {
   switch (type) {
     case ShaderType::Vertex:
-      return m_vertexShader.get();
+      return m_vertexShader.value().get();
     case ShaderType::Fragment:
-      return m_fragmentShader.get();
+      return m_fragmentShader.value().get();
     case ShaderType::Geometry:
-      return m_geometryShader.get();
+      return m_geometryShader.value().get();
   }
 
   THROW_EXCEPTION(EngineRuntimeException, "Trying to get invalid shader type");

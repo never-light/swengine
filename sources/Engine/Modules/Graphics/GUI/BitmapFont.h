@@ -6,33 +6,35 @@
 #include <glm/vec2.hpp>
 
 #include "Modules/Math/Rect.h"
+
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 #include "Modules/Graphics/OpenGL/GLTexture.h"
 
 struct BitmapCharacter {
  public:
-  RectI bitmapArea;
+  RectI bitmapArea{};
 
-  int xOffset;
-  int yOffset;
-  int xAdvance;
-
-  bool isMapped = false;
+  int xOffset{};
+  int yOffset{};
+  int xAdvance{};
 };
 
-class BitmapFont {
+class BitmapFont : public Resource {
  public:
-  BitmapFont(std::shared_ptr<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
+  BitmapFont(ResourceHandle<GLTexture> bitmap, const std::array<BitmapCharacter, 256>& characters,
     int baseSize, int height);
+  ~BitmapFont() override = default;
 
   [[nodiscard]] const BitmapCharacter& getCharacter(unsigned char character) const;
 
-  [[nodiscard]] std::shared_ptr<GLTexture> getBitmap() const;
+  [[nodiscard]] GLTexture* getBitmap() const;
+  [[nodiscard]] ResourceHandle<GLTexture> getBitmapResource() const;
 
   [[nodiscard]] int getBaseSize() const;
   [[nodiscard]] int getHeight() const;
 
  private:
-  std::shared_ptr<GLTexture> m_bitmap;
+  ResourceHandle<GLTexture> m_bitmap;
   std::array<BitmapCharacter, 256> m_characters;
 
   int m_baseSize;

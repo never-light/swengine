@@ -3,6 +3,8 @@
 #include <memory>
 #include <btBulletDynamicsCommon.h>
 
+#include "Modules/ResourceManagement/ResourcesManagement.h"
+
 #include "Modules/Physics/BaseBackend/RigidBodyComponentBackend.h"
 
 #include "Modules/Graphics/GraphicsSystem/Transform.h"
@@ -14,7 +16,7 @@ class BulletPhysicsSystemBackend;
 
 class BulletRigidBodyComponent : public RigidBodyComponentBackend {
  public:
-  BulletRigidBodyComponent(float mass, std::shared_ptr<CollisionShape> collisionShape);
+  BulletRigidBodyComponent(float mass, ResourceHandle<CollisionShape> collisionShape);
   ~BulletRigidBodyComponent() override;
 
   void setMass(float mass) override;
@@ -34,6 +36,9 @@ class BulletRigidBodyComponent : public RigidBodyComponentBackend {
   [[nodiscard]] glm::vec3 getLinearFactor() const override;
 
   void setUpdateCallback(std::function<void(const btTransform&)> updateCallback);
+
+  void enableSimulation(bool enable) override;
+  [[nodiscard]] bool isSimulationEnabled() const override;
 
  private:
   btCollisionShape* m_collisionShape = nullptr;

@@ -3,7 +3,7 @@
 #include <Engine/Modules/Application/BaseGameApplication.h>
 #include <Engine/Modules/Graphics/OpenGL/GLGeometryStore.h>
 #include <Engine/Modules/Graphics/OpenGL/GLShadersPipeline.h>
-#include <Engine/Modules/Graphics/GraphicsSystem/Mesh.h>
+#include <Engine/Modules/Graphics/OpenGL/Mesh.h>
 
 #include <Engine/Modules/ScreenManagement/ScreenManager.h>
 

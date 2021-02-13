@@ -73,6 +73,14 @@ struct Sphere {
   void setRadius(float radius);
   [[nodiscard]] float getRadius() const;
 
+  void applyTransform(const glm::mat4& transformationMatrix);
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(m_origin, m_radius);
+  }
+
  private:
   glm::vec3 m_origin = glm::vec3(0.0f, 0.0f, 0.0f);
   float m_radius = 0.0f;
@@ -95,6 +103,15 @@ struct AABB {
 
   [[nodiscard]] std::array<glm::vec3, 8> getCorners() const;
 
+  [[nodiscard]] glm::vec3 getOrigin() const;
+  void applyTransform(const glm::mat4& transformationMatrix);
+
+  template<class Archive>
+  void serialize(Archive& archive)
+  {
+    archive(m_min, m_max);
+  }
+
  private:
   glm::vec3 m_min;
   glm::vec3 m_max;
@@ -115,4 +132,6 @@ class GeometryUtils {
 
   static AABB restoreAABBByVerticesList(const std::vector<glm::vec3>& vertices);
   static Sphere restoreSphereByVerticesList(const std::vector<glm::vec3>& vertices);
+
+  static AABB mergeAABB(const AABB& aabb1, const AABB& aabb2);
 };

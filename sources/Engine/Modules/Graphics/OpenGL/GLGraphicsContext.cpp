@@ -6,7 +6,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "Modules/Graphics/GraphicsSystem/SharedGraphicsState.h"
+#include "Modules/Graphics/GraphicsSystem/FrameStats.h"
 #include "Exceptions/exceptions.h"
 #include "options.h"
 
@@ -15,9 +15,9 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
 {
   spdlog::info("Creating OpenGL context");
 
-  m_glContext = SDL_GL_CreateContext(m_window);
+  m_sdlGLContext.m_glContext = SDL_GL_CreateContext(m_window);
 
-  if (m_glContext == nullptr) {
+  if (m_sdlGLContext.m_glContext == nullptr) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));
   }
 
@@ -46,24 +46,53 @@ GLGraphicsContext::GLGraphicsContext(SDL_Window* window)
       {{1.0f, -1.0f, 1.0f}, glm::vec3(), {1.0f, 0.0f}},
     }, std::vector<std::uint16_t>{0, 2, 1, 1, 2, 3});
 
+  int framebufferWidth = bufferWidth;
+  int framebufferHeight = bufferHeight;
+
+  std::shared_ptr<GLTexture> mrtAlbedo = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+    framebufferWidth,
+    framebufferHeight,
+    GLTextureInternalFormat::RGBA8);
+
+  std::shared_ptr<GLTexture> mrtNormals = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+    framebufferWidth,
+    framebufferHeight,
+    GLTextureInternalFormat::RGB16F);
+
+  std::shared_ptr<GLTexture> mrtPositions = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+    framebufferWidth,
+    framebufferHeight,
+    GLTextureInternalFormat::RGB32F);
+
+  std::shared_ptr<GLTexture> depthStencil = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+    framebufferWidth,
+    framebufferHeight,
+    GLTextureInternalFormat::Depth24Stencil8);
+
+  m_deferredFramebuffer = std::make_unique<GLFramebuffer>(framebufferWidth,
+    framebufferHeight,
+    std::vector{mrtAlbedo, mrtNormals, mrtPositions},
+    depthStencil);
+
+  std::shared_ptr<GLTexture> forwardAlbedo = std::make_shared<GLTexture>(GLTextureType::Texture2D,
+    framebufferWidth,
+    framebufferHeight,
+    GLTextureInternalFormat::RGBA8);
+
+  m_forwardFramebuffer = std::make_unique<GLFramebuffer>(framebufferWidth, framebufferHeight,
+    std::vector{forwardAlbedo}, depthStencil);
+
+  m_sceneTransformationBuffer = std::make_unique<GLUniformBuffer<SceneTransformation>>();
+  m_sceneTransformationBuffer->attachToBindingEntry(0);
+
+  m_guiTransformationBuffer = std::make_unique<GLUniformBuffer<GUITransformation>>();
+  m_guiTransformationBuffer->attachToBindingEntry(1);
+
   spdlog::info("OpenGL context is created");
 }
 
 GLGraphicsContext::~GLGraphicsContext()
 {
-  SDL_GL_DeleteContext(m_glContext);
-}
-
-void GLGraphicsContext::enableWritingToDepthBuffer()
-{
-  glDepthMask(GL_TRUE);
-  applyContextChange();
-}
-
-void GLGraphicsContext::disableWritingToDepthBuffer()
-{
-  glDepthMask(GL_FALSE);
-  applyContextChange();
 }
 
 void GLGraphicsContext::swapBuffers()
@@ -176,98 +205,6 @@ void GLGraphicsContext::setDepthWritingMode(DepthWritingMode mode)
   }
 
   applyContextChange();
-}
-
-void GLGraphicsContext::applyMaterial(const GLMaterial& material)
-{
-  // Blending mode
-  setBlendingMode(material.getBlendingMode());
-
-  // Depth test
-  setDepthTestMode(material.getDepthTestMode());
-
-  // Face culling mode
-  setFaceCullingMode(material.getFaceCullingMode());
-
-  // Polygon filling mode
-  setPolygonFillingMode(material.getPolygonFillingMode());
-
-  // Depth writing mode
-  setDepthWritingMode(material.getDepthWritingMode());
-
-  // Scissors test mode
-  setupScissorsTest(material.getScissorsTestMode());
-
-  // Parameters
-  GLShadersPipeline* shadersPipeline = material.getShadersPipeline().get();
-
-  for (auto&[parameterName, genericValue] : material.m_parameters) {
-    GLShader* shader = shadersPipeline->getShader(genericValue.shaderType);
-
-    const auto& rawValue = genericValue.value;
-
-    if (auto intVal = std::get_if<int>(&rawValue)) {
-      shader->setParameter(parameterName, *intVal);
-    }
-    else if (auto floatVal = std::get_if<float>(&rawValue)) {
-      shader->setParameter(parameterName, *floatVal);
-    }
-    else if (auto vec3Val = std::get_if<glm::vec3>(&rawValue)) {
-      shader->setParameter(parameterName, *vec3Val);
-    }
-    else if (auto vec4Val = std::get_if<glm::vec4>(&rawValue)) {
-      shader->setParameter(parameterName, *vec4Val);
-    }
-    else if (auto mat3Val = std::get_if<glm::mat3>(&rawValue)) {
-      shader->setParameter(parameterName, *mat3Val);
-    }
-    else if (auto mat4Val = std::get_if<glm::mat4>(&rawValue)) {
-      shader->setParameter(parameterName, *mat4Val);
-    }
-    else if (auto textureVal = std::get_if<GLMaterial::TextureParameter>(&rawValue)) {
-      shader->setParameter(parameterName, *(textureVal->texture), textureVal->slotIndex);
-    }
-    else {
-      THROW_EXCEPTION(EngineRuntimeException, "Failed to set generic material parameter");
-    }
-  }
-}
-
-void GLGraphicsContext::executeRenderTask(const RenderTask& task)
-{
-  if (m_currentFramebuffer != task.framebuffer) {
-    m_currentFramebuffer = task.framebuffer;
-
-    if (task.framebuffer == nullptr) {
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    else {
-      glBindFramebuffer(GL_FRAMEBUFFER, task.framebuffer->getGLHandle());
-    }
-  }
-
-  GLShadersPipeline* shadersPipeline = task.material->getShadersPipeline().get();
-  glBindProgramPipeline(shadersPipeline->m_programPipeline);
-
-  /* Compare only memory addresses */
-  if (m_currentMaterial != task.material) {
-    applyMaterial(*task.material);
-
-    m_currentMaterial = task.material;
-  }
-
-  if (task.material->getScissorsTestMode() == ScissorsTestMode::Enabled) {
-    glScissor(task.scissorsRect.getOriginX(),
-      m_defaultFramebuffer->getHeight() - task.scissorsRect.getOriginY() - task.scissorsRect.getHeight(),
-      task.scissorsRect.getWidth(), task.scissorsRect.getHeight());
-  }
-
-  task.geometryStore->drawRange(task.startOffset, task.partsCount, task.primitivesType);
-}
-
-GLFramebuffer& GLGraphicsContext::getDefaultFramebuffer() const
-{
-  return *m_defaultFramebuffer.get();
 }
 
 GLGeometryStore& GLGraphicsContext::getNDCTexturedQuad() const
@@ -386,4 +323,200 @@ void GLGraphicsContext::setupScissorsTest(ScissorsTestMode mode)
   }
 
   applyContextChange();
+}
+
+void GLGraphicsContext::setupGraphicsScene(std::shared_ptr<GraphicsScene> graphicsScene)
+{
+  m_graphicsScene = std::move(graphicsScene);
+}
+
+void GLGraphicsContext::scheduleRenderTask(const RenderTask& task)
+{
+  m_renderingQueues[static_cast<size_t>(task.material->getRenderingStage())].push_back(task);
+}
+
+void GLGraphicsContext::executeRenderTasks()
+{
+  // TODO: get rid of buffers clearing and copying as possible
+  //  For example, use depth swap trick to avoid depth buffer clearing
+
+  // Setup scene state uniform buffers
+
+  std::shared_ptr<Camera> activeCamera = m_graphicsScene->getActiveCamera();
+
+  if (activeCamera) {
+    m_sceneTransformationBuffer->getBufferData().view = m_graphicsScene->getActiveCamera()->getViewMatrix();
+    m_sceneTransformationBuffer->getBufferData().projection = m_graphicsScene->getActiveCamera()->getProjectionMatrix();
+  }
+  else {
+    m_sceneTransformationBuffer->getBufferData().view = glm::identity<glm::mat4>();
+    m_sceneTransformationBuffer->getBufferData().projection = glm::identity<glm::mat4>();
+  }
+
+  m_sceneTransformationBuffer->synchronizeWithGpu();
+
+  m_guiTransformationBuffer->getBufferData().projection = m_guiProjectionMatrix;
+  m_guiTransformationBuffer->synchronizeWithGpu();
+
+  // Render current frame
+
+  glDisable(GL_SCISSOR_TEST);
+  glDepthMask(GL_TRUE);
+
+  m_deferredFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 0);
+  m_deferredFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 1);
+  m_deferredFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 0.0f}, 2);
+
+  m_deferredFramebuffer->clearDepthStencil(1.0f, 0);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, m_deferredFramebuffer->getGLHandle());
+
+  executeRenderingStageQueue(RenderingStage::Deferred);
+
+  GLShadersPipeline* accumulationPipeline = &m_deferredAccumulationMaterial->getShadersPipeline();
+  GLShader* accumulationFragmentShader = accumulationPipeline->getShader(ShaderType::Fragment);
+  const GLFramebuffer& deferredFramebuffer = *m_deferredFramebuffer;
+
+  accumulationFragmentShader->setParameter("gBuffer.albedo",
+    *deferredFramebuffer.getColorComponent(0), 0);
+
+  accumulationFragmentShader->setParameter("gBuffer.normals",
+    *deferredFramebuffer.getColorComponent(1), 1);
+
+  accumulationFragmentShader->setParameter("gBuffer.positions",
+    *deferredFramebuffer.getColorComponent(2), 2);
+
+  glDisable(GL_SCISSOR_TEST);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_forwardFramebuffer->getGLHandle());
+  glBindProgramPipeline(accumulationPipeline->m_programPipeline);
+
+  applyGpuState(m_deferredAccumulationMaterial->getGpuStateParameters());
+  m_deferredAccumulationMaterial->getGLParametersBinder()->bindParameters(*accumulationPipeline);
+  getNDCTexturedQuad().drawRange(0, 6, GL_TRIANGLES);
+
+  executeRenderingStageQueue(RenderingStage::Forward);
+  executeRenderingStageQueue(RenderingStage::ForwardDebug);
+  executeRenderingStageQueue(RenderingStage::ForwardEnvironment);
+  executeRenderingStageQueue(RenderingStage::PostProcess);
+
+  executeRenderingStageQueue(RenderingStage::GUI);
+
+//  m_defaultFramebuffer->clearColor({0.0f, 0.0f, 0.0f, 1.0f});
+//  m_defaultFramebuffer->clearDepthStencil(0.0f, 0);
+
+  glDisable(GL_SCISSOR_TEST);
+  m_forwardFramebuffer->copyColor(*m_defaultFramebuffer);
+  m_forwardFramebuffer->copyDepthStencil(*m_defaultFramebuffer);
+}
+
+void GLGraphicsContext::setupDeferredAccumulationMaterial(std::shared_ptr<GLShadersPipeline> pipeline)
+{
+  GpuStateParameters gpuState;
+
+  gpuState.setBlendingMode(BlendingMode::Disabled);
+  gpuState.setDepthTestMode(DepthTestMode::NotEqual);
+  gpuState.setDepthWritingMode(DepthWritingMode::Disabled);
+  gpuState.setFaceCullingMode(FaceCullingMode::Disabled);
+  gpuState.setPolygonFillingMode(PolygonFillingMode::Fill);
+
+  m_deferredAccumulationMaterial = std::make_unique<GLMaterial>(RenderingStage::Deferred,
+    std::move(pipeline),
+    gpuState,
+    std::make_unique<ShadingParametersGenericSet>());
+}
+
+void GLGraphicsContext::applyGpuState(const GpuStateParameters& gpuState)
+{
+  setBlendingMode(gpuState.getBlendingMode());
+  setDepthTestMode(gpuState.getDepthTestMode());
+  setFaceCullingMode(gpuState.getFaceCullingMode());
+  setPolygonFillingMode(gpuState.getPolygonFillingMode());
+  setDepthWritingMode(gpuState.getDepthWritingMode());
+  setupScissorsTest(gpuState.getScissorsTestMode());
+}
+
+void GLGraphicsContext::executeRenderingStageQueue(RenderingStage stage)
+{
+  auto& queue = m_renderingQueues[static_cast<size_t>(stage)];
+
+  if (queue.empty()) {
+    return;
+  }
+
+  applyGpuState(queue.begin()->material->getGpuStateParameters());
+
+  for (const auto& renderingTask : queue) {
+    GLShadersPipeline& shadersPipeline = renderingTask.material->getShadersPipeline();
+    glBindProgramPipeline(shadersPipeline.m_programPipeline);
+
+    const auto& shadingParametersBinder = renderingTask.material->getGLParametersBinder();
+
+    GLShader* vertexShader = shadersPipeline.getShader(ShaderType::Vertex);
+
+    if (&shadersPipeline != m_currentShadersPipeline) {
+      m_currentShadersPipeline = &shadersPipeline;
+    }
+
+    if (renderingTask.matrixPalette != nullptr && vertexShader->hasParameter("animation.palette[0]")) {
+      vertexShader->setArrayParameter("animation.palette",
+        renderingTask.matrixPalette, renderingTask.mesh->getSkeleton()->getBonesCount());
+    }
+
+    shadingParametersBinder->bindParameters(shadersPipeline);
+
+    if (vertexShader->hasParameter("transform.local")) {
+      vertexShader->setParameter("transform.local", *renderingTask.transform);
+    }
+
+    if (renderingTask.material->getGpuStateParameters().getScissorsTestMode() == ScissorsTestMode::Enabled) {
+      glScissor(renderingTask.scissorsRect.getOriginX(),
+        m_defaultFramebuffer->getHeight() - renderingTask.scissorsRect.getOriginY()
+          - renderingTask.scissorsRect.getHeight(),
+        renderingTask.scissorsRect.getWidth(), renderingTask.scissorsRect.getHeight());
+    }
+
+    renderingTask.mesh->getGeometryStore()->drawRange(
+      renderingTask.mesh->getSubMeshIndicesOffset(renderingTask.subMeshIndex),
+      renderingTask.mesh->getSubMeshIndicesCount(renderingTask.subMeshIndex),
+      renderingTask.primitivesType);
+  }
+
+  m_renderingQueues[static_cast<size_t>(stage)].clear();
+}
+
+int GLGraphicsContext::getViewportWidth() const
+{
+  return m_defaultFramebuffer->getWidth();
+}
+
+int GLGraphicsContext::getViewportHeight() const
+{
+  return m_defaultFramebuffer->getHeight();
+}
+
+void GLGraphicsContext::setGUIProjectionMatrix(const glm::mat4& projection)
+{
+  m_guiProjectionMatrix = projection;
+}
+
+const glm::mat4& GLGraphicsContext::getGUIProjectionMatrix() const
+{
+  return m_guiProjectionMatrix;
+}
+
+void GLGraphicsContext::unloadResources()
+{
+  m_deferredAccumulationMaterial.reset();
+  m_defaultFramebuffer.reset();
+  m_ndcTexturedQuad.reset();
+  m_deferredFramebuffer.reset();
+  m_forwardFramebuffer.reset();
+  m_deferredAccumulationMaterial.reset();
+  m_sceneTransformationBuffer.reset();
+  m_guiTransformationBuffer.reset();
+}
+
+SDLGLContext::~SDLGLContext()
+{
+  SDL_GL_DeleteContext(m_glContext);
 }

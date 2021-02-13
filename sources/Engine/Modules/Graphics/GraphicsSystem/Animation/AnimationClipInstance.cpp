@@ -6,8 +6,8 @@
 #include "AnimationClipInstance.h"
 #include "AnimationPose.h"
 
-AnimationClipInstance::AnimationClipInstance(std::shared_ptr<Skeleton> skeleton,
-  std::shared_ptr<AnimationClip> animationClip)
+AnimationClipInstance::AnimationClipInstance(ResourceHandle<Skeleton> skeleton,
+  ResourceHandle<AnimationClip> animationClip)
   : m_skeleton(skeleton),
     m_animationClip(animationClip),
     m_animationPose(skeleton, std::vector<BonePose>(skeleton->getBonesCount()))
@@ -20,7 +20,7 @@ const Skeleton& AnimationClipInstance::getSkeleton() const
   return *m_skeleton.get();
 }
 
-std::shared_ptr<Skeleton> AnimationClipInstance::getSkeletonPtr() const
+ResourceHandle<Skeleton> AnimationClipInstance::getSkeletonPtr() const
 {
   return m_skeleton;
 }

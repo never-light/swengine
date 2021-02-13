@@ -12,7 +12,7 @@ GUIWidget::GUIWidget(std::string className)
   : m_className(std::move(className))
 {
   auto& defaultVisualParameters = getVisualParameters(GUIWidgetVisualState::Default);
-  defaultVisualParameters.setBackgroundImage(nullptr);
+  defaultVisualParameters.setBackgroundImage(std::optional<ResourceHandle<GLTexture>>());
   defaultVisualParameters.setBackgroundColor(glm::vec4(0.0f));
   defaultVisualParameters.setBorderColor(glm::vec4(0.0f));
   defaultVisualParameters.setBorderWidth(0);
@@ -134,7 +134,7 @@ void GUIWidget::update(float delta)
 void GUIWidget::render(GUISystem& guiSystem)
 {
   RenderTask task = guiSystem.getRenderTaskTemplate(this);
-  guiSystem.getGraphicsContext()->executeRenderTask(task);
+  guiSystem.getGraphicsContext()->scheduleRenderTask(task);
 }
 
 void GUIWidget::setZIndex(int zIndex)

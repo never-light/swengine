@@ -1,6 +1,6 @@
 #include "MainMenuScreen.h"
 
-#include <Engine/Modules/Graphics/Resources/TextureResource.h>
+#include <Engine/Modules/Graphics/Resources/TextureResourceManager.h>
 
 #include <utility>
 

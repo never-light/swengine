@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Modules/ECS/ECS.h"
-#include "Modules/ResourceManagement/ResourceManager.h"
+#include "Modules/ResourceManagement/ResourcesManagement.h"
 
 #include "Utility/xml.h"
 
@@ -14,13 +14,14 @@ class GameObjectsGenericClassLoader : public GameObjectsClassLoader {
   explicit GameObjectsGenericClassLoader(std::weak_ptr<LevelsManager> levelsManager);
   ~GameObjectsGenericClassLoader() override = default;
 
-  void loadGameObject(GameObject& gameObject, const pugi::xml_node& objectNode) override;
-  void loadComponent(GameObject& gameObject, const pugi::xml_node& componentNode) override;
+  std::unordered_map<std::string, std::unique_ptr<BaseGameObjectsComponentBinder>>
+  loadGameObject(const pugi::xml_node& objectNode) override;
 
-  void onComponentLoaded(GameObject& gameObject, const std::string& componentName) override;
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadComponent(const pugi::xml_node& componentNode) override;
 
-  void loadComponent(
-    GameObject& gameObject,
+  void onComponentLoaded(const std::string& componentName, BaseGameObjectsComponentBinder& componentBinder) override;
+
+  std::unique_ptr<BaseGameObjectsComponentBinder> loadComponent(
     const pugi::xml_node& objectNode,
     const std::string& componentName) override;
 

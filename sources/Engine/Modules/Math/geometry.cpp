@@ -5,6 +5,7 @@
 #include "geometry.h"
 
 #include <glm/geometric.hpp>
+#include "MathUtils.h"
 
 Plane::Plane()
 {
@@ -203,6 +204,18 @@ float Sphere::getRadius() const
   return m_radius;
 }
 
+void Sphere::applyTransform(const glm::mat4& transformationMatrix)
+{
+  glm::vec3 origin = glm::vec3(transformationMatrix * glm::vec4(m_origin, 1.0));
+
+  glm::vec3 scale = MathUtils::extractScale2(transformationMatrix);
+  float radiusFactor = glm::sqrt(glm::max(glm::max(scale.x, scale.y), scale.z));
+  float radius = m_radius * radiusFactor;
+
+  m_origin = origin;
+  m_radius = radius;
+}
+
 float GeometryUtils::calculateDistance(const glm::vec3& v1, const glm::vec3& v2)
 {
   return glm::distance(v1, v2);
@@ -301,6 +314,32 @@ std::array<glm::vec3, 8> AABB::getCorners() const
   };
 }
 
+void AABB::applyTransform(const glm::mat4& transformationMatrix)
+{
+  glm::vec3 newMin(std::numeric_limits<float>::max());
+  glm::vec3 newMax(std::numeric_limits<float>::lowest());
+
+  for (glm::vec3 corner : getCorners()) {
+    glm::vec4 newCorner = transformationMatrix * glm::vec4(corner, 1.0f);
+
+    newMin.x = std::fminf(newMin.x, newCorner.x);
+    newMin.y = std::fminf(newMin.y, newCorner.y);
+    newMin.z = std::fminf(newMin.z, newCorner.z);
+
+    newMax.x = std::fmaxf(newMax.x, newCorner.x);
+    newMax.y = std::fmaxf(newMax.y, newCorner.y);
+    newMax.z = std::fmaxf(newMax.z, newCorner.z);
+  }
+
+  m_min = newMin;
+  m_max = newMax;
+}
+
+glm::vec3 AABB::getOrigin() const
+{
+  return (m_max + m_min) * 0.5f;
+}
+
 bool GeometryUtils::isAABBFrustumIntersecting(const AABB& aabb, const Frustum& frustum)
 {
   const auto& corners = aabb.getCorners();
@@ -372,4 +411,20 @@ Sphere GeometryUtils::restoreSphereByVerticesList(const std::vector<glm::vec3>& 
     float radius = distance / 2.0f;
 
     return Sphere(origin, radius);
+}
+
+AABB GeometryUtils::mergeAABB(const AABB& aabb1, const AABB& aabb2)
+{
+  glm::vec3 min = glm::vec3(
+    glm::min(aabb1.getMin().x, aabb2.getMin().x),
+    glm::min(aabb1.getMin().y, aabb2.getMin().y),
+    glm::min(aabb1.getMin().z, aabb2.getMin().z)
+  );
+  glm::vec3 max = glm::vec3(
+    glm::max(aabb1.getMax().x, aabb2.getMax().x),
+    glm::max(aabb1.getMax().y, aabb2.getMax().y),
+    glm::max(aabb1.getMax().z, aabb2.getMax().z)
+  );
+
+  return AABB(min, max);
 }

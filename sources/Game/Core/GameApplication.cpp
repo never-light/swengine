@@ -4,7 +4,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <Engine/Exceptions/EngineRuntimeException.h>
-#include <Engine/Modules/Graphics/Resources/SkeletonResource.h>
+#include <Engine/Modules/Graphics/Resources/SkeletonResourceManager.h>
 #include <Engine/Utility/files.h>
 
 #include "Game/Screens/GameScreen.h"
@@ -13,6 +13,10 @@
 
 #include "Game/Inventory/InventoryUI.h"
 #include "Game/Dynamic/DialoguesUI.h"
+
+#include "Game/Saving/SavingSystem.h"
+
+#include "Game/Game.h"
 
 GameApplication::GameApplication(int argc, char* argv[])
   : BaseGameApplication(argc, argv, "Game")
@@ -35,38 +39,49 @@ void GameApplication::load()
   resourceMgr->loadResourcesMapFile("../resources/resources.xml");
   resourceMgr->loadResourcesMapFile("../resources/game/resources.xml");
 
+  m_gameWorld->registerComponentBinderFactory<ActorComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<ActorComponent, ActorComponentBinder>>());
+  m_gameWorld->registerComponentBinderFactory<InventoryComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<InventoryComponent, InventoryComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::GameWorld>>(m_gameWorld));
+  m_gameWorld->registerComponentBinderFactory<InventoryItemComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<InventoryItemComponent, InventoryItemComponentBinder,
+                                                                GameObjectsComponentsBinderInjectParameters::ResourcesManager>>(resourceMgr));
+  m_gameWorld->registerComponentBinderFactory<PlayerComponent>(
+    std::make_shared<GameObjectsComponentsGenericBindersFactory<PlayerComponent, PlayerComponentBinder>>());
+
   m_componentsLoader = std::make_unique<GameComponentsLoader>(m_gameWorld, resourceMgr);
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("player",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadPlayerData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadPlayerData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("inventory_item",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInventoryItemData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInventoryItemData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("inventory",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInventoryData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInventoryData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("interactive",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadInteractiveData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadInteractiveData(data);
     });
 
   m_levelsManager->getObjectsLoader().registerGenericComponentLoader("actor",
-    [this](GameObject& gameObject, const pugi::xml_node& data) {
-      m_componentsLoader->loadActorData(gameObject, data);
+    [this](const pugi::xml_node& data) {
+      return m_componentsLoader->loadActorData(data);
     });
 
-  m_screenManager->registerScreen(
-    std::make_shared<GameScreen>(m_inputModule,
-      getGameApplicationSystemsGroup(),
-      m_levelsManager,
-      m_graphicsScene,
-      m_guiSystem));
+  auto gameScreen = std::make_shared<GameScreen>(m_inputModule,
+    getGameApplicationSystemsGroup(),
+    m_levelsManager,
+    m_graphicsScene,
+    m_guiSystem);
+  m_screenManager->registerScreen(gameScreen);
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_main_menu"));
@@ -84,14 +99,16 @@ void GameApplication::load()
   m_screenManager->getCommonGUILayout()->applyStylesheet(commonStylesheet);
 
   std::shared_ptr deferredAccumulationPipeline = std::make_shared<GLShadersPipeline>(
-    resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_vertex_shader")->getShader(),
-    resourceMgr->getResourceFromInstance<ShaderResource>("deferred_accum_pass_fragment_shader")->getShader(),
-    nullptr);
+    resourceMgr->getResource<GLShader>("deferred_accum_pass_vertex_shader"),
+    resourceMgr->getResource<GLShader>("deferred_accum_pass_fragment_shader"),
+    std::optional<ResourceHandle<GLShader>>());
 
-  m_renderingSystemsPipeline->setDeferredAccumulationShadersPipeline(deferredAccumulationPipeline);
+  m_graphicsModule->getGraphicsContext()->setupDeferredAccumulationMaterial(deferredAccumulationPipeline);
+
+  m_engineGameSystems->addGameSystem(std::make_shared<SavingSystem>(m_levelsManager,
+    gameScreen->getGame()));
 
   m_gameWorld->subscribeEventsListener<ScreenSwitchEvent>(this);
-
   m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
 }
 

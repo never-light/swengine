@@ -195,7 +195,7 @@ void Transform::lookAt(const glm::vec3& target)
   resetTransformationCache();
 }
 
-glm::mat4x4 Transform::getTransformationMatrix()
+glm::mat4x4& Transform::getTransformationMatrix()
 {
   if (m_needTransformationMatrixCacheUpdate) {
     m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(), m_position) *
