@@ -3,6 +3,8 @@
 #pragma hdrstop
 
 #include "TransformComponent.h"
+
+#include <utility>
 #include "Modules/ECS/ECS.h"
 
 TransformComponent::TransformComponent()
@@ -100,8 +102,18 @@ const std::string& TransformComponent::getLevelId() const
   return m_levelId;
 }
 
-TransformComponentBinder::TransformComponentBinder(const ComponentBindingParameters& componentParameters)
-  : m_bindingParameters(componentParameters)
+void TransformComponent::setOnlineMode(bool isOnline)
+{
+  m_isOnline = isOnline;
+}
+
+bool TransformComponent::isOnline() const
+{
+  return m_isOnline;
+}
+
+TransformComponentBinder::TransformComponentBinder(ComponentBindingParameters  componentParameters)
+  : m_bindingParameters(std::move(componentParameters))
 {
 
 }
@@ -118,4 +130,5 @@ void TransformComponentBinder::bindToObject(GameObject& gameObject)
       glm::radians(m_bindingParameters.frontDirection.z))));
   transformComponent.getTransform().setScale(m_bindingParameters.scale);
   transformComponent.setLevelId(m_bindingParameters.levelId);
+  transformComponent.setOnlineMode(m_bindingParameters.isOnline);
 }

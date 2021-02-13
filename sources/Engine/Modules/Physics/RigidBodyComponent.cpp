@@ -94,6 +94,15 @@ RigidBodyComponent::BindingParameters RigidBodyComponent::getBindingParameters()
   };
 }
 
+void RigidBodyComponent::enableSimulation(bool enable)
+{
+  m_backend->enableSimulation(enable);
+}
+
+bool RigidBodyComponent::isSimulationEnabled() const
+{
+  return m_backend->isSimulationEnabled();
+}
 
 RigidBodyComponentBinder::RigidBodyComponentBinder(const ComponentBindingParameters& componentParameters,
   std::shared_ptr<ResourcesManager> resourcesManager)

@@ -115,7 +115,7 @@ void SavingSystem::loadGameState(const std::string& saveName)
   SaveHeader saveHeader;
   loadArchive(saveHeader);
 
-  m_game->load(saveHeader.levelName, LevelLoadingMode::StaticObjectsOnly);
+  m_game->createLoadedGame(saveHeader.levelName);
 
   // Only dynamic game objects are saved, so load them after static level objects loading
   loadArchive(*gameWorld);
@@ -129,7 +129,7 @@ void SavingSystem::loadGameState(const std::string& saveName)
     }
   }
 
-  m_game->setupGameState();
+  m_game->setupGameState(false);
 }
 
 void SavingSystem::activate()

@@ -47,6 +47,9 @@ struct KinematicCharacterComponent {
   void setCollisionCallback(CollisionCallback callback);
   [[nodiscard]] CollisionCallback getCollisionCallback() const;
 
+  void enableSimulation(bool enable);
+  [[nodiscard]] bool isSimulationEnabled() const;
+  
   [[nodiscard]] const KinematicCharacterComponentBackend& getBackend() const;
   [[nodiscard]] KinematicCharacterComponentBackend& getBackend();
 

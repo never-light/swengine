@@ -9,6 +9,7 @@
 #include "Culling/LinearSceneStructure.h"
 #include "MeshRendererComponent.h"
 #include "MeshRenderingSystem.h"
+#include "TransformComponent.h"
 
 GraphicsScene::GraphicsScene()
   : m_accelerationStructure(std::make_unique<LinearSceneStructure>())
@@ -102,6 +103,8 @@ void GraphicsScene::queryVisibleObjects(std::vector<GameObject>& result)
 
 void GraphicsScene::addSceneNodeComponent(GameObject& object)
 {
+  SW_ASSERT(object.getComponent<TransformComponent>()->isOnline() && "Scene should contain only online objects");
+
   bool isDrawable = isObjectDrawable(object);
 
   object.addComponent<ObjectSceneNodeComponent>(isDrawable);

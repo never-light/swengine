@@ -91,6 +91,9 @@ std::unique_ptr<BaseGameObjectsComponentBinder> GameObjectsLoader::loadTransform
   bool isStatic = data.attribute("static").as_bool(false);
   bindingParameters.isStatic = isStatic;
 
+  bool isOnline = data.attribute("online").as_bool(false);
+  bindingParameters.isOnline = isOnline;
+
   auto positionAttr = data.attribute("position");
 
   if (positionAttr) {

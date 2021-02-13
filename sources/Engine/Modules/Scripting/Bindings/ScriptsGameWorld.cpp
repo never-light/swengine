@@ -26,7 +26,8 @@ GameObject ScriptsGameWorld::findGameObject(const std::string& objectName)
 void ScriptsGameWorld::spawnGameObject(const std::string& spawnName,
   const std::optional<std::string>& objectName,
   const std::optional<glm::vec3>& position,
-  const std::optional<glm::vec3>& direction)
+  const std::optional<glm::vec3>& direction,
+  const std::optional<std::string> levelName)
 {
-  m_gameWorld->emitEvent(SpawnGameObjectCommandEvent(spawnName, position, direction, objectName));
+  m_gameWorld->emitEvent(SpawnGameObjectCommandEvent(spawnName, position, direction, objectName, levelName));
 }

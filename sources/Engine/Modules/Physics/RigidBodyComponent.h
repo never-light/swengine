@@ -49,6 +49,9 @@ struct RigidBodyComponent {
   void setLinearFactor(const glm::vec3& factor);
   [[nodiscard]] glm::vec3 getLinearFactor() const;
 
+  void enableSimulation(bool enable);
+  [[nodiscard]] bool isSimulationEnabled() const;
+
   [[nodiscard]] const RigidBodyComponentBackend& getBackend() const;
   [[nodiscard]] RigidBodyComponentBackend& getBackend();
 

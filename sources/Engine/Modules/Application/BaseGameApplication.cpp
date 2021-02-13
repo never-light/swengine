@@ -357,6 +357,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems = std::make_shared<GameSystemsGroup>();
   m_gameWorld->getGameSystemsGroup()->addGameSystem(m_engineGameSystems);
 
+  // Online management system
+  m_onlineManagementSystem = std::make_shared<OnlineManagementSystem>();
+  m_engineGameSystems->addGameSystem(m_onlineManagementSystem);
+
   // Input system
   m_inputSystem = std::make_shared<InputSystem>(m_inputModule);
   m_engineGameSystems->addGameSystem(m_inputSystem);

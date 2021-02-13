@@ -17,11 +17,13 @@
 SpawnGameObjectCommandEvent::SpawnGameObjectCommandEvent(std::string objectSpawnName,
   const std::optional<glm::vec3>& position,
   const std::optional<glm::vec3>& direction,
-  const std::optional<std::string>& objectName)
+  std::optional<std::string> objectName,
+  std::optional<std::string> levelName)
   : m_objectSpawnName(std::move(objectSpawnName)),
     m_position(position),
     m_direction(direction),
-    m_objectName(objectName)
+    m_objectName(std::move(objectName)),
+    m_levelName(std::move(levelName))
 {
 
 }
@@ -46,6 +48,11 @@ const std::optional<std::string>& SpawnGameObjectCommandEvent::getObjectName() c
   return m_objectName;
 }
 
+const std::optional<std::string>& SpawnGameObjectCommandEvent::getLevelName() const
+{
+  return m_levelName;
+}
+
 GameObjectsSpawnSystem::GameObjectsSpawnSystem(std::shared_ptr<LevelsManager> levelsManager)
   : m_levelsManager(std::move(levelsManager))
 {
@@ -64,6 +71,8 @@ void GameObjectsSpawnSystem::deactivate()
 
 EventProcessStatus GameObjectsSpawnSystem::receiveEvent(const SpawnGameObjectCommandEvent& event)
 {
+  SW_ASSERT(m_levelsManager->isLevelLoaded());
+
   GameObject gameObject = m_levelsManager->getObjectsLoader().buildGameObject(
     event.getObjectSpawnName(), event.getObjectName());
 
@@ -78,6 +87,18 @@ EventProcessStatus GameObjectsSpawnSystem::receiveEvent(const SpawnGameObjectCom
       MathUtils::forwardUpToQuat(event.getDirection().value(), MathUtils::AXIS_UP));
   }
 
+  std::string levelId = event.getLevelName().value_or(m_levelsManager->getLoadedLevelName());
+  transformComponent->setLevelId(levelId);
+
+  // Spawn object as online object if it appear on the current level
+  if (levelId == m_levelsManager->getLoadedLevelName()) {
+    transformComponent->setOnlineMode(true);
+  }
+  else {
+    SW_ASSERT(!transformComponent->isOnline());
+  }
+
+  // TODO: is it really needed here? Doesn't physics system update transform itself?
   if (gameObject.hasComponent<RigidBodyComponent>()) {
     auto rigidBodyComponent = gameObject.getComponent<RigidBodyComponent>();
 
@@ -85,11 +106,17 @@ EventProcessStatus GameObjectsSpawnSystem::receiveEvent(const SpawnGameObjectCom
     rigidBodyComponent->setTransform(transform);
   }
 
-  getGameWorld()->emitEvent<AddObjectToSceneCommandEvent>(
-    AddObjectToSceneCommandEvent{gameObject});
+  if (transformComponent->isOnline()) {
+    getGameWorld()->emitEvent<AddObjectToSceneCommandEvent>(
+      AddObjectToSceneCommandEvent{gameObject});
+  }
 
-  spdlog::info("Spawn game object {} with name {} at position {}", event.getObjectSpawnName(),
-    gameObject.getName(), glm::to_string(transformComponent->getTransform().getPosition()));
+  spdlog::info("Spawn game object: spawn_name {}, name {}, position {}, level {}, is_online {}",
+    event.getObjectSpawnName(),
+    gameObject.getName(),
+    glm::to_string(transformComponent->getTransform().getPosition()),
+    levelId,
+    transformComponent->isOnline());
 
   return EventProcessStatus::Processed;
 }

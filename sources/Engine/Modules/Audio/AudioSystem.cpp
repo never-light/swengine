@@ -91,10 +91,15 @@ void AudioSystem::update(float delta)
     auto transformComponent = object.getComponent<TransformComponent>();
     auto& audioSource = object.getComponent<AudioSourceComponent>()->getSource();
 
-    audioSource.updateInternalState();
+    if (transformComponent->isOnline()) {
+      audioSource.updateInternalState();
 
-    if (!transformComponent->isStatic()) {
-      audioSource.setPosition(transformComponent->getTransform().getPosition());
+      if (!transformComponent->isStatic()) {
+        audioSource.setPosition(transformComponent->getTransform().getPosition());
+      }
+    }
+    else {
+      audioSource.stop();
     }
   }
 }

@@ -34,8 +34,10 @@ ScriptsExecutor::ScriptsExecutor(std::shared_ptr<GameWorld> gameWorld)
 
   for (const std::string& scriptName : scriptsList) {
     try {
-      spdlog::info("Load script {}", scriptName);
-      m_luaState.script_file(FileUtils::getScriptPath(scriptName));
+      if (scriptName != "annotations") {
+        spdlog::info("Load script {}", scriptName);
+        m_luaState.script_file(FileUtils::getScriptPath(scriptName));
+      }
     }
     catch (const sol::error& error) {
       THROW_EXCEPTION(EngineRuntimeException,
@@ -86,13 +88,15 @@ void ScriptsExecutor::registerGameWorld()
   world.set_function("spawn_object", [this](const std::string& spawnName,
     const sol::object& objectName,
     const sol::object& position,
-    const sol::object& direction) -> void {
+    const sol::object& direction,
+    const sol::object& level) -> void {
 
     spdlog::info("[script] spawn object {}", spawnName);
 
     m_scriptsGameWorld->spawnGameObject(spawnName,
       objectName == sol::nil ? std::optional<std::string>() : objectName.as<std::string>(),
       position == sol::nil ? std::optional<glm::vec3>() : position.as<glm::vec3>(),
-      direction == sol::nil ? std::optional<glm::vec3>() : direction.as<glm::vec3>());
+      direction == sol::nil ? std::optional<glm::vec3>() : direction.as<glm::vec3>(),
+      level == sol::nil ? std::optional<std::string>() : direction.as<std::string>());
   });
 }

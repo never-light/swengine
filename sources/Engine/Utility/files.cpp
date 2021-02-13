@@ -1,4 +1,5 @@
 #include "precompiled.h"
+
 #pragma hdrstop
 
 #include "files.h"
@@ -68,7 +69,7 @@ std::vector<std::string> FileUtils::getScriptsList()
 {
   std::vector<std::string> scriptsList;
 
-  for (const auto & entry : std::filesystem::directory_iterator(SCRIPTS_PATH)) {
+  for (const auto& entry : std::filesystem::directory_iterator(SCRIPTS_PATH)) {
     scriptsList.push_back(entry.path().stem().string());
   }
 
@@ -83,4 +84,17 @@ std::string FileUtils::getSavePath(const std::string& saveName)
 std::string FileUtils::getFileExtension(const std::string& path)
 {
   return *StringUtils::split(path, '.').rbegin();
+}
+
+std::vector<std::string> FileUtils::listDirectories(const std::string& path)
+{
+  std::vector<std::string> directories;
+
+  for (auto& entry : std::filesystem::directory_iterator(path)) {
+    if (entry.is_directory()) {
+      directories.push_back(entry.path().filename().string());
+    }
+  }
+
+  return directories;
 }

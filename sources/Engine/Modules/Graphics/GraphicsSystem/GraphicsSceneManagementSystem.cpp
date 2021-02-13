@@ -29,6 +29,7 @@ void GraphicsSceneManagementSystem::configure()
   gameWorld->subscribeEventsListener<UnloadSceneCommandEvent>(this);
   gameWorld->subscribeEventsListener<AddObjectToSceneCommandEvent>(this);
   gameWorld->subscribeEventsListener<RemoveObjectFromSceneCommandEvent>(this);
+  gameWorld->subscribeEventsListener<GameObjectOnlineStatusChangeEvent>(this);
   gameWorld->subscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
@@ -40,6 +41,7 @@ void GraphicsSceneManagementSystem::unconfigure()
   gameWorld->unsubscribeEventsListener<UnloadSceneCommandEvent>(this);
   gameWorld->unsubscribeEventsListener<AddObjectToSceneCommandEvent>(this);
   gameWorld->unsubscribeEventsListener<RemoveObjectFromSceneCommandEvent>(this);
+  gameWorld->unsubscribeEventsListener<GameObjectOnlineStatusChangeEvent>(this);
   gameWorld->unsubscribeEventsListener<GameObjectRemoveEvent>(this);
 }
 
@@ -76,12 +78,21 @@ EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const RemoveObjec
   return EventProcessStatus::Processed;
 }
 
+EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const GameObjectOnlineStatusChangeEvent& event)
+{
+  if (event.gameObject.hasComponent<ObjectSceneNodeComponent>()) {
+    getGameWorld()->emitEvent(RemoveObjectFromSceneCommandEvent{ .object = event.gameObject });
+  }
+
+  return EventProcessStatus::Processed;
+}
+
 EventProcessStatus GraphicsSceneManagementSystem::receiveEvent(const GameObjectRemoveEvent& event)
 {
   GameObject object = event.gameObject;
 
   if (object.hasComponent<ObjectSceneNodeComponent>()) {
-    m_graphicsScene->removeObject(object);
+    getGameWorld()->emitEvent(RemoveObjectFromSceneCommandEvent{ .object = event.gameObject });
   }
 
   return EventProcessStatus::Processed;

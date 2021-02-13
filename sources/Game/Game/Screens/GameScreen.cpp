@@ -40,6 +40,7 @@ void GameScreen::activate()
   if (!m_game->isLoaded()) {
 //    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
     m_game->createNewGame("../../../bin/crossroads/paul");
+    m_game->setupGameState(true);
   }
 }
 

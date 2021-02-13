@@ -8,6 +8,7 @@
 #include "Modules/ResourceManagement/ResourceManagementModule.h"
 #include "Modules/Input/InputSystem.h"
 #include "Modules/ECS/ECS.h"
+#include "Modules/ECS/OnlineManagementSystem.h"
 
 #include "Modules/Graphics/GraphicsSystem/TransformComponent.h"
 #include "Modules/Graphics/GraphicsSystem/MeshRendererComponent.h"
@@ -80,6 +81,9 @@ class BaseGameApplication : public EventsListener<GameConsoleCommandEvent>,
   std::shared_ptr<GraphicsScene> m_graphicsScene;
 
   std::shared_ptr<GameWorld> m_gameWorld;
+
+  std::shared_ptr<OnlineManagementSystem> m_onlineManagementSystem;
+
   std::shared_ptr<RenderingSystemsPipeline> m_renderingSystemsPipeline;
   std::shared_ptr<MeshRenderingSystem> m_meshRenderingSystem;
 

@@ -36,15 +36,34 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   void enterConsoleMode();
   void leaveConsoleMode();
 
+  /**
+   * @brief Creates new game
+   * Creation order:
+   *    1. Create new game (load static level data, load all levels spawns lists, spawn objects from them from scripts)
+   *    2. Setup game state
+   * @param levelName
+   */
   void createNewGame(const std::string& levelName);
-  void load(const std::string& levelName, LevelLoadingMode levelLoadingMode = LevelLoadingMode::AllData);
-  void unload();
 
-  void setupGameState();
+  /**
+   * @brief Create game for loading from save
+   * Loading order:
+   *    1. Create loaded game (load static level data)
+   *    2. Load dynamic objects list from save
+   *    3. Setup game state
+   * @param levelName
+   */
+  void createLoadedGame(const std::string& levelName);
+  void setupGameState(bool isNewGame);
+
+  void unload();
 
   EventProcessStatus receiveEvent(const GameConsoleCommandEvent& event) override;
 
   [[nodiscard]] bool isLoaded() const;
+
+ private:
+  void loadLevel(const std::string& levelName, bool isNewGame);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

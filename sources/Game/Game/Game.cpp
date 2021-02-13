@@ -145,6 +145,7 @@ void Game::unload()
 
   if (m_levelsManager->isLevelLoaded()) {
     m_levelsManager->unloadLevel();
+    m_levelsManager->unloadSpawnLists();
   }
 
   // TODO: redesign levels loading/unloading logic, remove duplicated code like this
@@ -155,15 +156,21 @@ void Game::unload()
   m_isGameLoaded = false;
 }
 
-void Game::load(const std::string& levelName, LevelLoadingMode levelLoadingMode)
+void Game::loadLevel(const std::string& levelName, bool isNewGame)
 {
   SW_ASSERT(!m_isGameLoaded);
   SW_ASSERT(!m_levelsManager->isLevelLoaded());
-  m_levelsManager->loadLevel(levelName, levelLoadingMode);
+
+  m_levelsManager->loadLevelsSpawnLists();
 
   m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(
-    ExecuteScriptParametricActionCommand::create("game.on_level_loaded", std::make_tuple(levelName,
-      levelLoadingMode == LevelLoadingMode::StaticObjectsOnly)));
+    ExecuteScriptParametricActionCommand::create("game.before_level_loading",
+      std::make_tuple(isNewGame, levelName)));
+
+  m_levelsManager->loadLevel(levelName);
+
+  m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(
+    ExecuteScriptParametricActionCommand::create("game.on_level_loaded", std::make_tuple(isNewGame, levelName)));
 
   m_isGameLoaded = true;
 }
@@ -171,15 +178,16 @@ void Game::load(const std::string& levelName, LevelLoadingMode levelLoadingMode)
 void Game::createNewGame(const std::string& levelName)
 {
   SW_ASSERT(!m_levelsManager->isLevelLoaded());
-  load(levelName, LevelLoadingMode::AllData);
-
-  setupGameState();
-
-  m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
-    ExecuteScriptSimpleActionCommand{"game.on_new_game"});
+  loadLevel(levelName, true);
 }
 
-void Game::setupGameState()
+void Game::createLoadedGame(const std::string& levelName)
+{
+  SW_ASSERT(!m_levelsManager->isLevelLoaded());
+  loadLevel(levelName, false);
+}
+
+void Game::setupGameState(bool isNewGame)
 {
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
 
@@ -218,9 +226,15 @@ void Game::setupGameState()
   if (environmentObject.hasComponent<AudioSourceComponent>()) {
     environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
   }
+
+  if (isNewGame) {
+    m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
+      ExecuteScriptSimpleActionCommand{"game.on_new_game"});
+  }
 }
 
 bool Game::isLoaded() const
 {
   return m_isGameLoaded;
 }
+

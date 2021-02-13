@@ -101,3 +101,13 @@ void BulletRigidBodyComponent::setUpdateCallback(std::function<void(const btTran
   auto* motionState = dynamic_cast<BulletMotionState*>(m_rigidBodyInstance->getMotionState());
   motionState->setUpdateCallback(std::move(updateCallback));
 }
+
+void BulletRigidBodyComponent::enableSimulation(bool enable)
+{
+  m_rigidBodyInstance->setActivationState(((enable) ? ACTIVE_TAG : DISABLE_SIMULATION));
+}
+
+bool BulletRigidBodyComponent::isSimulationEnabled() const
+{
+  return m_rigidBodyInstance->getActivationState() != DISABLE_SIMULATION;
+}

@@ -9,18 +9,21 @@ struct SpawnGameObjectCommandEvent {
  public:
   SpawnGameObjectCommandEvent(std::string objectSpawnName, const std::optional<glm::vec3>& position,
     const std::optional<glm::vec3>& direction,
-    const std::optional<std::string>& objectName = {});
+    std::optional<std::string>  objectName = {},
+    std::optional<std::string>  levelName = {});
 
   [[nodiscard]] const std::string& getObjectSpawnName() const;
   [[nodiscard]] const std::optional<glm::vec3>& getPosition() const;
   [[nodiscard]] const std::optional<glm::vec3>& getDirection() const;
   [[nodiscard]] const std::optional<std::string>& getObjectName() const;
+  [[nodiscard]] const std::optional<std::string>& getLevelName() const;
 
  private:
   std::string m_objectSpawnName;
   std::optional<glm::vec3> m_position;
   std::optional<glm::vec3> m_direction;
-  const std::optional<std::string>& m_objectName;
+  std::optional<std::string> m_objectName;
+  std::optional<std::string> m_levelName;
 };
 
 class GameObjectsSpawnSystem : public GameSystem,

@@ -14,7 +14,8 @@ class ScriptsGameWorld {
   void spawnGameObject(const std::string& spawnName,
     const std::optional<std::string>& objectName,
     const std::optional<glm::vec3>& position,
-    const std::optional<glm::vec3>& direction);
+    const std::optional<glm::vec3>& direction,
+    const std::optional<std::string> levelName);
 
  private:
   std::shared_ptr<GameWorld> m_gameWorld;

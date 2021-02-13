@@ -10,7 +10,6 @@
 #include "Modules/Math/MathUtils.h"
 #include "BulletUtils.h"
 
-
 BulletKinematicCharacterComponent::BulletKinematicCharacterComponent(ResourceHandle<CollisionShape> collisionShape)
   : m_collisionShape(dynamic_cast<btConvexShape*>(BulletUtils::convertCollisionShapeToBulletShape(*collisionShape)))
 {
@@ -54,7 +53,7 @@ bool BulletKinematicCharacterComponent::isOnGround() const
 
 void BulletKinematicCharacterComponent::setUpdateCallback(std::function<void(const btTransform&)> updateCallback)
 {
-  m_kinematicController->setUpdateCallback([updateCallback, this] (const btTransform& transform) {
+  m_kinematicController->setUpdateCallback([updateCallback, this](const btTransform& transform) {
     btTransform shiftedTransform = transform;
     shiftedTransform.setOrigin(shiftedTransform.getOrigin() - this->m_originOffset);
 
@@ -71,3 +70,14 @@ glm::vec3 BulletKinematicCharacterComponent::getOriginOffset() const
 {
   return BulletUtils::btVec3ToGlm(m_originOffset);
 }
+
+void BulletKinematicCharacterComponent::enableSimulation(bool enable)
+{
+  m_ghostObject->setActivationState(((enable) ? ACTIVE_TAG : DISABLE_SIMULATION));
+}
+
+bool BulletKinematicCharacterComponent::isSimulationEnabled() const
+{
+  return m_ghostObject->getActivationState() != DISABLE_SIMULATION;
+}
+

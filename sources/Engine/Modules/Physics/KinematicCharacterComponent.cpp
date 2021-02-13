@@ -76,6 +76,16 @@ ResourceHandle<CollisionShape> KinematicCharacterComponent::getCollisionShape() 
   return m_collisionShape;
 }
 
+void KinematicCharacterComponent::enableSimulation(bool enable)
+{
+  m_backend->enableSimulation(enable);
+}
+
+bool KinematicCharacterComponent::isSimulationEnabled() const
+{
+  return m_backend->isSimulationEnabled();
+}
+
 KinematicCharacterComponent::BindingParameters KinematicCharacterComponent::getBindingParameters() const
 {
   return KinematicCharacterComponent::BindingParameters{
@@ -84,7 +94,6 @@ KinematicCharacterComponent::BindingParameters KinematicCharacterComponent::getB
     .capsuleRadius = std::get<CollisionShapeCapsule>(getCollisionShape()->getShapeData()).getRadius(),
   };
 }
-
 
 KinematicCharacterComponentBinder::KinematicCharacterComponentBinder(
   const ComponentBindingParameters& componentParameters,
