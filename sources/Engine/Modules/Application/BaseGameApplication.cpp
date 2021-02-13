@@ -197,7 +197,7 @@ void BaseGameApplication::initializePlatform(int argc,
 
   StartupSettings startupSettings = StartupSettings::loadFromFile();
 
-  int initStatus = SDL_Init(SDL_INIT_EVERYTHING);
+  int initStatus = SDL_Init(SDL_INIT_EVERYTHING & (~SDL_INIT_SENSOR));
 
   if (initStatus != 0) {
     THROW_EXCEPTION(EngineRuntimeException, std::string(SDL_GetError()));

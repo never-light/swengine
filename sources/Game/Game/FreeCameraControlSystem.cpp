@@ -19,7 +19,7 @@ FreeCameraControlSystem::FreeCameraControlSystem(
   m_freeCamera->setAspectRatio(float(graphicsContext->getViewportWidth()) / float(graphicsContext->getViewportHeight()));
   m_freeCamera->setFOVy(glm::pi<float>() / 4);
 
-  m_freeCamera->getTransform()->setPosition(0, 0, 0);
+  m_freeCamera->getTransform()->setPosition(0, 2, 5);
   m_freeCamera->getTransform()->lookAt(0, 0, 1);
 
 }

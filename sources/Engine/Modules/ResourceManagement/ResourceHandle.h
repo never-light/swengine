@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Resource.h"
 #include "Utility/OutputDataArchive.h"
 #include "Utility/InputDataArchive.h"
 

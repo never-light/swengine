@@ -176,9 +176,11 @@ pugi::xml_document SceneExporter::generateResourcesDeclarations(
 
   for (const auto& meshNode : scene.meshesNodes) {
     for (const auto& material : meshNode.materials) {
-      std::string materialResourceName = getMaterialResourceId(material.value());
+      if (material.has_value()) {
+        std::string materialResourceName = getMaterialResourceId(material.value());
 
-      materialsToExport[materialResourceName] = material.value();
+        materialsToExport[materialResourceName] = material.value();
+      }
     }
   }
 
@@ -304,7 +306,8 @@ void SceneExporter::generateMaterialResourceDeclaration(pugi::xml_node resources
 
   // TODO: set skinned vertex shader for skinned meshes
   pugi::xml_node vertexShaderNode = shadersPipelineNode.append_child("vertex");
-  vertexShaderNode.append_attribute("id").set_value("deferred_gpass_vertex_shader");
+  vertexShaderNode.append_attribute("id").set_value(
+    (materialInfo.isSkinned) ? "deferred_gpass_vertex_shader_skinned" : "deferred_gpass_vertex_shader");
 
   pugi::xml_node fragmentShaderNode = shadersPipelineNode.append_child("fragment");
   fragmentShaderNode.append_attribute("id").set_value("deferred_gpass_fragment_shader");
@@ -447,7 +450,8 @@ void SceneExporter::generateSpawnDeclaration(
   for (size_t subMeshIndex = 0; subMeshIndex < meshNode.rawMesh.subMeshesDescriptions.size(); subMeshIndex++) {
     pugi::xml_node materialNode = visualComponentMaterialsNode.append_child("material");
 
-    std::string materialResourceId = "materials_common_checker";
+    std::string materialResourceId = (meshNode.skeletonIndex != RawMeshNode::NONE_SKELETON) ?
+      "materials_common_checker_skinned" : "materials_common_checker";
 
     if (meshNode.materials[subMeshIndex].has_value()) {
       materialResourceId = getMaterialResourceId(meshNode.materials[subMeshIndex].value());

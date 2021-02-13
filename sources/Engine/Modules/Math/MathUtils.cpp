@@ -147,7 +147,7 @@ std::tuple<glm::vec3, glm::vec3> MathUtils::generateTangentBitangent(const glm::
   glm::vec3 tangent = (positionDifference1 * uvDifference2.y - positionDifference2 * uvDifference1.y) * r;
   glm::vec3 bitangent = (positionDifference2 * uvDifference1.x - positionDifference1 * uvDifference2.x) * r;
 
-  return { tangent, bitangent };
+  return {tangent, bitangent};
 }
 
 glm::vec3 MathUtils::generateTangent(const glm::vec3& v0,
@@ -158,4 +158,11 @@ glm::vec3 MathUtils::generateTangent(const glm::vec3& v0,
   const glm::vec2& uv2)
 {
   return std::get<0>(generateTangentBitangent(v0, v1, v2, uv0, uv1, uv2));
+}
+
+glm::vec3 MathUtils::extractScale2(const glm::mat4& matrix)
+{
+  return glm::vec3(glm::length2(glm::vec3(matrix[0])),
+    glm::length2(glm::vec3(matrix[1])),
+    glm::length2(glm::vec3(matrix[2])));
 }

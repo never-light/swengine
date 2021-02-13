@@ -137,7 +137,11 @@ void SceneImporter::traceSceneNodeDebugInformation(const tinygltf::Model& model,
   spdlog::info("  Mesh: {}", mesh.name);
 
   for (auto& primitive : mesh.primitives) {
-    spdlog::info("    Indices_count: {}, mode {}", primitive.indices, primitive.mode);
+    spdlog::info("    indices: {}, mode {}", primitive.indices, primitive.mode);
+
+    if (primitive.indices == -1) {
+      raiseImportError("Import of not indexed meshes is not supported");
+    }
 
     const tinygltf::Accessor& indexAccessor =
       model.accessors[primitive.indices];
@@ -333,6 +337,8 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
 
   std::unordered_map<size_t, std::vector<size_t>> skinsToRawMeshesMap;
 
+  spdlog::debug("Start scene meshes conversion");
+
   traverseScene(model, scene, [this, &rawNodesList, &skinsToRawMeshesMap](const tinygltf::Model& model,
     const tinygltf::Scene& scene,
     const glm::mat4& nodeTransform,
@@ -349,6 +355,8 @@ std::vector<RawMeshNodeImportData> SceneImporter::convertSceneToRawData(const ti
       skinsToRawMeshesMap[node.skin].push_back(rawNodesList.size() - 1);
     }
   });
+
+  spdlog::debug("Nodes are processes");
 
   spdlog::info("Try to merge meshes with the same skeleton");
 
@@ -592,6 +600,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 {
   const tinygltf::Mesh& mesh = model.meshes[node.mesh];
 
+  spdlog::debug("Start mesh node conversion: node {}, mesh {}", node.name, mesh.name);
+
   glm::dvec3 scale;
   glm::dquat orientation;
   glm::dvec3 translation;
@@ -626,6 +636,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
   }
 
   for (const auto& primitive : mesh.primitives) {
+    spdlog::debug("  Start mesh primitive conversion");
+
     const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
 
     size_t verticesCount = model.accessors[primitive.attributes.begin()->second].count;
@@ -645,6 +657,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     }
 
     for (auto& attribute : primitive.attributes) {
+      spdlog::debug("    Start attribute conversion: attribute name {}", attribute.first);
+
       const tinygltf::Accessor& accessor = model.accessors[attribute.second];
 
       auto[attributeBufferPtr, attributeBufferStride] = getAttributeBufferStorage(model, accessor);
@@ -690,10 +704,10 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
           // TODO: check that JOINTS_0 attribute bones ids always corresponds to m_modelNodesSkeletonsRawIndices mapping
           //  and simplify this conversion in that case.
           //  Update: not always, but additional tests are needed.
-          SW_ASSERT(bonesIdsPtr[0] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]] &&
-            bonesIdsPtr[1] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]] &&
-            bonesIdsPtr[2] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]] &&
-            bonesIdsPtr[3] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
+//          SW_ASSERT(bonesIdsPtr[0] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]] &&
+//            bonesIdsPtr[1] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]] &&
+//            bonesIdsPtr[2] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]] &&
+//            bonesIdsPtr[3] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
 
           rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].x =
             static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]]);
@@ -790,6 +804,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
       else {
         SW_ASSERT(false);
       }
+
+      spdlog::debug("    Attribute conversion is completed");
     }
 
     // TODO[HIGH]: it is for debugging only, so remove it
@@ -818,6 +834,10 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         rawMaterial.baseColorTextureInfo = exportTextureToTempLocation(model, pbrParameters.baseColorTexture);
       }
 
+      if (node.skin != -1) {
+        rawMaterial.isSkinned = true;
+      }
+
       rawNode.materials.emplace_back(rawMaterial);
     }
     else {
@@ -825,6 +845,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     }
 
     rawNode.rawMesh.subMeshesDescriptions.push_back(subMeshDescription);
+    spdlog::debug("  Mesh primitive conversion is completed");
   }
 
   glm::vec3 aabbMin(std::numeric_limits<float>::max());
@@ -836,9 +857,9 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
   }
 
   rawNode.rawMesh.aabb = RawAABB{.min = glmVector3ToRawVector3(aabbMin), .max = glmVector3ToRawVector3(aabbMax)};
-  rawNode.rawMesh.inverseSceneTransform = glmMatrix4ToRawMatrix4(glm::inverse(m_modelNodesGlobalTransforms.at(
+  rawNode.rawMesh.inverseSceneTransform = glmMatrix4ToRawMatrix4(m_modelNodesGlobalTransforms.at(
     getNodeIndex(model, scene, node)
-  )));
+  ));
 
   bool collisionsResolutionDisabled = false;
 
@@ -953,6 +974,8 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     !rawNode.rawMesh.bonesWeights.empty() && rawNode.rawMesh.bonesWeights.size() != rawMeshVerticesCount) {
     raiseImportError(fmt::format("Mesh {} is in inconsistent state because of different attributes count", node.name));
   }
+
+  spdlog::debug("Mesh node is converted");
 
   return rawNode;
 }
@@ -1248,7 +1271,7 @@ std::vector<RawSkeletonDescription> SceneImporter::convertSceneSkeletonsToRawDat
 
     m_modelNodesSkeletonsRawIndices[skinId] = rawBonesIndicesMap;
 
-    m_skinsToRawSkeletonsMap.insert({ skinId, rawSkeletonsList.size() });
+    m_skinsToRawSkeletonsMap.insert({skinId, rawSkeletonsList.size()});
 
     rawSkeletonsList.push_back(RawSkeletonDescription{.skeleton = rawSkeleton});
   }
@@ -1302,10 +1325,14 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
 {
   ARG_UNUSED(scene);
 
+  spdlog::debug("Start animations conversion");
+
   std::vector<RawSkeletalAnimationClip> rawClips;
 
   for (size_t clipIndex = 0; clipIndex < model.animations.size(); clipIndex++) {
     const tinygltf::Animation& animation = model.animations[clipIndex];
+
+    spdlog::debug("Start animation clip conversion: clip name {}", animation.name);
 
     size_t clipSkeletonIndex = m_modelNodesSkeletons.at(animation.channels.at(0).target_node);
 
@@ -1415,7 +1442,7 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
         for (size_t keyframeIndex = 0; keyframeIndex < keyframesValuesAccessor.count; keyframeIndex++) {
           glm::vec3 scaleKey = glm::make_vec3(reinterpret_cast<const float*>(keyframesValuesBufferPtr));
 
-          if (!MathUtils::isEqual(scaleKey, glm::vec3(1.0f), 1e-4f)) {
+          if (!MathUtils::isEqual(scaleKey, glm::vec3(1.0f), 1e-3f)) {
             raiseImportError("Scale keys for skeletal animation are not supported");
           }
 
@@ -1435,8 +1462,12 @@ std::vector<RawSkeletalAnimationClip> SceneImporter::convertSceneAnimationsToRaw
 
     skeletonsDescriptions[clipSkeletonIndex].animationClips.push_back(rawClips.size());
 
+    spdlog::debug("Animation clip conversion is completed: assigned name {}", rawClip.header.name);
+
     rawClips.push_back(rawClip);
   }
+
+  spdlog::debug("Animations conversion is completed");
 
   return rawClips;
 }
@@ -1450,6 +1481,7 @@ std::string SceneImporter::generateMaterialName(const tinygltf::Material& materi
 
   while (m_materialsNames.contains(name)) {
     name = originBaseName + "_" + std::to_string(baseIndex);
+    baseIndex++;
   }
 
   m_materialsNames.insert(name);

@@ -27,6 +27,7 @@ struct RawMaterial {
 
   RawVector4 baseColorFactor{ 1.0f, 1.0f, 1.0f, 1.0f };
   std::optional<RawTextureInfo> baseColorTextureInfo;
+  bool isSkinned{};
 };
 
 struct RawMeshNode {

@@ -5,6 +5,7 @@
 #include "geometry.h"
 
 #include <glm/geometric.hpp>
+#include "MathUtils.h"
 
 Plane::Plane()
 {
@@ -205,12 +206,10 @@ float Sphere::getRadius() const
 
 void Sphere::applyTransform(const glm::mat4& transformationMatrix)
 {
-  glm::vec3 origin = m_origin + glm::vec3(transformationMatrix[3]);
+  glm::vec3 origin = glm::vec3(transformationMatrix * glm::vec4(m_origin, 1.0));
 
-  float radiusFactor = glm::max(glm::max(transformationMatrix[0][0],
-    transformationMatrix[1][1]),
-    transformationMatrix[2][2]);
-
+  glm::vec3 scale = MathUtils::extractScale2(transformationMatrix);
+  float radiusFactor = glm::sqrt(glm::max(glm::max(scale.x, scale.y), scale.z));
   float radius = m_radius * radiusFactor;
 
   m_origin = origin;

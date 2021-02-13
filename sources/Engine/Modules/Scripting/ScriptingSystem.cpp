@@ -82,3 +82,8 @@ void ScriptingSystem::validateActionCallResult(const sol::protected_function_res
     THROW_EXCEPTION(EngineRuntimeException, "Lua action error: " + std::string(error.what()));
   }
 }
+
+std::shared_ptr<ScriptsExecutor> ScriptingSystem::getScriptsExecutor() const
+{
+  return m_scriptsExecutor;
+}

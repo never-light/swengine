@@ -74,6 +74,8 @@ void MeshRenderingSystem::render()
     bool isMeshAnimated = mesh->isSkinned() && mesh->hasSkeleton() && obj.hasComponent<SkeletalAnimationComponent>();
 
     if (isMeshAnimated) {
+      // TODO: investigate and debug getInverseSceneTransform behaviour, check
+      //  that this multiplication is correct
       skinnedMeshesPremultipliedTransforms
         .push_back(transform.getTransformationMatrix() * mesh->getInverseSceneTransform());
     }

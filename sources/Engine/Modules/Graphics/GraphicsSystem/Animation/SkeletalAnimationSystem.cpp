@@ -45,9 +45,16 @@ void SkeletalAnimationSystem::updateObjectBounds(TransformComponent& transformCo
   float delta)
 {
   ARG_UNUSED(delta);
+  ARG_UNUSED(transformComponent);
+  ARG_UNUSED(skeletalAnimationComponent);
 
-  glm::mat4 boundTransformation = transformComponent.getTransform().getTransformationMatrix() *
-    skeletalAnimationComponent.getMatrixPalette().bonesTransforms[0];
+  // TODO: track some bone as marker and use it to align bounding mesh properly.
+  //  The method below is not precise and, so, not appropriate.
+  //  Or just precompute bounding volumes data for each animation frame.
 
-  transformComponent.updateBounds(boundTransformation);
+//  glm::mat4 boundTransformation = transformComponent.getTransform().getTransformationMatrix() *
+//    skeletalAnimationComponent.getMatrixPalette().bonesTransforms[0]
+//    * skeletalAnimationComponent.getAnimationStatesMachine()->getSkeleton()->getBone(0).getInverseBindPoseMatrix();
+//
+//  transformComponent.updateBounds(boundTransformation);
 }

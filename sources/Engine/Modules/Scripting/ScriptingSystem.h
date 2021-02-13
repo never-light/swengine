@@ -69,6 +69,8 @@ class ScriptingSystem : public GameSystem,
   EventProcessStatus receiveEvent(const ExecuteScriptDirectedActionCommand& event) override;
   EventProcessStatus receiveEvent(const ExecuteScriptParametricActionCommand& event) override;
 
+  [[nodiscard]] std::shared_ptr<ScriptsExecutor> getScriptsExecutor() const;
+
  private:
   [[nodiscard]] sol::protected_function findActionHandler(const std::string& handlerName);
   void validateActionCallResult(const sol::protected_function_result& result);

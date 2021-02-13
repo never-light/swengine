@@ -152,7 +152,7 @@ class ResourceManager : public SpecificResourceManager<ResourceType> {
   {
     if constexpr (LOG_RESOURCES_MANAGEMENT) {
       auto& resourceState = this->getResourceState(resourceIndex);
-      spdlog::debug("Allocate resource config {}:{}:{}", getTypeId(), resourceIndex, resourceState.getResourceName());
+      spdlog::debug("Allocate resource config {}:{}:{}", BaseResourceManager::getTypeId(), resourceIndex, resourceState.getResourceName());
     }
 
     return ::new(this->m_configurationPool
