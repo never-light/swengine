@@ -219,9 +219,13 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
       raiseImportError("Sparse accessors are not supported yet, so it is needed to flatten the index buffers");
     }
 
-    if (indexAccessor.normalized || indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ||
+    if (indexAccessor.normalized ||
+      (indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+        && indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) ||
       indexAccessor.type != TINYGLTF_TYPE_SCALAR) {
-      raiseImportError("Index accessors should not be normalized and should have scalar unsigned short type");
+      raiseImportError(fmt::format("Index accessors should not be normalized and should have scalar unsigned type. "
+                                   "normalized: {}, componentType {}, type {}", indexAccessor.normalized,
+        indexAccessor.componentType, indexAccessor.type));
     }
 
     const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
@@ -272,7 +276,9 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
         }
       }
       else if (attribute.first == "JOINTS_0") {
-        if (accessor.normalized || accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ||
+        if (accessor.normalized ||
+          (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE
+            && accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) ||
           accessor.type != TINYGLTF_TYPE_VEC4) {
           raiseImportError("Joints accessors should not be normalized and should have vec4 type");
         }
@@ -287,7 +293,9 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
         spdlog::warn("Color vertices attribute for mesh {} will be ignored", node.name);
       }
       else {
-        raiseImportError(fmt::format("Attribute {} is not supported yet", attribute.first));
+        if constexpr (SCENE_IMPORTER_VALIDATION_STRICT_MODE) {
+          raiseImportError(fmt::format("Attribute {} is not supported yet", attribute.first));
+        }
       }
     }
 
@@ -651,8 +659,18 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
     auto[indicesBufferPtr, indicesBufferStride] = getAttributeBufferStorage(model, indexAccessor);
 
     for (size_t indexNumber = 0; indexNumber < indexAccessor.count; indexNumber++) {
-      subMeshDescription.indices[indexNumber] = reinterpret_cast<const uint16_t*>(
-        indicesBufferPtr)[0] + static_cast<uint16_t>(rawMeshVerticesOffset);
+      if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+        subMeshDescription.indices[indexNumber] = reinterpret_cast<const uint16_t*>(
+          indicesBufferPtr)[0] + static_cast<uint16_t>(rawMeshVerticesOffset);
+      }
+      else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+        subMeshDescription.indices[indexNumber] = static_cast<int16_t>(reinterpret_cast<const uint32_t*>(
+          indicesBufferPtr)[0]) + static_cast<uint16_t>(rawMeshVerticesOffset);
+      }
+      else {
+        SW_ASSERT(false && "Indices type is not supported");
+      }
+
       indicesBufferPtr += indicesBufferStride;
     }
 
@@ -699,7 +717,16 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         rawNode.rawMesh.bonesIds.resize(rawMeshVerticesOffset + verticesCount);
 
         for (size_t vertexIndex = 0; vertexIndex < verticesCount; vertexIndex++) {
-          const auto* bonesIdsPtr = reinterpret_cast<const unsigned short*>(attributeBufferPtr);
+          glm::ivec4 bonesIdsVec;
+
+          if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+            const auto* bonesIdsPtr = reinterpret_cast<const unsigned char*>(attributeBufferPtr);
+            bonesIdsVec = glm::ivec4(bonesIdsPtr[0], bonesIdsPtr[1], bonesIdsPtr[2], bonesIdsPtr[3]);
+          }
+          else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+            const auto* bonesIdsPtr = reinterpret_cast<const unsigned short*>(attributeBufferPtr);
+            bonesIdsVec = glm::ivec4(bonesIdsPtr[0], bonesIdsPtr[1], bonesIdsPtr[2], bonesIdsPtr[3]);
+          }
 
           // TODO: check that JOINTS_0 attribute bones ids always corresponds to m_modelNodesSkeletonsRawIndices mapping
           //  and simplify this conversion in that case.
@@ -709,14 +736,18 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
 //            bonesIdsPtr[2] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]] &&
 //            bonesIdsPtr[3] == m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
 
-          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].x =
-            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[0]]]);
-          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].y =
-            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[1]]]);
-          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].z =
-            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[2]]]);
-          rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex].w =
-            static_cast<uint8_t>(m_modelNodesSkeletonsRawIndices[node.skin][skin.joints[bonesIdsPtr[3]]]);
+          glm::ivec4 skinJointsIds(skin.joints[bonesIdsVec[0]],
+            skin.joints[bonesIdsVec[1]],
+            skin.joints[bonesIdsVec[2]],
+            skin.joints[bonesIdsVec[3]]);
+          auto& skinBonesToRawSkeletonBonesMap = m_modelNodesSkeletonsRawIndices.at(node.skin);
+
+          auto& rawBonesIds = rawNode.rawMesh.bonesIds[rawMeshVerticesOffset + vertexIndex];
+
+          rawBonesIds.x = static_cast<uint8_t>(skinBonesToRawSkeletonBonesMap[skinJointsIds[0]]);
+          rawBonesIds.y = static_cast<uint8_t>(skinBonesToRawSkeletonBonesMap[skinJointsIds[1]]);
+          rawBonesIds.z = static_cast<uint8_t>(skinBonesToRawSkeletonBonesMap[skinJointsIds[2]]);
+          rawBonesIds.w = static_cast<uint8_t>(skinBonesToRawSkeletonBonesMap[skinJointsIds[3]]);
           attributeBufferPtr += attributeBufferStride;
         }
 
@@ -725,20 +756,24 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
       else if (attribute.first == "WEIGHTS_0") {
         rawNode.rawMesh.bonesWeights.resize(rawMeshVerticesOffset + verticesCount);
 
-        const auto* bonesWeightsPtr = reinterpret_cast<const float*>(attributeBufferPtr);
-
         for (size_t vertexIndex = 0; vertexIndex < verticesCount; vertexIndex++) {
-          RawU8Vector4& vertexBonesWeights = rawNode.rawMesh.bonesWeights[rawMeshVerticesOffset + vertexIndex];
+          const auto* bonesWeightsPtr = reinterpret_cast<const float*>(attributeBufferPtr);
 
-          vertexBonesWeights.x =
-            static_cast<uint8_t>(std::round(bonesWeightsPtr[0] * 255));
-          vertexBonesWeights.y =
-            static_cast<uint8_t>(std::round(bonesWeightsPtr[1] * 255));
-          vertexBonesWeights.z =
-            static_cast<uint8_t>(std::round(bonesWeightsPtr[2] * 255));
-          vertexBonesWeights.w =
-            static_cast<uint8_t>(std::round(bonesWeightsPtr[3] * 255));
+          RawVector4& vertexBonesWeights = rawNode.rawMesh.bonesWeights[rawMeshVerticesOffset + vertexIndex];
 
+          vertexBonesWeights.x = bonesWeightsPtr[0];
+          vertexBonesWeights.y = bonesWeightsPtr[1];
+          vertexBonesWeights.z = bonesWeightsPtr[2];
+          vertexBonesWeights.w = bonesWeightsPtr[3];
+
+          float vertexBonesWeightsSum = vertexBonesWeights.x + vertexBonesWeights.y +
+            vertexBonesWeights.z + vertexBonesWeights.w;
+
+          if (!MathUtils::isEqual(vertexBonesWeightsSum, 1.0f, 1e-3f)) {
+            raiseImportError("Vertices data contains not-normalized bones weights vector");
+          }
+
+#if 0
           int16_t
             weightsSum = vertexBonesWeights.x + vertexBonesWeights.y + vertexBonesWeights.z + vertexBonesWeights.w;
           int16_t weightsSumDiff = 255 - weightsSum;
@@ -761,7 +796,7 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
           if ((vertexBonesWeights.x + vertexBonesWeights.y + vertexBonesWeights.z + vertexBonesWeights.w) != 255) {
             raiseImportError("Vertices data contains not-normalized bones weights vector");
           }
-
+#endif
           attributeBufferPtr += attributeBufferStride;
         }
 
@@ -802,7 +837,9 @@ RawMeshNode SceneImporter::convertMeshNodeToRawData(const tinygltf::Model& model
         spdlog::warn("Color vertices attribute for mesh {} is ignored", node.name);
       }
       else {
-        SW_ASSERT(false);
+        if constexpr (SCENE_IMPORTER_VALIDATION_STRICT_MODE) {
+          SW_ASSERT(false);
+        }
       }
 
       spdlog::debug("    Attribute conversion is completed");

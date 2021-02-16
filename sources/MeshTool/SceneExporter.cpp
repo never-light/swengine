@@ -88,11 +88,10 @@ void SceneExporter::exportDataToDirectory(const std::string& exportDir,
       | RawMeshAttributes::UV;
 
     RawMeshAttributes posNormUVSkinnedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-      | RawMeshAttributes::UV;
+      | RawMeshAttributes::UV | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
 
     RawMeshAttributes posNormTanUVSkinnedAttributesMask = RawMeshAttributes::Positions | RawMeshAttributes::Normals
-      | RawMeshAttributes::UV;
-
+      | RawMeshAttributes::UV | RawMeshAttributes::BonesIDs | RawMeshAttributes::BonesWeights;
 
     if ((meshAttributes & posNormUVSkinnedAttributesMask) == posNormUVSkinnedAttributesMask) {
       meshExportOptions.format = MeshExportFormat::Pos3Norm3UVSkinned;
@@ -468,7 +467,8 @@ void SceneExporter::generateSpawnDeclaration(
     animationComponentNode.append_attribute("skeleton").set_value(getSkeletonResourceId(skeleton).c_str());
     animationComponentNode.append_attribute("state_machine").set_value(getStatesMachineResourceId(skeleton).c_str());
     animationComponentNode.append_attribute("start_state").set_value(
-      getAnimationClipResourceId(scene.animationClips.at(*scene.skeletons[meshNode.skeletonIndex].animationClips.begin())).c_str());
+      getAnimationClipResourceId(scene.animationClips
+        .at(*scene.skeletons[meshNode.skeletonIndex].animationClips.begin())).c_str());
   }
 
   if (meshNode.collisionsResolutionEnabled) {

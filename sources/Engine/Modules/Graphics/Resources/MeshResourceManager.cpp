@@ -70,8 +70,8 @@ void MeshResourceManager::load(size_t resourceIndex)
     std::vector<glm::u8vec4> bonesIDs =
       MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesIds);
 
-    std::vector<glm::u8vec4> bonesWeights =
-      MemoryUtils::createBinaryCompatibleVector<RawU8Vector4, glm::u8vec4>(rawMesh.bonesWeights);
+    std::vector<glm::vec4> bonesWeights =
+      MemoryUtils::createBinaryCompatibleVector<RawVector4, glm::vec4>(rawMesh.bonesWeights);
 
     mesh->setSkinData(bonesIDs, bonesWeights);
   }

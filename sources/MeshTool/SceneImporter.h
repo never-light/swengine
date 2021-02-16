@@ -13,6 +13,8 @@
 
 #include "RawScene.h"
 
+static constexpr bool SCENE_IMPORTER_VALIDATION_STRICT_MODE = false;
+
 struct SceneImportOptions {
 
 };

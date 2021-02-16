@@ -48,6 +48,6 @@ void SkeletonResourceManager::parseConfig(size_t resourceIndex, pugi::xml_node c
 
   if (!FileUtils::isFileExists(resourceConfig->resourcePath)) {
     THROW_EXCEPTION(EngineRuntimeException,
-      fmt::format("Skeleton resource refer to not existing file", resourceConfig->resourcePath));
+      fmt::format("Skeleton resource refer to not existing file {}", resourceConfig->resourcePath));
   }
 }

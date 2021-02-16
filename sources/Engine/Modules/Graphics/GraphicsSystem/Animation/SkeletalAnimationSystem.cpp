@@ -2,6 +2,7 @@
 
 #pragma hdrstop
 
+#include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
 #include "SkeletalAnimationSystem.h"
 #include "Bone.h"
 
@@ -31,6 +32,41 @@ void SkeletalAnimationSystem::update(float delta)
           updateObjectBounds(*obj.getComponent<TransformComponent>().get(),
             *animationComponent.get(),
             delta);
+        }
+
+        const auto& palette = statesMachine.getCurrentMatrixPalette();
+        const auto& skeleton = statesMachine.getSkeleton();
+
+        for (size_t boneIndex = 0; boneIndex < palette.bonesTransforms.size(); boneIndex++) {
+          glm::vec4 boneCenter = glm::inverse(skeleton->getBone(uint8_t(boneIndex)).getInverseBindPoseMatrix()) *
+            glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+          glm::vec4 parentBoneCenter;
+          auto parentBoneIndex = skeleton->getBoneParentId(uint8_t(boneIndex));
+
+          if (parentBoneIndex == Bone::ROOT_BONE_PARENT_ID) {
+            parentBoneCenter = boneCenter;
+            parentBoneIndex = uint8_t(boneIndex);
+          }
+          else {
+            parentBoneCenter =
+              glm::inverse(skeleton->getBone(parentBoneIndex).getInverseBindPoseMatrix())
+                * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+          }
+
+          boneCenter = palette.bonesTransforms[boneIndex] * boneCenter;
+          parentBoneCenter = palette.bonesTransforms[parentBoneIndex] * parentBoneCenter;
+
+          glm::vec3 boneVectorStart = obj.getComponent<TransformComponent>()->getTransform().getTransformationMatrix()
+            * obj.getComponent<MeshRendererComponent>()->getMeshInstance()->getInverseSceneTransform() * boneCenter;
+          glm::vec3 boneVectorEnd = obj.getComponent<TransformComponent>()->getTransform().getTransformationMatrix()
+            * obj.getComponent<MeshRendererComponent>()->getMeshInstance()->getInverseSceneTransform() * parentBoneCenter;
+
+          boneVectorStart += glm::vec3(2.0f, 0.0f, 0.0f);
+          boneVectorEnd += glm::vec3(2.0f, 0.0f, 0.0f);
+
+          DebugPainter::renderSphere(boneVectorStart, 0.03f);
+          DebugPainter::renderSegment(boneVectorStart, boneVectorEnd, { 0.0f, 0.8f, 0.0f, 1.0f });
         }
       }
     }

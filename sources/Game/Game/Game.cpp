@@ -12,6 +12,9 @@
 
 #define START_WITH_FREE_CAMERA 1
 
+static constexpr const char* START_LEVEL_ID = "cabinet";
+#define START_WITH_TMP_LEVEL "negan_anim"
+
 Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
   std::shared_ptr<InputModule> inputModule,
@@ -71,8 +74,15 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_graphicsScene,
     m_playerUILayout);
 
-//  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
-  m_resourceManager->loadResourcesMapFile("crossroads/paul/resources.xml");
+#ifdef START_WITH_TMP_LEVEL
+  m_resourceManager->loadResourcesMapFile(FileUtils::getLevelPath(START_LEVEL_ID) + "/../../../../tmp/" +
+    std::string(START_WITH_TMP_LEVEL) + "/resources.xml");
+#else
+  m_resourceManager->loadResourcesMapFile(FileUtils::getLevelPath(START_LEVEL_ID) + "/resources.xml");
+  m_resourceManager->loadResourcesMapFile(
+    FileUtils::getGameResourcePath("resources_descs/game_dynamic.xml"));
+#endif
+
 }
 
 void Game::activate()
@@ -162,6 +172,13 @@ void Game::loadLevel(const std::string& levelName, bool isNewGame)
   SW_ASSERT(!m_levelsManager->isLevelLoaded());
 
   m_levelsManager->loadLevelsSpawnLists();
+
+#ifdef START_WITH_TMP_LEVEL
+  m_levelsManager->loadLevelSpawnList(std::string(START_LEVEL_ID) + "/../../../../tmp/" +
+    std::string(START_WITH_TMP_LEVEL));
+#else
+  m_levelsManager->loadSpawnObjectsList("game_dynamic");
+#endif
 
   m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(
     ExecuteScriptParametricActionCommand::create("game.before_level_loading",
