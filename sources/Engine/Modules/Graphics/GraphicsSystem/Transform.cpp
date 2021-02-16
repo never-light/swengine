@@ -3,6 +3,7 @@
 #pragma hdrstop
 
 #include "Transform.h"
+#include "Modules/Math/MathUtils.h"
 
 Transform::Transform()
   : m_position(0.0f, 0.0f, 0.0f),
@@ -198,10 +199,7 @@ void Transform::lookAt(const glm::vec3& target)
 glm::mat4x4& Transform::getTransformationMatrix()
 {
   if (m_needTransformationMatrixCacheUpdate) {
-    m_transformationMatrixCache = glm::translate(glm::identity<glm::mat4x4>(), m_position) *
-      glm::toMat4(m_orientation) *
-      glm::scale(glm::identity<glm::mat4x4>(), m_scale);
-
+    m_transformationMatrixCache = MathUtils::buildTRSMatrix(m_position, m_orientation, m_scale);
     m_needTransformationMatrixCacheUpdate = false;
   }
 

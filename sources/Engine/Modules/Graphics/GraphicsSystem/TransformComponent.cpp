@@ -62,13 +62,9 @@ const Sphere& TransformComponent::getBoundingSphere() const
 
 void TransformComponent::updateBounds(const glm::vec3& origin, const glm::quat& orientation)
 {
-  if (m_isStatic) {
-    updateBounds(glm::translate(glm::identity<glm::mat4>(), origin * m_transform->getScale()) * glm::mat4_cast(orientation));
-  }
-  else {
-    glm::vec3 newOrigin = (m_originalBounds.toSphere().getOrigin() + origin) * m_transform->getScale();
-    m_boundingSphere.setOrigin(newOrigin);
-  }
+  // TODO: it is possible to optimize update operation for spheres (dynamic meshes), so consider to
+  //  perform such optimization.
+  updateBounds(MathUtils::buildTRSMatrix(origin, orientation, getTransform().getScale()));
 }
 
 void TransformComponent::setBounds(const AABB& bounds)

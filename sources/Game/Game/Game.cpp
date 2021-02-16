@@ -10,10 +10,10 @@
 
 #include <utility>
 
-#define START_WITH_FREE_CAMERA 1
+//#define START_WITH_FREE_CAMERA 1
 
 static constexpr const char* START_LEVEL_ID = "cabinet";
-#define START_WITH_TMP_LEVEL "negan_anim"
+//#define START_WITH_TMP_LEVEL "negan_anim"
 
 Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,

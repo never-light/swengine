@@ -318,7 +318,12 @@ void SceneImporter::validateSceneNode(const tinygltf::Model& model,
 void SceneImporter::validateTexture(const tinygltf::Model& model, const tinygltf::Texture& texture)
 {
   if (texture.sampler != -1) {
-    raiseImportError(fmt::format("Texture samplers are not supported yet"));
+    if constexpr (SCENE_IMPORTER_VALIDATION_STRICT_MODE) {
+      raiseImportError(fmt::format("Texture samplers are not supported yet"));
+    }
+    else {
+      spdlog::warn("Texture samplers are not supported yet");
+    }
   }
 
   if (texture.source == -1) {

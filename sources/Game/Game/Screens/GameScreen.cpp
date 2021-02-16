@@ -39,7 +39,8 @@ void GameScreen::activate()
 
   if (!m_game->isLoaded()) {
 //    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
-    m_game->createNewGame("../../../tmp/negan_anim");
+//    m_game->createNewGame("../../../tmp/negan_anim");
+    m_game->createNewGame("cabinet");
     m_game->setupGameState(true);
   }
 }
