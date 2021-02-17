@@ -154,6 +154,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEve
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "debug-draw-skeletons") {
+    m_meshRenderingSystem->enableSkeletonsRendering(!m_meshRenderingSystem->isSkeletonsRenderingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
   else if (event.command == "camera-position") {
     m_gameConsole->print("Position: " +
       glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getPosition()));
