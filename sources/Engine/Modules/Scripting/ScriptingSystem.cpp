@@ -7,8 +7,8 @@
 
 #include <utility>
 
-ScriptingSystem::ScriptingSystem(std::shared_ptr<GameWorld> gameWorld)
-  : m_scriptsExecutor(std::make_shared<ScriptsExecutor>(std::move(gameWorld)))
+ScriptingSystem::ScriptingSystem(std::shared_ptr<ScriptingContext> scriptingContext)
+  : m_scriptsExecutor(std::make_shared<ScriptsExecutor>(std::move(scriptingContext)))
 {
 
 }

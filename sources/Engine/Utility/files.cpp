@@ -98,3 +98,8 @@ std::vector<std::string> FileUtils::listDirectories(const std::string& path)
 
   return directories;
 }
+
+std::string FileUtils::getResourcesMapsPath(const std::string& mapName)
+{
+  return std::string(RESOURCES_MAPS_PATH) + "/" + mapName + ".xml";
+}

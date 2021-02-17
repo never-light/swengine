@@ -79,10 +79,10 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     std::string(START_WITH_TMP_LEVEL) + "/resources.xml");
 #else
   m_resourceManager->loadResourcesMapFile(FileUtils::getLevelPath(START_LEVEL_ID) + "/resources.xml");
-  m_resourceManager->loadResourcesMapFile(
-    FileUtils::getGameResourcePath("resources_descs/game_dynamic.xml"));
 #endif
 
+  m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
+    ExecuteScriptSimpleActionCommand{.actionName = "game.on_initialization"});
 }
 
 void Game::activate()
@@ -176,8 +176,6 @@ void Game::loadLevel(const std::string& levelName, bool isNewGame)
 #ifdef START_WITH_TMP_LEVEL
   m_levelsManager->loadLevelSpawnList(std::string(START_LEVEL_ID) + "/../../../../tmp/" +
     std::string(START_WITH_TMP_LEVEL));
-#else
-  m_levelsManager->loadSpawnObjectsList("game_dynamic");
 #endif
 
   m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(

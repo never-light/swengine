@@ -20,14 +20,15 @@ inline void luaStatePanic(sol::optional<std::string> errorMessage)
   THROW_EXCEPTION(EngineRuntimeException, errorMessageText);
 }
 
-ScriptsExecutor::ScriptsExecutor(std::shared_ptr<GameWorld> gameWorld)
-  : m_gameWorld(gameWorld),
+ScriptsExecutor::ScriptsExecutor(std::shared_ptr<ScriptingContext> scriptingContext)
+  : m_scriptingContext(scriptingContext),
     m_luaState(sol::c_call<decltype(&luaStatePanic), &luaStatePanic>),
-    m_scriptsGameWorld(std::make_shared<ScriptsGameWorld>(gameWorld))
+    m_scriptsGameWorld(std::make_shared<ScriptsGameWorld>(scriptingContext->getGameWorld()))
 {
   m_luaState.open_libraries(sol::lib::base, sol::lib::string);
 
   registerCommonTypes();
+  registerResourcesManagementFunctions();
   registerGameWorld();
 
   std::vector<std::string> scriptsList = FileUtils::getScriptsList();
@@ -98,5 +99,25 @@ void ScriptsExecutor::registerGameWorld()
       position == sol::nil ? std::optional<glm::vec3>() : position.as<glm::vec3>(),
       direction == sol::nil ? std::optional<glm::vec3>() : direction.as<glm::vec3>(),
       level == sol::nil ? std::optional<std::string>() : direction.as<std::string>());
+  });
+
+  world.set_function("load_spawn_db", [this](const std::string& dbName) -> void {
+
+    spdlog::info("[script] load spawn declarations database {}", dbName);
+
+    m_scriptingContext->getLevelsManager()->loadSpawnObjectsList(dbName);
+  });
+}
+
+void ScriptsExecutor::registerResourcesManagementFunctions()
+{
+  auto resources = m_luaState["resources"].get_or_create<sol::table>();
+
+  resources.set_function("load_db", [this](const std::string& dbName) -> void {
+    std::string resourcesMapPath = FileUtils::getResourcesMapsPath(dbName);
+
+    spdlog::info("[script] load resources database {}", resourcesMapPath);
+
+    m_scriptingContext->getResourcesManager()->loadResourcesMapFile(resourcesMapPath);
   });
 }

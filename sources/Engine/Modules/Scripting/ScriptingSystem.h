@@ -23,24 +23,27 @@ struct ExecuteScriptDirectedActionCommand {
 
 struct ExecuteScriptParametricActionCommand {
  public:
-  [[nodiscard]] sol::protected_function_result apply(sol::protected_function actionHandler) const {
+  [[nodiscard]] sol::protected_function_result apply(sol::protected_function actionHandler) const
+  {
     return m_actionApplier(std::move(actionHandler));
   }
 
   template<class TupleType>
-  static ExecuteScriptParametricActionCommand create(const std::string& actionName, const TupleType& parameters) {
+  static ExecuteScriptParametricActionCommand create(const std::string& actionName, const TupleType& parameters)
+  {
     ExecuteScriptParametricActionCommand actionCommand;
 
     actionCommand.m_actionName = actionName;
 
-    actionCommand.m_actionApplier = [parameters] (sol::protected_function actionHandler) {
+    actionCommand.m_actionApplier = [parameters](sol::protected_function actionHandler) {
       return std::apply(actionHandler, parameters);
     };
 
     return actionCommand;
   }
 
-  [[nodiscard]] inline const std::string& getActionName() const {
+  [[nodiscard]] inline const std::string& getActionName() const
+  {
     return m_actionName;
   }
 
@@ -58,7 +61,7 @@ class ScriptingSystem : public GameSystem,
                         public EventsListener<ExecuteScriptDirectedActionCommand>,
                         public EventsListener<ExecuteScriptParametricActionCommand> {
  public:
-  explicit ScriptingSystem(std::shared_ptr<GameWorld> gameWorld);
+  explicit ScriptingSystem(std::shared_ptr<ScriptingContext> scriptingContext);
   ~ScriptingSystem() override = default;
 
   void configure() override;
