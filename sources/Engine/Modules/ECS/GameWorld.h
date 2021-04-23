@@ -6,6 +6,7 @@
 #include <typeindex>
 #include <memory>
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
@@ -123,6 +124,7 @@ class GameWorld {
   GameObject createGameObject()
   {
     GameObject gameObject = m_gameObjectsStorage->create();
+
     emitEvent(GameObjectAddEvent{gameObject});
 
     return gameObject;
@@ -411,6 +413,8 @@ inline EventProcessStatus GameWorld::emitEvent(const T& event)
 {
   bool processed = false;
   size_t typeId = EventsTypeInfo::getTypeIndex<T>();
+
+//  spdlog::debug("GameWorld::emitEvent");
 
   if (typeId < m_eventsListeners.size()) {
     for (BaseEventsListener* baseListener : m_eventsListeners[typeId]) {

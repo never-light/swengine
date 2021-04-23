@@ -161,7 +161,7 @@ struct ActorComponent {
 
 class ActorComponentBinder : public GameObjectsComponentBinder<ActorComponent> {
  public:
-  explicit ActorComponentBinder(const ComponentBindingParameters& componentParameters);
+  explicit ActorComponentBinder(ComponentBindingParameters  componentParameters);
 
   void bindToObject(GameObject& gameObject) override;
 

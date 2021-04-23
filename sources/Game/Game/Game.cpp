@@ -23,7 +23,8 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GUISystem> guiSystem,
   std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager,
-  std::shared_ptr<GUILayout> gameUILayout)
+  std::shared_ptr<GUILayout> gameUILayout,
+  std::shared_ptr<ScriptsExecutor> scriptsExecutor)
   : m_gameWorld(gameWorld),
     m_inputModule(inputModule),
     m_graphicsContext(graphicsContext),
@@ -33,6 +34,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_levelsManager(levelsManager),
     m_gameApplicationSystems(std::move(gameApplicationSystemsGroup)),
     m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
+    m_gameplayScriptingContext(std::make_shared<GameplayScriptingContext>(scriptsExecutor, gameWorld)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, graphicsScene, graphicsContext)),
     m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager)),
     m_interactiveObjectsControlSystem(std::make_shared<InteractiveObjectsControlSystem>()),
@@ -41,6 +43,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_questsSystem(std::make_shared<QuestsSystem>(m_gameLogicConditionsManager, m_questsStorage)),
     m_infoportionsSystem(std::make_shared<InfoportionsSystem>()),
     m_dialoguesManager(std::make_shared<DialoguesManager>(m_gameLogicConditionsManager)),
+    m_actorsDamageSystem(std::make_shared<ActorDamageSystem>()),
     m_gameUILayout(std::move(gameUILayout))
 {
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui",
@@ -145,6 +148,7 @@ void Game::unload()
   m_gameModeSystems->removeGameSystem(m_questsSystem);
   m_gameModeSystems->removeGameSystem(m_infoportionsSystem);
   m_gameModeSystems->removeGameSystem(m_playerControlSystem);
+  m_gameModeSystems->removeGameSystem(m_actorsDamageSystem);
 
   if (m_gameApplicationSystems->isConfigured()) {
     m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
@@ -210,6 +214,7 @@ void Game::setupGameState(bool isNewGame)
   m_gameModeSystems->addGameSystem(m_interactiveObjectsControlSystem);
   m_gameModeSystems->addGameSystem(m_questsSystem);
   m_gameModeSystems->addGameSystem(m_infoportionsSystem);
+  m_gameModeSystems->addGameSystem(m_actorsDamageSystem);
 
 #if defined(START_WITH_FREE_CAMERA) && START_WITH_FREE_CAMERA == 1
   m_activeCameraControlSystem = m_freeCameraControlSystem;

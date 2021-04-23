@@ -2,6 +2,7 @@
 
 #include <Engine/Modules/Graphics/GUI/GUIConsole.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
+#include <Engine/Modules/Scripting/ScriptsExecutor.h>
 
 #include "BaseGameScreen.h"
 #include "Game/PlayerControlSystem.h"
@@ -18,7 +19,8 @@ class GameScreen : public BaseGameScreen,
     std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
     std::shared_ptr<LevelsManager> levelsManager,
     std::shared_ptr<GraphicsScene> graphicsScene,
-    std::shared_ptr<GUISystem> guiSystem);
+    std::shared_ptr<GUISystem> guiSystem,
+    std::shared_ptr<ScriptsExecutor> scriptsExecutor);
   ~GameScreen() override;
 
   void activate() override;
@@ -60,5 +62,7 @@ class GameScreen : public BaseGameScreen,
   std::shared_ptr<GUIText> m_culledSubMeshesCountText;
 
   PlayerUILayout m_playerUILayout;
+
+  std::shared_ptr<ScriptsExecutor> m_scriptsExecutor;
 };
 

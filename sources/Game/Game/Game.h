@@ -15,6 +15,8 @@
 #include "Game/Dynamic/InteractiveObjectsControlSystem.h"
 #include "Game/Dynamic/QuestsSystem.h"
 #include "Game/Dynamic/InfoportionsSystem.h"
+#include "Game/Dynamic/ActorDamageSystem.h"
+#include "Game/Scripting/GameplayScriptingContext.h"
 
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
@@ -26,7 +28,8 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GUISystem> guiSystem,
     std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
-    std::shared_ptr<GUILayout> gameUILayout);
+    std::shared_ptr<GUILayout> gameUILayout,
+    std::shared_ptr<ScriptsExecutor> scriptsExecutor);
 
   ~Game() override = default;
 
@@ -76,6 +79,8 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
 
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
   std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
+  std::shared_ptr<GameplayScriptingContext> m_gameplayScriptingContext;
+
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
   std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
@@ -86,6 +91,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<QuestsSystem> m_questsSystem;
   std::shared_ptr<InfoportionsSystem> m_infoportionsSystem;
   std::shared_ptr<DialoguesManager> m_dialoguesManager;
+  std::shared_ptr<ActorDamageSystem> m_actorsDamageSystem;
 
   std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
   std::shared_ptr<GameSystem> m_activeCameraControlSystem;

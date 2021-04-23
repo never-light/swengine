@@ -68,7 +68,7 @@ void ScreenManager::changeScreen(const std::string& newScreenName)
   m_activeScreen->performActivate();
   m_commonGUILayout->addChildWidget(m_activeScreen->getGUILayout());
 
-  m_gameWorld->emitEvent<ScreenSwitchEvent>(ScreenSwitchEvent{previousScreen, m_activeScreen.get()});
+  m_gameWorld->emitEvent<AfterScreenSwitchEvent>(AfterScreenSwitchEvent{previousScreen, m_activeScreen.get()});
 }
 
 std::shared_ptr<Screen> ScreenManager::getActiveScreen() const

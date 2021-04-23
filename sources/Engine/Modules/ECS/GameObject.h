@@ -68,6 +68,7 @@ class GameObject {
   template<class T>
   void removeComponent();
 
+  // TODO: this API is not const-correct, add const modifier and fix all dependent functions
   template<class T>
   inline GameObjectComponentHandle<T> getComponent();
 

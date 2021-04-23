@@ -70,7 +70,9 @@ std::vector<std::string> FileUtils::getScriptsList()
   std::vector<std::string> scriptsList;
 
   for (const auto& entry : std::filesystem::directory_iterator(SCRIPTS_PATH)) {
-    scriptsList.push_back(entry.path().stem().string());
+    if (entry.is_regular_file()) {
+      scriptsList.push_back(entry.path().stem().string());
+    }
   }
 
   return scriptsList;
