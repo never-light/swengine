@@ -17,11 +17,22 @@ struct HitActorEvent {
  private:
   GameObject m_actor;
   float m_hitValue;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
 };
 
 struct HitActorCommandEvent : public HitActorEvent {
  public:
   HitActorCommandEvent(GameObject actor, float hitValue);
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
+  inline std::string logData() const
+  {
+    return fmt::format("actor {}, hit_value {}", getActor().getName(), getHitValue());
+  }
 };
 
 // TODO: choose events naming convention (for example, separate them into signals and commands)
@@ -47,7 +58,7 @@ struct ActorDeathSignalEvent {
 // TODO: implement garbage collection for dead actors
 
 class ActorDamageSystem : public GameSystem,
-                           public EventsListener<HitActorCommandEvent> {
+                          public EventsListener<HitActorCommandEvent> {
  public:
   ActorDamageSystem() = default;
 

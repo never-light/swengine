@@ -30,6 +30,10 @@ struct QuestStateChangedEvent {
  private:
   GameObject m_actor;
   std::string m_questId;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestStartedEvent : public QuestStateChangedEvent {
@@ -39,6 +43,10 @@ struct QuestStartedEvent : public QuestStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestCompletedEvent : public QuestStateChangedEvent {
@@ -48,6 +56,10 @@ struct QuestCompletedEvent : public QuestStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestFailedEvent : public QuestStateChangedEvent {
@@ -57,6 +69,10 @@ struct QuestFailedEvent : public QuestStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestTaskStateChangedEvent : public QuestStateChangedEvent {
@@ -76,6 +92,10 @@ struct QuestTaskStateChangedEvent : public QuestStateChangedEvent {
 
  private:
   std::string m_taskId;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestTaskStartedEvent : public QuestTaskStateChangedEvent {
@@ -85,6 +105,10 @@ struct QuestTaskStartedEvent : public QuestTaskStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestTaskCompletedEvent : public QuestTaskStateChangedEvent {
@@ -94,6 +118,10 @@ struct QuestTaskCompletedEvent : public QuestTaskStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestTaskFailedEvent : public QuestTaskStateChangedEvent {
@@ -103,6 +131,10 @@ struct QuestTaskFailedEvent : public QuestTaskStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct QuestTaskCancelledEvent : public QuestTaskStateChangedEvent {
@@ -112,6 +144,10 @@ struct QuestTaskCancelledEvent : public QuestTaskStateChangedEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 class QuestsStorage {

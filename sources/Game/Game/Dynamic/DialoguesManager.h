@@ -7,6 +7,8 @@
 #include "GameLogicConditionsManager.h"
 
 struct StopDialogueCommandEvent {
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
 
 };
 

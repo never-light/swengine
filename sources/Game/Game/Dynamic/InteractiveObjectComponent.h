@@ -30,6 +30,16 @@ struct InteractiveObjectActionTriggeredEvent {
   GameObject target;
 
   InteractiveObjectActionType triggerType;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
+  inline std::string logData() const
+  {
+    const char* triggersTypesAliases[] = { "use", "take", "talk" };
+    return fmt::format("initiator {}, target {}, trigger_type {}",
+      initiator.getName(), target.getName(), triggersTypesAliases[size_t(triggerType)]);
+  }
 };
 
 struct InteractiveComponentBindingParameters {

@@ -28,6 +28,10 @@ struct InventoryItemActionEvent {
   InventoryItemActionTriggerType triggerType;
 
   GameObject item;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct InventoryItemActionCommandEvent : public InventoryItemActionEvent {
@@ -39,6 +43,10 @@ struct InventoryItemActionCommandEvent : public InventoryItemActionEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct InventoryItemTransferEvent {
@@ -58,6 +66,10 @@ struct InventoryItemTransferEvent {
   GameObject initiator;
   GameObject target;
   GameObject item;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct InventoryItemTransferCommandEvent : public InventoryItemTransferEvent {
@@ -70,6 +82,10 @@ struct InventoryItemTransferCommandEvent : public InventoryItemTransferEvent {
   {
 
   }
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct InventoryComponentBindingParameters {

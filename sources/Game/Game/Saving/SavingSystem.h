@@ -23,6 +23,9 @@ struct SaveCommandTriggerEvent {
 
  private:
   std::string m_saveName;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
 };
 
 struct LoadCommandTriggerEvent {

@@ -8,6 +8,8 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
+#include "Utility/types_reflection.h"
+
 #include "GameSystemsGroup.h"
 #include "GameObject.h"
 #include "GameObjectsFactory.h"
@@ -17,6 +19,9 @@
 #include "GameObjectsComponentsView.h"
 
 #include "EventsListener.h"
+
+DECLARE_VARIABLE_EXISTENCE_CHECKER(IS_EVENT_LOGGING_ALLOWED, IS_LOGGING_ALLOWED);
+DECLARE_METHOD_EXISTENCE_CHECKER(IS_EVENT_HAS_LOG_FORMATTER, logData);
 
 struct GameWorldSerializeHeader {
   uint32_t gameObjectsCount = 0;
@@ -376,6 +381,8 @@ class GameWorld {
 
   std::vector<std::vector<BaseEventsListener*>> m_eventsListeners;
 
+  size_t m_eventsLoggingIndentionLevel = 0;
+
  private:
   friend class GameObject;
 };
@@ -414,7 +421,17 @@ inline EventProcessStatus GameWorld::emitEvent(const T& event)
   bool processed = false;
   size_t typeId = EventsTypeInfo::getTypeIndex<T>();
 
-//  spdlog::debug("GameWorld::emitEvent");
+  if constexpr (LOG_EVENTS_TRIGGERING && IS_EVENT_LOGGING_ALLOWED<T>::value) {
+    if constexpr (T::IS_LOGGING_ALLOWED) {
+      spdlog::debug("{:<{}}>> GameWorld::emitEvent: event {}", "", m_eventsLoggingIndentionLevel * 2, typeid(T).name());
+
+      if constexpr (IS_EVENT_HAS_LOG_FORMATTER<T>::value) {
+        spdlog::debug("{:<{}}    {}", "", m_eventsLoggingIndentionLevel * 2, event.logData());
+      }
+
+      m_eventsLoggingIndentionLevel++;
+    }
+  }
 
   if (typeId < m_eventsListeners.size()) {
     for (BaseEventsListener* baseListener : m_eventsListeners[typeId]) {
@@ -427,6 +444,14 @@ inline EventProcessStatus GameWorld::emitEvent(const T& event)
       else if (processStatus == EventProcessStatus::Processed) {
         processed = true;
       }
+    }
+  }
+
+  if constexpr (LOG_EVENTS_TRIGGERING && IS_EVENT_LOGGING_ALLOWED<T>::value) {
+    if constexpr (T::IS_LOGGING_ALLOWED) {
+      m_eventsLoggingIndentionLevel--;
+
+      spdlog::debug("{:<{}}<< GameWorld::emitEvent: is_processed {}", "", m_eventsLoggingIndentionLevel * 2, processed);
     }
   }
 

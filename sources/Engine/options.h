@@ -23,3 +23,5 @@ constexpr bool LOG_RESOURCES_LOADING = false;
 constexpr bool LOG_RESOURCES_MANAGEMENT = false;
 
 constexpr bool LOG_GPU_ADDITIONAL_DEBUG_INFO_MESSAGES = false;
+
+constexpr bool LOG_EVENTS_TRIGGERING = true;

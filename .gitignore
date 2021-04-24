@@ -37,4 +37,3 @@ build/
 cmake-*/
 bin/
 resources/
-ThirdParty/assimp

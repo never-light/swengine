@@ -28,6 +28,10 @@ struct ActorDialogueStartCommandEvent {
  public:
   GameObject initiator;
   GameObject target;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 enum class QuestTaskState {

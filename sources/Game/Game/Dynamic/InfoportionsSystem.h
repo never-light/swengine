@@ -15,26 +15,46 @@ struct ToggleInfoportionEvent {
  private:
   GameObject m_actor;
   std::string m_infoportionName;
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct AddInfoportionCommandEvent : public ToggleInfoportionEvent {
  public:
   AddInfoportionCommandEvent(GameObject actor, std::string infoportionName);
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct RemoveInfoportionCommandEvent : public ToggleInfoportionEvent {
  public:
   RemoveInfoportionCommandEvent(GameObject actor, std::string infoportionName);
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct RemoveInfoportionEvent : public ToggleInfoportionEvent {
  public:
   RemoveInfoportionEvent(GameObject actor, std::string infoportionName);
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 struct AddInfoportionEvent : public ToggleInfoportionEvent {
  public:
   AddInfoportionEvent(GameObject actor, std::string infoportionName);
+
+ public:
+  static const auto IS_LOGGING_ALLOWED = true;
+
 };
 
 class ActorInfoportionsStorage {

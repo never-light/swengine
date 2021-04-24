@@ -245,6 +245,7 @@ void PlayerControlSystem::processNearestInteractiveObjects(const Transform& play
 
   auto& interactiveObjectComponent = *interactiveObject.getComponent<InteractiveObjectComponent>().get();
 
+  // TODO: don't hardcode the UI strings, use localization files instead
   if (interactiveObjectComponent.isUsable()) {
     m_uiLayout.interactionUIText->setText(
       fmt::format("{} - press F to interact", interactiveObjectComponent.getName()));
