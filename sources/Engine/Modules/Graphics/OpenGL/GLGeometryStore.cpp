@@ -98,7 +98,7 @@ std::vector<VertexFormatAttributeSpec> VertexPos3Norm3UVSkinnedSoA::s_vertexForm
     .attribIndex = 5,
     .bindingIndex = 5,
     .size = 4,
-    .type = GL_UNSIGNED_BYTE,
+    .type = GL_FLOAT,
     .normalized = GL_FALSE,
     .relativeOffset = 0
   },
@@ -385,7 +385,7 @@ void GLGeometryStore::updateVertices(const VertexPos3Norm3UVSkinnedSoA& vertices
 
     glNamedBufferSubData(m_vertexBuffers[4],
       0,
-      vertices.bonesIds->size() * sizeof(glm::u8vec4),
+      vertices.bonesIds->size() * sizeof(*vertices.bonesIds->begin()),
       vertices.bonesIds->data());
 
     verticesCount = vertices.bonesIds->size();
@@ -396,7 +396,7 @@ void GLGeometryStore::updateVertices(const VertexPos3Norm3UVSkinnedSoA& vertices
 
     glNamedBufferSubData(m_vertexBuffers[5],
       0,
-      vertices.bonesWeights->size() * sizeof(glm::u8vec4),
+      vertices.bonesWeights->size() * sizeof(*vertices.bonesWeights->begin()),
       vertices.bonesWeights->data());
 
     verticesCount = vertices.bonesIds->size();

@@ -76,12 +76,13 @@ T AnimationClip::getMixedAdjacentFrames(const std::vector<S>& frames, float time
               return a.time < b.time;
             });
 
+    // TODO: decide how to handle the missing first frame (e.i. clip starts from time like 0.03s)
     if (frameIt == frames.end()) {
         return (frames.size() > 0) ? getFrameValue<T, S>(*frames.rbegin()) : getIdentity<T>();
     }
     else {
         T next = getFrameValue<T, S>(*frameIt);
-        T prev = (frameIt == frames.begin()) ? getIdentity<T>() : getFrameValue<T, S>(*std::prev(frameIt));
+        T prev = (frameIt == frames.begin()) ? next : getFrameValue<T, S>(*std::prev(frameIt));
 
         float currentFrameTime = frameIt->time;
         float prevFrameTime = (frameIt == frames.begin()) ? 0 : std::prev(frameIt)->time;

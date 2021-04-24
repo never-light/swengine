@@ -10,7 +10,10 @@
 
 #include <utility>
 
-#define START_WITH_FREE_CAMERA 1
+//#define START_WITH_FREE_CAMERA 1
+
+static constexpr const char* START_LEVEL_ID = "cabinet";
+//#define START_WITH_TMP_LEVEL "negan_anim"
 
 Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
@@ -20,7 +23,8 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
   std::shared_ptr<GUISystem> guiSystem,
   std::shared_ptr<ResourcesManager> resourceManager,
   std::shared_ptr<LevelsManager> levelsManager,
-  std::shared_ptr<GUILayout> gameUILayout)
+  std::shared_ptr<GUILayout> gameUILayout,
+  std::shared_ptr<ScriptsExecutor> scriptsExecutor)
   : m_gameWorld(gameWorld),
     m_inputModule(inputModule),
     m_graphicsContext(graphicsContext),
@@ -29,7 +33,8 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(resourceManager),
     m_levelsManager(levelsManager),
     m_gameApplicationSystems(std::move(gameApplicationSystemsGroup)),
-    m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
+    m_gameModeSystems(std::make_shared<GameModeSystemsGroup>()),
+    m_gameplayScriptingContext(std::make_shared<GameplayScriptingContext>(scriptsExecutor, gameWorld)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, graphicsScene, graphicsContext)),
     m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager)),
     m_interactiveObjectsControlSystem(std::make_shared<InteractiveObjectsControlSystem>()),
@@ -38,6 +43,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_questsSystem(std::make_shared<QuestsSystem>(m_gameLogicConditionsManager, m_questsStorage)),
     m_infoportionsSystem(std::make_shared<InfoportionsSystem>()),
     m_dialoguesManager(std::make_shared<DialoguesManager>(m_gameLogicConditionsManager)),
+    m_actorsDamageSystem(std::make_shared<ActorDamageSystem>()),
     m_gameUILayout(std::move(gameUILayout))
 {
   m_guiSystem->getWidgetsLoader()->registerWidgetLoader("inventory_ui",
@@ -71,8 +77,15 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_graphicsScene,
     m_playerUILayout);
 
-//  m_resourceManager->loadResourcesMapFile("crossroads/agency_room_export/resources.xml");
-  m_resourceManager->loadResourcesMapFile("crossroads/paul/resources.xml");
+#ifdef START_WITH_TMP_LEVEL
+  m_resourceManager->loadResourcesMapFile(FileUtils::getLevelPath(START_LEVEL_ID) + "/../../../../tmp/" +
+    std::string(START_WITH_TMP_LEVEL) + "/resources.xml");
+#else
+  m_resourceManager->loadResourcesMapFile(FileUtils::getLevelPath(START_LEVEL_ID) + "/resources.xml");
+#endif
+
+  m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
+    ExecuteScriptSimpleActionCommand{.actionName = "game.on_initialization"});
 }
 
 void Game::activate()
@@ -135,6 +148,7 @@ void Game::unload()
   m_gameModeSystems->removeGameSystem(m_questsSystem);
   m_gameModeSystems->removeGameSystem(m_infoportionsSystem);
   m_gameModeSystems->removeGameSystem(m_playerControlSystem);
+  m_gameModeSystems->removeGameSystem(m_actorsDamageSystem);
 
   if (m_gameApplicationSystems->isConfigured()) {
     m_gameApplicationSystems->removeGameSystem(m_gameModeSystems);
@@ -163,6 +177,11 @@ void Game::loadLevel(const std::string& levelName, bool isNewGame)
 
   m_levelsManager->loadLevelsSpawnLists();
 
+#ifdef START_WITH_TMP_LEVEL
+  m_levelsManager->loadLevelSpawnList(std::string(START_LEVEL_ID) + "/../../../../tmp/" +
+    std::string(START_WITH_TMP_LEVEL));
+#endif
+
   m_gameWorld->emitEvent<ExecuteScriptParametricActionCommand>(
     ExecuteScriptParametricActionCommand::create("game.before_level_loading",
       std::make_tuple(isNewGame, levelName)));
@@ -189,12 +208,14 @@ void Game::createLoadedGame(const std::string& levelName)
 
 void Game::setupGameState(bool isNewGame)
 {
+  m_gameModeSystems->setInitializationType(isNewGame);
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
 
   m_gameModeSystems->addGameSystem(m_inventoryControlSystem);
   m_gameModeSystems->addGameSystem(m_interactiveObjectsControlSystem);
   m_gameModeSystems->addGameSystem(m_questsSystem);
   m_gameModeSystems->addGameSystem(m_infoportionsSystem);
+  m_gameModeSystems->addGameSystem(m_actorsDamageSystem);
 
 #if defined(START_WITH_FREE_CAMERA) && START_WITH_FREE_CAMERA == 1
   m_activeCameraControlSystem = m_freeCameraControlSystem;
@@ -227,10 +248,7 @@ void Game::setupGameState(bool isNewGame)
     environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
   }
 
-  if (isNewGame) {
-    m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
-      ExecuteScriptSimpleActionCommand{"game.on_new_game"});
-  }
+
 }
 
 bool Game::isLoaded() const

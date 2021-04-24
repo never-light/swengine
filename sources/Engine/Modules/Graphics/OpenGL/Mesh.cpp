@@ -75,7 +75,7 @@ void Mesh::setUV(const std::vector<glm::vec2>& uv)
   setAttributeOutdated(MeshAttributes::UV);
 }
 
-void Mesh::setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights)
+void Mesh::setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::vec4>& bonesWeights)
 {
   SW_ASSERT(m_geometryStore == nullptr || m_isDynamic &&
     !m_bonesIDs.empty());

@@ -150,6 +150,7 @@ void PlayerControlSystem::update(float delta)
     }
   }
 
+  // TODO: what if player is not alive here? Fix it.
   updateHUD();
 
   if (!m_isMovementControlEnabled) {
@@ -289,11 +290,12 @@ EventProcessStatus PlayerControlSystem::receiveEvent(const InputActionToggleEven
 
 void PlayerControlSystem::fixedUpdate(float delta)
 {
-  if (!m_isMovementControlEnabled) {
+  if (!m_isMovementControlEnabled || !m_playerObject.isAlive()) {
     return;
   }
 
-  auto& playerComponent = *m_playerObject.getComponent<PlayerComponent>().get();
+  auto playerComponent = m_playerObject.getComponent<PlayerComponent>();
+
   auto& playerCameraTransform = *getPlayerCamera().getTransform();
   // auto& playerTransform = m_playerObject.getComponent<TransformComponent>().getTransform();
 
@@ -302,7 +304,7 @@ void PlayerControlSystem::fixedUpdate(float delta)
   glm::vec3 playerCameraRightDirection = glm::normalize(playerCameraTransform.getRightDirection() *
     glm::vec3{1.0f, 0.0f, 1.0f});
 
-  float playerMovementSpeed = playerComponent.getMovementSpeed();
+  float playerMovementSpeed = playerComponent->getMovementSpeed();
 
   bool playerIsWalking = m_inputModule->isActionActive("forward") ||
     m_inputModule->isActionActive("backward") ||

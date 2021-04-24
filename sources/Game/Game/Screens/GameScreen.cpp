@@ -13,14 +13,16 @@ GameScreen::GameScreen(
   std::shared_ptr<GameSystemsGroup> gameApplicationSystemsGroup,
   std::shared_ptr<LevelsManager> levelsManager,
   std::shared_ptr<GraphicsScene> graphicsScene,
-  std::shared_ptr<GUISystem> guiSystem)
+  std::shared_ptr<GUISystem> guiSystem,
+  std::shared_ptr<ScriptsExecutor> scriptsExecutor)
   : BaseGameScreen(GameScreenType::Game),
     m_inputModule(std::move(inputModule)),
     m_gameApplicationSystemsGroup(std::move(gameApplicationSystemsGroup)),
     m_levelsManager(std::move(levelsManager)),
     m_graphicsScene(std::move(graphicsScene)),
     m_guiSystem(std::move(guiSystem)),
-    m_gameGUILayout(std::make_shared<GUILayout>())
+    m_gameGUILayout(std::make_shared<GUILayout>()),
+    m_scriptsExecutor(std::move(scriptsExecutor))
 {
   m_debugGUILayout = m_guiSystem->loadScheme(
     FileUtils::getGUISchemePath("screen_game_debug"));
@@ -39,7 +41,8 @@ void GameScreen::activate()
 
   if (!m_game->isLoaded()) {
 //    m_game->createNewGame("../../../bin/crossroads/agency_room_export");
-    m_game->createNewGame("../../../bin/crossroads/paul");
+//    m_game->createNewGame("../../../tmp/negan_anim");
+    m_game->createNewGame("cabinet");
     m_game->setupGameState(true);
   }
 }
@@ -123,7 +126,8 @@ void GameScreen::initializeGame()
     m_guiSystem,
     m_resourceManager,
     m_levelsManager,
-    m_gameGUILayout);
+    m_gameGUILayout,
+    m_scriptsExecutor);
 
   spdlog::info("Game is loaded...");
 }

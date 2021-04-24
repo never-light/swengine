@@ -35,6 +35,14 @@ void MeshRenderingSystem::unconfigure()
 void MeshRenderingSystem::update(float delta)
 {
   ARG_UNUSED(delta);
+
+  if (m_isSkeletonsRenderingEnabled) {
+    for (GameObject object : getGameWorld()->allWith<SkeletalAnimationComponent>()) {
+      if (object.getComponent<TransformComponent>()->isOnline() && object.hasComponent<ObjectSceneNodeComponent>()) {
+        debugDrawSkeleton(object);
+      }
+    }
+  }
 }
 
 void MeshRenderingSystem::render()
@@ -104,17 +112,10 @@ void MeshRenderingSystem::render()
         .material = meshComponent->getMaterialInstance(subMeshIndex).get(),
         .mesh = mesh,
         .subMeshIndex = static_cast<uint16_t>(subMeshIndex),
-        .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) : &transform.getTransformationMatrix()),
+        .transform = ((isMeshAnimated) ? &(*skinnedMeshesPremultipliedTransforms.rbegin()) :
+          &transform.getTransformationMatrix()),
         .matrixPalette = matrixPalette,
       });
-
-//      if (matrixPalette != nullptr) {
-//        for (size_t i = 0; i < mesh->getSkeleton()->getBonesCount(); i++) {
-//          spdlog::debug("#{}: {}", i, glm::to_string(matrixPalette[i]));
-//        }
-//
-//        DEBUG_BREAK();
-//      }
 
       if (m_isBoundsRenderingEnabled) {
         if (transformComponent.isStatic()) {
@@ -136,4 +137,60 @@ void MeshRenderingSystem::enableBoundsRendering(bool isEnabled)
 bool MeshRenderingSystem::isBoundsRenderingEnabled() const
 {
   return m_isBoundsRenderingEnabled;
+}
+
+void MeshRenderingSystem::debugDrawSkeleton(GameObject& gameObject)
+{
+  auto animationComponent = gameObject.getComponent<SkeletalAnimationComponent>();
+  auto& statesMachine = animationComponent->getAnimationStatesMachineRef();
+
+  const auto& palette = statesMachine.getCurrentMatrixPalette();
+  const auto& skeleton = statesMachine.getSkeleton();
+
+  for (size_t boneIndex = 0; boneIndex < palette.bonesTransforms.size(); boneIndex++) {
+    glm::vec4 boneCenter = glm::inverse(skeleton->getBone(uint8_t(boneIndex)).getInverseBindPoseMatrix()) *
+      glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    glm::vec4 parentBoneCenter;
+    auto parentBoneIndex = skeleton->getBoneParentId(uint8_t(boneIndex));
+
+    if (parentBoneIndex == Bone::ROOT_BONE_PARENT_ID) {
+      parentBoneCenter = boneCenter;
+      parentBoneIndex = uint8_t(boneIndex);
+    }
+    else {
+      parentBoneCenter =
+        glm::inverse(skeleton->getBone(parentBoneIndex).getInverseBindPoseMatrix())
+          * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    boneCenter = palette.bonesTransforms[boneIndex] * boneCenter;
+    parentBoneCenter = palette.bonesTransforms[parentBoneIndex] * parentBoneCenter;
+
+    auto& objectTransform = gameObject.getComponent<TransformComponent>()->getTransform();
+    auto& inverseSceneTransform =
+      gameObject.getComponent<MeshRendererComponent>()->getMeshInstance()->getInverseSceneTransform();
+
+    glm::vec3 boneVectorStart = objectTransform.getTransformationMatrix() * inverseSceneTransform * boneCenter;
+    glm::vec3 boneVectorEnd = objectTransform.getTransformationMatrix() * inverseSceneTransform * parentBoneCenter;
+
+    boneVectorStart += objectTransform.getFrontDirection() * m_skeletonsRenderingOffset;
+    boneVectorEnd += objectTransform.getFrontDirection() * m_skeletonsRenderingOffset;
+
+    DebugPainter::renderSphere(boneVectorStart, 0.03f);
+    DebugPainter::renderSegment(boneVectorStart, boneVectorEnd, {0.0f, 0.8f, 0.0f, 1.0f});
+
+//    DebugPainter::renderVector(gameObject.getComponent<TransformComponent>()->getBoundingSphere().getOrigin(),
+//      objectTransform.getFrontDirection(), {0.0f, 0.8f, 0.0f, 1.0f});
+  }
+}
+
+void MeshRenderingSystem::enableSkeletonsRendering(bool isEnabled)
+{
+  m_isSkeletonsRenderingEnabled = isEnabled;
+}
+
+bool MeshRenderingSystem::isSkeletonsRenderingEnabled() const
+{
+  return m_isSkeletonsRenderingEnabled;
 }

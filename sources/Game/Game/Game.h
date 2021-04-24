@@ -6,6 +6,7 @@
 #include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
+#include <Engine/Modules/Scripting/ScriptingSystem.h>
 
 #include "PlayerControlSystem.h"
 #include "FreeCameraControlSystem.h"
@@ -15,6 +16,39 @@
 #include "Game/Dynamic/InteractiveObjectsControlSystem.h"
 #include "Game/Dynamic/QuestsSystem.h"
 #include "Game/Dynamic/InfoportionsSystem.h"
+#include "Game/Dynamic/ActorDamageSystem.h"
+#include "Game/Scripting/GameplayScriptingContext.h"
+
+class GameModeSystemsGroup : public GameSystemsGroup {
+ public:
+  GameModeSystemsGroup() = default;
+
+  void setInitializationType(bool isNewGame)
+  {
+    m_isNewGame = isNewGame;
+    m_isFirstActivationPending = true;
+  }
+
+  void activate() override
+  {
+    GameSystemsGroup::activate();
+
+    if (m_isNewGame) {
+      getGameWorld()->emitEvent<ExecuteScriptSimpleActionCommand>(
+        ExecuteScriptSimpleActionCommand{"game.on_new_game"});
+    }
+    else {
+      getGameWorld()->emitEvent<ExecuteScriptSimpleActionCommand>(
+        ExecuteScriptSimpleActionCommand{"game.on_load_game"});
+    }
+
+    m_isFirstActivationPending = false;
+  }
+
+ private:
+  bool m_isFirstActivationPending = false;
+  bool m_isNewGame = false;
+};
 
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
@@ -26,7 +60,8 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
     std::shared_ptr<GUISystem> guiSystem,
     std::shared_ptr<ResourcesManager> resourceManager,
     std::shared_ptr<LevelsManager> levelsManager,
-    std::shared_ptr<GUILayout> gameUILayout);
+    std::shared_ptr<GUILayout> gameUILayout,
+    std::shared_ptr<ScriptsExecutor> scriptsExecutor);
 
   ~Game() override = default;
 
@@ -75,7 +110,10 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<LevelsManager> m_levelsManager;
 
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
-  std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
+  std::shared_ptr<GameModeSystemsGroup> m_gameModeSystems;
+
+  std::shared_ptr<GameplayScriptingContext> m_gameplayScriptingContext;
+
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;
   std::shared_ptr<FreeCameraControlSystem> m_freeCameraControlSystem;
 
@@ -86,6 +124,7 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<QuestsSystem> m_questsSystem;
   std::shared_ptr<InfoportionsSystem> m_infoportionsSystem;
   std::shared_ptr<DialoguesManager> m_dialoguesManager;
+  std::shared_ptr<ActorDamageSystem> m_actorsDamageSystem;
 
   std::shared_ptr<GameSystem> m_preservedCameraControlSystem;
   std::shared_ptr<GameSystem> m_activeCameraControlSystem;

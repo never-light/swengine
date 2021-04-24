@@ -73,7 +73,7 @@ struct RawMesh {
   std::vector<RawVector3> tangents;
   std::vector<RawVector2> uv;
   std::vector<RawU8Vector4> bonesIds;
-  std::vector<RawU8Vector4> bonesWeights;
+  std::vector<RawVector4> bonesWeights;
 
   std::vector<RawSubMeshDescription> subMeshesDescriptions;
 

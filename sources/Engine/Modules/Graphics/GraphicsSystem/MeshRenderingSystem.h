@@ -22,6 +22,15 @@ class MeshRenderingSystem : public RenderingSystem {
   void enableBoundsRendering(bool isEnabled = true);
   [[nodiscard]] bool isBoundsRenderingEnabled() const;
 
+  void enableSkeletonsRendering(bool isEnabled = true);
+  [[nodiscard]] bool isSkeletonsRenderingEnabled() const;
+
+ private:
+  void debugDrawSkeleton(GameObject& gameObject);
+
  private:
   bool m_isBoundsRenderingEnabled{};
+  bool m_isSkeletonsRenderingEnabled{};
+
+  float m_skeletonsRenderingOffset = 0.5f;
 };

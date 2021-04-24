@@ -1,6 +1,7 @@
 #include "ActorDamageSystem.h"
 
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include <Engine/Modules/Math/MathUtils.h>
 
@@ -59,6 +60,9 @@ EventProcessStatus ActorDamageSystem::receiveEvent(const HitActorCommandEvent& e
   GameObject actorObject = event.getActor();
   SW_ASSERT(actorObject.hasComponent<ActorComponent>());
 
+  spdlog::debug(">> ActorDamageSystem::receiveEvent<HitActorCommandEvent>, actorName {}, hitValue {}",
+    actorObject.getName(), event.getHitValue());
+
   auto actorComponent = actorObject.getComponent<ActorComponent>();
 
   SW_ASSERT(!actorComponent->isDead());
@@ -83,6 +87,8 @@ EventProcessStatus ActorDamageSystem::receiveEvent(const HitActorCommandEvent& e
       destroyActor(actorObject);
     }
   }
+
+  spdlog::debug("<< ActorDamageSystem::receiveEvent<HitActorCommandEvent>");
 
   return EventProcessStatus::Processed;
 }

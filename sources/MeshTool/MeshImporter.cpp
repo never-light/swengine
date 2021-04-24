@@ -208,6 +208,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
       }
     }
 
+#if 0
     // Correct bones influence weights
     int unskinnedVerticesCount = 0;
 
@@ -238,6 +239,7 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
     if (options.loadSkin && unskinnedVerticesCount > 0) {
       spdlog::warn("There is {} unskinned vertices", unskinnedVerticesCount);
     }
+#endif
 
     subMeshesIndices.push_back(std::move(indices));
   }
@@ -252,7 +254,11 @@ std::unique_ptr<RawMesh> MeshImporter::convertSceneToMesh(const aiScene& scene,
   mesh->tangents = tangents;
   mesh->uv = uv;
   mesh->bonesIds = bonesIDs;
-  mesh->bonesWeights = convertedBonesWeights;
+#if 0
+  mesh->bonesWeights = bonesWeights;
+#endif
+
+  SW_ASSERT(false && "This importer isn't supported anymore and left as reference");
 
   for (const auto& subMeshIndices : subMeshesIndices) {
     mesh->subMeshesDescriptions.push_back(RawSubMeshDescription{

@@ -54,7 +54,7 @@ class Mesh : public Resource {
   void setTangents(const std::vector<glm::vec3>& tangents);
   void setUV(const std::vector<glm::vec2>& uv);
 
-  void setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::u8vec4>& bonesWeights);
+  void setSkinData(const std::vector<glm::u8vec4>& bonesIDs, const std::vector<glm::vec4>& bonesWeights);
 
   [[nodiscard]] bool hasVertices() const;
   [[nodiscard]] bool hasNormals() const;
@@ -97,7 +97,7 @@ class Mesh : public Resource {
   std::vector<glm::vec3> m_tangents;
   std::vector<glm::vec2> m_uv;
   std::vector<glm::u8vec4> m_bonesIDs;
-  std::vector<glm::u8vec4> m_bonesWeights;
+  std::vector<glm::vec4> m_bonesWeights;
 
   bool m_needGeometryBufferUpdate = false;
 

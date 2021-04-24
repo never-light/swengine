@@ -6,7 +6,7 @@
 
 #include "Screen.h"
 
-struct ScreenSwitchEvent {
+struct AfterScreenSwitchEvent {
   const Screen* previousScreen;
   const Screen* newScreen;
 };

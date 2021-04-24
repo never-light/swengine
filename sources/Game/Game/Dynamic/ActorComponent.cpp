@@ -189,8 +189,8 @@ void ActorQuestState::setCurrentTaskId(const std::string& taskId)
   m_currentTaskId = taskId;
 }
 
-ActorComponentBinder::ActorComponentBinder(const ComponentBindingParameters& componentParameters)
-  : m_bindingParameters(componentParameters)
+ActorComponentBinder::ActorComponentBinder(ComponentBindingParameters  componentParameters)
+  : m_bindingParameters(std::move(componentParameters))
 {
 
 }

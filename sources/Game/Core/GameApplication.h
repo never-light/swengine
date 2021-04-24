@@ -11,7 +11,7 @@
 #include "Game/Dynamic/DialoguesManager.h"
 
 class GameApplication : public BaseGameApplication,
-                        public EventsListener<ScreenSwitchEvent> {
+                        public EventsListener<AfterScreenSwitchEvent> {
  public:
   GameApplication(int argc, char* argv[]);
   ~GameApplication() override;
@@ -22,7 +22,7 @@ class GameApplication : public BaseGameApplication,
   void unload() override;
 
  public:
-  EventProcessStatus receiveEvent(const ScreenSwitchEvent& event) override;
+  EventProcessStatus receiveEvent(const AfterScreenSwitchEvent& event) override;
 
  private:
   std::unique_ptr<GameComponentsLoader> m_componentsLoader;

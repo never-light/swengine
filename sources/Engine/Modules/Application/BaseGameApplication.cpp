@@ -154,6 +154,11 @@ EventProcessStatus BaseGameApplication::receiveEvent(const GameConsoleCommandEve
 
     return EventProcessStatus::Processed;
   }
+  else if (event.command == "debug-draw-skeletons") {
+    m_meshRenderingSystem->enableSkeletonsRendering(!m_meshRenderingSystem->isSkeletonsRenderingEnabled());
+
+    return EventProcessStatus::Processed;
+  }
   else if (event.command == "camera-position") {
     m_gameConsole->print("Position: " +
       glm::to_string(m_graphicsScene->getActiveCamera()->getTransform()->getPosition()));
@@ -444,7 +449,10 @@ void BaseGameApplication::initializeEngineSystems()
   m_engineGameSystems->addGameSystem(m_spawnSystem);
 
   // Scripting system
-  m_scriptingSystem = std::make_shared<ScriptingSystem>(m_gameWorld);
+  m_scriptingSystem = std::make_shared<ScriptingSystem>(std::make_shared<ScriptingContext>(
+    m_gameWorld,
+    m_levelsManager,
+    resourceManager));
   m_engineGameSystems->addGameSystem(m_scriptingSystem);
 
   // Game application systems

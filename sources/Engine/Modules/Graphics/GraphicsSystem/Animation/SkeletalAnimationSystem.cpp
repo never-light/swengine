@@ -2,6 +2,8 @@
 
 #pragma hdrstop
 
+#include "Modules/Graphics/GraphicsSystem/DebugPainter.h"
+#include "Modules/Graphics/GraphicsSystem/GraphicsScene.h"
 #include "SkeletalAnimationSystem.h"
 #include "Bone.h"
 
@@ -20,7 +22,7 @@ void SkeletalAnimationSystem::unconfigure()
 void SkeletalAnimationSystem::update(float delta)
 {
   for (GameObject obj : getGameWorld()->allWith<SkeletalAnimationComponent>()) {
-    if (obj.getComponent<TransformComponent>()->isOnline()) {
+    if (obj.getComponent<TransformComponent>()->isOnline() && obj.hasComponent<ObjectSceneNodeComponent>()) {
       auto animationComponent = obj.getComponent<SkeletalAnimationComponent>();
       auto& statesMachine = animationComponent->getAnimationStatesMachineRef();
 

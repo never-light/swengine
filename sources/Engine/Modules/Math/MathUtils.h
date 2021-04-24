@@ -53,6 +53,9 @@ class MathUtils {
 
   static glm::vec3 extractScale2(const glm::mat4& matrix);
 
+  static glm::mat4 buildTRSMatrix(const glm::vec3& position, const glm::quat& orientation = glm::identity<glm::quat>(),
+    const glm::vec3& scale = glm::vec3(1.0f));
+
  public:
   static constexpr glm::vec3 AXIS_X = {1.0f, 0.0f, 0.0f};
   static constexpr glm::vec3 AXIS_Y = {0.0f, 1.0f, 0.0f};

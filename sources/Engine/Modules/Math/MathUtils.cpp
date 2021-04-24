@@ -166,3 +166,10 @@ glm::vec3 MathUtils::extractScale2(const glm::mat4& matrix)
     glm::length2(glm::vec3(matrix[1])),
     glm::length2(glm::vec3(matrix[2])));
 }
+
+glm::mat4 MathUtils::buildTRSMatrix(const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale)
+{
+  return glm::translate(glm::identity<glm::mat4x4>(), position) *
+    glm::toMat4(orientation) *
+    glm::scale(glm::identity<glm::mat4x4>(), scale);
+}

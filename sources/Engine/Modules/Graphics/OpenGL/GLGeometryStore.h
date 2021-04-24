@@ -41,7 +41,7 @@ struct VertexPos3Norm3UVSkinnedSoA {
   std::vector<glm::vec3>* normals;
   std::vector<glm::vec2>* uv;
   std::vector<glm::u8vec4>* bonesIds;
-  std::vector<glm::u8vec4>* bonesWeights;
+  std::vector<glm::vec4>* bonesWeights;
 
   static std::vector<VertexFormatAttributeSpec> s_vertexFormatAttributes;
 };

@@ -80,7 +80,8 @@ void GameApplication::load()
     getGameApplicationSystemsGroup(),
     m_levelsManager,
     m_graphicsScene,
-    m_guiSystem);
+    m_guiSystem,
+    m_scriptingSystem->getScriptsExecutor());
   m_screenManager->registerScreen(gameScreen);
 
   auto mainMenuGUILayout = m_guiSystem->loadScheme(
@@ -108,17 +109,17 @@ void GameApplication::load()
   m_engineGameSystems->addGameSystem(std::make_shared<SavingSystem>(m_levelsManager,
     gameScreen->getGame()));
 
-  m_gameWorld->subscribeEventsListener<ScreenSwitchEvent>(this);
+  m_gameWorld->subscribeEventsListener<AfterScreenSwitchEvent>(this);
   m_screenManager->changeScreen(BaseGameScreen::getScreenName(GameScreenType::MainMenu));
 }
 
 void GameApplication::unload()
 {
   m_componentsLoader.reset();
-  m_gameWorld->unsubscribeEventsListener<ScreenSwitchEvent>(this);
+  m_gameWorld->unsubscribeEventsListener<AfterScreenSwitchEvent>(this);
 }
 
-EventProcessStatus GameApplication::receiveEvent(const ScreenSwitchEvent& event)
+EventProcessStatus GameApplication::receiveEvent(const AfterScreenSwitchEvent& event)
 {
   if (event.newScreen->getName() == "Game") {
     m_engineGameSystems->getGameSystem<SkeletalAnimationSystem>()->setActive(true);

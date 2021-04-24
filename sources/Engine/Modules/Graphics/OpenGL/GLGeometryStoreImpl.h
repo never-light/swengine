@@ -193,14 +193,14 @@ void GLGeometryStore::setupVertexBuffers<>(const VertexPos3Norm3UVSkinnedSoA& ve
   glVertexArrayVertexBuffer(m_vertexArrayObject, 2, m_vertexBuffers[2], 0, sizeof(glm::vec2));
 
   glNamedBufferStorage(m_vertexBuffers[4],
-    static_cast<GLsizeiptr>(bonesIDs.size() * sizeof(glm::u8vec4)),
+    static_cast<GLsizeiptr>(bonesIDs.size() * sizeof(*bonesIDs.begin())),
     bonesIDs.data(), storageFlags);
-  glVertexArrayVertexBuffer(m_vertexArrayObject, 4, m_vertexBuffers[4], 0, sizeof(glm::u8vec4));
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 4, m_vertexBuffers[4], 0, sizeof(*bonesIDs.begin()));
 
   glNamedBufferStorage(m_vertexBuffers[5],
-    static_cast<GLsizeiptr>(bonesWeights.size() * sizeof(glm::u8vec4)),
+    static_cast<GLsizeiptr>(bonesWeights.size() * sizeof(*bonesWeights.begin())),
     bonesWeights.data(), storageFlags);
-  glVertexArrayVertexBuffer(m_vertexArrayObject, 5, m_vertexBuffers[5], 0, sizeof(glm::u8vec4));
+  glVertexArrayVertexBuffer(m_vertexArrayObject, 5, m_vertexBuffers[5], 0, sizeof(*bonesWeights.begin()));
 
 }
 
