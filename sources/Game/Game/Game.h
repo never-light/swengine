@@ -6,6 +6,7 @@
 #include <Engine/Modules/ResourceManagement/ResourcesManagement.h>
 #include <Engine/Modules/ECS/GameSystemsGroup.h>
 #include <Engine/Modules/LevelsManagement/LevelsManager.h>
+#include <Engine/Modules/Scripting/ScriptingSystem.h>
 
 #include "PlayerControlSystem.h"
 #include "FreeCameraControlSystem.h"
@@ -17,6 +18,37 @@
 #include "Game/Dynamic/InfoportionsSystem.h"
 #include "Game/Dynamic/ActorDamageSystem.h"
 #include "Game/Scripting/GameplayScriptingContext.h"
+
+class GameModeSystemsGroup : public GameSystemsGroup {
+ public:
+  GameModeSystemsGroup() = default;
+
+  void setInitializationType(bool isNewGame)
+  {
+    m_isNewGame = isNewGame;
+    m_isFirstActivationPending = true;
+  }
+
+  void activate() override
+  {
+    GameSystemsGroup::activate();
+
+    if (m_isNewGame) {
+      getGameWorld()->emitEvent<ExecuteScriptSimpleActionCommand>(
+        ExecuteScriptSimpleActionCommand{"game.on_new_game"});
+    }
+    else {
+      getGameWorld()->emitEvent<ExecuteScriptSimpleActionCommand>(
+        ExecuteScriptSimpleActionCommand{"game.on_load_game"});
+    }
+
+    m_isFirstActivationPending = false;
+  }
+
+ private:
+  bool m_isFirstActivationPending = false;
+  bool m_isNewGame = false;
+};
 
 class Game : public EventsListener<GameConsoleCommandEvent> {
  public:
@@ -78,7 +110,8 @@ class Game : public EventsListener<GameConsoleCommandEvent> {
   std::shared_ptr<LevelsManager> m_levelsManager;
 
   std::shared_ptr<GameSystemsGroup> m_gameApplicationSystems;
-  std::shared_ptr<GameSystemsGroup> m_gameModeSystems;
+  std::shared_ptr<GameModeSystemsGroup> m_gameModeSystems;
+
   std::shared_ptr<GameplayScriptingContext> m_gameplayScriptingContext;
 
   std::shared_ptr<PlayerControlSystem> m_playerControlSystem;

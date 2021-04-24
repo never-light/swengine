@@ -9,8 +9,20 @@
 #define LOCAL_VALUE_UNUSED(value) (void)(value)
 
 #ifdef _DEBUG
+#ifdef _MSC_VER
+#define DEBUG_BREAK() __debugbreak()
+#else
+#warning "Debug break feature is not available on Linux platform"
+#define DEBUG_BREAK()
+#endif
+#else
+#define DEBUG_BREAK()
+#endif
+
+#ifdef _DEBUG
 inline void swAssert(bool condition) {
   if (!condition) {
+    DEBUG_BREAK();
     assert(false);
   }
 }
@@ -22,13 +34,3 @@ inline void swAssert(bool condition) {
 
 #define SW_STATIC_ASSERT static_assert
 
-#ifdef _DEBUG
-#ifdef _MSC_VER
-#define DEBUG_BREAK() __debugbreak()
-#else
-#warning "Debug break feature is not available on Linux platform"
-#define DEBUG_BREAK()
-#endif
-#else
-#define DEBUG_BREAK()
-#endif

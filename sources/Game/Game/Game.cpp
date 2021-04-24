@@ -33,7 +33,7 @@ Game::Game(std::shared_ptr<GameWorld> gameWorld,
     m_resourceManager(resourceManager),
     m_levelsManager(levelsManager),
     m_gameApplicationSystems(std::move(gameApplicationSystemsGroup)),
-    m_gameModeSystems(std::make_shared<GameSystemsGroup>()),
+    m_gameModeSystems(std::make_shared<GameModeSystemsGroup>()),
     m_gameplayScriptingContext(std::make_shared<GameplayScriptingContext>(scriptsExecutor, gameWorld)),
     m_freeCameraControlSystem(std::make_shared<FreeCameraControlSystem>(inputModule, graphicsScene, graphicsContext)),
     m_inventoryControlSystem(std::make_shared<InventoryControlSystem>(levelsManager)),
@@ -208,6 +208,7 @@ void Game::createLoadedGame(const std::string& levelName)
 
 void Game::setupGameState(bool isNewGame)
 {
+  m_gameModeSystems->setInitializationType(isNewGame);
   m_gameApplicationSystems->addGameSystem(m_gameModeSystems);
 
   m_gameModeSystems->addGameSystem(m_inventoryControlSystem);
@@ -247,10 +248,7 @@ void Game::setupGameState(bool isNewGame)
     environmentObject.getComponent<AudioSourceComponent>()->getSource().play();
   }
 
-  if (isNewGame) {
-    m_gameWorld->emitEvent<ExecuteScriptSimpleActionCommand>(
-      ExecuteScriptSimpleActionCommand{"game.on_new_game"});
-  }
+
 }
 
 bool Game::isLoaded() const
