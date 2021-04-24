@@ -28,6 +28,12 @@ struct AddInfoportionCommandEvent : public ToggleInfoportionEvent {
  public:
   static const auto IS_LOGGING_ALLOWED = true;
 
+  inline std::string logData() const
+  {
+    return fmt::format("actor {}, info_name {}",
+      getActor().getName(), getInfoportionName());
+  }
+
 };
 
 struct RemoveInfoportionCommandEvent : public ToggleInfoportionEvent {
@@ -37,6 +43,11 @@ struct RemoveInfoportionCommandEvent : public ToggleInfoportionEvent {
  public:
   static const auto IS_LOGGING_ALLOWED = true;
 
+  inline std::string logData() const
+  {
+    return fmt::format("actor {}, info_name {}",
+      getActor().getName(), getInfoportionName());
+  }
 };
 
 struct RemoveInfoportionEvent : public ToggleInfoportionEvent {
@@ -46,6 +57,11 @@ struct RemoveInfoportionEvent : public ToggleInfoportionEvent {
  public:
   static const auto IS_LOGGING_ALLOWED = true;
 
+  inline std::string logData() const
+  {
+    return fmt::format("actor {}, info_name {}",
+      getActor().getName(), getInfoportionName());
+  }
 };
 
 struct AddInfoportionEvent : public ToggleInfoportionEvent {
@@ -55,6 +71,11 @@ struct AddInfoportionEvent : public ToggleInfoportionEvent {
  public:
   static const auto IS_LOGGING_ALLOWED = true;
 
+  inline std::string logData() const
+  {
+    return fmt::format("actor {}, info_name {}",
+      getActor().getName(), getInfoportionName());
+  }
 };
 
 class ActorInfoportionsStorage {

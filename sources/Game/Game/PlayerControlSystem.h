@@ -85,7 +85,9 @@ class PlayerControlSystem : public GameSystem,
 
   std::shared_ptr<GUILayout> m_questInfoLayout;
   std::shared_ptr<GUIText> m_questInfoTitle;
+  std::shared_ptr<GUIText> m_questInfoDescription;
   std::shared_ptr<GUIText> m_questInfoTaskTitle;
+  std::shared_ptr<GUIText> m_questInfoTaskDescription;
 
   std::shared_ptr<GUILayout> m_healthInfoLayout;
   std::shared_ptr<GUIProgressBar> m_healthProgressBar;

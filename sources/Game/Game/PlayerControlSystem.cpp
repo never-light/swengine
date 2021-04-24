@@ -95,10 +95,17 @@ void PlayerControlSystem::activate()
 
   m_questInfoTitle = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
     ->findChildByName("game_ui_actor_hud_layout_quest_info_title"));
+  m_questInfoDescription = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
+    ->findChildByName("game_ui_actor_hud_layout_quest_info_description"));
+
+
   m_questInfoTaskTitle = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
     ->findChildByName("game_ui_actor_hud_layout_quest_info_task_title"));
+  m_questInfoTaskDescription = std::dynamic_pointer_cast<GUIText>(m_questInfoLayout
+    ->findChildByName("game_ui_actor_hud_layout_quest_info_task_description"));
 
-  SW_ASSERT(m_questInfoTitle != nullptr && m_questInfoTaskTitle != nullptr);
+  SW_ASSERT(m_questInfoTitle != nullptr && m_questInfoDescription != nullptr);
+  SW_ASSERT(m_questInfoTaskTitle != nullptr && m_questInfoTaskDescription != nullptr);
 
   m_healthInfoLayout = std::dynamic_pointer_cast<GUILayout>(
     m_uiLayout.hudLayout->findChildByName("game_ui_actor_hud_layout_health_info"));
@@ -504,7 +511,6 @@ EventProcessStatus PlayerControlSystem::receiveEvent(const StopDialogueCommandEv
 
 void PlayerControlSystem::updateHUD()
 {
-//  if (m_inputModule->isActionActive("hud_quests")) {
   std::shared_ptr<QuestsStorage> questsStorage = m_uiLayout.dialoguesUI->getQuestsStorage();
   const auto* activeQuest = m_playerObject.getComponent<ActorComponent>()->getAnyActiveQuest();
 
@@ -522,6 +528,16 @@ void PlayerControlSystem::updateHUD()
     m_questInfoTaskTitle->setText("No active quest task");
   }
 
+  if (m_isMovementControlEnabled && m_inputModule->isActionActive("hud_quests") && activeQuest) {
+    m_questInfoDescription->setText(questsStorage->getQuest(activeQuest->getQuestId()).getDescription());
+    m_questInfoTaskDescription->setText(questsStorage->getQuest(activeQuest->getQuestId()).getTask(activeQuest->getCurrentTaskId())
+      .getDescription());
+  }
+  else {
+    m_questInfoDescription->setText("");
+    m_questInfoTaskDescription->setText("");
+  }
+
   if (!m_questInfoLayout->isShown()) {
     m_questInfoLayout->show();
   }
@@ -530,12 +546,5 @@ void PlayerControlSystem::updateHUD()
 
   m_healthProgressBar->setValue(static_cast<int>(
     MathUtils::fractionToPercents(playerActor->getHealth(), playerActor->getHealthLimit())));
-
-//  }
-//  else {
-//    if (!m_questInfoLayout->isShown()) {
-//      m_questInfoLayout->show();
-//    }
-//  }
 
 }
